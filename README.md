@@ -2,21 +2,21 @@
 
 Standalone operating platform for the ALSVID bicycle business.
 
-`jinfenghua1990/ALSVID` is the sole long-term implementation authority for ALSVID product engineering, bicycle lifecycle, dealer operations, customer ownership, after-sales, assets and the foreign-trade operating flows needed for Germany, Austria and future EU markets.
+`jinfenghua1990/ALSVID` is the sole long-term implementation authority for ALSVID product engineering, bicycle lifecycle, dealer operations, customer ownership, after-sales, assets and foreign-trade operating flows for Germany, Austria and future EU markets.
 
 ## Current authority
 
-ALSVID is fully separated from the ChaiBen-OS application boundary. The old ChaiBen ALSVID implementation is legacy retirement/history only and must not receive new ALSVID features.
+ALSVID is fully separated from the ChaiBen-OS application boundary. The old ChaiBen ALSVID runtime has been retired and must not receive new ALSVID features.
 
-The legacy ChaiBen ALSVID workspace contains no business data that needs preservation, so standalone ALSVID uses a zero-data cutover: initialize the standalone schema and bootstrap reference data instead of inventing or migrating historical business rows.
+The legacy ChaiBen ALSVID workspace contained no business data that required preservation, so standalone ALSVID uses a zero-data cutover: initialize the standalone schema and bootstrap reference data instead of inventing or migrating historical business rows.
 
-See `docs/CURRENT_STATE.md` for the current authoritative project state.
+See `docs/CURRENT_STATE.md` for the authoritative project state.
 
 ## Hard boundaries
 
 - ALSVID is the application/repository boundary; it is not a Workspace inside ChaiBen-OS.
 - 1688, 吉客云/JackYun and 卖咖啡的熊 do not belong in this repository.
-- Shopify stays an external OMS; ALSVID stores only the internal facts it owns.
+- Shopify stays an external OMS; ALSVID stores only confirmed commercial mappings/facts and the internal operational facts it owns.
 - One physical bicycle has exactly one canonical Vehicle and one immutable unique frame number.
 - Vehicle history is append-oriented and birth/build evidence is immutable.
 - PostgreSQL stores authoritative metadata/business facts; R2/S3-compatible object storage stores binaries.
@@ -37,8 +37,14 @@ See `docs/CURRENT_STATE.md` for the current authoritative project state.
 - Warranty / ServiceCase
 - Customer Center API
 - Service Center API
+- commercial channels and external order facts
+- export shipments and milestone tracking
+- commercial finance facts
+- inventory locations and append-only inventory movements
+- dealer inventory reservations
+- EU customs/import VAT/export-refund compliance facts
 
-Future export procurement, warehouse/inventory/logistics, finance and polished standalone UI are new ALSVID development, not migration debt. They must be designed for ALSVID export operations rather than copied from DOMESTIC workflows.
+Future ALSVID-specific procurement/factory production workflows, richer warehouse execution, deeper Shopify synchronization, live EU integrations and polished standalone UI are new product development, not migration debt.
 
 ## Target entrances
 
@@ -61,7 +67,11 @@ Binary assets use the `ALSVID_R2_*` environment configuration. The database stor
 
 ### Shopify
 
-Shopify remains the external OMS and is integrated only through mappings/confirmed facts owned by ALSVID.
+Shopify remains the external OMS and is integrated through mappings/confirmed facts. ALSVID does not recreate a general OMS.
+
+## Migration rule
+
+Repository split follows “migrate one, delete one”: once a capability is verified in ALSVID and cut over, the previous repository must remove the old runtime implementation, route, UI, test and misleading documentation for that capability. Historical Alembic revisions are handled separately through a safe baseline/cutover.
 
 ## Development
 
