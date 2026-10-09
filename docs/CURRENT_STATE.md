@@ -1,31 +1,32 @@
 # ALSVID Current State
 
-Status: standalone authority after zero-data cutover decision.
+Status: standalone authority; ChaiBen-OS runtime retired.
 
 This file is durable project memory for human and AI contributors. If extraction-era migration notes conflict with this file, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/DATA_OWNERSHIP.md` and this file are authoritative for current work.
 
 ## Authority
 
 - `jinfenghua1990/ALSVID` is the sole long-term implementation authority for ALSVID.
-- `jinfenghua1990/ChaiBen-OS` is not an ALSVID application boundary. Its legacy ALSVID runtime is being retired and must not receive new ALSVID features.
+- `jinfenghua1990/ChaiBen-OS` no longer hosts an active ALSVID runtime and must not receive new ALSVID features.
 - There is no GLOBAL/DOMESTIC/ALSVID workspace switch in the ALSVID architecture.
 - 1688, JackYun/吉客云 and 卖咖啡的熊 are DOMESTIC-only and must never enter ALSVID runtime packages.
+- Shopify remains the external OMS. ALSVID stores confirmed commercial facts and external references, not a second general OMS.
 
 ## Zero-data cutover decision
 
-The legacy ChaiBen-OS ALSVID workspace has no business data that needs preservation. Therefore:
+The legacy ChaiBen-OS ALSVID workspace had no business data that required preservation. Therefore:
 
-- standalone ALSVID starts from its own clean PostgreSQL schema and bootstrap data;
-- no source-to-target business-row migration is required for production cutover;
-- legacy data-cutover tooling remains historical/contingency tooling only and is not a release blocker;
+- standalone ALSVID starts from its own PostgreSQL schema and bootstrap data;
+- no production business-row migration from ChaiBen-OS is required;
+- legacy cutover tooling is historical/contingency tooling only and is not a release blocker;
 - future contributors must not invent dummy legacy business data merely to exercise a migration path.
 
 ## Implemented standalone capabilities
 
-The standalone repository already owns:
+The standalone repository owns:
 
 - authentication, roles, permissions and sessions;
-- Product/SKU foundation;
+- Product / SKU foundation;
 - FC / FT / CT / GT engineering models;
 - Parts, BOM and released BOM revisions;
 - R2/S3-compatible asset metadata, upload verification and signed/public access services;
@@ -34,7 +35,13 @@ The standalone repository already owns:
 - Dealer Portal workflows;
 - My ALSVID claim, Garage and marketing-consent evidence;
 - Warranty and ServiceCase domain;
-- Customer Center and Service Center APIs.
+- Customer Center and Service Center APIs;
+- commercial channels and external order facts;
+- export shipment facts and milestone tracking;
+- ALSVID-owned commercial finance facts;
+- ALSVID inventory locations and append-only inventory movements;
+- dealer inventory reservations;
+- EU export/import compliance facts including importer/EORI, customs classification, duty, import VAT, port/last-mile fees and export-refund facts.
 
 These are current ALSVID authorities. Do not recreate parallel masters in a new UI or integration.
 
@@ -58,21 +65,34 @@ These are current ALSVID authorities. Do not recreate parallel masters in a new 
 ### Shopify
 
 - Shopify remains external OMS.
-- ALSVID may map/import confirmed facts and external references but must not rebuild Shopify order management.
+- ALSVID may map/import confirmed order facts and external references but must not rebuild Shopify order management.
+- Internal shipment, inventory, dealer reservation, vehicle, warranty and service facts remain ALSVID-owned even when an external order originates in Shopify.
 
-## Not yet equivalent to “the whole future ALSVID company platform is finished”
+## Still future product development
 
-The clean extraction completed existing ALSVID-specific capabilities. The following are future ALSVID product development, not missing migration work:
+The standalone platform is not yet the finished future company platform. Remaining product development includes:
 
 - polished standalone Internal Admin UI;
-- ALSVID-specific procurement and production workflows;
-- China factory -> Germany warehouse and China factory -> dealer direct-shipping flows;
-- export warehouse/inventory/logistics capabilities;
-- export/commercial finance capabilities;
-- production deployment, live PostgreSQL environment and live R2 credentials;
-- deeper Shopify and future EU logistics/payment/tax integrations.
+- ALSVID-specific procurement and factory production workflows;
+- explicit China factory -> Germany warehouse execution workflow;
+- explicit China factory -> dealer direct-shipping execution workflow;
+- richer warehouse operations and stocktake/transfer controls on top of the current inventory ledger;
+- deeper Shopify synchronization and reconciliation;
+- live EU logistics/payment/tax integrations;
+- production deployment, live PostgreSQL environment and live R2 credentials.
 
-When these are built, they must be designed for ALSVID export operations rather than copied from DOMESTIC workflows.
+These are new ALSVID product work, not missing ChaiBen migration work. They must be designed for ALSVID export operations rather than copied from DOMESTIC workflows.
+
+## Migration / deletion rule
+
+Repository split follows “migrate one, delete one”:
+
+1. finish the standalone replacement and tests;
+2. cut over data/API/runtime authority;
+3. delete the old runtime code, routes, UI, tests and misleading docs for that capability from the previous repository;
+4. do not keep dual authority or long-lived compatibility shells.
+
+Historical Alembic revisions are database upgrade history, not active business authority. They may be removed only after a safe baseline/cutover is established.
 
 ## Canonical business rules
 

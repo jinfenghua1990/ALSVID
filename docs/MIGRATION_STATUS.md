@@ -1,8 +1,8 @@
 # ALSVID Standalone Extraction Status
 
-Status: extraction complete for existing ALSVID-specific capabilities; zero-data cutover selected.
+Status: extraction complete; zero-data cutover selected; ChaiBen ALSVID runtime retired.
 
-This file records parity for existing ALSVID-specific capabilities from the former ChaiBen-OS implementation. It does not treat future export features as migration debt.
+This file records parity for ALSVID-specific capabilities from the former ChaiBen-OS implementation. It does not treat future export features as migration debt.
 
 | Capability | Standalone status | Disposition |
 |---|---|---|
@@ -19,29 +19,62 @@ This file records parity for existing ALSVID-specific capabilities from the form
 | Warranty / Service domain service | DONE | REWRITE |
 | Internal Customer Center API | DONE | REWRITE projection |
 | Internal Service Center API | DONE | REWRITE projection |
-| Legacy HTML/Web ALSVID pages | REJECT | Replace with new standalone UI |
+| Commercial channels / external order facts | DONE | ALSVID-native |
+| Export shipments / milestones | DONE | ALSVID-native |
+| Commercial finance facts | DONE | ALSVID-native |
+| Inventory locations / append-only movements | DONE | ALSVID-native |
+| Dealer inventory reservations | DONE | ALSVID-native |
+| EU customs / import VAT / export-refund facts | DONE | ALSVID-native |
+| Legacy HTML/Web ALSVID pages | REJECT | Replace with standalone UI |
 | Legacy ALSVID business-data migration | NOT REQUIRED | Zero-data cutover: no legacy ALSVID business rows require preservation |
-| Legacy data-cutover tooling | RETAINED | Historical/contingency tooling only; not a release blocker |
-| ChaiBen-OS ALSVID source removal | IN RETIREMENT | Old runtime is not authoritative and receives no new ALSVID work |
+| Legacy data-cutover tooling | RETAINED | Historical/contingency tooling only; not runtime authority |
+| ChaiBen-OS ALSVID runtime | RETIRED | Old routes/UI/runtime removed; no new ALSVID work allowed |
 | 1688 / JackYun / DOMESTIC workspace logic | REJECT | Must never enter ALSVID runtime |
-| Generic DOMESTIC procurement/inventory/finance | REJECT AS MIGRATION | Rebuild later for ALSVID export scope only |
+| Generic DOMESTIC procurement/inventory/finance | REJECT AS MIGRATION | ALSVID export-specific capabilities are built independently |
 
 ## Existing ALSVID runtime parity
 
-All existing ALSVID-specific domain/API capabilities from the extraction baseline have standalone replacements. `jinfenghua1990/ALSVID` is the sole authority for future ALSVID development.
+All ALSVID-specific domain/API capabilities from the extraction baseline have standalone replacements. `jinfenghua1990/ALSVID` is the sole authority for future ALSVID development.
 
-The legacy ChaiBen-OS ALSVID workspace contains no business data that needs preservation. The operational cutover is therefore to initialize the standalone PostgreSQL schema and bootstrap ALSVID reference data, not to invent or copy historical business rows.
+The legacy ChaiBen-OS ALSVID workspace contained no business data that required preservation. The operational cutover is therefore to initialize the standalone PostgreSQL schema and bootstrap ALSVID reference data, not to invent or copy historical business rows.
 
-`docs/DATA_CUTOVER.md` and the migration engine remain useful as historical/contingency material, but they are not blockers for the current zero-data path.
+`docs/DATA_CUTOVER.md` and the migration engine remain historical/contingency material. They are not blockers for the current zero-data path and do not make ChaiBen-OS an active authority.
 
-## Future development is not migration debt
+## Export operations added after extraction
 
-The standalone extraction does not mean the entire future export operating platform is already finished. Future ALSVID-specific procurement, production, warehouse/inventory/logistics, commercial finance, deeper Shopify integration, production deployment and polished UI remain normal product development.
+Standalone ALSVID now also includes native export-operation foundations that did not exist as a migration requirement:
 
-Those capabilities must be designed for ALSVID export operations and must not import DOMESTIC/1688/JackYun business assumptions.
+- commercial channels and external order facts while Shopify remains the external OMS;
+- export shipments and milestone tracking;
+- commercial finance facts;
+- inventory locations, append-only movements and dealer reservations;
+- structured importer/EORI/customs classification/duty/import VAT/port/last-mile/export-refund facts.
 
-## Definition of clean extraction
+These are ALSVID-native capabilities and must not be copied back into CoffeeBear or ChaiBen-OS.
 
-A capability is DONE only when its standalone business authority exists without ChaiBen runtime imports, its known legacy defects are not carried forward, and regression coverage protects the invariant.
+## Remaining product development
+
+The future company platform still needs normal product work such as:
+
+- polished Internal Admin UI;
+- ALSVID-specific factory procurement and production execution;
+- China factory -> Germany warehouse workflow;
+- China factory -> dealer direct-shipping workflow;
+- richer warehouse execution, transfers and stocktake controls;
+- deeper Shopify synchronization and reconciliation;
+- production deployment and live EU logistics/payment/tax integrations.
+
+These are not missing migration items.
+
+## Migration / deletion rule
+
+A migrated capability is complete only when:
+
+1. the standalone replacement works and is tested;
+2. runtime/data authority has cut over;
+3. the old repository removes the corresponding runtime code, route, UI, tests and misleading documentation;
+4. no second active implementation remains.
+
+Historical Alembic revisions are treated as database upgrade history and may be removed only after a safe baseline/cutover is established.
 
 For current authoritative state and infrastructure boundaries, read `docs/CURRENT_STATE.md`.
