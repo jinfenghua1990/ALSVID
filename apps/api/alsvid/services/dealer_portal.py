@@ -20,6 +20,12 @@ class DealerPortalError(ValueError):
     pass
 
 
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
 def dealer_for_user(db: Session, *, user_id: str) -> tuple[DealerProfile, BusinessPartner]:
     rows = db.execute(
         select(DealerProfile, BusinessPartner)
@@ -185,7 +191,7 @@ def dealer_handover(
     if vehicle.current_customer_partner_id is not None:
         raise DealerPortalError("vehicle already has a buyer")
 
-    event_time = occurred_at or datetime.now(UTC)
+    event_time = _as_utc(occurred_at) if occurred_at is not None else datetime.now(UTC)
     if purchase_date > event_time.date():
         raise DealerPortalError("purchase date cannot be in the future")
 
@@ -197,7 +203,7 @@ def dealer_handover(
         )
     except VehicleLifecycleError as exc:
         raise DealerPortalError(str(exc)) from exc
-    if event_time < latest_pdi.occurred_at:
+    if event_time < _as_utc(latest_pdi.occurred_at):
         raise DealerPortalError("handover cannot precede PDI")
 
     customer = _buyer_partner(
