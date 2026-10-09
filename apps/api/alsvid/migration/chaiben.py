@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any, Iterable
 
 from sqlalchemy import MetaData, Table, and_, create_engine, select
@@ -113,7 +114,8 @@ _REQUIRED_TARGET = {
 
 def _reflect(engine: Engine, names: Iterable[str], *, required: set[str]) -> dict[str, Table]:
     inspector_metadata = MetaData()
-    inspector_metadata.reflect(bind=engine, only=lambda name, _metadata: name in set(names))
+    wanted = set(names)
+    inspector_metadata.reflect(bind=engine, only=lambda name, _metadata: name in wanted)
     missing = sorted(required - set(inspector_metadata.tables))
     if missing:
         raise LegacyMigrationError(f"database is missing required tables: {', '.join(missing)}")
@@ -138,13 +140,6 @@ def _table_rows_by_ids(
     if not ids:
         return []
     return _rows_where(conn, table, table.c[id_column].in_(ids))
-
-
-def _dedupe_rows(rows: Iterable[dict[str, Any]], key: str = "id") -> list[dict[str, Any]]:
-    result: dict[Any, dict[str, Any]] = {}
-    for row in rows:
-        result[row[key]] = row
-    return list(result.values())
 
 
 def _find_alsvid_workspace(conn: Connection, workspaces: Table) -> str:
@@ -455,6 +450,19 @@ def _one_by(conn: Connection, table: Table, **values: Any) -> dict[str, Any] | N
     return dict(row) if row is not None else None
 
 
+def _values_equal(left: Any, right: Any) -> bool:
+    if isinstance(left, datetime) and isinstance(right, datetime):
+        if left.tzinfo is None:
+            left = left.replace(tzinfo=UTC)
+        else:
+            left = left.astimezone(UTC)
+        if right.tzinfo is None:
+            right = right.replace(tzinfo=UTC)
+        else:
+            right = right.astimezone(UTC)
+    return left == right
+
+
 def _insert_or_validate(
     conn: Connection,
     table: Table,
@@ -471,17 +479,19 @@ def _insert_or_validate(
     if existing is None and natural_key:
         natural_lookup = {key: row[key] for key in natural_key}
         existing = _one_by(conn, table, **natural_lookup)
-        if existing is not None and any(existing.get(key) != row.get(key) for key in key_columns):
+        if existing is not None and any(
+            not _values_equal(existing.get(key), row.get(key)) for key in key_columns
+        ):
             raise LegacyMigrationError(
                 f"{table.name} business-key conflict for {natural_lookup}: "
-                f"target stable key differs from source"
+                "target stable key differs from source"
             )
     if existing is not None:
         columns = compare_columns or tuple(row)
         mismatches = {
             key: (existing.get(key), row.get(key))
             for key in columns
-            if key in row and existing.get(key) != row.get(key)
+            if key in row and not _values_equal(existing.get(key), row.get(key))
         }
         if mismatches:
             raise LegacyMigrationError(
