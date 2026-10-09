@@ -18,14 +18,16 @@ This status file records parity for existing ALSVID-specific capabilities from t
 | Internal Customer Center API | DONE | REWRITE projection |
 | Internal Service Center API | DONE | REWRITE projection |
 | Legacy HTML/Web ALSVID pages | REJECT | Replace with new standalone UI |
-| Legacy ALSVID data import / cutover | NEXT | Preserve stable IDs; reversible verification |
-| ChaiBen-OS ALSVID source removal | BLOCKED | Only after parity + data cutover verification |
+| Legacy ALSVID data import / cutover | TOOL READY | Dry-run/apply/verification still require real DBs |
+| ChaiBen-OS ALSVID source removal | BLOCKED | Release only after real data cutover verification |
 | 1688 / JackYun / DOMESTIC workspace logic | REJECT | Must never enter ALSVID runtime |
 | Generic DOMESTIC procurement/inventory/finance | REJECT AS MIGRATION | Rebuild later for ALSVID export scope only |
 
 ## Existing ALSVID runtime parity
 
-All existing ALSVID-specific domain/API capabilities from the extraction baseline now have standalone replacements. The remaining migration work is operational cutover: import/verify legacy ALSVID data, switch users/integrations to the standalone runtime, then remove the old ChaiBen-OS ALSVID runtime surface in a separate destructive-change PR.
+All existing ALSVID-specific domain/API capabilities from the extraction baseline now have standalone replacements. A dry-run-first migration engine and cutover runbook provide the operational data path without copying Workspace/DOMESTIC state into ALSVID.
+
+The only remaining destructive gate is environmental rather than missing application code: run the cutover against the real ChaiBen source and standalone target, verify the migrated business facts, then retire the old ChaiBen ALSVID runtime in a separate PR. Source deletion before that evidence would violate the migration safety contract.
 
 ## Definition of clean migration
 
