@@ -1,10 +1,12 @@
-# ChaiBen-OS → standalone ALSVID data cutover
+# ChaiBen-OS → standalone ALSVID data cutover (historical contingency runbook)
 
-This runbook is the destructive-change gate before the legacy ALSVID runtime may be removed from ChaiBen-OS.
+> Current decision: **zero-data cutover**. The legacy ChaiBen-OS ALSVID workspace contains no business data that needs preservation, so this runbook is **not** the active production cutover path and is **not** a release blocker. See `docs/CURRENT_STATE.md`.
+>
+> Keep this document and its tooling only as historical/contingency material in case a future audit discovers legacy ALSVID business rows that actually require preservation. Future contributors must not invent dummy legacy business data merely to exercise this path.
 
 ## Safety model
 
-The migration tool is **dry-run by default**. It opens the target transaction, executes the same mapping/conflict checks as a real migration, and rolls the transaction back unless `--apply` is supplied.
+If this contingency path is ever explicitly reactivated by a current Issue, the migration tool is **dry-run by default**. It opens the target transaction, executes the same mapping/conflict checks as a real migration, and rolls the transaction back unless `--apply` is supplied.
 
 The source database is never modified.
 
@@ -19,6 +21,8 @@ The migration deliberately excludes:
 Only ALSVID-owned catalog/engineering/vehicle/dealer/customer/service/assets facts and the exact Partner/User identities they reference are eligible.
 
 ## Preconditions
+
+Use these steps only if a current Issue explicitly reactivates the contingency migration path.
 
 1. Take a verified backup/snapshot of the standalone target database.
 2. Apply the current standalone schema:
@@ -114,18 +118,12 @@ Do not reuse old ChaiBen auth sessions. The standalone application issues its ow
 
 Before `--apply`, rollback is automatic because dry-run writes are never committed.
 
-If post-apply business verification fails, stop traffic to the standalone target and restore the pre-cutover target backup/snapshot. The legacy source remains unchanged and can continue to serve as the source of truth while the migration defect is repaired.
+If post-apply business verification fails, stop traffic to the standalone target and restore the pre-cutover target backup/snapshot. The legacy source remains unchanged while the migration defect is repaired.
 
 Do not delete or rewrite ChaiBen migration history as a rollback mechanism.
 
-## Source-removal gate
+## Current disposition
 
-ChaiBen-OS ALSVID runtime removal is allowed only after all of the following evidence exists:
+This source-to-target business-row migration is **not required** under the current zero-data decision. Legacy ChaiBen ALSVID runtime retirement is governed by the current ChaiBen retirement work, not by completion of this contingency runbook.
 
-1. real source/target dry-run is clean;
-2. `--apply` completes successfully;
-3. post-apply rerun is clean and idempotent;
-4. standalone UI/API smoke verification passes against migrated data;
-5. a target backup/restore point is retained through the cutover window.
-
-Until then, source deletion remains intentionally blocked even though standalone code parity is complete.
+If future evidence proves that legacy ALSVID business rows do exist and must be preserved, create a current Issue first, revalidate this tool against both current schemas, then apply the safety sequence above.
