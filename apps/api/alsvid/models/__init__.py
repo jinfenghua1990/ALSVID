@@ -19,6 +19,7 @@ from alsvid.models.engineering import (
     Part,
     ProductPlatform,
 )
+from alsvid.models.inventory import DealerInventoryReservation, InventoryLocation, InventoryMovement
 from alsvid.models.partners import BusinessPartner, BusinessPartnerIdentifier, ExternalMapping
 from alsvid.models.service import ServiceCase, ServiceCasePart, ServiceCaseStatusEvent, Warranty
 from alsvid.models.vehicle import Vehicle, VehicleLifecycleEvent
@@ -36,10 +37,13 @@ __all__ = [
     "CommercialChannel",
     "CommercialFinanceFact",
     "CommercialOrderFact",
+    "DealerInventoryReservation",
     "DealerPortalMember",
     "DealerProfile",
     "ExportShipment",
     "ExternalMapping",
+    "InventoryLocation",
+    "InventoryMovement",
     "MarketingConsentEvent",
     "MyAlsvidAccount",
     "Part",

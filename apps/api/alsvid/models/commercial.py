@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from alsvid.db import Base
@@ -64,6 +64,10 @@ class ExportShipment(Base):
     dealer_partner_id: Mapped[str | None] = mapped_column(
         ForeignKey("business_partners.id"), nullable=True, index=True
     )
+    importer_kind: Mapped[str] = mapped_column(String(24), default="EXTERNAL_CUSTOMER", index=True)
+    importer_partner_id: Mapped[str | None] = mapped_column(
+        ForeignKey("business_partners.id"), nullable=True, index=True
+    )
     origin_country: Mapped[str] = mapped_column(String(2), default="CN")
     destination_country: Mapped[str] = mapped_column(String(2), index=True)
     destination_city: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -71,18 +75,50 @@ class ExportShipment(Base):
     incoterm: Mapped[str] = mapped_column(String(12), default="FOB")
     status: Mapped[str] = mapped_column(String(32), default="PREPARING", index=True)
     carrier: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    booking_no: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    bill_of_lading_no: Mapped[str | None] = mapped_column(String(160), nullable=True, index=True)
+    container_no: Mapped[str | None] = mapped_column(String(160), nullable=True, index=True)
     tracking_no: Mapped[str | None] = mapped_column(String(160), nullable=True, index=True)
     export_customs_no: Mapped[str | None] = mapped_column(String(160), nullable=True)
     import_customs_no: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    commercial_invoice_no: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    eori_no: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    hs_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    cn_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    manufacturer_name: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    taric_additional_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    tax_rate_source: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tax_rate_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     currency: Mapped[str] = mapped_column(String(3), default="EUR")
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=Decimal("0"))
     declared_value: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
     freight_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
     insurance_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
     customs_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    customs_rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal("0"))
+    anti_dumping_rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal("0"))
+    countervailing_rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal("0"))
+    import_vat_rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal("0"))
     import_vat_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    import_vat_recoverable: Mapped[bool] = mapped_column(Boolean, default=True)
+    import_vat_additional_base: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    clearance_fee: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    port_fee: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    last_mile_fee: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
     other_import_cost: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    export_purchase_cost_cny: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    domestic_export_cost_cny: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    export_refund_base_cny: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    export_refund_rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal("0"))
+    actual_export_refund_cny: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0"))
+    export_refund_status: Mapped[str] = mapped_column(String(24), default="PENDING", index=True)
+    export_refund_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    eur_to_cny: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal("1"))
     etd: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     eta: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    departed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    arrived_eu_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    customs_cleared_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

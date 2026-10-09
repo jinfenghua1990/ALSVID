@@ -36,6 +36,9 @@ _PREFIXES = {
     "export_shipment": "shp",
     "shipment_milestone": "shm",
     "commercial_finance_fact": "cff",
+    "inventory_location": "loc",
+    "inventory_movement": "imv",
+    "dealer_inventory_reservation": "res",
     "audit_event": "aud",
 }
 
