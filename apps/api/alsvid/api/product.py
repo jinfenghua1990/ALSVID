@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from alsvid.api.dependencies import Principal, enforce_csrf, permission_dependency
 from alsvid.db import get_db
-from alsvid.models.catalog import Product, SKU
+from alsvid.models.catalog import SKU, Product
 from alsvid.models.engineering import (
     BicycleModel,
     BicycleVariant,
