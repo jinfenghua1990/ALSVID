@@ -4,6 +4,8 @@ from alsvid.api.assets import router as assets_router
 from alsvid.api.auth import router as auth_router
 from alsvid.api.customers import router as customers_router
 from alsvid.api.dealer import router as dealer_router
+from alsvid.api.export_compliance import router as export_compliance_router
+from alsvid.api.inventory import router as inventory_router
 from alsvid.api.my_alsvid import router as my_alsvid_router
 from alsvid.api.operations import commercial_router, finance_router, logistics_router
 from alsvid.api.product import router as product_router
@@ -29,6 +31,8 @@ app.include_router(dealer_router)
 app.include_router(my_alsvid_router)
 app.include_router(commercial_router)
 app.include_router(logistics_router)
+app.include_router(export_compliance_router)
+app.include_router(inventory_router)
 app.include_router(finance_router)
 
 
