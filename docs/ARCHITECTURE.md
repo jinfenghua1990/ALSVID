@@ -36,7 +36,7 @@ A future legal-entity or country dimension may exist inside ALSVID when needed f
 ## Domains
 
 ### Identity and access
-Users, roles, permissions, sessions, audit. Dealer/customer access is scoped by explicit memberships and relationships.
+Users, roles, permissions, sessions and audit are ALSVID-owned. A session represents one authenticated ALSVID user and does not carry a legacy `current_workspace_id`. Dealer/customer access is narrowed by explicit membership and canonical business relationships rather than a company-wide Workspace switch.
 
 ### Partners
 One canonical partner identity for factory/supplier/dealer/service-provider/customer organizations or people. Role-specific profiles attach to this identity.
@@ -61,6 +61,13 @@ Dealer authorization/profile, custody, receipt, PDI, handover, dealer stock view
 
 ### Customer
 Customer identity relationship, current/former vehicle ownership, My ALSVID Garage, secure claim/activation and consent evidence.
+
+Dealer handover and My ALSVID activation are separate steps:
+1. Dealer handover may establish the canonical buyer Partner and Vehicle ownership relationship.
+2. My ALSVID Claim may later bind that already-recorded buyer Partner to a user account.
+3. Claim must not create a second Customer Partner merely because the Vehicle already has a legitimate buyer from dealer handover.
+4. For a Vehicle with no owner yet, a valid Claim may establish the first ownership relationship.
+5. For a Vehicle whose buyer was recorded at handover, the claim email must match that recorded buyer identity unless a future explicit support/ownership-transfer flow verifies an exception.
 
 ### After-sales
 Warranty, ServiceCase, service status history, service parts and digital service-book projections.
@@ -89,6 +96,8 @@ Out of scope and prohibited in ALSVID runtime. These belong to the separate dome
 6. Dealer receipt -> PDI -> retail handover sequencing is validated using the latest relevant event, never an unordered arbitrary row.
 7. Ownership transfer changes current relationship, not Vehicle identity.
 8. Service history follows Vehicle identity while customer PII remains access-controlled.
+9. Account/portal activation attaches to canonical ownership; it never creates a duplicate Vehicle or duplicate buyer simply to satisfy portal login.
+10. Lifecycle timestamps are normalized to UTC before chronological validation so PostgreSQL, SQLite tests and historical imports cannot produce aware/naive comparison bugs.
 
 ## Entrances
 
