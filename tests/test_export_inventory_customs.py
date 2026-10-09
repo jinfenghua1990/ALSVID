@@ -7,7 +7,7 @@ from alsvid.bootstrap import bootstrap_reference_data
 from alsvid.config import Settings, get_settings
 from alsvid.db import Base, get_db
 from alsvid.main import app
-from alsvid.models import BusinessPartner, Product, Role, SKU, User, UserRole
+from alsvid.models import SKU, BusinessPartner, Product, Role, User, UserRole
 from alsvid.models.commercial import ExportShipment
 from alsvid.models.inventory import DealerInventoryReservation, InventoryMovement
 from alsvid.services.auth import issue_session
