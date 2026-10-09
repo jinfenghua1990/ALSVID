@@ -85,7 +85,15 @@ def upgrade() -> None:
 
     columns = [
         sa.Column("importer_kind", sa.String(24), nullable=False, server_default="EXTERNAL_CUSTOMER"),
-        sa.Column("importer_partner_id", sa.String(40), sa.ForeignKey("business_partners.id"), nullable=True),
+        sa.Column(
+            "importer_partner_id",
+            sa.String(40),
+            sa.ForeignKey(
+                "business_partners.id",
+                name="fk_export_shipments_importer_partner_id_business_partners",
+            ),
+            nullable=True,
+        ),
         sa.Column("booking_no", sa.String(160), nullable=True),
         sa.Column("bill_of_lading_no", sa.String(160), nullable=True),
         sa.Column("container_no", sa.String(160), nullable=True),
