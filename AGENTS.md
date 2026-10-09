@@ -16,8 +16,11 @@ Before meaningful code changes:
 3. Read `docs/CURRENT_STATE.md`.
 4. Read `docs/ARCHITECTURE.md`.
 5. Read `docs/DATA_OWNERSHIP.md`.
-6. Check relevant Issue/PR and current code before creating a second implementation.
-7. Meaningful feature/fix work uses Issue -> branch -> PR.
+6. For product/domain/Vehicle work, read `docs/PRODUCT_ARCHITECTURE.md`.
+7. For Dealer Portal, My ALSVID, QR, public/service routing or authorization work, read `docs/PORTAL_ARCHITECTURE.md`.
+8. For Internal Admin/UI work, read `docs/ADMIN_UI_SPEC.md`.
+9. Check relevant Issue/PR and current code before creating a second implementation.
+10. Meaningful feature/fix work uses Issue -> branch -> PR.
 
 `docs/MIGRATION_INVENTORY.md`, `docs/DATA_CUTOVER.md` and other extraction notes are historical records unless a current Issue explicitly reactivates migration work. They must not override `CURRENT_STATE.md`.
 
@@ -68,6 +71,8 @@ Future procurement, inventory, logistics and finance capabilities must be design
 
 Internal Admin, Dealer Portal, My ALSVID and public/service routes may present different experiences, but they must use the same authoritative domain records. Hidden UI is never authorization; backend scope is authoritative.
 
+Portal/domain separation must not create duplicate Product, Partner, Vehicle, Warranty, ServiceCase or business-rule authorities.
+
 ## 8. Testing
 
 Every domain must retain or improve regression coverage. Vehicle lifecycle changes require explicit tests for event order, duplicate frame rejection, dealer custody, PDI/handover sequencing, ownership changes and immutable birth facts.
@@ -85,7 +90,7 @@ GitHub Issues, PRs and repository docs are durable project memory. Chat is not t
 When documentation conflicts, current authority order is:
 1. `AGENTS.md`
 2. `docs/CURRENT_STATE.md`
-3. `docs/ARCHITECTURE.md`
-4. `docs/DATA_OWNERSHIP.md`
+3. `docs/ARCHITECTURE.md` and `docs/DATA_OWNERSHIP.md`
+4. `docs/PRODUCT_ARCHITECTURE.md`, `docs/PORTAL_ARCHITECTURE.md`, `docs/ADMIN_UI_SPEC.md` for their respective product surfaces
 5. current code/tests and active Issue/PR decisions
 6. historical migration/extraction notes
