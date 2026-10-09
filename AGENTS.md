@@ -4,24 +4,28 @@ These rules are mandatory for all human and AI contributors.
 
 ## 1. Repository purpose
 
-`jinfenghua1990/ALSVID` is the standalone long-term codebase for the ALSVID bicycle business. It is not a DOMESTIC workspace and must not depend on the ChaiBen-OS multi-workspace runtime.
+`jinfenghua1990/ALSVID` is the standalone, sole long-term implementation authority for the ALSVID bicycle business. It is not a DOMESTIC workspace and must not depend on the ChaiBen-OS multi-workspace runtime.
+
+No new ALSVID feature belongs in `jinfenghua1990/ChaiBen-OS`. Legacy ChaiBen ALSVID code is retirement/history only.
 
 ## 2. Pre-work protocol
 
 Before meaningful code changes:
 1. Read latest `main`.
 2. Read this file.
-3. Read `docs/ARCHITECTURE.md`.
-4. Read `docs/DATA_OWNERSHIP.md`.
-5. Read `docs/MIGRATION_INVENTORY.md` while extraction is active.
-6. Check relevant Issue/PR before creating a second implementation.
+3. Read `docs/CURRENT_STATE.md`.
+4. Read `docs/ARCHITECTURE.md`.
+5. Read `docs/DATA_OWNERSHIP.md`.
+6. Check relevant Issue/PR and current code before creating a second implementation.
 7. Meaningful feature/fix work uses Issue -> branch -> PR.
 
-## 3. Migration rule
+`docs/MIGRATION_INVENTORY.md`, `docs/DATA_CUTOVER.md` and other extraction notes are historical records unless a current Issue explicitly reactivates migration work. They must not override `CURRENT_STATE.md`.
 
-Extraction from ChaiBen-OS is **rewrite-while-migrating**, not copy-and-freeze.
+## 3. Zero-data cutover and migration rule
 
-Preserve validated business invariants, but rewrite code when it contains:
+The legacy ChaiBen-OS ALSVID workspace contains no business data that needs preservation. Standalone ALSVID therefore starts from its own clean schema/bootstrap. Do not invent dummy legacy data or treat source-to-target row migration as a release blocker.
+
+When consulting legacy code, use **rewrite-while-migrating**, not copy-and-freeze. Preserve validated business invariants, but rewrite code when it contains:
 - `chaiben.*` package coupling;
 - GLOBAL/DOMESTIC/ALSVID workspace switching that no longer applies;
 - 1688 or JackYun dependencies;
@@ -29,8 +33,6 @@ Preserve validated business invariants, but rewrite code when it contains:
 - duplicated business authority;
 - ambiguous event ordering or lifecycle logic;
 - stale naming or architecture comments.
-
-Do not delete the source implementation from ChaiBen-OS until the corresponding standalone capability is verified here.
 
 ## 4. Frozen domain rules
 
@@ -48,22 +50,42 @@ Do not delete the source implementation from ChaiBen-OS until the corresponding 
 - Money uses PostgreSQL NUMERIC / Python Decimal, never float.
 - Schema changes require migrations.
 
-## 5. Product boundary
+## 5. Infrastructure rules
 
-Runtime/UI code must not introduce DOMESTIC-only integrations or concepts. Specifically, 1688 and 吉客云/JackYun are prohibited from ALSVID runtime packages unless a future explicit architecture decision changes the boundary.
+- PostgreSQL is the authoritative business database. Connection configuration comes from `ALSVID_DATABASE_URL`.
+- R2/S3-compatible storage owns binary objects. Configuration comes from `ALSVID_R2_*` environment variables.
+- Live PostgreSQL URLs, passwords, R2 access keys and other production secrets must never be committed to Git.
+- Browser clients never receive R2 credentials; use dedicated object-storage APIs and short-lived signed URLs where appropriate.
+- Do not use `Base.metadata.create_all()` as a deployment path. Schema changes go through Alembic.
 
-## 6. Entrances and authorization
+## 6. Product boundary
+
+Runtime/UI code must not introduce DOMESTIC-only integrations or concepts. Specifically, 1688, 吉客云/JackYun and 卖咖啡的熊 are prohibited from ALSVID runtime packages unless a future explicit architecture decision changes the boundary.
+
+Future procurement, inventory, logistics and finance capabilities must be designed for ALSVID export operations, not copied from DOMESTIC workflows.
+
+## 7. Entrances and authorization
 
 Internal Admin, Dealer Portal, My ALSVID and public/service routes may present different experiences, but they must use the same authoritative domain records. Hidden UI is never authorization; backend scope is authoritative.
 
-## 7. Testing
+## 8. Testing
 
-Every migrated domain must retain or improve regression coverage. Vehicle lifecycle changes require explicit tests for event order, duplicate frame rejection, dealer custody, PDI/handover sequencing, ownership changes and immutable birth facts.
+Every domain must retain or improve regression coverage. Vehicle lifecycle changes require explicit tests for event order, duplicate frame rejection, dealer custody, PDI/handover sequencing, ownership changes and immutable birth facts.
 
-## 8. Destructive changes
+Architecture boundary tests must continue to reject `chaiben.*`, legacy workspace identity contracts, 1688, JackYun/吉客云 and other DOMESTIC contamination.
 
-Source deletion, data migration, stable-ID changes, authentication, finance, inventory-ledger semantics and production deployment are high-risk. Stage and verify before destructive changes.
+## 9. Destructive changes
 
-## 9. Project memory
+Stable-ID changes, authentication, finance, inventory-ledger semantics, schema migrations and production deployment are high-risk. Stage and verify before destructive changes.
+
+## 10. Project memory
 
 GitHub Issues, PRs and repository docs are durable project memory. Chat is not the authoritative implementation record.
+
+When documentation conflicts, current authority order is:
+1. `AGENTS.md`
+2. `docs/CURRENT_STATE.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/DATA_OWNERSHIP.md`
+5. current code/tests and active Issue/PR decisions
+6. historical migration/extraction notes
