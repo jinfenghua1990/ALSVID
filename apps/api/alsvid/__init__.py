@@ -1,0 +1,1 @@
+"""ALSVID standalone application package."""
