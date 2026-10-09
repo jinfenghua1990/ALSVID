@@ -12,6 +12,7 @@ from alsvid.services.vehicle_lifecycle import (
     VehicleLifecycleError,
     normalize_frame_number,
     record_vehicle_event,
+    require_retail_handover_ready,
 )
 
 
@@ -187,6 +188,17 @@ def dealer_handover(
     event_time = occurred_at or datetime.now(UTC)
     if purchase_date > event_time.date():
         raise DealerPortalError("purchase date cannot be in the future")
+
+    try:
+        _, latest_pdi = require_retail_handover_ready(
+            db,
+            vehicle=vehicle,
+            dealer_partner_id=dealer_partner_id,
+        )
+    except VehicleLifecycleError as exc:
+        raise DealerPortalError(str(exc)) from exc
+    if event_time < latest_pdi.occurred_at:
+        raise DealerPortalError("handover cannot precede PDI")
 
     customer = _buyer_partner(
         db,
