@@ -1,1 +1,0 @@
-Phase 3 clean-migration records are in `PHASE3_CLEAN_MIGRATION.md`, `PHASE3_ACCEPTANCE.md`, `MIGRATION_STATUS.md`, and `MIGRATION_INVENTORY_PHASE3_NOTE.md`.
