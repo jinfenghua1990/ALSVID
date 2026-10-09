@@ -15,13 +15,17 @@ This status file records parity for existing ALSVID-specific capabilities from t
 | Dealer Portal | DONE | MIGRATE + REVIEW |
 | My ALSVID claim / Garage | DONE | MIGRATE + REVIEW |
 | Warranty / Service domain service | DONE | REWRITE |
-| Internal Customer Center API | NEXT | REWRITE projection |
-| Internal Service Center API | NEXT | REWRITE projection |
+| Internal Customer Center API | DONE | REWRITE projection |
+| Internal Service Center API | DONE | REWRITE projection |
 | Legacy HTML/Web ALSVID pages | REJECT | Replace with new standalone UI |
 | Legacy ALSVID data import / cutover | NEXT | Preserve stable IDs; reversible verification |
 | ChaiBen-OS ALSVID source removal | BLOCKED | Only after parity + data cutover verification |
 | 1688 / JackYun / DOMESTIC workspace logic | REJECT | Must never enter ALSVID runtime |
 | Generic DOMESTIC procurement/inventory/finance | REJECT AS MIGRATION | Rebuild later for ALSVID export scope only |
+
+## Existing ALSVID runtime parity
+
+All existing ALSVID-specific domain/API capabilities from the extraction baseline now have standalone replacements. The remaining migration work is operational cutover: import/verify legacy ALSVID data, switch users/integrations to the standalone runtime, then remove the old ChaiBen-OS ALSVID runtime surface in a separate destructive-change PR.
 
 ## Definition of clean migration
 
