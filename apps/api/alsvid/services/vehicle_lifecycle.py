@@ -45,7 +45,7 @@ _STATUS_BY_EVENT: dict[VehicleEventType, str] = {
     VehicleEventType.IN_TRANSIT: "IN_TRANSIT",
     VehicleEventType.WAREHOUSE_RECEIVED: "WAREHOUSE",
     VehicleEventType.DEALER_RECEIVED: "DEALER_STOCK",
-    VehicleEventType.DEALER_TRANSFERRED: "DEALER_STOCK",
+    VehicleEventType.DEALER_TRANSFERRED: "IN_TRANSIT",
     VehicleEventType.PDI_COMPLETED: "READY_FOR_SALE",
     VehicleEventType.RETAIL_SOLD: "SOLD",
     VehicleEventType.CUSTOMER_BOUND: "SOLD",
@@ -71,12 +71,7 @@ _CUSTOMER_REQUIRED_EVENTS = {
 
 
 def _as_utc(value: datetime) -> datetime:
-    """Normalize persisted/imported timestamps before chronological comparisons.
-
-    PostgreSQL preserves timezone-aware timestamps, while SQLite test databases and
-    some historical imports can return naive values. Naive historical values are
-    interpreted as UTC because ALSVID lifecycle timestamps are stored in UTC.
-    """
+    """Normalize persisted/imported timestamps before chronological comparisons."""
 
     if value.tzinfo is None:
         return value.replace(tzinfo=UTC)
@@ -256,10 +251,25 @@ def record_vehicle_event(
 
     dealer = _require_partner(db, dealer_partner_id, label="dealer")
     customer = _require_partner(db, customer_partner_id, label="customer")
-    if normalized_type in _DEALER_REQUIRED_EVENTS and dealer is None:
-        raise VehicleLifecycleError("lifecycle event requires dealer partner")
-    if normalized_type in _CUSTOMER_REQUIRED_EVENTS and customer is None:
-        raise VehicleLifecycleError("lifecycle event requires customer partner")
+    if normalized_type in _DEALER_REQUIRED_EVENTS:
+        if dealer is None:
+            raise VehicleLifecycleError("lifecycle event requires dealer partner")
+        if not dealer.is_dealer:
+            raise VehicleLifecycleError("lifecycle event requires an authorized dealer identity")
+    if normalized_type in _CUSTOMER_REQUIRED_EVENTS:
+        if customer is None:
+            raise VehicleLifecycleError("lifecycle event requires customer partner")
+        if not customer.is_customer:
+            raise VehicleLifecycleError("lifecycle event requires a customer identity")
+
+    normalized_event_data = dict(event_data or {})
+
+    if normalized_type == VehicleEventType.DEALER_TRANSFERRED:
+        if vehicle.current_customer_partner_id is not None:
+            raise VehicleLifecycleError("sold vehicle cannot be transferred between dealers")
+        if vehicle.current_dealer_partner_id == dealer.id:
+            raise VehicleLifecycleError("vehicle is already assigned to this dealer")
+        normalized_event_data.setdefault("from_dealer_partner_id", vehicle.current_dealer_partner_id)
 
     if normalized_type == VehicleEventType.DEALER_RECEIVED:
         if vehicle.factory_outbound_at is None:
@@ -274,8 +284,17 @@ def record_vehicle_event(
             event_type=VehicleEventType.DEALER_RECEIVED,
             dealer_partner_id=dealer.id,
         )
-        if prior_receipt is not None:
-            raise VehicleLifecycleError("vehicle was already received by this dealer")
+        latest_transfer_to_dealer = latest_vehicle_event(
+            db,
+            vehicle_id=vehicle.id,
+            event_type=VehicleEventType.DEALER_TRANSFERRED,
+            dealer_partner_id=dealer.id,
+        )
+        if prior_receipt is not None and (
+            latest_transfer_to_dealer is None
+            or latest_transfer_to_dealer.sequence_no <= prior_receipt.sequence_no
+        ):
+            raise VehicleLifecycleError("vehicle was already received in the current dealer custody cycle")
 
     if normalized_type == VehicleEventType.PDI_COMPLETED:
         if vehicle.current_dealer_partner_id != dealer.id:
@@ -325,7 +344,7 @@ def record_vehicle_event(
         reference_type=(reference_type or "").strip().upper() or None,
         reference_id=(reference_id or "").strip() or None,
         note=note.strip(),
-        event_data=event_data or {},
+        event_data=normalized_event_data,
     )
     db.add(event)
 
