@@ -242,11 +242,7 @@ def record_vehicle_event(
 
     normalized_type = VehicleEventType(event_type)
     event_time = _as_utc(occurred_at) if occurred_at is not None else datetime.now(UTC)
-    if (
-        normalized_type not in _FACTORY_EVENTS
-        and vehicle.build_snapshot
-        and vehicle.factory_outbound_at is None
-    ):
+    if normalized_type not in _FACTORY_EVENTS and vehicle.factory_outbound_at is None:
         raise VehicleLifecycleError("vehicle requires factory outbound before downstream events")
 
     dealer = _require_partner(db, dealer_partner_id, label="dealer")
