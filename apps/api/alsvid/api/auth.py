@@ -5,7 +5,12 @@ from sqlalchemy.orm import Session
 from alsvid.api.dependencies import Principal, current_principal, enforce_csrf
 from alsvid.config import Settings, get_settings
 from alsvid.db import get_db
-from alsvid.services.auth import AuthenticationFailed, authenticate_user, issue_session, revoke_session
+from alsvid.services.auth import (
+    AuthenticationFailed,
+    authenticate_user,
+    issue_session,
+    revoke_session,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
