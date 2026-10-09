@@ -70,6 +70,19 @@ _CUSTOMER_REQUIRED_EVENTS = {
 }
 
 
+def _as_utc(value: datetime) -> datetime:
+    """Normalize persisted/imported timestamps before chronological comparisons.
+
+    PostgreSQL preserves timezone-aware timestamps, while SQLite test databases and
+    some historical imports can return naive values. Naive historical values are
+    interpreted as UTC because ALSVID lifecycle timestamps are stored in UTC.
+    """
+
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
 def normalize_frame_number(value: str) -> str:
     frame_number = value.strip().upper()
     if not frame_number:
@@ -209,7 +222,7 @@ def require_retail_handover_ready(
     )
     if latest_pdi is None or latest_pdi.sequence_no < latest_receipt.sequence_no:
         raise VehicleLifecycleError("complete PDI after the latest dealer receipt before handover")
-    if latest_pdi.occurred_at < latest_receipt.occurred_at:
+    if _as_utc(latest_pdi.occurred_at) < _as_utc(latest_receipt.occurred_at):
         raise VehicleLifecycleError("PDI cannot precede the latest dealer receipt")
     return latest_receipt, latest_pdi
 
@@ -233,6 +246,7 @@ def record_vehicle_event(
         raise VehicleLifecycleError("vehicle not found")
 
     normalized_type = VehicleEventType(event_type)
+    event_time = _as_utc(occurred_at) if occurred_at is not None else datetime.now(UTC)
     if (
         normalized_type not in _FACTORY_EVENTS
         and vehicle.build_snapshot
@@ -282,7 +296,7 @@ def record_vehicle_event(
         )
         if previous_pdi is not None and previous_pdi.sequence_no > latest_receipt.sequence_no:
             raise VehicleLifecycleError("PDI was already completed after the latest receipt")
-        if occurred_at is not None and occurred_at < latest_receipt.occurred_at:
+        if event_time < _as_utc(latest_receipt.occurred_at):
             raise VehicleLifecycleError("PDI cannot precede dealer receipt")
 
     if normalized_type == VehicleEventType.RETAIL_SOLD:
@@ -291,7 +305,7 @@ def record_vehicle_event(
             vehicle=vehicle,
             dealer_partner_id=dealer.id,
         )
-        if occurred_at is not None and occurred_at < latest_pdi.occurred_at:
+        if event_time < _as_utc(latest_pdi.occurred_at):
             raise VehicleLifecycleError("handover cannot precede PDI")
 
     max_sequence = db.scalar(
@@ -304,7 +318,7 @@ def record_vehicle_event(
         vehicle_id=vehicle.id,
         sequence_no=int(max_sequence or 0) + 1,
         event_type=normalized_type.value,
-        occurred_at=occurred_at or datetime.now(UTC),
+        occurred_at=event_time,
         actor_id=actor_id,
         dealer_partner_id=dealer.id if dealer is not None else None,
         customer_partner_id=customer.id if customer is not None else None,
@@ -382,7 +396,9 @@ def register_vehicle(
         ),
         production_batch=batch,
         factory_source=factory,
-        production_completed_at=production_completed_at,
+        production_completed_at=(
+            _as_utc(production_completed_at) if production_completed_at is not None else None
+        ),
         status="REGISTERED",
     )
     db.add(vehicle)
@@ -416,18 +432,23 @@ def record_factory_outbound(
         raise VehicleLifecycleError("vehicle not found")
     if vehicle.factory_outbound_at is not None:
         raise VehicleLifecycleError("vehicle factory outbound already recorded")
-    if vehicle.production_completed_at is not None and vehicle.production_completed_at > factory_outbound_at:
+
+    outbound_time = _as_utc(factory_outbound_at)
+    if (
+        vehicle.production_completed_at is not None
+        and _as_utc(vehicle.production_completed_at) > outbound_time
+    ):
         raise VehicleLifecycleError("production completion cannot be after factory outbound")
     if not vehicle.build_snapshot or not vehicle.bom_revision_id:
         raise VehicleLifecycleError("vehicle requires frozen build evidence before factory outbound")
 
-    vehicle.factory_outbound_at = factory_outbound_at
+    vehicle.factory_outbound_at = outbound_time
     vehicle.factory_outbound_reference = (reference or "").strip() or None
     return record_vehicle_event(
         db,
         vehicle_id=vehicle.id,
         event_type=VehicleEventType.FACTORY_OUTBOUND,
-        occurred_at=factory_outbound_at,
+        occurred_at=outbound_time,
         actor_id=actor_id,
         reference_type="FACTORY_OUTBOUND",
         reference_id=vehicle.factory_outbound_reference,
