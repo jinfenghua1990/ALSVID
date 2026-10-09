@@ -1,1 +1,0 @@
-Phase 3 Product/R2/Vehicle 360 clean migration merged via PR #7 at `7560527647f38462479a41bc6df5e877b9e52bbe`. Customer Center and Service Center extraction follow as the next standalone parity slice.
