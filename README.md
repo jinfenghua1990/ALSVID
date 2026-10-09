@@ -2,32 +2,66 @@
 
 Standalone operating platform for the ALSVID bicycle business.
 
-This repository is the new long-term implementation boundary for ALSVID product engineering, bicycle lifecycle, dealer operations, customer ownership, after-sales, assets and the foreign-trade operating flows needed for Germany, Austria and future EU markets.
+`jinfenghua1990/ALSVID` is the sole long-term implementation authority for ALSVID product engineering, bicycle lifecycle, dealer operations, customer ownership, after-sales, assets and the foreign-trade operating flows needed for Germany, Austria and future EU markets.
 
-## Extraction source
+## Current authority
 
-The initial implementation is being extracted from `jinfenghua1990/ChaiBen-OS` starting from source `main` SHA `5cb68246f5049be90f9acdb4d6dc89b7decec803`.
+ALSVID is fully separated from the ChaiBen-OS application boundary. The old ChaiBen ALSVID implementation is legacy retirement/history only and must not receive new ALSVID features.
 
-This is not a blind copy. Multi-workspace assumptions, DOMESTIC/卖咖啡的熊 coupling, stale architecture decisions and incorrect code are rewritten as they are migrated.
+The legacy ChaiBen ALSVID workspace contains no business data that needs preservation, so standalone ALSVID uses a zero-data cutover: initialize the standalone schema and bootstrap reference data instead of inventing or migrating historical business rows.
+
+See `docs/CURRENT_STATE.md` for the current authoritative project state.
 
 ## Hard boundaries
 
 - ALSVID is the application/repository boundary; it is not a Workspace inside ChaiBen-OS.
-- 1688 and 吉客云/JackYun do not belong in this repository.
+- 1688, 吉客云/JackYun and 卖咖啡的熊 do not belong in this repository.
 - Shopify stays an external OMS; ALSVID stores only the internal facts it owns.
 - One physical bicycle has exactly one canonical Vehicle and one immutable unique frame number.
 - Vehicle history is append-oriented and birth/build evidence is immutable.
 - PostgreSQL stores authoritative metadata/business facts; R2/S3-compatible object storage stores binaries.
 - Money uses Decimal/NUMERIC. External platform identifiers never replace internal stable IDs.
+- Live database/R2 credentials are deployment secrets and must never be committed to Git.
+
+## Current standalone capabilities
+
+- authentication / authorization
+- Product / SKU foundation
+- FC / FT / CT / GT engineering
+- Parts / BOM / released revisions
+- R2/S3-compatible asset service/API
+- Vehicle identity / lifecycle
+- Vehicle Center / Vehicle 360 API
+- Dealer Portal
+- My ALSVID claim / Garage / consent evidence
+- Warranty / ServiceCase
+- Customer Center API
+- Service Center API
+
+Future export procurement, warehouse/inventory/logistics, finance and polished standalone UI are new ALSVID development, not migration debt. They must be designed for ALSVID export operations rather than copied from DOMESTIC workflows.
 
 ## Target entrances
 
-- Internal admin
+- Internal Admin
 - Dealer Portal
 - My ALSVID customer experience
 - Narrow public/service flows
 
 All entrances use the same authoritative ALSVID domain facts with explicit authorization.
+
+## Infrastructure
+
+### PostgreSQL
+
+The runtime uses `ALSVID_DATABASE_URL`. Schema changes go through Alembic.
+
+### R2 / S3-compatible object storage
+
+Binary assets use the `ALSVID_R2_*` environment configuration. The database stores asset metadata; R2 stores bytes. Browser clients never receive storage credentials.
+
+### Shopify
+
+Shopify remains the external OMS and is integrated only through mappings/confirmed facts owned by ALSVID.
 
 ## Development
 
@@ -55,6 +89,6 @@ uvicorn alsvid.main:app --app-dir apps/api --host 127.0.0.1 --port 8200
 
 Health check: `GET /health`.
 
-Local port `8200` is intentionally separate from the legacy ChaiBen-OS `8100` runtime during extraction. Do not use `Base.metadata.create_all()` as a deployment path; schema changes go through Alembic revisions.
+Do not use `Base.metadata.create_all()` as a deployment path; schema changes go through Alembic revisions.
 
-See `docs/ARCHITECTURE.md`, `docs/DATA_OWNERSHIP.md` and `docs/MIGRATION_INVENTORY.md` before changing domain code.
+Before meaningful domain work read, in order: `AGENTS.md`, `docs/CURRENT_STATE.md`, `docs/ARCHITECTURE.md`, `docs/DATA_OWNERSHIP.md`, then the relevant current Issue/PR and code/tests.
