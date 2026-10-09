@@ -37,9 +37,24 @@ Python 3.12+.
 python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
+cp .env.example .env
+```
+
+Create the PostgreSQL database referenced by `ALSVID_DATABASE_URL`, then apply the standalone schema and seed ALSVID reference data:
+
+```bash
+alembic upgrade head
+python -m alsvid.bootstrap
+```
+
+Start the API:
+
+```bash
 uvicorn alsvid.main:app --app-dir apps/api --host 127.0.0.1 --port 8200
 ```
 
-Local port `8200` is intentionally separate from the legacy ChaiBen-OS `8100` runtime during extraction.
+Health check: `GET /health`.
+
+Local port `8200` is intentionally separate from the legacy ChaiBen-OS `8100` runtime during extraction. Do not use `Base.metadata.create_all()` as a deployment path; schema changes go through Alembic revisions.
 
 See `docs/ARCHITECTURE.md`, `docs/DATA_OWNERSHIP.md` and `docs/MIGRATION_INVENTORY.md` before changing domain code.
