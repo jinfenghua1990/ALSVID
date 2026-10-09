@@ -1,6 +1,8 @@
 # ALSVID Standalone Extraction Status
 
-This status file records parity for existing ALSVID-specific capabilities from the ChaiBen-OS extraction baseline. It does not treat future export features as migration debt.
+Status: extraction complete for existing ALSVID-specific capabilities; zero-data cutover selected.
+
+This file records parity for existing ALSVID-specific capabilities from the former ChaiBen-OS implementation. It does not treat future export features as migration debt.
 
 | Capability | Standalone status | Disposition |
 |---|---|---|
@@ -18,17 +20,28 @@ This status file records parity for existing ALSVID-specific capabilities from t
 | Internal Customer Center API | DONE | REWRITE projection |
 | Internal Service Center API | DONE | REWRITE projection |
 | Legacy HTML/Web ALSVID pages | REJECT | Replace with new standalone UI |
-| Legacy ALSVID data import / cutover | TOOL READY | Dry-run/apply/verification still require real DBs |
-| ChaiBen-OS ALSVID source removal | BLOCKED | Release only after real data cutover verification |
+| Legacy ALSVID business-data migration | NOT REQUIRED | Zero-data cutover: no legacy ALSVID business rows require preservation |
+| Legacy data-cutover tooling | RETAINED | Historical/contingency tooling only; not a release blocker |
+| ChaiBen-OS ALSVID source removal | IN RETIREMENT | Old runtime is not authoritative and receives no new ALSVID work |
 | 1688 / JackYun / DOMESTIC workspace logic | REJECT | Must never enter ALSVID runtime |
 | Generic DOMESTIC procurement/inventory/finance | REJECT AS MIGRATION | Rebuild later for ALSVID export scope only |
 
 ## Existing ALSVID runtime parity
 
-All existing ALSVID-specific domain/API capabilities from the extraction baseline now have standalone replacements. A dry-run-first migration engine and cutover runbook provide the operational data path without copying Workspace/DOMESTIC state into ALSVID.
+All existing ALSVID-specific domain/API capabilities from the extraction baseline have standalone replacements. `jinfenghua1990/ALSVID` is the sole authority for future ALSVID development.
 
-The only remaining destructive gate is environmental rather than missing application code: run the cutover against the real ChaiBen source and standalone target, verify the migrated business facts, then retire the old ChaiBen ALSVID runtime in a separate PR. Source deletion before that evidence would violate the migration safety contract.
+The legacy ChaiBen-OS ALSVID workspace contains no business data that needs preservation. The operational cutover is therefore to initialize the standalone PostgreSQL schema and bootstrap ALSVID reference data, not to invent or copy historical business rows.
 
-## Definition of clean migration
+`docs/DATA_CUTOVER.md` and the migration engine remain useful as historical/contingency material, but they are not blockers for the current zero-data path.
 
-A capability is DONE only when its standalone business authority exists without ChaiBen runtime imports, its known legacy defects are not carried forward, and regression coverage protects the migrated invariant.
+## Future development is not migration debt
+
+The standalone extraction does not mean the entire future export operating platform is already finished. Future ALSVID-specific procurement, production, warehouse/inventory/logistics, commercial finance, deeper Shopify integration, production deployment and polished UI remain normal product development.
+
+Those capabilities must be designed for ALSVID export operations and must not import DOMESTIC/1688/JackYun business assumptions.
+
+## Definition of clean extraction
+
+A capability is DONE only when its standalone business authority exists without ChaiBen runtime imports, its known legacy defects are not carried forward, and regression coverage protects the invariant.
+
+For current authoritative state and infrastructure boundaries, read `docs/CURRENT_STATE.md`.
