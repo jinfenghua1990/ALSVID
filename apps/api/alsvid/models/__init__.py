@@ -1,4 +1,5 @@
 from alsvid.models.assets import Asset
+from alsvid.models.auth import AuthSession, UserAuthCredential
 from alsvid.models.catalog import SKU, Product
 from alsvid.models.core import AuditEvent, Permission, Role, RolePermission, User, UserRole
 from alsvid.models.customer import MarketingConsentEvent, MyAlsvidAccount, VehicleClaimToken
@@ -18,6 +19,7 @@ from alsvid.models.vehicle import Vehicle, VehicleLifecycleEvent
 __all__ = [
     "Asset",
     "AuditEvent",
+    "AuthSession",
     "BicycleModel",
     "BicycleVariant",
     "BomItem",
@@ -40,6 +42,7 @@ __all__ = [
     "ServiceCasePart",
     "ServiceCaseStatusEvent",
     "User",
+    "UserAuthCredential",
     "UserRole",
     "Vehicle",
     "VehicleClaimToken",
