@@ -1,6 +1,13 @@
 from alsvid.models.assets import Asset
 from alsvid.models.auth import AuthSession, UserAuthCredential
 from alsvid.models.catalog import SKU, Product
+from alsvid.models.commercial import (
+    CommercialChannel,
+    CommercialFinanceFact,
+    CommercialOrderFact,
+    ExportShipment,
+    ShipmentMilestone,
+)
 from alsvid.models.core import AuditEvent, Permission, Role, RolePermission, User, UserRole
 from alsvid.models.customer import MarketingConsentEvent, MyAlsvidAccount, VehicleClaimToken
 from alsvid.models.dealer import DealerPortalMember, DealerProfile
@@ -26,8 +33,12 @@ __all__ = [
     "BomRevision",
     "BusinessPartner",
     "BusinessPartnerIdentifier",
+    "CommercialChannel",
+    "CommercialFinanceFact",
+    "CommercialOrderFact",
     "DealerPortalMember",
     "DealerProfile",
+    "ExportShipment",
     "ExternalMapping",
     "MarketingConsentEvent",
     "MyAlsvidAccount",
@@ -41,6 +52,7 @@ __all__ = [
     "ServiceCase",
     "ServiceCasePart",
     "ServiceCaseStatusEvent",
+    "ShipmentMilestone",
     "User",
     "UserAuthCredential",
     "UserRole",
