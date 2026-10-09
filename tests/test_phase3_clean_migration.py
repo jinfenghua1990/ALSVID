@@ -185,7 +185,7 @@ def test_vehicle_360_projects_birth_custody_warranty_service_and_timeline() -> N
 
 
 def test_phase3_routes_are_first_class_standalone_routes() -> None:
-    paths = {path for route in app.routes if (path := getattr(route, "path", None))}
+    paths = set(app.openapi()["paths"])
     assert "/api/v1/product-center/models" in paths
     assert "/api/v1/assets/upload-ticket" in paths
     assert "/api/v1/vehicle-center/vehicles" in paths
