@@ -31,6 +31,11 @@ _PREFIXES = {
     "marketing_consent_event": "mce",
     "dealer_portal_member": "dpm",
     "external_mapping": "ext",
+    "commercial_channel": "chn",
+    "commercial_order_fact": "cof",
+    "export_shipment": "shp",
+    "shipment_milestone": "shm",
+    "commercial_finance_fact": "cff",
     "audit_event": "aud",
 }
 
