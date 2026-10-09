@@ -41,9 +41,9 @@ This ledger decides what is rewritten, migrated, deferred or explicitly rejected
 | migration `20261008_0013_alsvid_vehicle_lifecycle.py` | REWRITE | Fold into standalone migration chain |
 | `tests/test_alsvid_vehicle_lifecycle.py` | MIGRATE + EXPAND | Preserve invariants and add regression for latest receipt/PDI event ordering |
 
-### Confirmed defect to eliminate
+### Confirmed vehicle defect eliminated in standalone code
 
-Legacy `RETAIL_SOLD` validation assigns a variable named `latest_pdi` from an unordered query. It does not explicitly order PDI events by descending `sequence_no` and limit to one row, while the corresponding receipt lookup does. The standalone implementation must query the latest relevant PDI deterministically and add regression coverage for multiple dealer receipt/PDI cycles.
+Legacy `RETAIL_SOLD` validation assigns a variable named `latest_pdi` from an unordered query. It does not explicitly order PDI events by descending `sequence_no` and limit to one row, while the corresponding receipt lookup does. The standalone implementation now resolves the latest relevant event deterministically and includes regression coverage for receipt/PDI ordering.
 
 ## Dealer
 
@@ -71,8 +71,12 @@ Legacy `RETAIL_SOLD` validation assigns a variable named `latest_pdi` from an un
 | Source | Disposition | Reason |
 |---|---|---|
 | `routers/alsvid_service_center.py` / `alsvid_service_web.py` | MIGRATE | ALSVID after-sales |
-| `services/alsvid_service.py` | MIGRATE + REVIEW | Canonical service lifecycle |
+| `services/alsvid_service.py` | REWRITE | Legacy case opening mutates Partner dealer role as a side effect; standalone service validates role instead |
 | Warranty / ServiceCase portions of `models/alsvid.py` | REWRITE | Separate into after-sales domain |
+
+### Confirmed after-sales defect eliminated in standalone code
+
+Legacy `open_service_case()` sets `dealer.is_dealer = True` whenever a partner ID is supplied. A service transaction must not silently change master-data identity/roles. The standalone service rejects an inactive/non-dealer partner and has a regression test proving the failed service operation leaves the partner role unchanged.
 
 ## Supply chain / finance
 
