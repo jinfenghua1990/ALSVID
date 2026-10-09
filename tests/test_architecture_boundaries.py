@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 RUNTIME_ROOT = Path("apps/api/alsvid")
 
 
