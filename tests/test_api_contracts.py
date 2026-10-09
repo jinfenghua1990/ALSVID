@@ -78,7 +78,7 @@ def test_auth_uses_alsvid_cookie_and_requires_csrf_for_logout() -> None:
     try:
         with factory() as db:
             bootstrap_reference_data(db)
-            user = User(email="admin@alsvid.test", display_name="Admin")
+            user = User(email="admin@example.com", display_name="Admin")
             db.add(user)
             db.flush()
             db.add(UserRole(user_id=user.id, role_id=_role(db, "ADMIN").id))
@@ -92,7 +92,7 @@ def test_auth_uses_alsvid_cookie_and_requires_csrf_for_logout() -> None:
 
         response = client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@alsvid.test", "password": "standalone-bike-password"},
+            json={"email": "admin@example.com", "password": "standalone-bike-password"},
         )
         assert response.status_code == 200
         assert "alsvid_session=" in response.headers["set-cookie"]
@@ -101,7 +101,7 @@ def test_auth_uses_alsvid_cookie_and_requires_csrf_for_logout() -> None:
 
         session_response = client.get("/api/v1/auth/session")
         assert session_response.status_code == 200
-        assert session_response.json()["email"] == "admin@alsvid.test"
+        assert session_response.json()["email"] == "admin@example.com"
 
         assert client.post("/api/v1/auth/logout").status_code == 403
         assert client.post("/api/v1/auth/logout", headers={"X-CSRF-Token": csrf}).status_code == 204
