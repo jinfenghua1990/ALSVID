@@ -119,8 +119,9 @@ def upgrade() -> None:
         sa.Column("arrived_eu_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("customs_cleared_at", sa.DateTime(timezone=True), nullable=True),
     ]
-    for column in columns:
-        op.add_column("export_shipments", column)
+    with op.batch_alter_table("export_shipments") as batch_op:
+        for column in columns:
+            batch_op.add_column(column)
     for column in (
         "importer_kind",
         "importer_partner_id",
@@ -142,7 +143,7 @@ def downgrade() -> None:
         "importer_kind",
     ):
         op.drop_index(f"ix_export_shipments_{column}", table_name="export_shipments")
-    for column in (
+    columns = (
         "customs_cleared_at",
         "arrived_eu_at",
         "departed_at",
@@ -177,8 +178,10 @@ def downgrade() -> None:
         "booking_no",
         "importer_partner_id",
         "importer_kind",
-    ):
-        op.drop_column("export_shipments", column)
+    )
+    with op.batch_alter_table("export_shipments") as batch_op:
+        for column in columns:
+            batch_op.drop_column(column)
     op.drop_table("dealer_inventory_reservations")
     op.drop_table("inventory_movements")
     op.drop_table("inventory_locations")
