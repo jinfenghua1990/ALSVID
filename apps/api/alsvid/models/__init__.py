@@ -1,4 +1,4 @@
-from alsvid.models.catalog import Product, SKU
+from alsvid.models.catalog import SKU, Product
 from alsvid.models.core import AuditEvent, Permission, Role, RolePermission, User, UserRole
 from alsvid.models.engineering import (
     BicycleModel,
