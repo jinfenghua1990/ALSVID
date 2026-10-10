@@ -55,7 +55,7 @@ Reasons for selection:
 
 Current decision:
 
-```
+```text
 Production Database:
 Neon PostgreSQL
 ```
@@ -79,7 +79,7 @@ Reasons to keep Supabase as backup:
 
 Current decision:
 
-```
+```text
 Primary:
 Neon PostgreSQL
 
@@ -89,43 +89,46 @@ Supabase PostgreSQL
 
 ---
 
-# 5. Why Not Build Database Locally?
+# 5. Why Not Use Local PostgreSQL as the Normal Test Authority?
 
-ALSVID development uses a local M1 computer, but the database should remain cloud-based for testing.
+ALSVID development uses an M1 computer for compute, but the normal Test database remains managed and cloud-based.
 
 Recommended model:
 
-```
-M1 Local Computer
-        |
-        |
-        v
-Neon Test Database
+```text
+M1 + Docker
+    |
+    v
+Neon Test resources
 ```
 
 Reasons:
 
-- Keeps development closer to production behavior.
-- Avoids local database maintenance.
-- Allows database branching and reset.
-- Prevents environment differences.
+- keeps database behavior closer to Production;
+- validates TLS/managed-service connection behavior;
+- avoids maintaining a local database as the authoritative Test environment;
+- allows Neon branching/reset workflows;
+- reduces differences between Test and Production.
+
+Local PostgreSQL may still be used for true offline work or isolated low-level tests, but it is not the normal Test authority.
 
 ---
 
 # 6. Test and Production Separation
 
-Database environments should be separated when production deployment begins.
+Test and Production must use separate database resources.
 
-Recommended:
+Conceptually:
 
-```
-Neon Production
-        |
-        |
+```text
 Neon Test
+
+Neon Production
 ```
 
-Production data must never be used directly for testing.
+Production data must never be used directly for destructive testing, migration experiments or seed/reset workflows.
+
+Test approval promotes a software version/commit, not Test data.
 
 ---
 
@@ -139,36 +142,44 @@ Shopify:
 
 - Commerce transactions.
 - Orders.
-- Payments.
+- Payments/refunds and storefront transaction facts.
 
 WMS:
 
 - Inventory execution.
 - Warehouse operations.
-- Shipment execution.
+- Shipment/dispatch execution.
 
 ALSVID:
 
 - Vehicle lifecycle.
-- Customer service history.
+- Customer/dealer service relationships.
 - Warranty information.
-- Repair records.
-- Important business data relationships.
+- Repair/service history.
+- Important external business facts required for Vehicle 360, My ALSVID and after-sales.
 
 ALSVID stores required business facts, not unnecessary copies of external systems.
 
 ---
 
-# 8. Future Migration Principle
+# 8. Why Neon Rather Than Supabase as Primary Today?
 
-If database provider changes in the future:
+Both are valid PostgreSQL platforms. Neon is primary today because ALSVID already owns its application/API/identity/domain layers and uses Cloudflare R2 for files. A focused managed PostgreSQL provider keeps the initial infrastructure simpler and avoids adopting platform capabilities ALSVID does not currently need.
 
-The business layer should remain unchanged.
+Supabase remains explicitly approved as a migration alternative because it preserves PostgreSQL compatibility and may become attractive if its integrated capabilities provide real future value.
+
+---
+
+# 9. Future Migration Principle
+
+If the database provider changes in the future, the business layer should remain unchanged as far as reasonably possible.
 
 Migration target:
 
-```
-PostgreSQL compatible database
+```text
+PostgreSQL-compatible managed database
 ```
 
-The application architecture should not depend on provider-specific features unless intentionally documented.
+Provider-specific features must not leak into core business rules unless intentionally documented and justified.
+
+A future switch from Neon to Supabase (or another PostgreSQL provider) should be treated as an infrastructure migration, not a redesign of ALSVID.
