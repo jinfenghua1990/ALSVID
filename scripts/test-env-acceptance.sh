@@ -10,8 +10,8 @@ docker compose version
 echo "== Build ALSVID Test images =="
 "${compose[@]}" build
 
-echo "== Start PostgreSQL and MinIO =="
-"${compose[@]}" up -d postgres minio
+echo "== Start PostgreSQL =="
+"${compose[@]}" up -d postgres
 
 echo "== Apply migrations =="
 "${compose[@]}" run --rm api pnpm db:migrate
@@ -41,9 +41,9 @@ echo "== Container state =="
 "${compose[@]}" ps
 
 echo
-echo "ALSVID Test acceptance passed."
+echo "ALSVID core Test acceptance passed."
 echo "Web: http://127.0.0.1:3001/"
 echo "API health: http://127.0.0.1:4001/api/health"
-echo "MinIO console: http://127.0.0.1:9003/"
+echo "Object-storage provider acceptance is tracked separately in Issue #35."
 echo
 echo "To stop Test: docker compose -f infra/docker-compose.test.yml down"
