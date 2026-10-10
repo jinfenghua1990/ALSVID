@@ -146,10 +146,15 @@ export class InventoryService {
       const reservation = row.rows[0];
       if (!reservation) throw new InventoryConflictError('Reservation is missing or no longer active');
       const itemId = reservation.part_id ?? reservation.sku_id ?? reservation.vehicle_id;
+      const reason = input.reason?.trim();
+      const referenceType = input.referenceType ?? reservation.reference_type ?? undefined;
+      const referenceId = input.referenceId ?? reservation.reference_id ?? undefined;
       return this.insertMovement(actor, {
         movementType:'ISSUE', itemKind:reservation.item_kind, itemId, unit:reservation.unit, quantity:reservation.quantity,
         sourceLocationId:reservation.location_id, reservationId, idempotencyKey:input.idempotencyKey,
-        reason:input.reason, referenceType:input.referenceType ?? reservation.reference_type, referenceId:input.referenceId ?? reservation.reference_id,
+        ...(reason ? { reason } : {}),
+        ...(referenceType ? { referenceType } : {}),
+        ...(referenceId ? { referenceId } : {}),
       }, client);
     });
   }
@@ -171,10 +176,10 @@ export class InventoryService {
     const delta = signedDecimal(input.delta,'delta');
     const inbound = !delta.startsWith('-');
     const quantity = inbound ? delta : delta.slice(1);
+    const route = inbound ? { destinationLocationId: input.locationId } : { sourceLocationId: input.locationId };
     return this.insertMovement(actor, {
       movementType:'STOCKTAKE_CORRECTION', itemKind:input.itemKind, itemId:input.itemId, unit:input.unit,
-      quantity, sourceLocationId:inbound?undefined:input.locationId,
-      destinationLocationId:inbound?input.locationId:undefined, referenceType:'STOCKTAKE', referenceId:input.stocktakeId,
+      quantity, ...route, referenceType:'STOCKTAKE', referenceId:input.stocktakeId,
       reason:'Stocktake reconciliation', idempotencyKey:`stocktake:${input.stocktakeId}:${input.countId}`,
       correlationId:input.stocktakeId,
     }, executor);
@@ -191,7 +196,7 @@ export class InventoryService {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
         [input.movementType,input.itemKind,ids.partId,ids.skuId,ids.vehicleId,decimal(input.quantity,'quantity'),unit,input.sourceLocationId||null,input.destinationLocationId||null,input.reservationId||null,input.referenceType?.trim()||null,input.referenceId||null,input.reason?.trim()??'',input.idempotencyKey.trim(),input.correlationId?.trim()||null,actor.userId],
       );
-      await this.audit.record({ actorUserId:actor.userId, action:'inventory.movement_posted', targetType:'inventory.movement', targetId:result.rows[0].id, correlationId:input.correlationId, metadata:{ movementType:input.movementType, itemKind:input.itemKind } }, executor);
+      await this.audit.record({ actorUserId:actor.userId, action:'inventory.movement_posted', targetType:'inventory.movement', targetId:result.rows[0].id, correlationId:input.correlationId?.trim()||null, metadata:{ movementType:input.movementType, itemKind:input.itemKind } }, executor);
       return result.rows[0];
     } catch (error:any) {
       this.rethrowDatabaseError(error);
