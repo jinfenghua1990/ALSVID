@@ -79,3 +79,28 @@ test('serialized Vehicle can occupy only one inventory location and must move fr
     await assert.rejects(service.postMovement(auth,{movementType:'ISSUE',itemKind:'VEHICLE',itemId:vehicleId,unit:'EA',quantity:'1',sourceLocationId:places.locationA,idempotencyKey:`vehicle-wrong-source-${suffix()}`}),InventoryConflictError);
   }finally{await db.close();}
 });
+
+test('concurrent issues and reservations serialize on the inventory position', {skip:!hasDatabase}, async()=>{
+  const db=new Database();
+  try{
+    const auth=await actor(db);const service=new InventoryService(db,new AuditService(db));const places=await warehouse(db,auth.userId);const partId=await part(db);
+    await service.postMovement(auth,{movementType:'RECEIPT',itemKind:'PART',itemId:partId,unit:'EA',quantity:'1',destinationLocationId:places.locationA,idempotencyKey:`concurrent-receipt-${suffix()}`});
+    const issues=await Promise.allSettled([
+      service.postMovement(auth,{movementType:'ISSUE',itemKind:'PART',itemId:partId,unit:'EA',quantity:'1',sourceLocationId:places.locationA,idempotencyKey:`concurrent-issue-a-${suffix()}`}),
+      service.postMovement(auth,{movementType:'ISSUE',itemKind:'PART',itemId:partId,unit:'EA',quantity:'1',sourceLocationId:places.locationA,idempotencyKey:`concurrent-issue-b-${suffix()}`}),
+    ]);
+    assert.equal(issues.filter(result=>result.status==='fulfilled').length,1);
+    assert.equal(issues.filter(result=>result.status==='rejected').length,1);
+    assert.equal(Number(await service.balanceAt({itemKind:'PART',itemId:partId,unit:'EA',locationId:places.locationA})),0);
+
+    await service.postMovement(auth,{movementType:'RECEIPT',itemKind:'PART',itemId:partId,unit:'EA',quantity:'1',destinationLocationId:places.locationA,idempotencyKey:`concurrent-replenish-${suffix()}`});
+    const reservations=await Promise.allSettled([
+      service.createReservation(auth,{itemKind:'PART',itemId:partId,unit:'EA',locationId:places.locationA,quantity:'1',referenceType:'CONCURRENT-A'}),
+      service.createReservation(auth,{itemKind:'PART',itemId:partId,unit:'EA',locationId:places.locationA,quantity:'1',referenceType:'CONCURRENT-B'}),
+    ]);
+    assert.equal(reservations.filter(result=>result.status==='fulfilled').length,1);
+    assert.equal(reservations.filter(result=>result.status==='rejected').length,1);
+    const active=await db.query<{count:number}>(`SELECT count(*)::int AS count FROM inventory.reservations WHERE status='ACTIVE' AND part_id=$1 AND location_id=$2`,[partId,places.locationA]);
+    assert.equal(active.rows[0]!.count,1);
+  }finally{await db.close();}
+});
