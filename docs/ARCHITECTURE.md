@@ -23,6 +23,7 @@ Internal Admin / Dealer Portal / My ALSVID / Public Service
 
 Binary assets ----------------------> R2 / S3-compatible object storage
 Shopify ----------------------------> external commerce OMS integration boundary
+Email provider ---------------------> external mail transport/delivery boundary
 ```
 
 Local extraction runtime defaults to port `8200` so it can coexist with the legacy ChaiBen-OS runtime during migration.
@@ -79,6 +80,20 @@ Dealer handover and My ALSVID activation are separate steps:
 6. Claim tokens are opaque, stored as hashes and one-time consumable. Customer-facing claim links place the raw token in a URL fragment rather than exposing an internal Vehicle identifier as authority.
 7. Marketing consent is explicit and append-only. Vehicle claim/account registration does not imply marketing consent.
 
+### Communication and customer marketing
+ALSVID owns the business record of customer/dealer communications, follow-up state and marketing eligibility. It does not run its own SMTP/mail server.
+
+- Email providers remain the external transport/delivery systems.
+- ALSVID stores normalized conversation/thread/message facts, direction, timestamps, provider message/thread mappings, customer/dealer/Partner associations, AI summaries, intent, suggested next actions and internal follow-up state.
+- Email attachments and other binary communication assets live in R2; PostgreSQL stores attachment metadata and references.
+- Email identities must resolve to canonical Partner/Customer/Dealer records when matched; communication workflows must not create a second customer master.
+- AI may summarize messages and generate reply drafts, but the default outbound workflow requires human approval before send.
+- Draft, approval and send actions must be auditable.
+- Marketing eligibility is derived from explicit consent plus suppression/unsubscribe state. Purchase, vehicle claim, account creation or service contact never implies marketing consent.
+- Consent/withdrawal evidence remains append-only and authoritative. Marketing campaigns must respect applicable consent and suppression rules before send.
+- Campaign/send history and delivery status belong to ALSVID business records even when delivery is executed by an external email provider.
+- The Communication domain should remain channel-neutral so WhatsApp, phone calls and meeting notes can later attach to the same canonical Partner timeline without changing customer identity.
+
 ### After-sales
 Warranty, ServiceCase, service status history, service parts and digital service-book projections.
 
@@ -91,6 +106,11 @@ ALSVID-owned invoices, payments, receivables/payables and reconciliation facts r
 
 ### Shopify
 Shopify remains the external OMS. ALSVID may import/map confirmed commercial facts and use Shopify references, but must not duplicate Shopify order-management behavior merely to become self-contained.
+
+### Email provider
+Google Workspace, Microsoft 365 or another approved provider may deliver and receive email. ALSVID integrates through a provider-neutral connector boundary and owns the internal communication/marketing business records described above.
+
+Mailbox credentials, OAuth tokens and provider secrets are deployment secrets and must never be committed to Git. Provider IDs are external mappings, never ALSVID primary keys.
 
 ### R2
 R2/S3-compatible storage owns binary objects. Credentials never reach the browser. Browser upload/download uses short-lived signed URLs where appropriate.
@@ -148,7 +168,9 @@ CI upgrades a clean database to `head`, verifies table and column parity against
 ## Entrances
 
 ### Internal Admin
-Primary operations UI: Workbench, Product Center, Supply-chain Center, Dealer Center, Customer Center, Vehicle Center, After-sales Center and Finance Center.
+Primary operations UI: Workbench, Product Center, Supply-chain Center, Dealer Center, Customer Center, Vehicle Center, After-sales Center, Finance Center and Communication Center.
+
+Communication Center is the internal surface for customer/dealer conversation history, AI summaries/drafts, follow-up tasks, consent/suppression state and future marketing campaigns. Outbound AI-generated replies require human approval by default.
 
 ### Dealer Portal
 Only authorized dealer facts: assigned/custodied Vehicles, PDI/handover, approved assets and separately authorized service facts.
