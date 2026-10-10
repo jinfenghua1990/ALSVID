@@ -19,7 +19,7 @@ export class DealerService{
     const [dealers,history]=await Promise.all([
       this.database.query<any>(`SELECT d.*,p.partner_code,p.display_name,p.country_code,
         a.line1 AS default_shipping_line1,a.city AS default_shipping_city,a.country_code AS default_shipping_country,
-        c.name AS default_contact_name,c.email AS default_contact_email,c.phone AS default_contact_phone,
+        c.type AS default_contact_type,c.value AS default_contact_value,c.purpose AS default_contact_purpose,
         l.code AS default_inventory_location_code,w.code AS default_inventory_warehouse_code
         FROM dealer.dealers d JOIN partners.partners p ON p.id=d.partner_id
         LEFT JOIN partners.addresses a ON a.id=d.default_shipping_address_id
@@ -64,10 +64,17 @@ export class DealerService{
     if(!Number.isSafeInteger(input.expectedVersion)||input.expectedVersion<1)throw new DealerValidationError('expectedVersion is required');
     if(!['PROSPECT','ACTIVE','SUSPENDED','CLOSED'].includes(input.status))throw new DealerValidationError('Invalid Dealer status');
     try{
-      const result=await this.database.query<any>(`UPDATE dealer.dealers SET status=$3,version=version+1,updated_by=$4,updated_at=now() WHERE id=$1 AND version=$2 AND status<>$3 RETURNING *`,[dealerId,input.expectedVersion,input.status,actor.userId]);
-      if(!result.rows[0]){const current=await this.database.query<any>(`SELECT * FROM dealer.dealers WHERE id=$1`,[dealerId]);if(!current.rows[0])throw new DealerNotFoundError('Dealer profile not found');if(current.rows[0].status===input.status)return current.rows[0];throw new DealerConflictError('Dealer profile changed; reload before changing status');}
-      await this.audit.record({actorUserId:actor.userId,action:'dealer.status_changed',targetType:'dealer',targetId:dealerId,metadata:{status:input.status,reason:input.reason?.trim()??'',version:result.rows[0].version}});
-      return result.rows[0];
+      return await this.database.transaction(async client=>{
+        const current=await client.query<any>(`SELECT * FROM dealer.dealers WHERE id=$1 FOR UPDATE`,[dealerId]);
+        if(!current.rows[0])throw new DealerNotFoundError('Dealer profile not found');
+        if(current.rows[0].version!==input.expectedVersion)throw new DealerConflictError('Dealer profile changed; reload before changing status');
+        if(current.rows[0].status===input.status)return current.rows[0];
+        const result=await client.query<any>(`UPDATE dealer.dealers SET status=$3,version=version+1,updated_by=$4,updated_at=now() WHERE id=$1 AND version=$2 RETURNING *`,[dealerId,input.expectedVersion,input.status,actor.userId]);
+        if(!result.rows[0])throw new DealerConflictError('Dealer profile changed; reload before changing status');
+        await client.query(`INSERT INTO dealer.status_history(dealer_id,from_status,to_status,dealer_version,reason,changed_by) VALUES ($1,$2,$3,$4,$5,$6)`,[dealerId,current.rows[0].status,input.status,result.rows[0].version,input.reason?.trim()??'',actor.userId]);
+        await this.audit.record({actorUserId:actor.userId,action:'dealer.status_changed',targetType:'dealer',targetId:dealerId,metadata:{fromStatus:current.rows[0].status,status:input.status,reason:input.reason?.trim()??'',version:result.rows[0].version}},client);
+        return result.rows[0];
+      });
     }catch(error:any){this.rethrow(error);}
   }
 
