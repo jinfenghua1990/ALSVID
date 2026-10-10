@@ -1,0 +1,1 @@
+import{ConflictError,ValidationError}from'@alsvid/kernel';export class AssetValidationError extends ValidationError{constructor(message:string){super('ASSET_VALIDATION',message)}}export class AssetConflictError extends ConflictError{constructor(message:string){super('ASSET_CONFLICT',message)}}

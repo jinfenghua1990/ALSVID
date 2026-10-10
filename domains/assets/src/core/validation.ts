@@ -1,0 +1,1 @@
+import{AssetValidationError}from'./errors.js';export function normalizeSha256(value?:string|null):string|null{if(!value)return null;const checksum=value.trim().toLowerCase();if(!/^[a-f0-9]{64}$/.test(checksum))throw new AssetValidationError('checksumSha256 must contain 64 hex characters');return checksum;}
