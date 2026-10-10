@@ -16,15 +16,7 @@ async function actor(database: Database): Promise<FinanceActor> {
   );
   return {
     userId: result.rows[0]!.id,
-    permissions: [
-      'finance.read',
-      'finance.document.write',
-      'finance.document.post',
-      'finance.payment.write',
-      'finance.allocate',
-      'finance.reconcile',
-      'finance.landed_cost',
-    ],
+    permissions: ['finance.read','finance.document.write','finance.document.post','finance.payment.write','finance.allocate','finance.reconcile','finance.landed_cost'],
   };
 }
 
@@ -74,6 +66,10 @@ async function shipmentCargo(database: Database, userId: string): Promise<{ ship
     [deWarehouse.rows[0]!.id, userId],
   );
   const skuId = await createSku(database);
+  await database.query(
+    `INSERT INTO inventory.movements(movement_type,item_kind,sku_id,quantity,unit,destination_location_id,reference_type,reason,idempotency_key,created_by) VALUES ('RECEIPT','SKU',$1,1,'EA',$2,'FINANCE_TEST','Stock required before logistics reservation',$3,$4)`,
+    [skuId, cnLocation.rows[0]!.id, `finance-receipt-${suffix()}`, userId],
+  );
   const reservation = await database.query<{ id: string }>(
     `INSERT INTO inventory.reservations(item_kind,sku_id,location_id,quantity,unit,reference_type,note,created_by,updated_by) VALUES ('SKU',$1,$2,1,'EA','TEST','Finance landed cost test',$3,$3) RETURNING id`,
     [skuId, cnLocation.rows[0]!.id, userId],
@@ -96,21 +92,16 @@ test('posted supplier invoice creates immutable AP obligation and allocations de
     const service = createFinanceService(database, audit);
     const supplier = await partner(database, 'SUPPLIER');
     const document = await service.createDocument(financeActor, {
-      documentType: 'SUPPLIER_INVOICE',
-      partnerId: supplier,
-      externalReference: `INV-${suffix()}`,
-      currency: 'EUR',
-      issueDate: '2026-10-10',
-      dueDate: '2026-11-10',
+      documentType: 'SUPPLIER_INVOICE', partnerId: supplier, externalReference: `INV-${suffix()}`, currency: 'EUR', issueDate: '2026-10-10', dueDate: '2026-11-10',
       lines: [{ category: 'GOODS', netAmount: '1000', taxAmount: '190', description: 'Bicycle goods' }],
     });
     assert.equal(Number(document.total_amount), 1190);
-
     const verified = await service.verifyDocument(financeActor, document.id, document.version);
     const posted = await service.postDocument(financeActor, document.id, verified.version);
     assert.ok(posted.obligation);
     assert.equal(posted.obligation.direction, 'AP');
     assert.equal(Number(posted.obligation.original_amount), 1190);
+    assert.equal(String(posted.obligation.due_date).slice(0, 10), '2026-11-10');
     await assert.rejects(database.query(`UPDATE finance.documents SET note='mutated' WHERE id=$1`, [document.id]), /immutable/);
 
     const paymentA = await service.createPayment(financeActor, { direction: 'OUTBOUND', partnerId: supplier, currency: 'EUR', amount: '500', valueDate: '2026-10-15', idempotencyKey: `pay-${suffix()}` });
@@ -129,9 +120,7 @@ test('posted supplier invoice creates immutable AP obligation and allocations de
     await service.reverseAllocation(financeActor, allocationB.id, 'Allocation correction');
     obligation = await database.query<any>(`SELECT * FROM finance.v_obligations WHERE id=$1`, [posted.obligation.id]);
     assert.equal(Number(obligation.rows[0].outstanding_amount), 690);
-  } finally {
-    await database.close();
-  }
+  } finally { await database.close(); }
 });
 
 test('concurrent allocations cannot settle the same final obligation balance twice', { skip: !hasDatabase }, async () => {
@@ -154,10 +143,7 @@ test('concurrent allocations cannot settle the same final obligation balance twi
     const view = await databaseA.query<any>(`SELECT * FROM finance.v_obligations WHERE id=$1`, [obligation.id]);
     assert.equal(Number(view.rows[0].allocated_amount), 100);
     assert.equal(view.rows[0].settlement_status, 'SETTLED');
-  } finally {
-    await databaseA.close();
-    await databaseB.close();
-  }
+  } finally { await databaseA.close(); await databaseB.close(); }
 });
 
 test('cross-currency allocation requires explicit compatible FX evidence', { skip: !hasDatabase }, async () => {
@@ -173,9 +159,7 @@ test('cross-currency allocation requires explicit compatible FX evidence', { ski
     await service.allocatePayment(financeActor, { paymentId: payment.id, obligationId: obligation.id, paymentAmount: '100', obligationAmount: '90', fxRateId: rate.id });
     const view = await database.query<any>(`SELECT * FROM finance.v_obligations WHERE id=$1`, [obligation.id]);
     assert.equal(view.rows[0].settlement_status, 'SETTLED');
-  } finally {
-    await database.close();
-  }
+  } finally { await database.close(); }
 });
 
 test('landed cost stays separate from Logistics and requires full capitalizable allocation before finalization', { skip: !hasDatabase }, async () => {
@@ -197,7 +181,5 @@ test('landed cost stays separate from Logistics and requires full capitalizable 
     await assert.rejects(database.query(`UPDATE finance.landed_cost_components SET amount=101 WHERE id=$1`, [freight.id]), /immutable/);
     await assert.rejects(database.query(`DELETE FROM finance.landed_cost_batches WHERE id=$1`, [batch.id]), /cannot be deleted/);
     assert.equal(vat.capitalizable, false);
-  } finally {
-    await database.close();
-  }
+  } finally { await database.close(); }
 });
