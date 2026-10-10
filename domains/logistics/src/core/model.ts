@@ -1,0 +1,13 @@
+export const LogisticsCapability={Read:'logistics.read',Plan:'logistics.plan',Release:'logistics.release',Milestone:'logistics.milestone',Customs:'logistics.customs'} as const;
+export type ShipmentRoute='FACTORY_TO_GERMANY_WAREHOUSE'|'FACTORY_TO_DEALER_DIRECT';
+export type ShipmentCargoKind='SKU'|'VEHICLE';
+export type ShipmentEventType='BOOKED'|'CARGO_READY'|'PICKED_UP'|'CHINA_EXPORT_DECLARED'|'CHINA_EXPORT_CLEARED'|'DEPARTED'|'IN_TRANSIT'|'ARRIVED_EU'|'IMPORT_DECLARED'|'IMPORT_CLEARED'|'DELIVERED_GERMANY_WAREHOUSE'|'DELIVERED_DEALER'|'EXCEPTION'|'HOLD'|'RELEASED_FROM_HOLD';
+export type CustomsEventType='DECLARED'|'HELD'|'RELEASED_FROM_HOLD'|'CLEARED'|'CORRECTED'|'CANCELLED';
+export interface CreateShipmentInput{routeType:ShipmentRoute;originLocationId:string;destinationLocationId?:string;destinationDealerPartnerId?:string;destinationAddressId?:string;carrierPartnerId?:string;transportMode?:string;incoterm?:string|null;bookingReference?:string;billOfLading?:string;containerReference?:string;trackingReference?:string;plannedEtd?:string;plannedEta?:string;note?:string}
+export interface AllocateCargoInput{itemKind:ShipmentCargoKind;itemId:string;quantity:string|number;note?:string}
+export interface MilestoneInput{eventType:ShipmentEventType;occurredAt?:string;locationText?:string;note?:string;metadata?:Record<string,unknown>}
+export interface CustomsDeclarationInput{direction:'EXPORT'|'IMPORT';jurisdiction:string;declarationNumber?:string;exporterPartnerId?:string;importerPartnerId?:string;importerOfRecordPartnerId?:string;exporterEoriIdentifierId?:string;importerEoriIdentifierId?:string;importerOfRecordEoriIdentifierId?:string;commercialInvoiceNumber?:string;packingListNumber?:string;commercialInvoiceAssetId?:string;packingListAssetId?:string;customsDocumentAssetId?:string;currency?:string|null;note?:string}
+export type CustomsDraftUpdateInput=Omit<CustomsDeclarationInput,'direction'|'jurisdiction'>;
+export interface CustomsLineInput{cargoId:string;originCountry:string;hsCode:string;cnCode?:string;taricCode?:string;declaredValue?:string|number|null;dutyRate?:string|number|null;dutyAmount?:string|number|null;importVatRate?:string|number|null;importVatAmount?:string|number|null;antiDumpingRate?:string|number|null;antiDumpingAmount?:string|number|null;countervailingRate?:string|number|null;countervailingAmount?:string|number|null;operationalFeesAmount?:string|number|null;metadata?:Record<string,unknown>}
+export interface CustomsEventInput{eventType:CustomsEventType;occurredAt?:string;reference?:string;note?:string;metadata?:Record<string,unknown>}
+export interface LogisticsSummary{shipments:any[];cargo:any[];events:any[];declarations:any[];customsLines:any[];customsEvents:any[];handoffs:any[]}
