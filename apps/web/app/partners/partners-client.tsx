@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 
 type Role = 'SUPPLIER' | 'FACTORY' | 'DEALER' | 'CUSTOMER' | 'SERVICE_PARTNER' | 'LOGISTICS_PROVIDER';
 type Partner = { id: string; partnerCode: string; kind: 'ORGANIZATION' | 'PERSON'; displayName: string; legalName: string | null; status: string; countryCode: string | null; version: number; roles: Role[] };
-type PartnerDetail = Partner & { identifiers: Array<{ id: string; scheme: string; value: string }>; contacts: unknown[]; addresses: unknown[] };
+type PartnerDetail = Partner & {
+  identifiers: Array<{ id: string; scheme: string; value: string }>;
+  contacts: Array<{ id: string; type: string; purpose: string; value: string; isPrimary: boolean }>;
+  addresses: Array<{ id: string; purpose: string; recipient: string | null; line1: string; line2: string | null; city: string; region: string | null; postalCode: string | null; countryCode: string }>;
+};
 const allRoles: Role[] = ['SUPPLIER', 'FACTORY', 'DEALER', 'CUSTOMER', 'SERVICE_PARTNER', 'LOGISTICS_PROVIDER'];
 
 export default function PartnersClient() {
@@ -17,7 +21,9 @@ export default function PartnersClient() {
   const [createOpen, setCreateOpen] = useState(false);
 
   async function api(path: string, init?: RequestInit) {
-    const response = await fetch(path, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
+    const headers = new Headers(init?.headers);
+    headers.set('content-type', 'application/json');
+    const response = await fetch(path, { ...init, headers });
     if (response.status === 401) {
       router.push('/login');
       throw new Error('Session expired');
@@ -47,8 +53,26 @@ export default function PartnersClient() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const roles = allRoles.filter((role) => form.get(role) === 'on');
+    const identifierValue = String(form.get('identifierValue') ?? '').trim();
+    const primaryEmail = String(form.get('primaryEmail') ?? '').trim();
+    const addressLine1 = String(form.get('addressLine1') ?? '').trim();
+    const addressCity = String(form.get('addressCity') ?? '').trim();
+    const addressCountry = String(form.get('addressCountry') ?? '').trim();
+
     try {
-      const created = await api('/api/partners', { method: 'POST', body: JSON.stringify({ kind: form.get('kind'), displayName: form.get('displayName'), legalName: form.get('legalName') || undefined, countryCode: form.get('countryCode') || undefined, roles, identifiers: form.get('identifierValue') ? [{ scheme: form.get('identifierScheme') || 'REGISTRATION', value: form.get('identifierValue') }] : [] }) });
+      const created = await api('/api/partners', {
+        method: 'POST',
+        body: JSON.stringify({
+          kind: form.get('kind'),
+          displayName: form.get('displayName'),
+          legalName: form.get('legalName') || undefined,
+          countryCode: form.get('countryCode') || undefined,
+          roles,
+          identifiers: identifierValue ? [{ scheme: form.get('identifierScheme') || 'REGISTRATION', value: identifierValue }] : [],
+          contacts: primaryEmail ? [{ type: 'EMAIL', purpose: 'GENERAL', value: primaryEmail, isPrimary: true }] : [],
+          addresses: addressLine1 && addressCity && addressCountry ? [{ purpose: 'REGISTERED', line1: addressLine1, city: addressCity, postalCode: form.get('addressPostalCode') || undefined, countryCode: addressCountry }] : [],
+        }),
+      });
       setCreateOpen(false);
       await load(query);
       setSelected(created);
@@ -61,7 +85,17 @@ export default function PartnersClient() {
     const form = new FormData(event.currentTarget);
     const roles = allRoles.filter((role) => form.get(role) === 'on');
     try {
-      const updated = await api(`/api/partners/${selected.id}`, { method: 'PATCH', body: JSON.stringify({ expectedVersion: selected.version, displayName: form.get('displayName'), legalName: form.get('legalName') ?? '', countryCode: form.get('countryCode') ?? '', status: form.get('status'), roles }) });
+      const updated = await api(`/api/partners/${selected.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          expectedVersion: selected.version,
+          displayName: form.get('displayName'),
+          legalName: form.get('legalName') ?? '',
+          countryCode: form.get('countryCode') ?? '',
+          status: form.get('status'),
+          roles,
+        }),
+      });
       setSelected(updated);
       await load(query);
       setMessage('Partner saved.');
@@ -93,12 +127,32 @@ export default function PartnersClient() {
           </div>
 
           <aside className="detailCard">
-            {selected ? <form className="stack" onSubmit={savePartner}><div><div className="eyebrow">{selected.partnerCode}</div><h2>{selected.displayName}</h2></div><label>Display name<input name="displayName" defaultValue={selected.displayName} required /></label><label>Legal name<input name="legalName" defaultValue={selected.legalName ?? ''} /></label><div className="split"><label>Country<input name="countryCode" maxLength={2} defaultValue={selected.countryCode ?? ''} /></label><label>Status<select name="status" defaultValue={selected.status}><option>ACTIVE</option><option>INACTIVE</option></select></label></div><fieldset><legend>Roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} defaultChecked={selected.roles.includes(role)} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset><button className="primaryButton">Save changes</button></form> : <div className="emptyState">Select a Partner to inspect and edit its master identity.</div>}
+            {selected ? <form className="stack" onSubmit={savePartner}>
+              <div><div className="eyebrow">{selected.partnerCode}</div><h2>{selected.displayName}</h2></div>
+              <label>Display name<input name="displayName" defaultValue={selected.displayName} required /></label>
+              <label>Legal name<input name="legalName" defaultValue={selected.legalName ?? ''} /></label>
+              <div className="split"><label>Country<input name="countryCode" maxLength={2} defaultValue={selected.countryCode ?? ''} /></label><label>Status<select name="status" defaultValue={selected.status}><option>ACTIVE</option><option>INACTIVE</option></select></label></div>
+              <fieldset><legend>Roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} defaultChecked={selected.roles.includes(role)} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset>
+              <section className="factBlock"><span>Identifiers</span>{selected.identifiers.length ? selected.identifiers.map((item) => <p key={item.id}><b>{item.scheme}</b>{item.value}</p>) : <small>None recorded</small>}</section>
+              <section className="factBlock"><span>Contacts</span>{selected.contacts.length ? selected.contacts.map((item) => <p key={item.id}><b>{item.purpose} · {item.type}</b>{item.value}</p>) : <small>None recorded</small>}</section>
+              <section className="factBlock"><span>Addresses</span>{selected.addresses.length ? selected.addresses.map((item) => <p key={item.id}><b>{item.purpose}</b>{[item.line1, item.city, item.postalCode, item.countryCode].filter(Boolean).join(', ')}</p>) : <small>None recorded</small>}</section>
+              <button className="primaryButton">Save changes</button>
+            </form> : <div className="emptyState">Select a Partner to inspect and edit its master identity.</div>}
           </aside>
         </div>
       </section>
 
-      {createOpen ? <div className="modalBackdrop" onMouseDown={() => setCreateOpen(false)}><form className="modalCard stack" onSubmit={createPartner} onMouseDown={(event) => event.stopPropagation()}><div className="modalHead"><div><div className="eyebrow">NEW MASTER IDENTITY</div><h2>Create Partner</h2></div><button type="button" onClick={() => setCreateOpen(false)}>×</button></div><label>Type<select name="kind"><option value="ORGANIZATION">Organization</option><option value="PERSON">Person</option></select></label><label>Display name<input name="displayName" required /></label><label>Legal name<input name="legalName" /></label><label>Country code<input name="countryCode" maxLength={2} placeholder="DE" /></label><div className="split"><label>Identifier scheme<input name="identifierScheme" placeholder="VAT / EORI / REGISTRATION" /></label><label>Identifier value<input name="identifierValue" /></label></div><fieldset><legend>Business roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset><button className="primaryButton">Create Partner</button></form></div> : null}
+      {createOpen ? <div className="modalBackdrop" onMouseDown={() => setCreateOpen(false)}><form className="modalCard stack" onSubmit={createPartner} onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modalHead"><div><div className="eyebrow">NEW MASTER IDENTITY</div><h2>Create Partner</h2></div><button type="button" onClick={() => setCreateOpen(false)}>×</button></div>
+        <label>Type<select name="kind"><option value="ORGANIZATION">Organization</option><option value="PERSON">Person</option></select></label>
+        <label>Display name<input name="displayName" required /></label>
+        <label>Legal name<input name="legalName" /></label>
+        <div className="split"><label>Country code<input name="countryCode" maxLength={2} placeholder="DE" /></label><label>Primary email<input name="primaryEmail" type="email" /></label></div>
+        <div className="split"><label>Identifier scheme<input name="identifierScheme" placeholder="VAT / EORI / REGISTRATION" /></label><label>Identifier value<input name="identifierValue" /></label></div>
+        <fieldset><legend>Registered address</legend><div className="stack"><label>Address line<input name="addressLine1" /></label><div className="split"><label>City<input name="addressCity" /></label><label>Postal code<input name="addressPostalCode" /></label></div><label>Country code<input name="addressCountry" maxLength={2} placeholder="DE" /></label></div></fieldset>
+        <fieldset><legend>Business roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset>
+        <button className="primaryButton">Create Partner</button>
+      </form></div> : null}
     </main>
   );
 }

@@ -8,6 +8,22 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: alsvid
+          POSTGRES_PASSWORD: alsvid
+          POSTGRES_DB: alsvid
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U alsvid -d alsvid"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DATABASE_URL: postgresql://alsvid:alsvid@localhost:5432/alsvid
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -17,6 +33,8 @@ jobs:
         with:
           node-version: 22
       - run: pnpm install --no-frozen-lockfile
+      - run: pnpm db:migrate
+      - run: pnpm db:migrate
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
