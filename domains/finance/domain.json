@@ -1,0 +1,1 @@
+{"name":"finance","schema":"finance","mode":"encapsulated","dependsOn":["partners","product","procurement","commerce","logistics","vehicle"]}
