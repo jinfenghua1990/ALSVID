@@ -23,7 +23,7 @@ All commands use the repository root as the Docker build context:
     docker build -f infra/docker/web.Dockerfile -t REGION-docker.pkg.dev/PROJECT/alsvid/web:TAG .
     docker build -f infra/docker/worker.Dockerfile -t REGION-docker.pkg.dev/PROJECT/alsvid/worker:TAG .
 
-The repository currently has no lockfile, so the Dockerfiles use pnpm install --no-frozen-lockfile. Before production rollout, commit a generated pnpm-lock.yaml and change these commands to pnpm install --frozen-lockfile.
+A committed pnpm-lock.yaml is used by the Dockerfiles with pnpm install --frozen-lockfile so production image dependencies are reproducible.
 
 ## Cloud Run configuration
 
