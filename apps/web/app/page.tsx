@@ -8,7 +8,7 @@ const domains = [
   ['Vehicle', 'Vehicle birth, lifecycle, ownership and 360 view'],
   ['Dealer', 'Dealer network status, markets, capabilities and operations'],
   ['Partners', 'Suppliers, factories, dealers and customers'],
-  ['Finance', 'Invoices, obligations, payments and settlement'],
+  ['Finance', 'Invoices, obligations, payments, settlement, FX and landed cost'],
   ['Service', 'Warranty, service cases and repair history'],
   ['Communication', 'Email, consent, campaigns and customer follow-up'],
 ] as const;
@@ -20,6 +20,7 @@ function domainStatus(name: string) {
   if (name === 'Vehicle') return <a href="/production">Vehicle Birth registry live · 360 queued →</a>;
   if (name === 'Dealer') return <a href="/dealers">Dealer network foundation live →</a>;
   if (name === 'Partners') return <a href="/partners">Identity + Partner foundation live →</a>;
+  if (name === 'Finance') return <a href="/finance">AR/AP + payment allocation + FX + landed-cost foundation live →</a>;
   return 'Designed · implementation queued';
 }
 
