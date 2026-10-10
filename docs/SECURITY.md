@@ -12,9 +12,13 @@
 
 ## Identity
 
-Use short-lived authenticated sessions/tokens with server-side revocation capability. Authorization is permission/capability based rather than hard-coded UI role checks.
+ALSVID uses server-revocable authenticated sessions. The initial implementation issues a high-entropy bearer token, stores only its SHA-256 hash in PostgreSQL, expires sessions after 12 hours, and allows server-side revocation. The Next.js Internal Admin proxy keeps the bearer token in an HttpOnly, SameSite=Lax cookie rather than exposing it to browser JavaScript.
 
-Initial role templates may include Admin, Operations, Engineering, Finance, Dealer User, Service User and Read Only, but permissions remain the enforcement unit.
+Passwords are stored as salted scrypt hashes. The bootstrap administrator password is accepted only through environment configuration/command input and is never committed to Git.
+
+Authorization is permission/capability based rather than hard-coded UI role checks. Role templates are convenience bundles; permissions are the enforcement unit. Privileged Partner mutations and role changes are enforced in application services even if a client bypasses the UI.
+
+Future production hardening includes invitation/reset flows, MFA, optional SSO/OIDC and deployment-level rate limiting.
 
 ## Sensitive data
 
@@ -34,6 +38,8 @@ The following require audit evidence and stronger authorization:
 - finance document cancellation
 - marketing consent/suppression override
 - destructive data administration
+
+The `audit.events` table is append-only and database triggers reject UPDATE and DELETE operations.
 
 ## AI
 
