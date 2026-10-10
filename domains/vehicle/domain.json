@@ -1,1 +1,1 @@
-{"name":"vehicle","schema":"vehicle","mode":"legacy","dependsOn":["audit","identity"]}
+{"name":"vehicle","schema":"vehicle","mode":"encapsulated","dependsOn":["production","engineering","product","partners"]}

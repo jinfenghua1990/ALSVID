@@ -1,0 +1,1 @@
+import{VehicleValidationError}from'./errors.js';export function normalizeFrameNumber(value:string):string{const frame=value.trim().toUpperCase().replace(/\s+/g,'');if(!/^[A-Z0-9][A-Z0-9-]{3,63}$/.test(frame))throw new VehicleValidationError('Frame number must contain 4-64 letters, digits or hyphens');return frame}

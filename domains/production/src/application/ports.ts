@@ -1,0 +1,14 @@
+import type{QueryExecutor}from'@alsvid/database';import type{CreateProductionOrderInput,ProductionDeviationInput,ProductionSummary,QcInspectionInput,QcResult}from'../core/model.js';
+export interface ProductionActor{userId:string;permissions:readonly string[]}
+export interface ProductionAuditPort{record(input:{actorUserId:string;action:string;targetType:string;targetId:string;metadata?:Record<string,unknown>},executor?:QueryExecutor):Promise<void>}
+export interface ProductionRepository{
+ transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>;
+ summary():Promise<ProductionSummary>;
+ createOrder(input:CreateProductionOrderInput&{actorUserId:string}):Promise<any>;
+ releaseOrder(orderId:string,userId:string,executor:QueryExecutor):Promise<any|null>;createUnits(orderId:string,count:number,userId:string,executor:QueryExecutor):Promise<void>;
+ startOrder(orderId:string,userId:string):Promise<any|null>;markUnitAssembled(unitId:string,userId:string):Promise<any|null>;
+ countUnitsBlockingQc(orderId:string,executor:QueryExecutor):Promise<number>;moveOrderToQc(orderId:string,userId:string,executor:QueryExecutor):Promise<any|null>;markAssembledUnitsQcPending(orderId:string,userId:string,executor:QueryExecutor):Promise<void>;
+ lockUnit(unitId:string,executor:QueryExecutor):Promise<any|null>;setUnitStatus(unitId:string,status:string,userId:string,executor:QueryExecutor):Promise<void>;createInspection(unitId:string,input:QcInspectionInput,userId:string,executor:QueryExecutor):Promise<any>;
+ recordDeviation(unitId:string,input:ProductionDeviationInput&{quantity:string},userId:string):Promise<any>;
+ countUnitsNotQcPassed(orderId:string):Promise<number>;completeOrder(orderId:string,userId:string):Promise<any|null>;
+}
