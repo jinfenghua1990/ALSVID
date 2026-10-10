@@ -5,7 +5,7 @@ services:
       dockerfile: infra/docker/Dockerfile.web
     environment:
       NODE_ENV: test
-      ALSVID_API_BASE_URL: http://api:4001
+      ALSVID_API_BASE_URL: http://api:4000
     ports:
       - "3001:3000"
     depends_on:
@@ -18,11 +18,7 @@ services:
     environment:
       NODE_ENV: test
       DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
-      OBJECT_STORAGE_PROVIDER: minio
-      OBJECT_STORAGE_ENDPOINT: http://minio:9000
-      OBJECT_STORAGE_BUCKET: alsvid-test
-      OBJECT_STORAGE_ACCESS_KEY: alsvid_test
-      OBJECT_STORAGE_SECRET_KEY: alsvid-test-local
+      OBJECT_STORAGE_PROVIDER: unconfigured
     ports:
       - "4001:4000"
     depends_on:
@@ -36,17 +32,13 @@ services:
     environment:
       NODE_ENV: test
       DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
-      OBJECT_STORAGE_PROVIDER: minio
-      OBJECT_STORAGE_ENDPOINT: http://minio:9000
-      OBJECT_STORAGE_BUCKET: alsvid-test
-      OBJECT_STORAGE_ACCESS_KEY: alsvid_test
-      OBJECT_STORAGE_SECRET_KEY: alsvid-test-local
+      OBJECT_STORAGE_PROVIDER: unconfigured
     depends_on:
       postgres:
         condition: service_healthy
 
   postgres:
-    image: postgres:18
+    image: postgres:18.6
     environment:
       POSTGRES_DB: alsvid_test
       POSTGRES_USER: alsvid_test
@@ -58,18 +50,3 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: alsvid_test
-      MINIO_ROOT_PASSWORD: alsvid-test-local
-    ports:
-      - "9002:9000"
-      - "9003:9001"
-    volumes:
-      - alsvid_test_minio:/data
-
-volumes:
-  alsvid_test_minio:
