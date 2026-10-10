@@ -12,13 +12,15 @@ const domains = [
 function domainHref(name: string): string {
   if (name === 'Product') return '/product';
   if (name === 'Supply') return '/supply';
+  if (name === 'Vehicle') return '/production';
   if (name === 'Partners') return '/partners';
   return `#${name.toLowerCase()}`;
 }
 
 function domainStatus(name: string) {
   if (name === 'Product') return <a href="/product">Product + Engineering foundation live →</a>;
-  if (name === 'Supply') return <a href="/supply">Procurement foundation live →</a>;
+  if (name === 'Supply') return <a href="/production">Procurement + Production foundations live →</a>;
+  if (name === 'Vehicle') return <a href="/production">Vehicle Birth registry live · 360 queued →</a>;
   if (name === 'Partners') return <a href="/partners">Identity + Partner foundation live →</a>;
   return 'Designed · implementation queued';
 }
