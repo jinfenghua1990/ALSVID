@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, HttpException, HttpStatus, type ExceptionFilter } from '@nestjs/common';
+import { Catch, HttpException, HttpStatus, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common';
 import { DomainError } from '@alsvid/kernel';
 import { JsonConsoleLogger } from '@alsvid/observability';
 import { currentApiRequestContext } from './request-context.js';
