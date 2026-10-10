@@ -67,7 +67,6 @@ domains/
   identity/   # users, roles, permissions, sessions
   audit/      # append-only audit evidence
   partners/   # unified Partner master
-authors/      # intentionally absent; business code belongs to domains
 infra/        # local and production infrastructure definitions
 docs/         # architecture, ownership, workflows, security and ADRs
 ```
