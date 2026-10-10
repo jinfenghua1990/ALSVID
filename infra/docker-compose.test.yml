@@ -1,0 +1,65 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.web
+    environment:
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: http://api:4001
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
+    ports:
+      - "4001:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.worker
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: alsvid_test
+      POSTGRES_USER: alsvid_test
+      POSTGRES_PASSWORD: alsvid_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alsvid_test -d alsvid_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: alsvid_test
+      MINIO_ROOT_PASSWORD: alsvid-test-local
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - alsvid_test_minio:/data
+
+volumes:
+  alsvid_test_minio:
