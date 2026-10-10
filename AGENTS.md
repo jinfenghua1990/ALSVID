@@ -19,8 +19,10 @@ Before meaningful code changes:
 6. For product/domain/Vehicle work, read `docs/PRODUCT_ARCHITECTURE.md`.
 7. For Dealer Portal, My ALSVID, QR, public/service routing or authorization work, read `docs/PORTAL_ARCHITECTURE.md`.
 8. For Internal Admin/UI work, read `docs/ADMIN_UI_SPEC.md`.
-9. Check relevant Issue/PR and current code before creating a second implementation.
-10. Meaningful feature/fix work uses Issue -> branch -> PR.
+9. For Shopify/OMS/WMS/logistics/order-mirror/after-sales-fulfillment work, read `docs/EXTERNAL_SYSTEM_BOUNDARIES.md`.
+10. For runtime/hosting/environment/backup/deployment work, read `docs/DEPLOYMENT_ARCHITECTURE.md`.
+11. Check relevant Issue/PR and current code before creating a second implementation.
+12. Meaningful feature/fix work uses Issue -> branch -> PR.
 
 `docs/MIGRATION_INVENTORY.md`, `docs/DATA_CUTOVER.md` and other extraction notes are historical records unless a current Issue explicitly reactivates migration work. They must not override `CURRENT_STATE.md`.
 
@@ -48,6 +50,8 @@ When consulting legacy code, use **rewrite-while-migrating**, not copy-and-freez
 - Dealer and customer are relationships to canonical partner identities, not duplicate masters.
 - Warranty and ServiceCase are canonical after-sales authorities.
 - Shopify remains external OMS; do not recreate Shopify order management.
+- Future third-party OMS remains external order-orchestration authority; ALSVID stores only selected confirmed facts/references needed for Vehicle, Partner, dealer and after-sales context.
+- WMS/3PL remains external warehouse-execution authority. ALSVID may issue narrowly scoped after-sales replacement/repair-parts fulfillment requests tied to ServiceCase without becoming a general OMS.
 - Binary files live in R2/S3-compatible object storage; database stores metadata.
 - External IDs are mappings only.
 - Money uses PostgreSQL NUMERIC / Python Decimal, never float.
@@ -60,6 +64,9 @@ When consulting legacy code, use **rewrite-while-migrating**, not copy-and-freez
 - Live PostgreSQL URLs, passwords, R2 access keys and other production secrets must never be committed to Git.
 - Browser clients never receive R2 credentials; use dedicated object-storage APIs and short-lived signed URLs where appropriate.
 - Do not use `Base.metadata.create_all()` as a deployment path. Schema changes go through Alembic.
+- Google Cloud Run is the current preferred managed compute target for the initial low-traffic phase, using request-based billing and scale-to-zero. It is a replaceable runtime layer, not a business-data authority.
+- Test and Production must use separate runtime services, PostgreSQL environments and R2 buckets; never share the same production database/bucket with Test.
+- Q4 is backup/disaster-recovery/internal-tooling infrastructure, not the customer-facing production runtime.
 
 ## 6. Product boundary
 
@@ -92,5 +99,6 @@ When documentation conflicts, current authority order is:
 2. `docs/CURRENT_STATE.md`
 3. `docs/ARCHITECTURE.md` and `docs/DATA_OWNERSHIP.md`
 4. `docs/PRODUCT_ARCHITECTURE.md`, `docs/PORTAL_ARCHITECTURE.md`, `docs/ADMIN_UI_SPEC.md` for their respective product surfaces
-5. current code/tests and active Issue/PR decisions
-6. historical migration/extraction notes
+5. `docs/EXTERNAL_SYSTEM_BOUNDARIES.md` and `docs/DEPLOYMENT_ARCHITECTURE.md` for their respective integration/deployment scopes
+6. current code/tests and active Issue/PR decisions
+7. historical migration/extraction notes
