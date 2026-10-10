@@ -4,6 +4,7 @@ import { CommerceService } from '@alsvid/commerce';
 import { Database } from '@alsvid/database';
 import { DealerService } from '@alsvid/dealer';
 import { EngineeringService } from '@alsvid/engineering';
+import { FinanceService } from '@alsvid/finance';
 import { IdentityService } from '@alsvid/identity';
 import { IntegrationService } from '@alsvid/integrations';
 import { InventoryService } from '@alsvid/inventory';
@@ -31,3 +32,4 @@ export const logisticsService = new LogisticsService(database, auditService, inv
 export const dealerService = new DealerService(database, auditService);
 export const commerceService = new CommerceService(database, auditService);
 export const integrationService = new IntegrationService(database, auditService, commerceService);
+export const financeService = new FinanceService(database, auditService);
