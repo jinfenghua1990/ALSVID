@@ -40,17 +40,18 @@ test('Shopify delivery is idempotent, unknown variants stay exceptions, and manu
     const first=await integrations.ingestShopify(auth,channel.id,delivery);assert.equal(first.duplicate,false);
     const duplicate=await integrations.ingestShopify(auth,channel.id,delivery);assert.equal(duplicate.duplicate,true);assert.equal(duplicate.attempt.outcome,'NOOP');
 
-    const facts=await commerce.summary(auth);assert.equal(facts.orders.length,1);assert.equal(facts.lines.length,1);assert.equal(facts.lines[0].mapped_sku,null);
-    const open=facts.exceptions.find((item:any)=>item.exception_type==='UNKNOWN_VARIANT'&&item.status==='OPEN');assert.ok(open,'unknown variant must remain visible');
+    const orderFacts=await db.query<any>(`SELECT * FROM commerce.external_orders WHERE channel_id=$1 AND external_order_id='1001'`,[channel.id]);assert.equal(orderFacts.rows.length,1);
+    const lineFacts=await db.query<any>(`SELECT l.* FROM commerce.external_order_lines l JOIN commerce.external_orders o ON o.id=l.order_id WHERE o.channel_id=$1 AND o.external_order_id='1001' AND l.external_line_id='L-1001'`,[channel.id]);assert.equal(lineFacts.rows.length,1);assert.equal(lineFacts.rows[0].sku_id,null);
+    const openFacts=await db.query<any>(`SELECT * FROM commerce.mapping_exceptions WHERE channel_id=$1 AND exception_type='UNKNOWN_VARIANT' AND entity_type='ORDER_LINE' AND entity_id=$2 AND status='OPEN'`,[channel.id,lineFacts.rows[0].id]);assert.equal(openFacts.rows.length,1);const open=openFacts.rows[0];
     const productCount=await db.query<{count:number}>(`SELECT count(*)::int AS count FROM product.skus WHERE sku='EXT-FC1'`);assert.equal(productCount.rows[0]!.count,0,'provider SKU must never auto-create Product master');
 
     const skuId=await sku(db);await commerce.mapVariant(auth,{channelId:channel.id,externalVariantId:'VAR-UNKNOWN',externalSku:'EXT-FC1',skuId});
-    const mapped=await db.query<any>(`SELECT sku_id,mapping_source FROM commerce.external_order_lines WHERE external_line_id='L-1001'`);assert.equal(mapped.rows[0].sku_id,skuId);assert.equal(mapped.rows[0].mapping_source,'MANUAL');
+    const mapped=await db.query<any>(`SELECT l.sku_id,l.mapping_source FROM commerce.external_order_lines l JOIN commerce.external_orders o ON o.id=l.order_id WHERE o.channel_id=$1 AND o.external_order_id='1001' AND l.external_line_id='L-1001'`,[channel.id]);assert.equal(mapped.rows[0].sku_id,skuId);assert.equal(mapped.rows[0].mapping_source,'MANUAL');
     const resolved=await db.query<any>(`SELECT status FROM commerce.mapping_exceptions WHERE id=$1`,[open.id]);assert.equal(resolved.rows[0].status,'RESOLVED');
 
     const updatePayload=orderPayload('1001','VAR-UNKNOWN','2026-10-10T11:00:00Z');
     await integrations.ingestShopify(auth,channel.id,{...delivery,webhookId:`WH-${suffix()}`,eventId:`EV-${suffix()}`,topic:'orders/updated',triggeredAt:'2026-10-10T11:00:01Z',payload:updatePayload});
-    const preserved=await db.query<any>(`SELECT sku_id,mapping_source FROM commerce.external_order_lines WHERE external_line_id='L-1001'`);assert.equal(preserved.rows[0].sku_id,skuId);assert.equal(preserved.rows[0].mapping_source,'MANUAL');
+    const preserved=await db.query<any>(`SELECT l.sku_id,l.mapping_source FROM commerce.external_order_lines l JOIN commerce.external_orders o ON o.id=l.order_id WHERE o.channel_id=$1 AND o.external_order_id='1001' AND l.external_line_id='L-1001'`,[channel.id]);assert.equal(preserved.rows[0].sku_id,skuId);assert.equal(preserved.rows[0].mapping_source,'MANUAL');
 
     const stale=orderPayload('1001','VAR-UNKNOWN','2026-10-10T09:30:00Z',true);
     await integrations.ingestShopify(auth,channel.id,{...delivery,webhookId:`WH-${suffix()}`,eventId:`EV-${suffix()}`,topic:'orders/updated',triggeredAt:'2026-10-10T11:10:00Z',payload:stale});
