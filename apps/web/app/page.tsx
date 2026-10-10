@@ -1,6 +1,6 @@
 const domains = [
   ['Product', 'Platforms, models, SKUs and released engineering'],
-  ['Supply', 'Procurement, production, inventory and logistics'],
+  ['Supply', 'Procurement, production, inventory and export logistics'],
   ['Commerce', 'Channels, orders and fulfillment mappings'],
   ['Vehicle', 'Vehicle birth, lifecycle, ownership and 360 view'],
   ['Partners', 'Suppliers, factories, dealers and customers'],
@@ -11,7 +11,7 @@ const domains = [
 
 function domainHref(name: string): string {
   if (name === 'Product') return '/product';
-  if (name === 'Supply') return '/supply';
+  if (name === 'Supply') return '/logistics';
   if (name === 'Vehicle') return '/production';
   if (name === 'Partners') return '/partners';
   return `#${name.toLowerCase()}`;
@@ -19,7 +19,7 @@ function domainHref(name: string): string {
 
 function domainStatus(name: string) {
   if (name === 'Product') return <a href="/product">Product + Engineering foundation live →</a>;
-  if (name === 'Supply') return <span><a href="/supply">Procurement</a> · <a href="/production">Production</a> · <a href="/inventory">Inventory</a> live · Logistics queued</span>;
+  if (name === 'Supply') return <span><a href="/supply">Procurement</a> · <a href="/production">Production</a> · <a href="/inventory">Inventory</a> · <a href="/logistics">Export Logistics</a> live</span>;
   if (name === 'Vehicle') return <a href="/production">Vehicle Birth registry live · 360 queued →</a>;
   if (name === 'Partners') return <a href="/partners">Identity + Partner foundation live →</a>;
   return 'Designed · implementation queued';
