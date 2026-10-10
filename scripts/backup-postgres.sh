@@ -24,5 +24,12 @@ pg_dump \
   --no-privileges \
   --file="$output"
 
-sha256sum "$output" > "${output}.sha256"
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256sum "$output" > "${output}.sha256"
+elif command -v shasum >/dev/null 2>&1; then
+  shasum -a 256 "$output" > "${output}.sha256"
+else
+  echo "No SHA-256 utility available; backup created without checksum" >&2
+fi
+
 printf '%s\n' "$output"
