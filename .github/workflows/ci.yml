@@ -27,6 +27,8 @@ jobs:
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
+      - name: Validate production bootstrap shell syntax
+        run: bash -n infra/gcp/bootstrap-production.sh
       - uses: pnpm/action-setup@v4
         with:
           version: 10.34.6

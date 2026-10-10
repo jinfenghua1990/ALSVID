@@ -1,72 +1,104 @@
 # Deployment Model
 
-## Local development
+## Local development and Test
 
-The repository must run locally with one command sequence using containers for infrastructure and normal Node processes for apps.
+The repository remains runnable locally without depending on production cloud services.
 
-Local infrastructure target:
+Local/Test runtime:
 
-- PostgreSQL
-- S3-compatible object storage (MinIO locally; Cloudflare R2 compatible in production)
+- PostgreSQL in Docker
+- Web / API / Worker containers for Test acceptance
+- optional local S3-compatible storage only when an object-storage workflow specifically needs it
 
-The application itself runs as:
+The repository-side Test gate builds the real Web/API/Worker images, starts PostgreSQL, runs migrations, starts all three applications and performs API/Web smoke checks. A local machine, including the M1 workstation, is development/Test only and is never the production authority.
 
-- Web
-- API
-- Worker
+## Selected production placement
 
-## First real deployment
+The production architecture is fixed by ADR 0003:
 
-The first deployment should favor operational simplicity: one host or a small number of managed services is acceptable. Microservices/Kubernetes are not prerequisites.
+| Artifact | Production authority |
+| --- | --- |
+| Software / migrations / CI | GitHub `main` + commit SHA |
+| Web | Google Cloud Run Service `alsvid-web` |
+| API | Google Cloud Run Service `alsvid-api` |
+| Worker | Google Cloud Run Worker Pool `alsvid-worker` |
+| Migrations | Google Cloud Run Job `alsvid-migrate` |
+| Container images | Google Artifact Registry |
+| Structured business data | Neon managed PostgreSQL |
+| Binary business files | Cloudflare R2 |
+| Runtime secrets | Google Cloud Secret Manager |
+| Runtime logs | Google Cloud Logging |
+| Offline backup layer | Q4 plus independent database/object copies |
 
-Recommended separation:
+Selecting these providers does not mean the live resources already exist. Issue #34 remains open until real account resources are provisioned, the first production release succeeds and backup/restore evidence exists.
 
-- GitHub — source/CI/release authority
-- PostgreSQL — persistent business database with backups
-- R2 — binary asset storage
-- app runtime — Web/API/Worker containers or processes
-- reverse proxy/TLS — public ingress where required
+## Provider boundaries
 
-## Portability
+Production provider choices must not leak into Domain rules.
 
-Configuration is environment-driven. Avoid provider-specific assumptions in domain code so the stack can move between a local workstation, Q4/home server, VPS or managed platform without redesigning the application.
+- PostgreSQL is the database contract; Neon is the selected managed provider.
+- `@alsvid/ports` is the object-storage contract; the concrete Cloudflare R2 adapter lives in `@alsvid/provider-adapters`.
+- Mail and AI remain provider-neutral until their production providers are selected.
+- Shopify or another external OMS remains external. ALSVID does not own storefront order, payment or fulfillment orchestration.
+
+## First-time Google Cloud bootstrap
+
+Google Cloud account/project resources are initialized from repository-defined tooling rather than a remembered console checklist.
+
+From an authenticated machine with the Google Cloud CLI:
+
+```bash
+export GCP_PROJECT_ID='<project-id>'
+export GCP_REGION='<selected-region>'
+bash infra/gcp/bootstrap-production.sh
+```
+
+The bootstrap is idempotent and creates/configures:
+
+- required Google Cloud APIs
+- Artifact Registry Docker repository
+- dedicated GitHub deploy service account
+- dedicated Cloud Run runtime service account
+- GitHub OIDC Workload Identity Pool/provider restricted to `jinfenghua1990/ALSVID-Next`
+- least-purpose deployment/runtime IAM bindings
+- Secret Manager resource shells for Neon `DATABASE_URL` and R2 credentials
+
+It intentionally does **not** write secret values. It prints the non-secret GitHub `production` Environment variables required by `.github/workflows/production-deploy.yml`.
+
+## Configuration and secrets
+
+Production secret values come from Google Cloud Secret Manager and are read by Cloud Run at deploy/run time. They are not committed, embedded in images or stored as GitHub variables.
+
+Required secret names:
+
+- `alsvid-database-url` — Neon production PostgreSQL connection URL
+- `alsvid-r2-access-key` — Cloudflare R2 access key
+- `alsvid-r2-secret-key` — Cloudflare R2 secret key
+
+Non-secret GitHub `production` Environment variables are documented in `docs/PRODUCTION_RUNBOOK.md`.
 
 ## Release
 
-Production releases must be reproducible from Git commit SHA. Database migrations run explicitly before/with compatible application rollout. Backup/restore and rollback procedures must exist before production business data is accepted.
+Production releases are reproducible from a Git commit SHA. `.github/workflows/production-deploy.yml` is manually dispatched until the first live environment is accepted. It builds immutable images, authenticates to Google Cloud through Workload Identity Federation, pushes images, runs migrations explicitly, deploys API/Worker/Web and verifies health.
 
+No production fix is made by editing a running container.
 
-## Runtime authority and environment separation
+## Portability
 
-### GitHub is the only code source
+Cloud Run, Neon and R2 are selected production providers, not Domain dependencies. Environment-driven configuration and provider ports preserve the ability to replace runtime/database/object-storage infrastructure without redesigning ALSVID business logic.
 
-Deployed environments run software that exists in Git. There is no live patch, no hand-edited file
-inside a running container and no copy of the application that exists only on a machine.
+## Acceptance boundary
 
-### The cloud platform runs ALSVID
+Repository-side Docker/Test acceptance is complete. Production is not accepted until all of the following have real evidence:
 
-ALSVID does not depend on a personal computer to operate.
+- Neon production database created and reachable with TLS
+- Cloudflare R2 bucket and scoped credentials created
+- Google Cloud bootstrap completed
+- required Secret Manager values added
+- first GitHub Production Deploy succeeds
+- API/Web/Worker and database/object-storage access verified live
+- PostgreSQL restore drill succeeds against an isolated target
+- independent backup/Q4 procedure is proven
+- budget/alert/operational monitoring is configured
 
-- A local machine — including the M1 workstation — is a development environment only.
-- It may run Web, API, Worker, PostgreSQL and MinIO for development, but it is never the production
-  environment and never hosts the production database or production business files.
-- Losing a local machine must not lose business data or the ability to reproduce the system.
-
-### Configuration and secrets
-
-Production configuration and secrets come from Google Cloud Secret Manager and are read by the runtime.
-They are not committed and not embedded in images. Local development uses local values only.
-
-### Runtime placement
-
-| Artifact | Authority |
-| --- | --- |
-| Software program | GitHub |
-| Runtime environment | Google Cloud Run |
-| Business database | Managed PostgreSQL |
-| Business files | Cloudflare R2 |
-| Passwords and configuration | Google Cloud Secret Manager |
-| Logs | Google Cloud Logging |
-| Backup | GitHub + database backup + R2 + Q4 |
-
-See `docs/RUNTIME_ARCHITECTURE.md` and ADR 0003.
+See `docs/PRODUCTION_RUNBOOK.md`, `docs/RUNTIME_ARCHITECTURE.md` and ADR 0003.
