@@ -9,6 +9,18 @@ const domains = [
   ['Communication', 'Email, consent, campaigns and customer follow-up'],
 ] as const;
 
+function domainHref(name: string): string {
+  if (name === 'Product') return '/product';
+  if (name === 'Partners') return '/partners';
+  return `#${name.toLowerCase()}`;
+}
+
+function domainStatus(name: string) {
+  if (name === 'Product') return <a href="/product">Product + Engineering foundation live →</a>;
+  if (name === 'Partners') return <a href="/partners">Identity + Partner foundation live →</a>;
+  return 'Designed · implementation queued';
+}
+
 export default function HomePage() {
   return (
     <main className="shell">
@@ -16,7 +28,7 @@ export default function HomePage() {
         <div className="brand">ALSVID</div>
         <nav>
           <a className="active" href="#overview">Overview</a>
-          {domains.map(([name]) => <a key={name} href={name === 'Partners' ? '/partners' : `#${name.toLowerCase()}`}>{name}</a>)}
+          {domains.map(([name]) => <a key={name} href={domainHref(name)}>{name}</a>)}
         </nav>
         <div className="railFoot">Clean-slate V1</div>
       </aside>
@@ -27,7 +39,7 @@ export default function HomePage() {
           <a className="status" href="/login"><span /> Sign in</a>
         </header>
         <div className="hero"><p>From engineering release and factory production to Europe, dealer handover, ownership, service and lifetime customer communication.</p><div className="flow">Product <b>→</b> Supply <b>→</b> Vehicle <b>→</b> Dealer <b>→</b> Customer <b>→</b> Service</div></div>
-        <div className="grid">{domains.map(([name, description]) => <article className="card" id={name.toLowerCase()} key={name}><div className="cardTop"><span className="dot" /><span>DOMAIN</span></div><h2>{name}</h2><p>{description}</p><div className="cardFoot">{name === 'Partners' ? <a href="/partners">Identity + Partner foundation live →</a> : 'Designed · implementation queued'}</div></article>)}</div>
+        <div className="grid">{domains.map(([name, description]) => <article className="card" id={name.toLowerCase()} key={name}><div className="cardTop"><span className="dot" /><span>DOMAIN</span></div><h2>{name}</h2><p>{description}</p><div className="cardFoot">{domainStatus(name)}</div></article>)}</div>
       </section>
     </main>
   );
