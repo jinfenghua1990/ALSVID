@@ -9,7 +9,10 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { R2ObjectStorageAdapter } from './r2-object-storage.js';
+import {
+  createR2ObjectStorageFromEnv,
+  R2ObjectStorageAdapter,
+} from './r2-object-storage.js';
 
 const ENDPOINT = 'https://0123456789abcdef.r2.cloudflarestorage.com';
 
@@ -134,6 +137,22 @@ test('signed read and write URLs use SDK presigning with bounded expiry', async 
   }
   assert.equal(calls[1]?.expiresIn, 300);
   await assert.rejects(adapter.signedReadUrl('x', 604801), /between 1 and 604800/);
+});
+
+test('environment factory maps the existing OBJECT_STORAGE variables', () => {
+  const adapter = createR2ObjectStorageFromEnv({
+    OBJECT_STORAGE_PROVIDER: 'r2',
+    OBJECT_STORAGE_ENDPOINT: ENDPOINT,
+    OBJECT_STORAGE_REGION: 'auto',
+    OBJECT_STORAGE_BUCKET: 'alsvid-production',
+    OBJECT_STORAGE_ACCESS_KEY: 'test-access-key',
+    OBJECT_STORAGE_SECRET_KEY: 'test-secret-key',
+  });
+  assert.ok(adapter instanceof R2ObjectStorageAdapter);
+  assert.throws(
+    () => createR2ObjectStorageFromEnv({ OBJECT_STORAGE_PROVIDER: 'local-disk' }),
+    /Unsupported object storage provider/,
+  );
 });
 
 test('configuration rejects invalid R2 endpoints and bucket names', () => {
