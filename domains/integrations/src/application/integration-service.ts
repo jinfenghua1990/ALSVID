@@ -21,7 +21,7 @@ import type {
   ShopifyNormalizerPort,
 } from './ports.js';
 
-interface IngestionResult {
+export interface IngestionResult {
   receipt: any;
   attempt: any;
   duplicate: boolean;
