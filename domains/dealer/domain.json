@@ -1,1 +1,1 @@
-{"name":"dealer","schema":"dealer","mode":"legacy","dependsOn":["audit","identity"]}
+{"name":"dealer","schema":"dealer","mode":"encapsulated","dependsOn":["partners","warehouse"]}
