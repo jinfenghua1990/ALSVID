@@ -1,0 +1,1 @@
+{"name":"logistics","schema":"logistics","mode":"legacy","dependsOn":["audit","identity","inventory"]}
