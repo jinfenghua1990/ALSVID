@@ -2,15 +2,30 @@
 
 ## Local development and Test
 
-The repository remains runnable locally without depending on production cloud services.
+At the current solo/small-team stage, the M1 workstation is the primary development and Test environment. ALSVID does **not** maintain a separate Cloud Run Test environment by default.
+
+The purpose of Test is to verify that a candidate software version, database migration, integration flow and object-storage behavior work correctly before the same Git commit/image is promoted to Production.
 
 Local/Test runtime:
 
-- PostgreSQL in Docker
-- Web / API / Worker containers for Test acceptance
-- optional local S3-compatible storage only when an object-storage workflow specifically needs it
+- M1 workstation for development and Test acceptance
+- Docker is mandatory for Test acceptance; production-bound code is not accepted based only on a bare macOS process
+- PostgreSQL in Docker for local Test data unless a specific integration test requires a managed PostgreSQL target
+- Web / API / Worker run as the same production-oriented container definitions used for deployment
+- optional local S3-compatible storage or isolated non-production R2 resources only when an object-storage workflow specifically needs them
+- Test data is disposable and must never be treated as production business truth
 
-The repository-side Test gate builds the real Web/API/Worker images, starts PostgreSQL, runs migrations, starts all three applications and performs API/Web smoke checks. A local machine, including the M1 workstation, is development/Test only and is never the production authority.
+The repository-side Test gate builds the real Web/API/Worker images, starts PostgreSQL, runs migrations, starts all three applications and performs API/Web smoke checks. Container builds used for release acceptance must remain compatible with the Cloud Run production target.
+
+The release rule is **Test the candidate first, then deploy the same version to Production**. A successful local Test does not turn the Test database or Test files into Production data; it approves the software version for production deployment.
+
+A separate cloud Test environment may be added later when one of these conditions becomes real:
+
+1. multiple developers or employees need a shared isolated integration environment;
+2. repeated defects appear only in Cloud Run or other cloud-specific services and cannot be reproduced locally;
+3. realistic cloud load, IAM, region, managed-service or end-to-end infrastructure testing becomes necessary.
+
+Until one of those conditions exists, maintaining a second cloud runtime is unnecessary operational overhead. The local M1 remains development/Test only and is never the production authority.
 
 ## Selected production placement
 
