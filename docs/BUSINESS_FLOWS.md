@@ -66,11 +66,23 @@ Dealer order/allocation
 -> dealer receipt
 -> dealer inventory / handover availability
 
-## 6. Commerce and Shopify
+## 6. Commerce, Shopify, WMS and customer-visible status
 
-Shopify remains external OMS/channel truth for storefront order operations. ALSVID records normalized channel/order facts and maps order lines/fulfillment to ALSVID SKU, inventory, shipment, dealer/customer and finance facts.
+Shopify remains the external commerce/order authority for storefront order operations. WMS remains the external warehouse execution authority for receiving, picking, packing, dispatch and warehouse-side fulfillment facts.
 
-Webhook/API ingestion must be idempotent. Provider IDs are external identifiers, never internal primary keys.
+ALSVID does not copy the complete Shopify or WMS databases. It stores only the business facts needed for Vehicle 360, customer/dealer views, warranty, service, after-sales and operational reconciliation, such as external order references, customer/SKU links, purchase and delivery dates, fulfillment status, carrier/tracking references and Vehicle/VIN associations.
+
+The default synchronization model is intentionally not real-time:
+
+- ALSVID performs a scheduled synchronization/reconciliation at least once per day.
+- Customer and staff pages normally read the latest successfully cached ALSVID facts rather than querying Shopify/WMS on every page load.
+- My ALSVID / after-sales pages provide an explicit **Refresh latest status** action.
+- When the user requests a refresh, ALSVID queries the relevant Shopify and/or WMS connector, refreshes only the facts needed for that view, and updates the local cache.
+- The UI shows the **last successful update time** and an **estimated refresh time** so the customer understands data freshness.
+- Manual refresh is rate-limited with a short cooldown to avoid repeated external requests.
+- Real-time webhooks are an optional future optimization only when a real business need justifies the added complexity.
+
+Provider IDs remain external identifiers, never internal primary keys. API ingestion and refresh operations must be idempotent.
 
 ## 7. Finance
 
@@ -95,6 +107,8 @@ Vehicle birth
 -> My ALSVID garage
 -> warranty/service lifecycle
 
+My ALSVID is the customer-facing vehicle/service surface. It may show the latest cached purchase summary, fulfillment/tracking status, warranty state, service cases, repair history and replacement-shipment information linked to the customer's Vehicle/VIN. The customer can request a status refresh from this surface when newer Shopify/WMS information is needed.
+
 Ownership transfers append history; they do not mutate away the previous owner period.
 
 ## 9. Warranty and service
@@ -108,6 +122,8 @@ Customer/dealer reports issue
 -> cost attribution
 -> closure
 -> vehicle service history
+
+Customer-facing after-sales views show the current ALSVID service state and the last successful external-data update time. When a repair or replacement depends on Shopify/WMS fulfillment data, the customer can request a refresh instead of ALSVID maintaining a permanent real-time synchronization channel.
 
 ## 10. Communication and marketing
 
