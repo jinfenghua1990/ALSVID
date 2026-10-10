@@ -6,6 +6,8 @@ import { IdentityService } from '@alsvid/identity';
 import { PartnerService } from '@alsvid/partners';
 import { ProcurementService } from '@alsvid/procurement';
 import { ProductService } from '@alsvid/product';
+import { ProductionService } from '@alsvid/production';
+import { VehicleService } from '@alsvid/vehicle';
 
 export const database = new Database();
 export const auditService = new AuditService(database);
@@ -15,3 +17,5 @@ export const productService = new ProductService(database, auditService);
 export const engineeringService = new EngineeringService(database, auditService);
 export const assetService = new AssetService(database, auditService);
 export const procurementService = new ProcurementService(database, auditService);
+export const productionService = new ProductionService(database, auditService);
+export const vehicleService = new VehicleService(database, auditService);

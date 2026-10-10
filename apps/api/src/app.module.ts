@@ -9,9 +9,11 @@ import { HealthController } from './health.controller.js';
 import { PartnersController } from './partners.controller.js';
 import { ProcurementController } from './procurement.controller.js';
 import { ProductController } from './product.controller.js';
+import { ProductionController } from './production.controller.js';
+import { VehicleController } from './vehicle.controller.js';
 
 @Module({
-  controllers: [HealthController, AuthController, PartnersController, AuditController, ProductController, EngineeringController, AssetsController, ProcurementController],
+  controllers: [HealthController, AuthController, PartnersController, AuditController, ProductController, EngineeringController, AssetsController, ProcurementController, ProductionController, VehicleController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
 })
 export class AppModule {}
