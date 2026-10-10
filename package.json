@@ -2,6 +2,7 @@
   "name": "alsvid",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@10.34.6",
   "engines": { "node": ">=22.18.0" },
   "scripts": {
     "dev": "pnpm --parallel --filter @alsvid/web --filter @alsvid/api --filter @alsvid/worker dev",
