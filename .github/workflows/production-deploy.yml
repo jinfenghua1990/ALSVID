@@ -1,0 +1,235 @@
+name: ALSVID Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Merged main commit to deploy (blank = current main)"
+        required: false
+        type: string
+      confirm:
+        description: "Type deploy to confirm production deployment"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: alsvid-production-deploy
+  cancel-in-progress: false
+
+env:
+  WEB_SERVICE: alsvid-web
+  API_SERVICE: alsvid-api
+  WORKER_POOL: alsvid-worker
+  MIGRATION_JOB: alsvid-migrate
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirm == 'deploy' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_sha || 'main' }}
+          fetch-depth: 0
+
+      - name: Validate release and deployment variables
+        id: release
+        shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          GCP_DEPLOY_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+          GCP_RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          for name in \
+            GCP_PROJECT_ID GCP_REGION GAR_REPOSITORY \
+            GCP_WORKLOAD_IDENTITY_PROVIDER GCP_DEPLOY_SERVICE_ACCOUNT \
+            GCP_RUNTIME_SERVICE_ACCOUNT R2_ENDPOINT R2_BUCKET; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required GitHub production variable: $name" >&2
+              exit 1
+            fi
+          done
+
+          git fetch origin main
+          release_sha="$(git rev-parse HEAD)"
+          if ! git merge-base --is-ancestor "$release_sha" origin/main; then
+            echo "Refusing deployment: $release_sha is not merged into main" >&2
+            exit 1
+          fi
+
+          registry="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+          echo "registry=$registry" >> "$GITHUB_OUTPUT"
+
+      - name: Build immutable release images before cloud authentication
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          docker build -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
+          docker build -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
+          docker build -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
+
+      - name: Authenticate to Google Cloud with Workload Identity Federation
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Push immutable release images
+        env:
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+          docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
+          docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
+          docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
+
+      - name: Run database migrations as an explicit release job
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud run jobs deploy "$MIGRATION_JOB" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --command pnpm \
+            --args db:migrate \
+            --set-env-vars NODE_ENV=production \
+            --set-secrets DATABASE_URL=alsvid-database-url:latest \
+            --max-retries 1 \
+            --task-timeout 10m \
+            --quiet
+          gcloud run jobs execute "$MIGRATION_JOB" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --wait \
+            --quiet
+
+      - name: Deploy API service
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$API_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --port 4000 \
+            --cpu 1 \
+            --memory 512Mi \
+            --min 0 \
+            --max 3 \
+            --allow-unauthenticated \
+            --set-env-vars "NODE_ENV=production,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET" \
+            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
+            --quiet
+
+      - name: Deploy continuous worker pool
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud run worker-pools deploy "$WORKER_POOL" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --instances 1 \
+            --cpu 1 \
+            --memory 512Mi \
+            --set-env-vars "NODE_ENV=production,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
+            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
+            --quiet
+
+      - name: Resolve API URL and verify health
+        id: api
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+        run: |
+          set -euo pipefail
+          api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 "$api_url/api/health"
+          echo "url=$api_url" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Web service
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          API_URL: ${{ steps.api.outputs.url }}
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$WEB_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-web:$RELEASE_SHA" \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --port 3000 \
+            --cpu 1 \
+            --memory 512Mi \
+            --min 0 \
+            --max 3 \
+            --allow-unauthenticated \
+            --set-env-vars "NODE_ENV=production,ALSVID_API_BASE_URL=$API_URL" \
+            --quiet
+
+      - name: Verify Web and record deployed release
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          web_url="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 "$web_url" >/dev/null
+          {
+            echo "### ALSVID production deployment"
+            echo "- Release: \`$RELEASE_SHA\`"
+            echo "- Web: $web_url"
+            echo "- API: ${{ steps.api.outputs.url }}"
+            echo "- Worker pool: $WORKER_POOL"
+          } >> "$GITHUB_STEP_SUMMARY"
