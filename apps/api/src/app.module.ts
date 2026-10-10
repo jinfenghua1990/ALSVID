@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AssetsController } from './assets.controller.js';
 import { AuditController } from './audit.controller.js';
 import { AuthController } from './auth.controller.js';
@@ -17,9 +17,32 @@ import { ProductController } from './product.controller.js';
 import { ProductionController } from './production.controller.js';
 import { VehicleController } from './vehicle.controller.js';
 import { WarehouseController } from './warehouse.controller.js';
+import { DomainExceptionFilter } from './platform/domain-exception.filter.js';
+import { RequestContextInterceptor } from './platform/request-context.interceptor.js';
 
 @Module({
-  controllers: [HealthController, AuthController, PartnersController, AuditController, ProductController, EngineeringController, AssetsController, ProcurementController, ProductionController, VehicleController, InventoryController, WarehouseController, LogisticsController, DealerController, CommerceController, IntegrationsController],
-  providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
+  controllers: [
+    HealthController,
+    AuthController,
+    PartnersController,
+    AuditController,
+    ProductController,
+    EngineeringController,
+    AssetsController,
+    ProcurementController,
+    ProductionController,
+    VehicleController,
+    InventoryController,
+    WarehouseController,
+    LogisticsController,
+    DealerController,
+    CommerceController,
+    IntegrationsController,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor },
+    { provide: APP_FILTER, useClass: DomainExceptionFilter },
+  ],
 })
 export class AppModule {}

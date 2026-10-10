@@ -4,33 +4,51 @@
 
 ALSVID-Next is a clean-slate implementation created on 2026-10-10. No production or local business deployment exists yet and no real ALSVID business data needs backward compatibility.
 
-The repository is therefore free to optimize architecture, schemas, APIs and user experience before the first real deployment.
+The repository is therefore free to optimize schemas, APIs and user experience before the first real deployment, but the platform-core architecture is now established and should be treated as the default implementation standard.
 
-## Current priority — platform rebuild and encapsulation
+## Platform rebuild — complete
 
-Feature expansion is temporarily frozen.
+The pre-deployment platform rebuild and encapsulation gate is complete.
 
-The immediate priority is to rebuild the ALSVID codebase as a durable platform core before adding more business capability. Existing business modules on `main` are treated as validated business requirements and working reference implementations, not as untouchable architecture.
+All currently implemented business Domains now use the standard internal boundary:
 
-The rebuild must:
+```text
+core / application / infrastructure / api
+```
 
-- standardize every Domain around `core / application / infrastructure / api` boundaries
-- keep `src/index.ts` as a public facade only, never as the implementation home for an entire Domain
-- centralize shared primitives, errors, transaction contracts, IDs, clocks and pagination without creating a generic business-data dumping ground
-- keep PostgreSQL schema ownership explicit per Domain
-- prevent applications from importing Domain internals directly
-- prevent one Domain from directly mutating another Domain's tables
-- provide provider-neutral ports for storage, external integrations, AI providers and jobs/workflows
-- standardize API error mapping, validation, authorization, audit metadata and idempotency
-- standardize the Web application shell, navigation and reusable UI components before adding more screens
-- standardize Worker jobs/outbox execution before adding automation
-- add architecture checks to CI so the structure cannot silently collapse back into large mixed files
+`src/index.ts` is a public facade rather than the implementation home for a Domain. Every implemented Domain is marked `encapsulated`, and CI runs `pnpm arch:check` to prevent internal imports, provider leakage and a return to large mixed Domain files.
 
-Until this rebuild is merged, no new Finance, Vehicle 360, Service, Communication or other feature expansion should be merged.
+The platform core now includes:
+
+- `@alsvid/kernel` for provider-free shared errors, operation context, clocks and pagination
+- `@alsvid/database` query and transaction contracts while Domain SQL remains inside Domain infrastructure adapters
+- `@alsvid/ports` for provider-neutral object storage, AI, email and workflow/job integrations
+- `@alsvid/observability` structured logging
+- `@alsvid/jobs` PostgreSQL-backed durable jobs with leases, retries and idempotency
+- `apps/worker` as a real durable-job runner rather than an empty service shell
+- centralized API runtime composition
+- global DomainError-to-HTTP mapping
+- request ID and correlation ID propagation
+- request/correlation metadata automatically inherited by API-originated Audit records
+- reusable Web application-shell/navigation primitives in `@alsvid/ui`
+- shared application navigation instead of defining the control-plane map independently on every new screen
+
+## Verified architecture gate
+
+The architecture gate is considered complete only when the repository passes all of the following together:
+
+1. PostgreSQL migrations rebuild from an empty PostgreSQL 18 database
+2. the migration command is safe to run again with nothing pending
+3. `pnpm arch:check` passes with no legacy Domain warnings
+4. all workspace TypeScript checks pass
+5. all existing PostgreSQL integration tests pass
+6. all Web/API/Worker/packages build successfully
+
+These checks remain CI requirements for subsequent work.
 
 ## Existing capability baseline
 
-The following capabilities exist on `main` and remain available as business-behavior references during the rebuild:
+The following capabilities are preserved through the rebuild and remain the current implemented business baseline:
 
 - Identity / access / audit / Partner master
 - Product / Engineering / Assets
@@ -40,20 +58,13 @@ The following capabilities exist on `main` and remain available as business-beha
 - Export Logistics
 - Dealer / Commerce / Shopify fact synchronization
 
-Their behavior may be retained while their internal code is reorganized.
+The rebuild changed internal boundaries and composition, not these business semantics.
 
-## Rebuild acceptance gate
+## Feature development after the rebuild
 
-Feature development resumes only after:
+Feature development may resume only through the new platform contracts. New work must not reintroduce direct cross-Domain persistence access, provider SDKs in core/application code, duplicated application composition, or large mixed `src/index.ts` implementations.
 
-1. the new platform-core packages are established
-2. Domain directory contracts are documented and CI-enforced
-3. API composition and error handling are centralized
-4. database transaction and migration boundaries are standardized
-5. provider-neutral integration/storage/job ports exist
-6. Web shell/design-system foundation is shared rather than copied per page
-7. at least the existing implemented Domains conform to the new public/internal boundary rules
-8. migrations, tests, typecheck and build all pass from an empty PostgreSQL 18 database
+Finance, Vehicle 360, Service, Communication and other later roadmap capabilities are still not implemented merely because the architecture gate is complete. They remain separate feature work and must be implemented on top of the encapsulated platform.
 
 ## Authority
 
