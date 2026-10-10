@@ -5,6 +5,7 @@ RUN corepack enable
 COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @alsvid/worker build
+RUN pnpm --filter @alsvid/worker... build
+RUN node scripts/prepare-runtime-workspaces.mjs
 
 CMD ["pnpm", "--filter", "@alsvid/worker", "start"]
