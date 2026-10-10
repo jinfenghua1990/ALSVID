@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AssetConflictError, AssetValidationError } from '@alsvid/assets';
 import { CommerceConflictError, CommerceNotFoundError, CommerceValidationError } from '@alsvid/commerce';
 import { DealerConflictError, DealerNotFoundError, DealerValidationError } from '@alsvid/dealer';
@@ -6,6 +6,7 @@ import { EngineeringConflictError, EngineeringNotFoundError, EngineeringValidati
 import { PermissionDeniedError } from '@alsvid/identity';
 import { IntegrationConflictError, IntegrationNotFoundError, IntegrationValidationError } from '@alsvid/integrations';
 import { InventoryConflictError, InventoryNotFoundError, InventoryValidationError } from '@alsvid/inventory';
+import { DomainError } from '@alsvid/kernel';
 import { LogisticsConflictError, LogisticsNotFoundError, LogisticsValidationError } from '@alsvid/logistics';
 import { PartnerConflictError, PartnerNotFoundError, PartnerValidationError } from '@alsvid/partners';
 import { ProcurementConflictError, ProcurementNotFoundError, ProcurementValidationError } from '@alsvid/procurement';
@@ -15,10 +16,17 @@ import { VehicleConflictError, VehicleNotFoundError, VehicleValidationError } fr
 import { WarehouseConflictError, WarehouseNotFoundError, WarehouseValidationError } from '@alsvid/warehouse';
 
 export function throwHttpDomainError(error: unknown): never {
+  if (error instanceof DomainError) {
+    if (error.kind === 'VALIDATION' || error.kind === 'INTEGRATION') throw new BadRequestException(error.message);
+    if (error.kind === 'NOT_FOUND') throw new NotFoundException(error.message);
+    if (error.kind === 'CONFLICT') throw new ConflictException(error.message);
+    if (error.kind === 'FORBIDDEN') throw new ForbiddenException(error.message);
+    if (error.kind === 'UNAUTHORIZED') throw new UnauthorizedException(error.message);
+  }
   if (error instanceof PermissionDeniedError) throw new ForbiddenException(error.message);
-  if (error instanceof PartnerValidationError || error instanceof ProductValidationError || error instanceof EngineeringValidationError || error instanceof AssetValidationError || error instanceof ProcurementValidationError || error instanceof ProductionValidationError || error instanceof VehicleValidationError || error instanceof InventoryValidationError || error instanceof WarehouseValidationError || error instanceof LogisticsValidationError || error instanceof DealerValidationError || error instanceof CommerceValidationError || error instanceof IntegrationValidationError) throw new BadRequestException(error.message);
-  if (error instanceof PartnerNotFoundError || error instanceof ProductNotFoundError || error instanceof EngineeringNotFoundError || error instanceof ProcurementNotFoundError || error instanceof ProductionNotFoundError || error instanceof VehicleNotFoundError || error instanceof InventoryNotFoundError || error instanceof WarehouseNotFoundError || error instanceof LogisticsNotFoundError || error instanceof DealerNotFoundError || error instanceof CommerceNotFoundError || error instanceof IntegrationNotFoundError) throw new NotFoundException(error.message);
-  if (error instanceof PartnerConflictError || error instanceof ProductConflictError || error instanceof EngineeringConflictError || error instanceof AssetConflictError || error instanceof ProcurementConflictError || error instanceof ProductionConflictError || error instanceof VehicleConflictError || error instanceof InventoryConflictError || error instanceof WarehouseConflictError || error instanceof LogisticsConflictError || error instanceof DealerConflictError || error instanceof CommerceConflictError || error instanceof IntegrationConflictError) throw new ConflictException(error.message);
+  if (error instanceof PartnerValidationError || error instanceof EngineeringValidationError || error instanceof AssetValidationError || error instanceof ProcurementValidationError || error instanceof ProductionValidationError || error instanceof VehicleValidationError || error instanceof InventoryValidationError || error instanceof WarehouseValidationError || error instanceof LogisticsValidationError || error instanceof DealerValidationError || error instanceof CommerceValidationError || error instanceof IntegrationValidationError || error instanceof ProductValidationError) throw new BadRequestException(error.message);
+  if (error instanceof PartnerNotFoundError || error instanceof EngineeringNotFoundError || error instanceof ProcurementNotFoundError || error instanceof ProductionNotFoundError || error instanceof VehicleNotFoundError || error instanceof InventoryNotFoundError || error instanceof WarehouseNotFoundError || error instanceof LogisticsNotFoundError || error instanceof DealerNotFoundError || error instanceof CommerceNotFoundError || error instanceof IntegrationNotFoundError || error instanceof ProductNotFoundError) throw new NotFoundException(error.message);
+  if (error instanceof PartnerConflictError || error instanceof EngineeringConflictError || error instanceof AssetConflictError || error instanceof ProcurementConflictError || error instanceof ProductionConflictError || error instanceof VehicleConflictError || error instanceof InventoryConflictError || error instanceof WarehouseConflictError || error instanceof LogisticsConflictError || error instanceof DealerConflictError || error instanceof CommerceConflictError || error instanceof IntegrationConflictError || error instanceof ProductConflictError) throw new ConflictException(error.message);
   if (error instanceof Error) throw new BadRequestException(error.message);
   throw error;
 }

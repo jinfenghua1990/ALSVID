@@ -11,9 +11,8 @@
     "test": "tsx --test src/*.test.ts"
   },
   "dependencies": {
-    "@alsvid/audit": "workspace:*",
     "@alsvid/database": "workspace:*",
-    "@alsvid/identity": "workspace:*"
+    "@alsvid/kernel": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

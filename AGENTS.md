@@ -8,54 +8,63 @@ Before changing application behavior, read:
 
 1. `docs/CURRENT_STATE.md`
 2. `docs/ARCHITECTURE.md`
-3. `docs/DATA_OWNERSHIP.md`
-4. `docs/BUSINESS_FLOWS.md`
-5. the relevant ADRs under `docs/adr/`
-6. the current issue/PR and the code in the affected domain
+3. `docs/DOMAIN_STRUCTURE.md`
+4. `docs/DATA_OWNERSHIP.md`
+5. `docs/BUSINESS_FLOWS.md`
+6. relevant ADRs under `docs/adr/`
+7. the current issue/PR and affected `domain.json`
 
-## Non-negotiable boundaries
+## Current rebuild gate
 
-- Do not copy runtime code, migrations, database schemas, or API compatibility layers from ChaiBen-OS or the previous ALSVID repository.
+Feature expansion is frozen until Issue #20 is complete. Do not add Finance, Vehicle 360, Service, Communication or other new capability while implemented domains are still being encapsulated.
+
+Existing business code may be reorganized or rewritten freely because ALSVID has never been deployed with real business data.
+
+## Non-negotiable business boundaries
+
+- Do not copy runtime code, migrations, schemas or compatibility layers from ChaiBen-OS or the previous ALSVID repository.
 - Historical repositories are requirement references only.
 - ALSVID is for the bicycle/export/Europe business.
-- 1688, JackYun/吉客云, domestic China channel settlement, domestic tax/accounting workflows, and CoffeeBear-specific behavior are out of scope.
-- Shopify is an external commerce/OMS integration. Do not recreate a general-purpose OMS inside ALSVID.
-- PostgreSQL is the authoritative store for business facts. R2/S3-compatible storage holds binary objects; the database owns object metadata and business linkage.
-- Email is provider-neutral. ALSVID owns communication facts, consent, suppression, campaign/send state, summaries and drafts; it does not host an SMTP server.
+- 1688, JackYun/吉客云, domestic China settlement/tax workflows and CoffeeBear-specific behavior are out of scope.
+- Shopify remains an external commerce/OMS integration; do not recreate a general-purpose OMS.
+- PostgreSQL is authoritative for structured business facts. R2/S3-compatible storage holds binary objects only.
+- Email and AI integrations are provider-neutral; business domains depend on ports, never vendor SDKs.
 
 ## Architecture rules
 
-- Start as a modular monolith. Do not introduce microservices without an ADR that proves a deployment/scaling/ownership need.
-- Organize code by business domain, not by screen.
-- A domain owns its tables, invariants and write use-cases.
-- Cross-domain writes happen through application services/contracts/events, never by reaching into another domain's repository internals.
-- Read models may join data for dashboards/360 views, but must not become alternate write authorities.
-- Long-running integration/workflow work runs through the worker and durable job/outbox patterns.
-- External systems are adapters behind interfaces. Core domain code must not import Shopify, mail provider, R2, carrier or payment SDKs directly.
-- Prefer explicit state machines and immutable history for vehicles, inventory movements, money allocation, consent and audit-sensitive workflows.
+- ALSVID remains a modular monolith unless an ADR proves a real need for service separation.
+- Follow `docs/DOMAIN_STRUCTURE.md`.
+- `domains/<domain>/src/index.ts` is a public facade only once a domain is encapsulated.
+- Core/application code cannot import provider SDKs or framework transport code.
+- Apps import domains only through `@alsvid/<domain>` public facades.
+- Cross-domain writes happen through public application contracts/events, never direct table mutation.
+- Domain-specific SQL belongs in that domain's infrastructure layer.
+- `@alsvid/database` provides mechanics, not business repositories.
+- Long-running work uses durable job/outbox patterns through the worker.
+- External systems are adapters behind `@alsvid/ports` or domain-specific ports.
+- Prefer explicit state machines and immutable history for vehicles, inventory, money, consent and audit-sensitive facts.
+- `pnpm arch:check` is a required CI gate. Do not weaken it to make a shortcut pass.
 
 ## Core identity rules
 
-- `Partner` is the shared legal/business/person identity foundation. Supplier, factory, dealer, customer, service partner and logistics provider are roles/capabilities, not duplicate master records.
-- `Product` is not `Vehicle`.
+- Partner is the shared legal/business/person identity foundation.
+- Product is not Vehicle.
 - Product hierarchy: Platform -> Model -> Variant -> SKU -> BOM Revision / Build Specification -> Vehicle.
-- One physical bicycle has exactly one Vehicle identity.
-- Frame number is unique and becomes immutable once the vehicle is born/released.
-- Vehicle ownership changes are historical events; do not overwrite history.
+- One physical bicycle has one Vehicle identity; frame number becomes immutable after birth.
+- Ownership changes append history; they do not erase the previous owner period.
 
-## Database and migrations
+## Database
 
-- This repository begins from migration `0001`; there is no legacy migration chain.
-- Never rewrite an already released production migration. Before first production deployment, destructive bootstrap changes are allowed if documented in the PR.
-- Monetary values require currency and decimal-safe storage. Never use floating point for money.
-- Inventory truth is movement-ledger based. Do not treat a mutable quantity field as the sole source of truth.
+- There is no production migration compatibility obligation yet. Before first production deployment, destructive baseline cleanup is allowed when intentional and reviewed.
+- Monetary values require currency and decimal-safe storage.
+- Inventory truth is movement-ledger based.
 - Finance truth separates document, obligation, payment and allocation.
+- Every business fact has one write authority as defined in `docs/DATA_OWNERSHIP.md`.
 
 ## Delivery discipline
 
-- Every meaningful change should map to an issue or clearly scoped PR.
-- Update `docs/CURRENT_STATE.md` when a capability becomes real.
-- Add or update tests for changed invariants and workflows.
-- Keep changes domain-coherent; avoid broad unrelated cleanup in feature PRs.
-- Do not add secrets, credentials or real customer data to Git.
-- Prefer one coherent implementation over compatibility shims for code that has never been deployed.
+- Every meaningful change maps to an issue or coherent PR.
+- Update `docs/CURRENT_STATE.md` only when behavior or architecture becomes real.
+- Add tests for changed invariants.
+- Do not add secrets, credentials or real customer data.
+- Prefer one clean implementation over compatibility shims for code that has never been deployed.

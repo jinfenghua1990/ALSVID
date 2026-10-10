@@ -1,0 +1,1 @@
+{"name":"vehicle","schema":"vehicle","mode":"legacy","dependsOn":["audit","identity"]}

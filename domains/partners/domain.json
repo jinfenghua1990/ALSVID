@@ -1,0 +1,1 @@
+{"name":"partners","schema":"partners","mode":"legacy","dependsOn":["audit","identity"]}

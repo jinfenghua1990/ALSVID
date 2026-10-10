@@ -9,6 +9,8 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
+    "arch:check": "node scripts/check-architecture.mjs",
+    "verify": "pnpm arch:check && pnpm typecheck && pnpm test && pnpm build",
     "db:migrate": "pnpm --filter @alsvid/database migrate",
     "bootstrap:admin": "pnpm --filter @alsvid/api bootstrap:admin",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",

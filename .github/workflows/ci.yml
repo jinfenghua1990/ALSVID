@@ -24,6 +24,7 @@ jobs:
           --health-retries=20
     env:
       DATABASE_URL: postgresql://alsvid:alsvid@localhost:5432/alsvid
+      NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -35,6 +36,7 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm db:migrate
       - run: pnpm db:migrate
+      - run: pnpm arch:check
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build

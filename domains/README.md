@@ -1,24 +1,10 @@
-# Domains
+# ALSVID Domains
 
-Business implementation lives here. Add a domain only when there is a real business capability to implement.
+Business behavior lives in domain packages. Directory separation alone is not enough: every rebuilt domain follows `docs/DOMAIN_STRUCTURE.md`.
 
-Expected internal shape:
+`domain.json` declares the domain's schema ownership, allowed cross-domain dependencies and migration status:
 
-```text
-<domain>/
-  src/core
-  src/application
-  src/infrastructure
-  src/api
-```
+- `legacy` — existing working implementation still needs internal restructuring; no new feature growth should be added there.
+- `encapsulated` — real implementation follows `core / application / infrastructure / api`, with a facade-only `src/index.ts`.
 
-Rules:
-
-- core has no Nest/Next/provider SDK dependency
-- application owns use-cases and ports
-- infrastructure implements persistence/provider adapters
-- api translates transport DTOs to application commands/queries
-- domain tables are private write authority to that domain
-- cross-domain behavior uses explicit contracts/events
-
-Do not create empty domain folders merely to mirror the architecture document.
+Feature development remains frozen while the existing baseline domains are moved from legacy to encapsulated.
