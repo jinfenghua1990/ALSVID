@@ -70,13 +70,13 @@ async function shipmentCargo(database: Database, userId: string): Promise<{ ship
     `INSERT INTO inventory.movements(movement_type,item_kind,sku_id,quantity,unit,destination_location_id,reference_type,reason,idempotency_key,created_by) VALUES ('RECEIPT','SKU',$1,1,'EA',$2,'FINANCE_TEST','Stock required before logistics reservation',$3,$4)`,
     [skuId, cnLocation.rows[0]!.id, `finance-receipt-${suffix()}`, userId],
   );
-  const reservation = await database.query<{ id: string }>(
-    `INSERT INTO inventory.reservations(item_kind,sku_id,location_id,quantity,unit,reference_type,note,created_by,updated_by) VALUES ('SKU',$1,$2,1,'EA','TEST','Finance landed cost test',$3,$3) RETURNING id`,
-    [skuId, cnLocation.rows[0]!.id, userId],
-  );
   const shipment = await database.query<{ id: string }>(
     `INSERT INTO logistics.shipments(route_type,origin_location_id,destination_location_id,created_by,updated_by) VALUES ('FACTORY_TO_GERMANY_WAREHOUSE',$1,$2,$3,$3) RETURNING id`,
     [cnLocation.rows[0]!.id, deLocation.rows[0]!.id, userId],
+  );
+  const reservation = await database.query<{ id: string }>(
+    `INSERT INTO inventory.reservations(item_kind,sku_id,location_id,quantity,unit,reference_type,reference_id,note,created_by,updated_by) VALUES ('SKU',$1,$2,1,'EA','SHIPMENT',$3,'Finance landed cost test',$4,$4) RETURNING id`,
+    [skuId, cnLocation.rows[0]!.id, shipment.rows[0]!.id, userId],
   );
   const cargo = await database.query<{ id: string }>(
     `INSERT INTO logistics.shipment_cargo(shipment_id,item_kind,sku_id,quantity,unit,reservation_id,created_by) VALUES ($1,'SKU',$2,1,'EA',$3,$4) RETURNING id`,
@@ -101,7 +101,7 @@ test('posted supplier invoice creates immutable AP obligation and allocations de
     assert.ok(posted.obligation);
     assert.equal(posted.obligation.direction, 'AP');
     assert.equal(Number(posted.obligation.original_amount), 1190);
-    assert.equal(String(posted.obligation.due_date).slice(0, 10), '2026-11-10');
+    assert.equal(new Date(posted.obligation.due_date).toISOString().slice(0, 10), '2026-11-10');
     await assert.rejects(database.query(`UPDATE finance.documents SET note='mutated' WHERE id=$1`, [document.id]), /immutable/);
 
     const paymentA = await service.createPayment(financeActor, { direction: 'OUTBOUND', partnerId: supplier, currency: 'EUR', amount: '500', valueDate: '2026-10-15', idempotencyKey: `pay-${suffix()}` });
