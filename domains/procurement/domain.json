@@ -1,1 +1,1 @@
-{"name":"procurement","schema":"procurement","mode":"legacy","dependsOn":["audit","identity"]}
+{"name":"procurement","schema":"procurement","mode":"encapsulated","dependsOn":["partners","product","engineering"]}
