@@ -20,20 +20,38 @@ ALSVID has strongly connected workflows: procurement creates production demand, 
 
 A domain may become an independent service later only when an ADR demonstrates a concrete need such as independent scaling, security isolation, team ownership or external SLA.
 
-## Domain structure
+## Enforced Domain structure
 
-Each domain should converge on this internal shape:
+Every implemented Domain uses this internal shape:
 
 ```text
 domains/<domain>/
+  domain.json
   src/
     core/             # entities, value objects, invariants, policies
     application/      # commands, queries, orchestration, ports
-    infrastructure/   # persistence and external adapters
-    api/              # transport-facing DTO/controller glue when needed
+    infrastructure/   # persistence and external/provider adapters
+    api/              # transport-facing contracts/DTO glue
+    index.ts           # public facade only
 ```
 
-Core code must not depend on framework-specific or provider-specific SDKs.
+Core and application code may not depend on framework-specific or provider-specific SDKs. PostgreSQL SQL belongs in Domain infrastructure adapters. Cross-Domain consumers import public facades/contracts only, never another Domain's internal paths.
+
+Each Domain declares its architecture state in `domain.json`. `pnpm arch:check` is part of CI and rejects boundary violations. Feature work must not bypass that check by weakening the rule set.
+
+## Platform packages
+
+Shared packages are intentionally narrow:
+
+- `@alsvid/kernel` — generic domain errors, operation context, clock and pagination primitives
+- `@alsvid/database` — database/query/transaction mechanics, not business repositories
+- `@alsvid/ports` — provider-neutral external capability ports
+- `@alsvid/observability` — structured logging
+- `@alsvid/jobs` — durable PostgreSQL job mechanics
+- `@alsvid/contracts` — transport/shared contract primitives where genuinely cross-cutting
+- `@alsvid/ui` — reusable application-shell and UI primitives
+
+Shared packages must not become a dumping ground for business rules or Domain-owned data models.
 
 ## Domain map
 
@@ -42,13 +60,13 @@ Core code must not depend on framework-specific or provider-specific SDKs.
 - Product — platforms, models, variants, SKUs, commercial identity
 - Engineering — parts, BOM revisions, build specifications, technical release
 - Procurement — RFQ/quote/PO/receipts/supplier commitments
-- Production — production orders, assembly, QC, release and vehicle birth
+- Production — production orders, assembly, QC and release
+- Vehicle — unique physical bicycle identity, Vehicle Birth, lifecycle and ownership history
 - Inventory — stock movement ledger, availability and reservation
 - Warehouse — receiving, putaway, bins, transfer, stocktake, pick/pack/dispatch
 - Logistics — export shipments, customs and delivery milestones
 - Commerce — channels, external orders, fulfillment mapping, returns
 - Finance — invoices, obligations, payments, allocations, landed cost, FX, settlement
-- Vehicle — unique physical bicycle identity, lifecycle and ownership history
 - Dealer — dealer operations, allocations, handover and dealer inventory views
 - Customer — customer profile, garage, ownership, preferences
 - Service — warranty, service cases, repair events, replacement parts
@@ -57,6 +75,8 @@ Core code must not depend on framework-specific or provider-specific SDKs.
 - Assets — object metadata, access policy and business linkage
 - Integrations — provider adapters and synchronization control plane
 - Audit & Compliance — immutable audit/security/compliance evidence
+
+Not every item in the domain map is implemented yet. The map defines ownership, not completion status.
 
 ## Data
 
@@ -72,25 +92,38 @@ Use one of three patterns:
 2. domain event/outbox for eventual side effects and integrations
 3. read-model projection for dashboards and 360-degree views
 
-Never solve cross-domain behavior with direct writes to another domain's tables.
+Never solve cross-domain behavior with direct writes to another domain's tables. A caller-owned transaction may be passed through a public application contract when atomicity genuinely spans two Domains, but the called Domain still owns its persistence operation.
+
+## API composition
+
+`apps/api` is the composition root. It constructs Domain services through their public factories and wires structural ports explicitly.
+
+HTTP concerns stay outside business Domains:
+
+- a global request-context interceptor establishes `requestId` and `correlationId`
+- API-originated audit records inherit those identifiers automatically
+- a global exception filter maps shared `DomainError` kinds to HTTP status codes
+- individual controllers do not maintain a registry of every Domain error class
+- structured request logging goes through `@alsvid/observability`
+
+External/provider webhooks terminate at integration adapters, are authenticated where required, normalized, idempotently recorded, then translated into domain commands/events.
 
 ## Long-running workflows
 
-Procurement-to-delivery may span months. Workflow state must be explicit and recoverable. Initial implementation may use PostgreSQL-backed jobs/outbox in `apps/worker`. A durable workflow engine such as Temporal can be introduced later behind the workflow port without rewriting domain invariants.
+Procurement-to-delivery may span months. Workflow state must be explicit and recoverable. Initial implementation uses PostgreSQL-backed durable jobs in `apps/worker` with leases, retry handling and idempotency. A workflow engine such as Temporal may be introduced later behind the workflow port without rewriting domain invariants.
 
-## API
+## UI composition
 
-Internal API is versioned and contract-first. External/provider webhooks terminate at integration adapters, are authenticated, normalized, idempotently recorded, then translated into domain commands/events.
+The UI is entity- and workflow-centered rather than menu/form-centered. `@alsvid/ui` owns reusable application-shell/navigation primitives so new screens do not invent a parallel ALSVID control plane.
 
-## UI
+Core patterns include:
 
-The UI is entity- and workflow-centered rather than menu/form-centered. Core patterns include:
-
-- global search/command palette
+- shared application shell and navigation
+- global search/command palette when implemented
 - timeline/activity stream
 - 360-degree entity pages
 - workflow status and exceptions
 - side panels/drawers for fast inspection
 - dense tables only where operationally necessary
 
-Primary navigation begins with: Overview, Product, Supply, Commerce, Vehicle, Partners, Finance, Service and Communication.
+Primary navigation begins with: Overview, Product, Supply, Commerce, Vehicle, Dealer, Partners, Finance, Service and Communication.
