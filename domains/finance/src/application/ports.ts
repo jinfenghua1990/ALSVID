@@ -30,14 +30,14 @@ export interface FinanceAuditPort {
   ): Promise<void>;
 }
 
-type NormalizedDocumentInput = Omit<CreateFinanceDocumentInput, 'currency' | 'sourceType' | 'sourceId'> & {
+export type NormalizedDocumentInput = Omit<CreateFinanceDocumentInput, 'currency' | 'sourceType' | 'sourceId'> & {
   currency: string;
   sourceType: FinanceSourceType;
   sourceId: string | null;
   actorUserId: string;
 };
 
-type NormalizedLineInput = Omit<FinanceDocumentLineInput, 'quantity' | 'unit' | 'unitPrice' | 'netAmount' | 'taxAmount'> & {
+export type NormalizedLineInput = Omit<FinanceDocumentLineInput, 'quantity' | 'unit' | 'unitPrice' | 'netAmount' | 'taxAmount'> & {
   quantity: string;
   unit: string;
   unitPrice: string;
@@ -45,7 +45,7 @@ type NormalizedLineInput = Omit<FinanceDocumentLineInput, 'quantity' | 'unit' | 
   taxAmount: string;
 };
 
-type NormalizedObligationInput = Omit<CreateObligationInput, 'currency' | 'amount' | 'sourceType' | 'sourceId'> & {
+export type NormalizedObligationInput = Omit<CreateObligationInput, 'currency' | 'amount' | 'sourceType' | 'sourceId'> & {
   currency: string;
   amount: string;
   sourceType: FinanceSourceType;
@@ -54,38 +54,38 @@ type NormalizedObligationInput = Omit<CreateObligationInput, 'currency' | 'amoun
   documentId?: string | null;
 };
 
-type NormalizedPaymentInput = Omit<CreatePaymentInput, 'currency' | 'amount'> & {
+export type NormalizedPaymentInput = Omit<CreatePaymentInput, 'currency' | 'amount'> & {
   currency: string;
   amount: string;
   actorUserId: string;
 };
 
-type NormalizedFxRateInput = Omit<CreateFxRateInput, 'baseCurrency' | 'quoteCurrency' | 'rate'> & {
+export type NormalizedFxRateInput = Omit<CreateFxRateInput, 'baseCurrency' | 'quoteCurrency' | 'rate'> & {
   baseCurrency: string;
   quoteCurrency: string;
   rate: string;
   actorUserId: string;
 };
 
-type NormalizedAllocationInput = Omit<AllocatePaymentInput, 'paymentAmount' | 'obligationAmount'> & {
+export type NormalizedAllocationInput = Omit<AllocatePaymentInput, 'paymentAmount' | 'obligationAmount'> & {
   paymentAmount: string;
   obligationAmount: string;
   actorUserId: string;
 };
 
-type NormalizedLandedCostBatchInput = Omit<CreateLandedCostBatchInput, 'currency'> & {
+export type NormalizedLandedCostBatchInput = Omit<CreateLandedCostBatchInput, 'currency'> & {
   currency: string;
   actorUserId: string;
 };
 
-type NormalizedLandedCostComponentInput = Omit<AddLandedCostComponentInput, 'amount' | 'currency' | 'batchCurrencyAmount'> & {
+export type NormalizedLandedCostComponentInput = Omit<AddLandedCostComponentInput, 'amount' | 'currency' | 'batchCurrencyAmount'> & {
   amount: string;
   currency: string;
   batchCurrencyAmount: string;
   actorUserId: string;
 };
 
-type NormalizedLandedAllocationInput = Omit<AllocateLandedCostInput, 'allocatedAmount' | 'basisValue'> & {
+export type NormalizedLandedAllocationInput = Omit<AllocateLandedCostInput, 'allocatedAmount' | 'basisValue'> & {
   allocatedAmount: string;
   basisValue: string | null;
   actorUserId: string;
