@@ -16,6 +16,7 @@ export interface VehicleHandoverInput{
 }
 
 export interface VehicleOwnershipTransferInput{
+  expectedCurrentOwnerPartnerId:string;
   newOwnerPartnerId:string;
   occurredAt:string;
   reason?:string;
@@ -23,6 +24,7 @@ export interface VehicleOwnershipTransferInput{
 }
 
 export interface VehicleOwnershipReleaseInput{
+  expectedCurrentOwnerPartnerId:string;
   occurredAt:string;
   reason:string;
   metadata?:Record<string,unknown>;
