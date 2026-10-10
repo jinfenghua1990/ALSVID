@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { CallHandler, ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
+import { Injectable, type CallHandler, type ExecutionContext, type NestInterceptor } from '@nestjs/common';
 import { JsonConsoleLogger } from '@alsvid/observability';
 import { Observable, finalize } from 'rxjs';
 import { apiRequestContextStore, type ApiRequestContext } from './request-context.js';
@@ -41,9 +41,20 @@ export class RequestContextInterceptor implements NestInterceptor {
 
     return new Observable((subscriber) => {
       apiRequestContextStore.run(operation, () => {
-        logger.info('api.request.started', operation);
+        logger.info('api.request.started', {
+          requestId: operation.requestId,
+          correlationId: operation.correlationId,
+          method: operation.method,
+          url: operation.url,
+        });
         next.handle()
-          .pipe(finalize(() => logger.info('api.request.completed', { ...operation, durationMs: Date.now() - startedAt })))
+          .pipe(finalize(() => logger.info('api.request.completed', {
+            requestId: operation.requestId,
+            correlationId: operation.correlationId,
+            method: operation.method,
+            url: operation.url,
+            durationMs: Date.now() - startedAt,
+          })))
           .subscribe(subscriber);
       });
     });
