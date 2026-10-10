@@ -1,0 +1,5 @@
+import { PartnerValidationError } from './errors.js';
+import { PartnerRoles,type PartnerRole } from './model.js';
+export function normalizeIdentifier(scheme:string,value:string){const normalizedScheme=scheme.trim().toUpperCase();const rawValue=value.trim();if(!normalizedScheme||!rawValue)throw new PartnerValidationError('Identifier scheme and value are required');const normalizedValue=normalizedScheme==='EMAIL'?rawValue.toLowerCase():rawValue.toUpperCase().replace(/\s+/g,'');return{scheme:normalizedScheme,rawValue,normalizedValue};}
+export function assertUniqueRoles(roles:readonly PartnerRole[]):void{if(new Set(roles).size!==roles.length)throw new PartnerValidationError('Partner roles must be unique');for(const role of roles)if(!(PartnerRoles as readonly string[]).includes(role))throw new PartnerValidationError(`Unknown Partner role: ${role}`);}
+export function normalizePartnerCountry(value?:string|null):string|null{if(!value)return null;const country=value.trim().toUpperCase();if(!/^[A-Z]{2}$/.test(country))throw new PartnerValidationError('countryCode must be ISO 3166-1 alpha-2');return country;}

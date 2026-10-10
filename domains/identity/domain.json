@@ -1,1 +1,1 @@
-{"name":"identity","schema":"identity","mode":"legacy","dependsOn":["audit"]}
+{"name":"identity","schema":"identity","mode":"encapsulated","dependsOn":[]}
