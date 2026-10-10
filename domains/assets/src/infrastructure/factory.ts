@@ -1,0 +1,1 @@
+import type{DatabasePort}from'@alsvid/database';import type{AssetAuditPort}from'../application/ports.js';import{AssetService}from'../application/asset-service.js';import{PostgresAssetRepository}from'./postgres-asset-repository.js';export function createAssetService(db:DatabasePort,audit:AssetAuditPort){return new AssetService(new PostgresAssetRepository(db),audit)}
