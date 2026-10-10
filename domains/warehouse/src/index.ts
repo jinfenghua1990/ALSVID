@@ -140,7 +140,7 @@ export class WarehouseService {
 
   private async assertItem(kind:InventoryItemKind,id:string,unit:string,executor:QueryExecutor):Promise<void>{
     if(kind==='PART'){
-      const result=await executor.query<{unit:string}>(`SELECT unit FROM engineering.parts WHERE id=$1`,[id]);
+      const result=await executor.query<{unit:string}>(`SELECT default_unit AS unit FROM engineering.parts WHERE id=$1`,[id]);
       if(!result.rows[0])throw new WarehouseNotFoundError('Part not found');
       if(result.rows[0].unit.trim().toUpperCase()!==unit)throw new WarehouseValidationError(`Part unit must be ${result.rows[0].unit}`);
       return;
