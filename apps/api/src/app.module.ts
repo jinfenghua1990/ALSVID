@@ -7,6 +7,7 @@ import { AuthGuard } from './auth.guard.js';
 import { CommerceController } from './commerce.controller.js';
 import { DealerController } from './dealer.controller.js';
 import { EngineeringController } from './engineering.controller.js';
+import { FinanceController } from './finance.controller.js';
 import { HealthController } from './health.controller.js';
 import { IntegrationsController } from './integrations.controller.js';
 import { InventoryController } from './inventory.controller.js';
@@ -38,6 +39,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     DealerController,
     CommerceController,
     IntegrationsController,
+    FinanceController,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
