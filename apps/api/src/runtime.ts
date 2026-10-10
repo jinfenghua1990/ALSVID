@@ -1,8 +1,11 @@
 import { AssetService } from '@alsvid/assets';
 import { AuditService } from '@alsvid/audit';
+import { CommerceService } from '@alsvid/commerce';
 import { Database } from '@alsvid/database';
+import { DealerService } from '@alsvid/dealer';
 import { EngineeringService } from '@alsvid/engineering';
 import { IdentityService } from '@alsvid/identity';
+import { IntegrationService } from '@alsvid/integrations';
 import { InventoryService } from '@alsvid/inventory';
 import { LogisticsService } from '@alsvid/logistics';
 import { PartnerService } from '@alsvid/partners';
@@ -25,3 +28,6 @@ export const vehicleService = new VehicleService(database, auditService);
 export const inventoryService = new InventoryService(database, auditService);
 export const warehouseService = new WarehouseService(database, auditService, inventoryService);
 export const logisticsService = new LogisticsService(database, auditService, inventoryService);
+export const dealerService = new DealerService(database, auditService);
+export const commerceService = new CommerceService(database, auditService);
+export const integrationService = new IntegrationService(database, auditService, commerceService);
