@@ -20,11 +20,11 @@ export default function LoginPage() {
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
-      setError(payload?.message ?? 'Unable to sign in');
+      setError(payload?.message ?? '登录失败，请检查邮箱和密码');
       setBusy(false);
       return;
     }
-    router.push('/partners');
+    router.push('/');
     router.refresh();
   }
 
@@ -32,13 +32,13 @@ export default function LoginPage() {
     <main className="authPage">
       <section className="authCard">
         <div className="brand">ALSVID</div>
-        <div className="eyebrow">INTERNAL CONTROL PLANE</div>
-        <h1 className="authTitle">Sign in to operate ALSVID.</h1>
+        <div className="eyebrow">内部管理控制台</div>
+        <h1 className="authTitle">登录 ALSVID 管理后台</h1>
         <form className="stack" onSubmit={submit}>
-          <label>Email<input name="email" type="email" autoComplete="username" required /></label>
-          <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
+          <label>公司邮箱<input name="email" type="email" autoComplete="username" required /></label>
+          <label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
           {error ? <p className="formError">{error}</p> : null}
-          <button className="primaryButton" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+          <button className="primaryButton" disabled={busy}>{busy ? '正在登录…' : '登录'}</button>
         </form>
       </section>
     </main>

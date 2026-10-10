@@ -59,6 +59,20 @@ The current implemented business baseline is:
 - Dealer / Commerce external-fact synchronization foundation
 - Finance foundation: commercial documents, AR/AP obligations, payment evidence, allocations/reversals, explicit FX and Shipment landed-cost allocation
 
+## Internal Admin UI foundation
+
+The Internal Admin now has a Chinese-first shell foundation aligned with Issue #52:
+
+- grouped navigation for Product, Operations, Commercial, Vehicles & Service, People and System areas;
+- Chinese overview and login surfaces;
+- explicit `规划中` / `预留` / `待配置` states for unfinished integrations instead of fake working links;
+- a persistent Test environment banner and `[测试] ALSVID` document title outside Production;
+- mobile navigation instead of hiding the desktop rail without replacement;
+- an Employee Center scaffold for the centralized employee/provisioning direction in Issue #51;
+- an Environment & Infrastructure surface that exposes safe runtime/resource metadata and configured/missing status without revealing database URLs, passwords, R2 secret keys or provider tokens.
+
+This is a shell/foundation milestone, not a claim that all existing business workbenches have already been redesigned or fully localized. Existing deep domain screens will converge on the shared Chinese Internal Admin patterns incrementally.
+
 ### Finance authority model
 
 Finance deliberately separates commercial documents, obligations and payments. A payment does not overwrite an invoice or obligation; settlement is derived from append-only allocations and reversals. Cross-currency settlement requires explicit FX evidence. Landed cost references Logistics Shipment/cargo facts and does not mutate Inventory quantity.
