@@ -19,7 +19,7 @@ export interface AppShellClassNames {
   workspace?: string;
 }
 
-function NavigationItems({ navigation, activeClassName }: { navigation: readonly AppNavItem[]; activeClassName?: string }) {
+function NavigationItems({ navigation, activeClassName }: { navigation: readonly AppNavItem[]; activeClassName: string | undefined }) {
   return (
     <>
       {navigation.map((item, index) => {
