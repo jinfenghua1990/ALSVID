@@ -23,6 +23,22 @@ export interface R2ObjectStorageConfig {
   presign?: typeof getSignedUrl;
 }
 
+export function createR2ObjectStorageFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): R2ObjectStorageAdapter {
+  const provider = env.OBJECT_STORAGE_PROVIDER?.trim().toLowerCase() ?? 'r2';
+  if (!['r2', 's3-compatible'].includes(provider)) {
+    throw new Error(`Unsupported object storage provider: ${provider}`);
+  }
+  return new R2ObjectStorageAdapter({
+    endpoint: requiredEnv(env, 'OBJECT_STORAGE_ENDPOINT'),
+    bucket: requiredEnv(env, 'OBJECT_STORAGE_BUCKET'),
+    accessKeyId: requiredEnv(env, 'OBJECT_STORAGE_ACCESS_KEY'),
+    secretAccessKey: requiredEnv(env, 'OBJECT_STORAGE_SECRET_KEY'),
+    ...(env.OBJECT_STORAGE_REGION?.trim() ? { region: env.OBJECT_STORAGE_REGION.trim() } : {}),
+  });
+}
+
 export class R2ObjectStorageAdapter implements ObjectStoragePort {
   private readonly bucket: string;
   private readonly client: S3Client;
@@ -143,6 +159,12 @@ export class R2ObjectStorageAdapter implements ObjectStoragePort {
     if (!metadata?.checksumSha256) return false;
     return metadata.checksumSha256 === normalizeChecksum(expectedSha256);
   }
+}
+
+function requiredEnv(env: NodeJS.ProcessEnv, name: string): string {
+  const value = env[name]?.trim();
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
 }
 
 async function collectBody(body: PutObjectInput['body']): Promise<Uint8Array> {
