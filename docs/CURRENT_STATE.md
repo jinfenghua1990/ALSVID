@@ -199,7 +199,61 @@ Not yet implemented in Inventory/Warehouse scope:
 - replenishment/min-max rules
 - lot/batch/serial tracking beyond Vehicle identity
 - barcode/scan-first warehouse UX
-- carrier/shipment-linked dispatch workflow, which belongs to Logistics integration
+
+## Phase 1F — Export Logistics foundation
+
+Implemented:
+
+- migrations `0009_export_logistics.sql`, `0010_logistics_inventory_permissions.sql` and `0011_logistics_integrity_guards.sql`
+- one provider-neutral Shipment model with two explicit route types: China factory -> Germany warehouse and China factory -> dealer direct
+- database enforcement that export origins are China warehouse locations and Germany-route destinations are Germany warehouse locations
+- dealer-direct destination requires a Dealer Partner and an address owned by that Dealer; dealer-direct carries no fake Germany warehouse destination
+- optional carrier/forwarder references require the Logistics Provider Partner role
+- transport mode, Incoterm, booking, bill of lading, container, tracking and planned ETD/ETA facts kept separate from actual execution events
+- append-only Shipment event timeline for booking, cargo readiness, pickup, export/import customs, departure, transit, arrival, delivery, exception and hold/release evidence
+- route-specific delivery milestones prevent Germany-delivery events on dealer-direct shipments and dealer-delivery events on Germany routes
+- released Shipment route baseline and cargo are protected from silent mutation
+- cargo allocation uses the Inventory application contract to create explicit Shipment reservations at the origin location
+- Logistics roles receive the exact Inventory/Partner read-write capabilities required for public service contracts rather than bypassing authorization
+- Inventory public application methods support caller-owned transactions so Shipment allocation, dispatch and receiving are atomic across domain contracts without direct cross-domain table writes
+- Shipment release requires cargo and active Inventory reservations
+- dispatch consumes reservations through Inventory Issue movements with deterministic idempotency keys
+- serialized Vehicle cargo inherits Inventory collision/availability protection, so one Vehicle cannot be allocated to conflicting active shipments
+- Germany delivery and Germany Inventory receiving are separate facts: delivery alone does not create stock
+- explicit Germany receive action posts Inventory Receipt movements through the Inventory service and records immutable receiving handoffs
+- database guards reject receiving handoffs and Inventory-received markers for dealer-direct shipments
+- dealer-direct delivery completes Logistics without requiring or synthesizing a Germany warehouse receipt
+- export/import customs declaration headers with exporter, importer and importer-of-record Partner references
+- EORI identifiers remain Partner master facts; database validation verifies an EORI identifier belongs to the selected Partner
+- commercial invoice, packing-list and customs-document identifiers plus Asset references
+- per-cargo origin / HS / CN / TARIC classification facts
+- explicit declared value, duty, import VAT, anti-dumping, countervailing and operational-fee facts for later Finance landed-cost integration
+- append-only customs events with guarded transitions for Draft, Declared, Hold, Release, Clear, Correction and Cancellation
+- customs lines/header become immutable after declaration; correction uses new evidence/events rather than silent history edits
+- customs Declared/Cleared/Hold/Release events also emit normalized Shipment milestones
+- authenticated Logistics APIs and `/logistics` Internal Admin workspace
+- Logistics UI supports route-aware shipment creation, inventory cargo allocation, release/dispatch/cancel, actual milestone timeline, Germany receiving, customs declarations, Partner/EORI selection, classification and duty/VAT/AD/CVD/fee evidence
+- PostgreSQL integration tests cover Germany end-to-end execution, delivery-before-receipt separation, dealer-direct no-Germany-receipt behavior, serialized Vehicle allocation collision, EORI ownership and customs/Shipment evidence immutability
+
+Deliberately not owned by Logistics:
+
+- Inventory quantity truth; Logistics uses Inventory public services for reserve/issue/receive
+- Partner legal identity, addresses and EORI master truth
+- Shopify/storefront order operations
+- Dealer commercial policy, customer ownership or Vehicle handover
+- Finance AP/AR/payment/settlement and accounting recognition
+- Product/Vehicle master identity
+- 1688, JackYun/吉客云 or CoffeeBear domestic logistics
+
+Not yet implemented in Logistics scope:
+
+- live carrier/forwarder API connectors and webhook ingestion
+- live customs/broker portal connectors
+- automated document generation/rendering for commercial invoice, packing list and customs packets
+- advanced consolidation/container load planning
+- route ETA prediction and exception automation
+- warehouse pick/pack task orchestration beyond Inventory reservation/Issue foundations
+- Finance landed-cost posting and allocation from the explicit duty/VAT/freight facts
 
 ## Planned capability sequence
 
@@ -208,7 +262,7 @@ Not yet implemented in Inventory/Warehouse scope:
 3. Procurement + supplier quotation/PO/confirmation/receipts — **foundation implemented**
 4. Production + QC + Vehicle Birth — **foundation implemented**
 5. Inventory + warehouse operations — **foundation implemented**
-6. Export logistics: China -> Germany warehouse and China -> dealer direct
+6. Export logistics: China -> Germany warehouse and China -> dealer direct — **foundation implemented**
 7. Dealer + commerce + Shopify fact synchronization
 8. Finance: AR/AP, invoice, payment, allocation, settlement, FX and landed cost
 9. Vehicle 360 + ownership + customer garage

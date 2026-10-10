@@ -18,6 +18,7 @@
     "@alsvid/engineering": "workspace:*",
     "@alsvid/identity": "workspace:*",
     "@alsvid/inventory": "workspace:*",
+    "@alsvid/logistics": "workspace:*",
     "@alsvid/partners": "workspace:*",
     "@alsvid/procurement": "workspace:*",
     "@alsvid/product": "workspace:*",

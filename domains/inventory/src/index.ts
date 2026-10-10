@@ -36,6 +36,21 @@ export interface MovementInput extends InventoryItemInput {
   correlationId?: string;
 }
 
+export interface ReservationInput extends InventoryItemInput {
+  locationId: string;
+  quantity: string | number;
+  referenceType?: string;
+  referenceId?: string;
+  note?: string;
+}
+
+export interface ReservationIssueInput {
+  idempotencyKey: string;
+  reason?: string;
+  referenceType?: string;
+  referenceId?: string;
+}
+
 function requireCapability(actor: AuthContext, capability: string): void {
   if (!actor.permissions.includes(capability)) throw new PermissionDeniedError(capability);
 }
@@ -101,62 +116,48 @@ export class InventoryService {
     return { balances: balances.rows, movements: movements.rows, reservations: reservations.rows };
   }
 
-  async postMovement(actor: AuthContext, input: MovementInput): Promise<any> {
+  async postMovement(actor: AuthContext, input: MovementInput, executor: QueryExecutor = this.database): Promise<any> {
     if (input.movementType === 'ADJUSTMENT') {
       requireCapability(actor, InventoryCapability.Adjust);
       if (!input.reason?.trim()) throw new InventoryValidationError('Adjustment reason is required');
     } else if (input.movementType === 'STOCKTAKE_CORRECTION') requireCapability(actor, InventoryCapability.Stocktake);
     else requireCapability(actor, InventoryCapability.Move);
-    return this.insertMovement(actor, input, this.database);
+    return this.insertMovement(actor, input, executor);
   }
 
-  async createReservation(actor: AuthContext, input: InventoryItemInput & { locationId: string; quantity: string | number; referenceType?: string; referenceId?: string; note?: string }): Promise<any> {
+  async createReservation(actor: AuthContext, input: ReservationInput, executor: QueryExecutor = this.database): Promise<any> {
     requireCapability(actor, InventoryCapability.Reserve);
     const unit = normalizeUnit(input.unit);
-    await this.assertItem(input.itemKind, input.itemId, unit, this.database);
+    await this.assertItem(input.itemKind, input.itemId, unit, executor);
     const ids = itemIds(input);
     try {
-      const result = await this.database.query<any>(
+      const result = await executor.query<any>(
         `INSERT INTO inventory.reservations(item_kind,part_id,sku_id,vehicle_id,location_id,quantity,unit,reference_type,reference_id,note,created_by,updated_by)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11) RETURNING *`,
         [input.itemKind,ids.partId,ids.skuId,ids.vehicleId,input.locationId,decimal(input.quantity,'quantity'),unit,input.referenceType?.trim()||null,input.referenceId||null,input.note?.trim()??'',actor.userId],
       );
-      await this.audit.record({ actorUserId: actor.userId, action: 'inventory.reservation_created', targetType: 'inventory.reservation', targetId: result.rows[0].id }, this.database);
+      await this.audit.record({ actorUserId: actor.userId, action: 'inventory.reservation_created', targetType: 'inventory.reservation', targetId: result.rows[0].id }, executor);
       return result.rows[0];
     } catch (error: any) {
       this.rethrowDatabaseError(error);
     }
   }
 
-  async releaseReservation(actor: AuthContext, reservationId: string): Promise<any> {
+  async releaseReservation(actor: AuthContext, reservationId: string, executor: QueryExecutor = this.database): Promise<any> {
     requireCapability(actor, InventoryCapability.Reserve);
-    const result = await this.database.query<any>(
+    const result = await executor.query<any>(
       `UPDATE inventory.reservations SET status='RELEASED',released_at=now(),updated_at=now(),updated_by=$2,version=version+1
        WHERE id=$1 AND status='ACTIVE' RETURNING *`,[reservationId,actor.userId]);
     if (!result.rows[0]) throw new InventoryConflictError('Reservation is missing or no longer active');
-    await this.audit.record({ actorUserId:actor.userId, action:'inventory.reservation_released', targetType:'inventory.reservation', targetId:reservationId });
+    await this.audit.record({ actorUserId:actor.userId, action:'inventory.reservation_released', targetType:'inventory.reservation', targetId:reservationId }, executor);
     return result.rows[0];
   }
 
-  async issueReservation(actor: AuthContext, reservationId: string, input: { idempotencyKey: string; reason?: string; referenceType?: string; referenceId?: string }): Promise<any> {
+  async issueReservation(actor: AuthContext, reservationId: string, input: ReservationIssueInput, executor?: QueryExecutor): Promise<any> {
     requireCapability(actor, InventoryCapability.Move);
     requireCapability(actor, InventoryCapability.Reserve);
-    return this.database.transaction(async (client) => {
-      const row = await client.query<any>(`SELECT * FROM inventory.reservations WHERE id=$1 AND status='ACTIVE' FOR UPDATE`,[reservationId]);
-      const reservation = row.rows[0];
-      if (!reservation) throw new InventoryConflictError('Reservation is missing or no longer active');
-      const itemId = reservation.part_id ?? reservation.sku_id ?? reservation.vehicle_id;
-      const reason = input.reason?.trim();
-      const referenceType = input.referenceType ?? reservation.reference_type ?? undefined;
-      const referenceId = input.referenceId ?? reservation.reference_id ?? undefined;
-      return this.insertMovement(actor, {
-        movementType:'ISSUE', itemKind:reservation.item_kind, itemId, unit:reservation.unit, quantity:reservation.quantity,
-        sourceLocationId:reservation.location_id, reservationId, idempotencyKey:input.idempotencyKey,
-        ...(reason ? { reason } : {}),
-        ...(referenceType ? { referenceType } : {}),
-        ...(referenceId ? { referenceId } : {}),
-      }, client);
-    });
+    if (executor) return this.issueReservationWithExecutor(actor,reservationId,input,executor);
+    return this.database.transaction((client)=>this.issueReservationWithExecutor(actor,reservationId,input,client));
   }
 
   async balanceAt(input: InventoryItemInput & { locationId: string }, executor: QueryExecutor = this.database): Promise<string> {
@@ -182,6 +183,23 @@ export class InventoryService {
       quantity, ...route, referenceType:'STOCKTAKE', referenceId:input.stocktakeId,
       reason:'Stocktake reconciliation', idempotencyKey:`stocktake:${input.stocktakeId}:${input.countId}`,
       correlationId:input.stocktakeId,
+    }, executor);
+  }
+
+  private async issueReservationWithExecutor(actor:AuthContext,reservationId:string,input:ReservationIssueInput,executor:QueryExecutor):Promise<any>{
+    const row = await executor.query<any>(`SELECT * FROM inventory.reservations WHERE id=$1 AND status='ACTIVE' FOR UPDATE`,[reservationId]);
+    const reservation = row.rows[0];
+    if (!reservation) throw new InventoryConflictError('Reservation is missing or no longer active');
+    const itemId = reservation.part_id ?? reservation.sku_id ?? reservation.vehicle_id;
+    const reason = input.reason?.trim();
+    const referenceType = input.referenceType ?? reservation.reference_type ?? undefined;
+    const referenceId = input.referenceId ?? reservation.reference_id ?? undefined;
+    return this.insertMovement(actor, {
+      movementType:'ISSUE', itemKind:reservation.item_kind, itemId, unit:reservation.unit, quantity:reservation.quantity,
+      sourceLocationId:reservation.location_id, reservationId, idempotencyKey:input.idempotencyKey,
+      ...(reason ? { reason } : {}),
+      ...(referenceType ? { referenceType } : {}),
+      ...(referenceId ? { referenceId } : {}),
     }, executor);
   }
 
