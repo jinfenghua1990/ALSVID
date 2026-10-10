@@ -1,1 +1,1 @@
-{"name":"production","schema":"production","mode":"legacy","dependsOn":["audit","identity"]}
+{"name":"production","schema":"production","mode":"encapsulated","dependsOn":["engineering","partners","procurement"]}
