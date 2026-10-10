@@ -4,6 +4,7 @@ set -euo pipefail
 # Idempotent Google Cloud bootstrap for ALSVID production infrastructure.
 # Run this as a Google Cloud principal allowed to enable APIs and manage IAM.
 # It creates resource shells only; it never accepts or writes production secret values.
+# A dedicated Google Cloud project for ALSVID is strongly recommended.
 
 require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -121,14 +122,20 @@ gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SERVICE_ACCOUNT" \
   --member "$principal_set" \
   --quiet >/dev/null
 
-# GitHub deploy identity: deploy Cloud Run resources and publish immutable images.
-for role in roles/run.admin roles/artifactregistry.writer; do
-  gcloud projects add-iam-policy-binding "$GCP_PROJECT_ID" \
-    --member "serviceAccount:${DEPLOY_SERVICE_ACCOUNT}" \
-    --role "$role" \
-    --condition None \
-    --quiet >/dev/null
-done
+# GitHub deploy identity: administer Cloud Run resources in this dedicated project.
+gcloud projects add-iam-policy-binding "$GCP_PROJECT_ID" \
+  --member "serviceAccount:${DEPLOY_SERVICE_ACCOUNT}" \
+  --role roles/run.admin \
+  --condition=None \
+  --quiet >/dev/null
+
+# Image publishing is scoped to the single ALSVID Artifact Registry repository.
+gcloud artifacts repositories add-iam-policy-binding "$GAR_REPOSITORY" \
+  --project "$GCP_PROJECT_ID" \
+  --location "$GCP_REGION" \
+  --member "serviceAccount:${DEPLOY_SERVICE_ACCOUNT}" \
+  --role roles/artifactregistry.writer \
+  --quiet >/dev/null
 
 # The deploy identity may attach only the dedicated ALSVID runtime identity.
 gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SERVICE_ACCOUNT" \
