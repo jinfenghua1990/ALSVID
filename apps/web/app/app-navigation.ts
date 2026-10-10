@@ -5,7 +5,7 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: 'Product', href: '/product' },
   { label: 'Supply', href: '/supply' },
   { label: 'Commerce', href: '/commerce' },
-  { label: 'Vehicle', href: '/production' },
+  { label: 'Vehicle', href: '/vehicles' },
   { label: 'Dealer', href: '/dealers' },
   { label: 'Partners', href: '/partners' },
   { label: 'Finance', href: '/finance' },
