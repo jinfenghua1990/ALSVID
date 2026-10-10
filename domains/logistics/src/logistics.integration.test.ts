@@ -1,22 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { AuditService } from '@alsvid/audit';
 import { Database } from '@alsvid/database';
-import type { AuthContext } from '@alsvid/identity';
 import { createInventoryService } from '@alsvid/inventory';
-import { LogisticsConflictError, LogisticsService } from './index.js';
+import { LogisticsConflictError, createLogisticsService } from './index.js';
 
 const hasDatabase=Boolean(process.env.DATABASE_URL);
 const suffix=()=>randomUUID().replaceAll('-','').slice(0,10).toUpperCase();
+const audit={async record():Promise<void>{}};
+type TestActor={userId:string;permissions:string[]};
 
-async function actor(db:Database):Promise<AuthContext>{
+async function actor(db:Database):Promise<TestActor>{
   const email=`logistics-${suffix().toLowerCase()}@example.com`;
   const user=await db.query<{id:string}>(`INSERT INTO identity.users(email,display_name,password_hash) VALUES ($1,'Logistics Test','x') RETURNING id`,[email]);
-  return{
-    userId:user.rows[0]!.id,email,displayName:'Logistics Test',roles:['logistics_manager'],
-    permissions:['logistics.read','logistics.plan','logistics.release','logistics.milestone','logistics.customs','inventory.read','inventory.move','inventory.reserve'],
-  };
+  return{userId:user.rows[0]!.id,permissions:['logistics.read','logistics.plan','logistics.release','logistics.milestone','logistics.customs','inventory.read','inventory.move','inventory.reserve']};
 }
 
 async function location(db:Database,userId:string,country:'CN'|'DE',codePrefix:string):Promise<{warehouseId:string;locationId:string}>{
@@ -73,7 +70,7 @@ async function vehicle(db:Database,userId:string):Promise<string>{
 test('Germany route reserves, dispatches, delivers, then requires explicit Inventory receipt', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const audit=new AuditService(db);const inventory=createInventoryService(db,audit);const logistics=new LogisticsService(db,audit,inventory);
+    const auth=await actor(db);const inventory=createInventoryService(db,audit);const logistics=createLogisticsService(db,audit,inventory);
     const cn=await location(db,auth.userId,'CN','CN');const de=await location(db,auth.userId,'DE','DE');const skuId=await sku(db);const carrier=await partner(db,'LOGISTICS_PROVIDER');
     await inventory.postMovement(auth,{movementType:'RECEIPT',itemKind:'SKU',itemId:skuId,unit:'EA',quantity:'2',destinationLocationId:cn.locationId,idempotencyKey:`seed-${suffix()}`});
     const shipment=await logistics.createShipment(auth,{routeType:'FACTORY_TO_GERMANY_WAREHOUSE',originLocationId:cn.locationId,destinationLocationId:de.locationId,carrierPartnerId:carrier,transportMode:'SEA',incoterm:'DAP'});
@@ -95,7 +92,7 @@ test('Germany route reserves, dispatches, delivers, then requires explicit Inven
 test('dealer-direct shipment never creates a Germany warehouse receipt', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const audit=new AuditService(db);const inventory=createInventoryService(db,audit);const logistics=new LogisticsService(db,audit,inventory);
+    const auth=await actor(db);const inventory=createInventoryService(db,audit);const logistics=createLogisticsService(db,audit,inventory);
     const cn=await location(db,auth.userId,'CN','CN');const skuId=await sku(db);const dealer=await partner(db,'DEALER');const address=await shippingAddress(db,dealer);
     await inventory.postMovement(auth,{movementType:'RECEIPT',itemKind:'SKU',itemId:skuId,unit:'EA',quantity:'1',destinationLocationId:cn.locationId,idempotencyKey:`direct-seed-${suffix()}`});
     const shipment=await logistics.createShipment(auth,{routeType:'FACTORY_TO_DEALER_DIRECT',originLocationId:cn.locationId,destinationDealerPartnerId:dealer,destinationAddressId:address,transportMode:'AIR',incoterm:'DAP'});
@@ -110,7 +107,7 @@ test('dealer-direct shipment never creates a Germany warehouse receipt', {skip:!
 test('serialized Vehicle cannot be allocated to conflicting active shipments', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const audit=new AuditService(db);const inventory=createInventoryService(db,audit);const logistics=new LogisticsService(db,audit,inventory);
+    const auth=await actor(db);const inventory=createInventoryService(db,audit);const logistics=createLogisticsService(db,audit,inventory);
     const cn=await location(db,auth.userId,'CN','CN');const de=await location(db,auth.userId,'DE','DE');const vehicleId=await vehicle(db,auth.userId);
     await inventory.postMovement(auth,{movementType:'RECEIPT',itemKind:'VEHICLE',itemId:vehicleId,unit:'EA',quantity:'1',destinationLocationId:cn.locationId,idempotencyKey:`vehicle-seed-${suffix()}`});
     const a=await logistics.createShipment(auth,{routeType:'FACTORY_TO_GERMANY_WAREHOUSE',originLocationId:cn.locationId,destinationLocationId:de.locationId});
@@ -124,7 +121,7 @@ test('serialized Vehicle cannot be allocated to conflicting active shipments', {
 test('customs evidence enforces EORI ownership and becomes immutable after declaration', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const audit=new AuditService(db);const inventory=createInventoryService(db,audit);const logistics=new LogisticsService(db,audit,inventory);
+    const auth=await actor(db);const inventory=createInventoryService(db,audit);const logistics=createLogisticsService(db,audit,inventory);
     const cn=await location(db,auth.userId,'CN','CN');const de=await location(db,auth.userId,'DE','DE');const skuId=await sku(db);
     await inventory.postMovement(auth,{movementType:'RECEIPT',itemKind:'SKU',itemId:skuId,unit:'EA',quantity:'1',destinationLocationId:cn.locationId,idempotencyKey:`customs-seed-${suffix()}`});
     const shipment=await logistics.createShipment(auth,{routeType:'FACTORY_TO_GERMANY_WAREHOUSE',originLocationId:cn.locationId,destinationLocationId:de.locationId});
