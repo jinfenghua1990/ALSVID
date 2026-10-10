@@ -44,3 +44,42 @@ The `audit.events` table is append-only and database triggers reject UPDATE and 
 ## AI
 
 AI may summarize, classify, suggest and draft. It must not silently become the authority for money movement, legal consent, vehicle identity, entitlement, warranty approval or irreversible external communication. Human approval gates should be explicit where required.
+
+
+## Production secrets and environment separation
+
+Local development and production are separate environments. Nothing about the local setup is a
+precedent for production.
+
+### Secrets never enter Git
+
+- No production password, API key, token or private credential is committed to any branch, in any
+  file, including examples and documentation.
+- `.env` files are git-ignored. Only `.env.example` is committed, and it carries empty values or
+  obviously fake placeholders.
+- If a secret is ever committed, rotating it is mandatory. Removing the commit is not sufficient,
+  because history and forks may already hold it.
+
+### Secret Manager is the production source of truth
+
+- Production credentials and configuration secrets live in Google Cloud Secret Manager.
+- Cloud Run reads them at deploy/run time. They are not baked into images and not passed through
+  committed files.
+- Access to Secret Manager is itself a privileged operation and is treated as such.
+
+### API keys and provider credentials
+
+- Each external provider credential is issued separately and scoped to only what that integration
+  needs. One shared key across providers or environments is not acceptable.
+- Local, staging and production use different credentials. A local key must not be able to affect
+  production data.
+- Integration credentials are consumed behind `@alsvid/ports` or a domain port, so that no domain
+  code depends on a vendor SDK or on where the credential came from.
+
+### Environment separation
+
+- The production database is managed infrastructure and is never hosted on a personal computer.
+- Business files are stored in R2, never in the repository.
+- Logs go to Cloud Logging. Log output must not contain secrets or full credential values.
+
+See `docs/RUNTIME_ARCHITECTURE.md` and ADR 0003 for the full authority map.

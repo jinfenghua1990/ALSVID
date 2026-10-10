@@ -80,3 +80,41 @@ This repository is the implementation authority for the new ALSVID codebase. Pre
 ## Product boundary
 
 ALSVID is the integrated operating platform for the bicycle/export business. CoffeeBear domestic workflows, including 1688 and JackYun/吉客云, remain outside ALSVID.
+
+
+## Runtime model
+
+ALSVID separates the software program from the environment that runs it.
+
+```text
+GitHub
+   |
+   v
+CI / CD
+   |
+   v
+Cloud Run
+   |
+   v
+Managed PostgreSQL
+   |
+   v
+Cloudflare R2
+```
+
+- Software program — GitHub (single source of truth, release identity is a commit SHA)
+- Runtime environment — Google Cloud Run
+- Business database — managed PostgreSQL
+- Business files — Cloudflare R2
+- Passwords and configuration — Google Cloud Secret Manager
+- Logs — Google Cloud Logging
+- Backup — GitHub + database backup + R2 + Q4
+
+A local machine, including the M1 workstation, is a development environment only. It is not
+production and does not host the production database.
+
+The development path is fixed as: requirement -> GitHub Issue -> branch -> change -> pull request ->
+CI -> merge to main -> deploy. See `docs/DEVELOPMENT_WORKFLOW.md`.
+
+The runtime, deployment and secret authority decision is recorded in ADR 0003 and described in
+`docs/RUNTIME_ARCHITECTURE.md`.
