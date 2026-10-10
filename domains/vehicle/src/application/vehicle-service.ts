@@ -73,10 +73,12 @@ export class VehicleService {
         if (!vehicle) throw new VehicleNotFoundError('Vehicle not found');
         const currentOwner = await this.repository.currentOwner(vehicleId, executor);
         if (currentOwner?.owner_partner_id) throw new VehicleConflictError('Vehicle already has a current owner');
+        const dealerPartnerId = required(input.dealerPartnerId, 'dealerPartnerId');
+        const customerPartnerId = required(input.customerPartnerId, 'customerPartnerId');
         const handover = await this.repository.createHandover({
           vehicleId,
-          dealerPartnerId: required(input.dealerPartnerId, 'dealerPartnerId'),
-          customerPartnerId: required(input.customerPartnerId, 'customerPartnerId'),
+          dealerPartnerId,
+          customerPartnerId,
           handedOverAt,
           reference: input.reference?.trim() || null,
           note: input.note?.trim() ?? '',
@@ -86,8 +88,8 @@ export class VehicleService {
         const ownership = await this.repository.appendOwnership({
           vehicleId,
           eventType: 'ACQUIRED',
-          ownerPartnerId: input.customerPartnerId,
-          counterpartyPartnerId: input.dealerPartnerId,
+          ownerPartnerId: customerPartnerId,
+          counterpartyPartnerId: dealerPartnerId,
           handoverId: handover.id,
           occurredAt: handedOverAt,
           reason: 'Initial dealer-to-customer handover',
@@ -95,8 +97,8 @@ export class VehicleService {
           actorUserId: actor.userId,
         }, executor);
         await this.repository.appendLifecycle({ vehicleId, state: 'HANDED_OVER', eventType: 'CUSTOMER_HANDOVER', sourceType: 'HANDOVER', sourceId: handover.id, occurredAt: handedOverAt, note: input.note?.trim() ?? '', metadata: {}, actorUserId: actor.userId }, executor);
-        await this.repository.appendLifecycle({ vehicleId, state: 'OWNED', eventType: 'OWNERSHIP_ACQUIRED', sourceType: 'OWNERSHIP', sourceId: ownership.id, occurredAt: handedOverAt, note: '', metadata: { ownerPartnerId: input.customerPartnerId }, actorUserId: actor.userId }, executor);
-        await this.audit.record({ actorUserId: actor.userId, action: 'vehicle.handed_over', targetType: 'vehicle', targetId: vehicleId, metadata: { handoverId: handover.id, dealerPartnerId: input.dealerPartnerId, customerPartnerId: input.customerPartnerId } }, executor);
+        await this.repository.appendLifecycle({ vehicleId, state: 'OWNED', eventType: 'OWNERSHIP_ACQUIRED', sourceType: 'OWNERSHIP', sourceId: ownership.id, occurredAt: handedOverAt, note: '', metadata: { ownerPartnerId: customerPartnerId }, actorUserId: actor.userId }, executor);
+        await this.audit.record({ actorUserId: actor.userId, action: 'vehicle.handed_over', targetType: 'vehicle', targetId: vehicleId, metadata: { handoverId: handover.id, dealerPartnerId, customerPartnerId } }, executor);
         return { handover, ownership };
       });
     } catch (error) { this.rethrow(error); }
@@ -105,6 +107,7 @@ export class VehicleService {
   async transferOwnership(actor: VehicleActor, vehicleId: string, input: VehicleOwnershipTransferInput): Promise<any> {
     requireCapability(actor, VehicleCapability.OwnershipWrite);
     const occurredAt = timestamp(input.occurredAt, 'occurredAt');
+    const expectedCurrentOwnerPartnerId = required(input.expectedCurrentOwnerPartnerId, 'expectedCurrentOwnerPartnerId');
     const newOwnerPartnerId = required(input.newOwnerPartnerId, 'newOwnerPartnerId');
     try {
       return await this.repository.transaction(async (executor) => {
@@ -112,6 +115,7 @@ export class VehicleService {
         if (!vehicle) throw new VehicleNotFoundError('Vehicle not found');
         const current = await this.repository.currentOwner(vehicleId, executor);
         if (!current?.owner_partner_id) throw new VehicleConflictError('Vehicle has no current owner to transfer');
+        if (current.owner_partner_id !== expectedCurrentOwnerPartnerId) throw new VehicleConflictError('Vehicle current owner changed; refresh before transfer');
         if (current.owner_partner_id === newOwnerPartnerId) throw new VehicleValidationError('New owner must differ from current owner');
         const released = await this.repository.appendOwnership({ vehicleId, eventType: 'RELEASED', ownerPartnerId: current.owner_partner_id, counterpartyPartnerId: newOwnerPartnerId, handoverId: null, occurredAt, reason: input.reason?.trim() || 'Ownership transfer', metadata: input.metadata ?? {}, actorUserId: actor.userId }, executor);
         const acquired = await this.repository.appendOwnership({ vehicleId, eventType: 'ACQUIRED', ownerPartnerId: newOwnerPartnerId, counterpartyPartnerId: current.owner_partner_id, handoverId: null, occurredAt, reason: input.reason?.trim() || 'Ownership transfer', metadata: input.metadata ?? {}, actorUserId: actor.userId }, executor);
@@ -125,6 +129,7 @@ export class VehicleService {
   async releaseOwnership(actor: VehicleActor, vehicleId: string, input: VehicleOwnershipReleaseInput): Promise<any> {
     requireCapability(actor, VehicleCapability.OwnershipWrite);
     const occurredAt = timestamp(input.occurredAt, 'occurredAt');
+    const expectedCurrentOwnerPartnerId = required(input.expectedCurrentOwnerPartnerId, 'expectedCurrentOwnerPartnerId');
     const reason = required(input.reason, 'reason');
     try {
       return await this.repository.transaction(async (executor) => {
@@ -132,6 +137,7 @@ export class VehicleService {
         if (!vehicle) throw new VehicleNotFoundError('Vehicle not found');
         const current = await this.repository.currentOwner(vehicleId, executor);
         if (!current?.owner_partner_id) throw new VehicleConflictError('Vehicle has no current owner to release');
+        if (current.owner_partner_id !== expectedCurrentOwnerPartnerId) throw new VehicleConflictError('Vehicle current owner changed; refresh before release');
         const released = await this.repository.appendOwnership({ vehicleId, eventType: 'RELEASED', ownerPartnerId: current.owner_partner_id, counterpartyPartnerId: null, handoverId: null, occurredAt, reason, metadata: input.metadata ?? {}, actorUserId: actor.userId }, executor);
         await this.repository.appendLifecycle({ vehicleId, state: 'UNOWNED', eventType: 'OWNERSHIP_RELEASED', sourceType: 'OWNERSHIP', sourceId: released.id, occurredAt, note: reason, metadata: { previousOwnerPartnerId: current.owner_partner_id }, actorUserId: actor.userId }, executor);
         await this.audit.record({ actorUserId: actor.userId, action: 'vehicle.ownership_released', targetType: 'vehicle', targetId: vehicleId, metadata: { previousOwnerPartnerId: current.owner_partner_id, reason } }, executor);
