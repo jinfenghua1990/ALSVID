@@ -1,1 +1,1 @@
-{"name":"audit","schema":"audit","mode":"legacy","dependsOn":[]}
+{"name":"audit","schema":"audit","mode":"encapsulated","dependsOn":[]}
