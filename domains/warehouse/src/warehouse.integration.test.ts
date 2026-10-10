@@ -1,25 +1,25 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { AuditService } from '@alsvid/audit';
 import { Database } from '@alsvid/database';
-import type { AuthContext } from '@alsvid/identity';
-import { InventoryService } from '@alsvid/inventory';
-import { WarehouseService } from './index.js';
+import { createInventoryService } from '@alsvid/inventory';
+import { createWarehouseService } from './index.js';
 
 const hasDatabase=Boolean(process.env.DATABASE_URL);
 const suffix=()=>randomUUID().replaceAll('-','').slice(0,10).toUpperCase();
+const audit={async record():Promise<void>{}};
+type TestActor={userId:string;permissions:string[]};
 
-async function actor(db:Database):Promise<AuthContext>{
+async function actor(db:Database):Promise<TestActor>{
   const email=`warehouse-${suffix().toLowerCase()}@example.com`;
   const user=await db.query<{id:string}>(`INSERT INTO identity.users(email,display_name,password_hash) VALUES ($1,'Warehouse Test','x') RETURNING id`,[email]);
-  return{userId:user.rows[0]!.id,email,displayName:'Warehouse Test',roles:['inventory_manager'],permissions:['inventory.read','inventory.move','inventory.reserve','inventory.stocktake','inventory.adjust','warehouse.manage']};
+  return{userId:user.rows[0]!.id,permissions:['inventory.read','inventory.move','inventory.reserve','inventory.stocktake','inventory.adjust','warehouse.manage']};
 }
 
 test('closing stocktake appends correction movement instead of overwriting balance', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const audit=new AuditService(db);const inventory=new InventoryService(db,audit);const warehouse=new WarehouseService(db,audit,inventory);
+    const auth=await actor(db);const inventory=createInventoryService(db,audit);const warehouse=createWarehouseService(db,audit,inventory);
     const key=suffix();
     const w=await warehouse.createWarehouse(auth,{code:`DE${key}`,name:'Germany Test Warehouse',countryCode:'DE',timezone:'Europe/Berlin'});
     const location=await warehouse.createLocation(auth,{warehouseId:w.id,code:'A01',name:'A01 Storage',locationType:'STORAGE'});

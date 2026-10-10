@@ -1,1 +1,1 @@
-{"name":"warehouse","schema":"warehouse","mode":"legacy","dependsOn":["audit","identity","inventory"]}
+{"name":"warehouse","schema":"warehouse","mode":"encapsulated","dependsOn":["inventory","partners","engineering","product","vehicle"]}
