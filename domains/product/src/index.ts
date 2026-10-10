@@ -118,31 +118,37 @@ export class ProductService {
   async updateEntity(actor: AuthContext, entity: 'model' | 'variant' | 'sku', id: string, input: { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
     if (!Number.isInteger(input.expectedVersion) || input.expectedVersion < 1) throw new ProductValidationError('expectedVersion is required');
-    const table = entity === 'model' ? 'models' : entity === 'variant' ? 'variants' : 'skus';
-    const result = await this.database.query<any>(
-      `UPDATE product.${table}
-       SET name = COALESCE($3, name),
-           status = COALESCE($4, status),
-           ${entity === 'sku' ? "market_code = CASE WHEN $5::boolean THEN $6 ELSE market_code END, color_code = CASE WHEN $7::boolean THEN $8 ELSE color_code END, size_code = CASE WHEN $9::boolean THEN $10 ELSE size_code END," : "description = CASE WHEN $11::boolean THEN $12 ELSE description END,"}
-           version = version + 1, updated_by = $13, updated_at = now()
-       WHERE id = $1 AND version = $2 RETURNING *`,
-      [
-        id,
-        input.expectedVersion,
-        input.name?.trim() || null,
-        input.status ?? null,
-        entity === 'sku' && input.marketCode !== undefined,
-        entity === 'sku' ? normalizeCountry(input.marketCode) : null,
-        entity === 'sku' && input.colorCode !== undefined,
-        entity === 'sku' ? input.colorCode?.trim() || null : null,
-        entity === 'sku' && input.sizeCode !== undefined,
-        entity === 'sku' ? input.sizeCode?.trim() || null : null,
-        entity !== 'sku' && input.description !== undefined,
-        entity !== 'sku' ? input.description?.trim() ?? '' : null,
-        actor.userId,
-      ],
-    );
+
+    let result;
+    if (entity === 'sku') {
+      result = await this.database.query<any>(
+        `UPDATE product.skus
+         SET name = COALESCE($3, name), status = COALESCE($4, status),
+             market_code = CASE WHEN $5::boolean THEN $6 ELSE market_code END,
+             color_code = CASE WHEN $7::boolean THEN $8 ELSE color_code END,
+             size_code = CASE WHEN $9::boolean THEN $10 ELSE size_code END,
+             version = version + 1, updated_by = $11, updated_at = now()
+         WHERE id = $1 AND version = $2 RETURNING *`,
+        [id, input.expectedVersion, input.name?.trim() || null, input.status ?? null,
+          input.marketCode !== undefined, normalizeCountry(input.marketCode),
+          input.colorCode !== undefined, input.colorCode?.trim() || null,
+          input.sizeCode !== undefined, input.sizeCode?.trim() || null,
+          actor.userId],
+      );
+    } else {
+      const table = entity === 'model' ? 'models' : 'variants';
+      result = await this.database.query<any>(
+        `UPDATE product.${table}
+         SET name = COALESCE($3, name), status = COALESCE($4, status),
+             description = CASE WHEN $5::boolean THEN $6 ELSE description END,
+             version = version + 1, updated_by = $7, updated_at = now()
+         WHERE id = $1 AND version = $2 RETURNING *`,
+        [id, input.expectedVersion, input.name?.trim() || null, input.status ?? null, input.description !== undefined, input.description?.trim() ?? '', actor.userId],
+      );
+    }
+
     if (!result.rows[0]) {
+      const table = entity === 'model' ? 'models' : entity === 'variant' ? 'variants' : 'skus';
       const exists = await this.database.query(`SELECT 1 FROM product.${table} WHERE id = $1`, [id]);
       if (!exists.rows[0]) throw new ProductNotFoundError(`${entity} not found`);
       throw new ProductConflictError(`${entity} changed since it was loaded`);
