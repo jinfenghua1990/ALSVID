@@ -1,0 +1,21 @@
+import type{QueryExecutor}from'@alsvid/database';import type{AllocateCargoInput,CreateShipmentInput,CustomsDeclarationInput,CustomsDraftUpdateInput,CustomsEventInput,CustomsLineInput,LogisticsSummary,MilestoneInput,ShipmentCargoKind}from'../core/model.js';
+export interface LogisticsActor{userId:string;permissions:readonly string[]}
+export interface LogisticsAuditPort{record(input:{actorUserId:string;action:string;targetType:string;targetId:string;metadata?:Record<string,unknown>},executor?:QueryExecutor):Promise<void>}
+export interface LogisticsInventoryPort{
+ createReservation(actor:LogisticsActor,input:{itemKind:ShipmentCargoKind;itemId:string;unit:string;locationId:string;quantity:string;referenceType?:string;referenceId?:string;note?:string},executor?:QueryExecutor):Promise<any>;
+ releaseReservation(actor:LogisticsActor,reservationId:string,executor?:QueryExecutor):Promise<any>;
+ issueReservation(actor:LogisticsActor,reservationId:string,input:{idempotencyKey:string;reason?:string;referenceType?:string;referenceId?:string},executor?:QueryExecutor):Promise<any>;
+ postMovement(actor:LogisticsActor,input:{movementType:'RECEIPT';itemKind:ShipmentCargoKind;itemId:string;unit:string;quantity:string|number;destinationLocationId:string;referenceType?:string;referenceId?:string;reason?:string;idempotencyKey:string;correlationId?:string},executor?:QueryExecutor):Promise<any>;
+}
+export interface LogisticsRepository{
+ transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>;summary():Promise<LogisticsSummary>;
+ createShipment(input:CreateShipmentInput&{actorUserId:string;transportMode:string;incoterm:string|null}):Promise<any>;lockShipment(id:string,e:QueryExecutor):Promise<any|null>;
+ createCargo(input:{shipmentId:string;itemKind:ShipmentCargoKind;itemId:string;quantity:string;reservationId:string;note:string;actorUserId:string},e:QueryExecutor):Promise<any>;lockCargo(id:string,e:QueryExecutor):Promise<any|null>;deleteCargo(id:string,e:QueryExecutor):Promise<void>;
+ cargoReservationStats(shipmentId:string,e:QueryExecutor):Promise<{count:number;inactive:number}>;releaseShipment(id:string,userId:string,e:QueryExecutor):Promise<any|null>;appendSimpleShipmentEvent(id:string,eventType:string,note:string,userId:string,e:QueryExecutor):Promise<void>;
+ listCargoForUpdate(id:string,e:QueryExecutor):Promise<any[]>;dispatchShipment(id:string,userId:string,e:QueryExecutor):Promise<any|null>;
+ appendMilestone(id:string,input:MilestoneInput,userId:string,e:QueryExecutor):Promise<any>;updateMilestoneStatus(id:string,status:string,occurredAt:Date,userId:string,e:QueryExecutor):Promise<void>;
+ listReservationIds(id:string,e:QueryExecutor):Promise<string[]>;reservationStatus(id:string,e:QueryExecutor):Promise<string|null>;cancelShipment(id:string,userId:string,e:QueryExecutor):Promise<any|null>;
+ hasShipmentEvent(id:string,eventType:string,e:QueryExecutor):Promise<boolean>;listCargo(id:string,e:QueryExecutor):Promise<any[]>;insertReceivingHandoff(input:{shipmentId:string;cargoId:string;movementId:string;destinationLocationId:string;actorUserId:string},e:QueryExecutor):Promise<void>;markInventoryReceived(id:string,userId:string,e:QueryExecutor):Promise<any|null>;
+ createCustomsDeclaration(shipmentId:string,input:CustomsDeclarationInput&{actorUserId:string;currency:string}):Promise<any>;latestCustomsStatus(id:string):Promise<string|null>;updateCustomsDraft(id:string,input:CustomsDraftUpdateInput&{currency:string|null}):Promise<any|null>;addCustomsLine(id:string,input:CustomsLineInput&{actorUserId:string;declaredValue:string;dutyRate:string|null;dutyAmount:string|null;importVatRate:string|null;importVatAmount:string|null;antiDumpingRate:string|null;antiDumpingAmount:string|null;countervailingRate:string|null;countervailingAmount:string|null;operationalFeesAmount:string|null}):Promise<any>;
+ lockCustomsDeclaration(id:string,e:QueryExecutor):Promise<any|null>;appendCustomsEvent(id:string,input:CustomsEventInput,userId:string,e:QueryExecutor):Promise<any>;appendCustomsShipmentEvent(shipmentId:string,eventType:string,occurredAt:Date,note:string,metadata:Record<string,unknown>,userId:string,e:QueryExecutor):Promise<void>;
+}
