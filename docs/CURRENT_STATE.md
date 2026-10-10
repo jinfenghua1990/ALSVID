@@ -49,11 +49,40 @@ Not yet implemented in Identity/Partner scope:
 - fine-grained row/company scoping for a future multi-company requirement
 - full UI editors for multiple Partner contacts/addresses/identifiers after initial creation
 
+## Phase 1B — Product, Engineering and Asset foundation
+
+Implemented:
+
+- migration `0002_product_engineering_assets.sql`
+- seeded FC / FT / CT / GT technology platforms
+- Product hierarchy: Platform -> Model -> Variant -> SKU
+- SKU market/color/size configuration facts kept separate from physical Vehicle identity
+- optimistic versioning and lifecycle status for commercial Product entities
+- Part master with category/unit/attributes
+- BOM master, draft/released BOM revisions and BOM lines
+- Build Specification linking an exact SKU to an exact BOM revision
+- explicit engineering release permissions and audit evidence
+- PostgreSQL guards that prevent silent mutation of released BOM revisions and released Build Specifications
+- PostgreSQL guard preventing Build Specification release against an unreleased BOM revision
+- Asset metadata for provider/bucket/object key/checksum/media metadata/visibility/classification
+- generic Asset links to approved Product/Engineering entity types
+- authenticated Product, Engineering and Asset APIs
+- Internal Admin Product workspace for Model/Variant/SKU creation/editing and Part/BOM/Build Specification release workflow
+- PostgreSQL integration tests for engineering release immutability
+
+Not yet implemented in Product/Engineering/Asset scope:
+
+- R2/S3 upload/download transport and signed URL adapter
+- richer Product 360 media/document views
+- engineering change orders / supersession workflow
+- substitute-part approval workflow
+- production consumption and as-built deviation evidence; these belong to Production
+
 ## Planned capability sequence
 
 1. Identity, access, audit and Partner master — **foundation implemented**
-2. Product + engineering + asset foundation
-3. Procurement + supplier PO + receipts
+2. Product + engineering + asset foundation — **foundation implemented**
+3. Procurement + supplier quotation/PO/confirmation/receipts
 4. Production + QC + vehicle birth
 5. Inventory + warehouse operations
 6. Export logistics: China -> Germany warehouse and China -> dealer direct

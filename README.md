@@ -64,11 +64,14 @@ packages/
   ui/         # ALSVID design system
   testing/    # test helpers and fixtures
 domains/
-  identity/   # users, roles, permissions, sessions
-  audit/      # append-only audit evidence
-  partners/   # unified Partner master
-infra/        # local and production infrastructure definitions
-docs/         # architecture, ownership, workflows, security and ADRs
+  identity/    # users, roles, permissions, sessions
+  audit/       # append-only audit evidence
+  partners/    # unified Partner master
+  product/     # Platform, Model, Variant, SKU
+  engineering/ # Part, BOM revisions and Build Specifications
+  assets/      # object metadata and business links
+infra/         # local and production infrastructure definitions
+docs/          # architecture, ownership, workflows, security and ADRs
 ```
 
 ## Local bootstrap
@@ -83,7 +86,7 @@ pnpm bootstrap:admin
 pnpm dev
 ```
 
-Open the web app on `http://localhost:3000`, sign in, and use the Partner workspace. The API runs on port `4000` by default.
+Open the web app on `http://localhost:3000`, sign in, then use `/partners` for Partner master data and `/product` for Product/Engineering release work. The API runs on port `4000` by default.
 
 `pnpm db:migrate` is safe to run repeatedly; applied migration filenames are recorded in `platform.schema_migrations`.
 
