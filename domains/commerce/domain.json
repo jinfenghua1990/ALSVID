@@ -1,1 +1,1 @@
-{"name":"commerce","schema":"commerce","mode":"legacy","dependsOn":["audit","identity"]}
+{"name":"commerce","schema":"commerce","mode":"encapsulated","dependsOn":["partners","product","logistics"]}
