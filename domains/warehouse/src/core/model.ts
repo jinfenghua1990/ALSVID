@@ -1,0 +1,1 @@
+export const WarehouseCapability={Manage:'warehouse.manage',Stocktake:'inventory.stocktake',Read:'inventory.read'} as const;export type WarehouseItemKind='PART'|'SKU'|'VEHICLE';export type WarehouseLocationType='RECEIVING'|'STORAGE'|'STAGING'|'PICK'|'QUARANTINE'|'DISPATCH';
