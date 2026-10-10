@@ -178,7 +178,7 @@ test('landed cost stays separate from Logistics and requires full capitalizable 
     const view = await database.query<any>(`SELECT * FROM finance.v_landed_cost_by_cargo WHERE shipment_id=$1 AND cargo_id=$2`, [shipment.shipmentId, shipment.cargoId]);
     assert.equal(Number(view.rows[0].capitalizable_cost), 100);
     assert.equal(view.rows[0].noncapitalizable_cost, null);
-    await assert.rejects(database.query(`UPDATE finance.landed_cost_components SET amount=101 WHERE id=$1`, [freight.id]), /immutable/);
+    await assert.rejects(database.query(`UPDATE finance.landed_cost_components SET note='mutated' WHERE id=$1`, [freight.id]), /immutable/);
     await assert.rejects(database.query(`DELETE FROM finance.landed_cost_batches WHERE id=$1`, [batch.id]), /cannot be deleted/);
     assert.equal(vat.capitalizable, false);
   } finally { await database.close(); }
