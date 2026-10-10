@@ -4,15 +4,25 @@ This repository is the clean-slate implementation authority for ALSVID.
 
 ## Read first
 
-Before changing application behavior, read:
+Before changing application behavior or architecture, read in this order:
 
-1. `docs/CURRENT_STATE.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/DOMAIN_STRUCTURE.md`
-4. `docs/DATA_OWNERSHIP.md`
-5. `docs/BUSINESS_FLOWS.md`
-6. relevant ADRs under `docs/adr/`
-7. the current issue/PR and affected `domain.json`
+1. `docs/AI_CONTEXT.md`
+2. `docs/ARCHITECTURE_DECISIONS.md`
+3. `docs/BUSINESS_BOUNDARY.md`
+4. `docs/DATABASE_DECISION.md`
+5. `docs/RUNTIME_DECISION.md`
+6. `docs/STORAGE_DECISION.md`
+7. `docs/ENVIRONMENT_STRATEGY.md`
+8. `docs/OPERATIONS.md`
+9. `docs/CURRENT_STATE.md`
+10. `docs/ARCHITECTURE.md`
+11. `docs/DOMAIN_STRUCTURE.md`
+12. `docs/DATA_OWNERSHIP.md`
+13. `docs/BUSINESS_FLOWS.md`
+14. relevant ADRs under `docs/adr/`
+15. the current issue/PR and affected `domain.json`
+
+Confirmed architecture decisions are not suggestions. Do not replace providers, redraw system boundaries, or add major infrastructure merely because a different stack appears fashionable. First identify the concrete problem, review the recorded rationale, and document the new decision.
 
 ## Current rebuild gate
 
@@ -26,9 +36,25 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Historical repositories are requirement references only.
 - ALSVID is for the bicycle/export/Europe business.
 - 1688, JackYun/吉客云, domestic China settlement/tax workflows and CoffeeBear-specific behavior are out of scope.
-- Shopify remains an external commerce/OMS integration; do not recreate a general-purpose OMS.
-- PostgreSQL is authoritative for structured business facts. R2/S3-compatible storage holds binary objects only.
+- Shopify remains the external commerce/order authority for storefront transactions. ALSVID does not recreate a general-purpose OMS.
+- WMS remains the warehouse-execution authority for receiving, picking, packing, dispatch and warehouse-side fulfillment facts.
+- ALSVID may store/cache only the external facts needed for Vehicle 360, customer/dealer views, warranty, service, after-sales and reconciliation; do not clone complete Shopify/WMS databases.
+- PostgreSQL is authoritative for structured ALSVID business facts. R2/S3-compatible storage holds binary objects only.
 - Email and AI integrations are provider-neutral; business domains depend on ports, never vendor SDKs.
+
+## Confirmed infrastructure direction
+
+- Production runtime primary: Google Cloud Run.
+- Runtime fallback 1: Railway.
+- Runtime fallback 2: Apply.Build.
+- Database standard: PostgreSQL.
+- Production database primary: Neon PostgreSQL.
+- Database migration alternative: Supabase PostgreSQL.
+- Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
+- Current Development/Test compute: M1 Mac + Docker.
+- Current Test database/object storage: isolated managed cloud Test resources (Neon Test + R2 Test), not Production resources.
+- A separate Cloud Run Test environment is not maintained at the current stage.
+- Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
 ## Architecture rules
 
@@ -61,6 +87,16 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Finance truth separates document, obligation, payment and allocation.
 - Every business fact has one write authority as defined in `docs/DATA_OWNERSHIP.md`.
 
+## External data freshness
+
+At the current stage, Shopify/WMS integration does not require permanent real-time synchronization by default.
+
+- Scheduled synchronization/reconciliation runs at least once per day.
+- Customer/staff pages normally use the latest successfully cached ALSVID facts.
+- My ALSVID / after-sales may expose `Refresh latest status` for on-demand refresh.
+- The UI should show the last successful update time and expected refresh behavior.
+- Real-time webhooks are an optional future optimization only when a real business need justifies them.
+
 ## Delivery discipline
 
 - Every meaningful change maps to an issue or coherent PR.
@@ -68,3 +104,5 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Add tests for changed invariants.
 - Do not add secrets, credentials or real customer data.
 - Prefer one clean implementation over compatibility shims for code that has never been deployed.
+- Test approval promotes a software version/commit, not Test data.
+- Production changes must remain reproducible from GitHub source and documented configuration.
