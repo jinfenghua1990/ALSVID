@@ -11,6 +11,7 @@ This file is durable project memory for human and AI contributors. If extraction
 - There is no GLOBAL/DOMESTIC/ALSVID workspace switch in the ALSVID architecture.
 - 1688, JackYun/吉客云 and 卖咖啡的熊 are DOMESTIC-only and must never enter ALSVID runtime packages.
 - Shopify remains the external OMS. ALSVID stores confirmed commercial facts and external references, not a second general OMS.
+- Email transport/delivery remains external to ALSVID. ALSVID will own the internal communication, follow-up and customer-marketing business records rather than self-hosting an SMTP/mail server.
 
 ## Zero-data cutover decision
 
@@ -68,6 +69,14 @@ These are current ALSVID authorities. Do not recreate parallel masters in a new 
 - ALSVID may map/import confirmed order facts and external references but must not rebuild Shopify order management.
 - Internal shipment, inventory, dealer reservation, vehicle, warranty and service facts remain ALSVID-owned even when an external order originates in Shopify.
 
+### Email / communication providers
+
+- Google Workspace, Microsoft 365 or another approved provider may be used for actual email delivery and receipt.
+- ALSVID must integrate through a provider-neutral connector boundary rather than embedding one provider into the core customer model.
+- Provider credentials/OAuth tokens are deployment secrets and must never be committed to Git.
+- ALSVID will own normalized communication records, Partner/customer/dealer association, AI summaries/drafts, follow-up state, consent/suppression state and campaign history.
+- Communication attachments and other binary assets use R2; PostgreSQL stores the structured records and references.
+
 ## Still future product development
 
 The standalone platform is not yet the finished future company platform. Remaining product development includes:
@@ -78,8 +87,12 @@ The standalone platform is not yet the finished future company platform. Remaini
 - explicit China factory -> dealer direct-shipping execution workflow;
 - richer warehouse operations and stocktake/transfer controls on top of the current inventory ledger;
 - deeper Shopify synchronization and reconciliation;
+- Communication Center with provider-neutral email sync, customer/dealer timelines, AI summaries and human-approved AI reply drafts;
+- customer marketing foundation including explicit consent checks, suppression/unsubscribe, segmentation and campaign/send history;
 - live EU logistics/payment/tax integrations;
 - production deployment, live PostgreSQL environment and live R2 credentials.
+
+AI-generated outbound replies are human-approved by default. Registration, purchase, vehicle claim or service contact must not imply marketing consent. These rules are product requirements, not optional UI behavior.
 
 These are new ALSVID product work, not missing ChaiBen migration work. They must be designed for ALSVID export operations rather than copied from DOMESTIC workflows.
 
@@ -103,6 +116,8 @@ Historical Alembic revisions are database upgrade history, not active business a
 - Material lifecycle history is append-only and sequence-validated.
 - Dealer/customer are relationships to canonical Partner identities, not duplicate masters.
 - Warranty and ServiceCase are canonical after-sales authorities.
+- Marketing consent is explicit evidence; customer/account/vehicle/service activity never grants marketing consent implicitly.
+- Communication records attach to canonical Partner identities and must not create duplicate customer/dealer masters.
 - External IDs are mappings, never canonical primary keys.
 - Money uses PostgreSQL NUMERIC / Python Decimal, never float.
 - Hidden UI is never authorization; backend scope is authoritative.
