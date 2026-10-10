@@ -40,15 +40,19 @@ function requireCapability(actor: AuthContext, capability: string): void {
   if (!actor.permissions.includes(capability)) throw new PermissionDeniedError(capability);
 }
 
+function isZeroDecimal(text: string): boolean {
+  return /^-?0+(?:\.0+)?$/.test(text);
+}
+
 function decimal(value: string | number, name: string): string {
   const text = String(value).trim();
-  if (!/^\d+(?:\.\d{1,6})?$/.test(text) || Number(text) <= 0) throw new InventoryValidationError(`${name} must be a positive decimal`);
+  if (!/^\d+(?:\.\d{1,6})?$/.test(text) || isZeroDecimal(text)) throw new InventoryValidationError(`${name} must be a positive decimal`);
   return text;
 }
 
 function signedDecimal(value: string | number, name: string): string {
   const text = String(value).trim();
-  if (!/^-?\d+(?:\.\d{1,6})?$/.test(text) || Number(text) === 0) throw new InventoryValidationError(`${name} must be a non-zero decimal`);
+  if (!/^-?\d+(?:\.\d{1,6})?$/.test(text) || isZeroDecimal(text)) throw new InventoryValidationError(`${name} must be a non-zero decimal`);
   return text;
 }
 
@@ -98,8 +102,10 @@ export class InventoryService {
   }
 
   async postMovement(actor: AuthContext, input: MovementInput): Promise<any> {
-    if (input.movementType === 'ADJUSTMENT') requireCapability(actor, InventoryCapability.Adjust);
-    else if (input.movementType === 'STOCKTAKE_CORRECTION') requireCapability(actor, InventoryCapability.Stocktake);
+    if (input.movementType === 'ADJUSTMENT') {
+      requireCapability(actor, InventoryCapability.Adjust);
+      if (!input.reason?.trim()) throw new InventoryValidationError('Adjustment reason is required');
+    } else if (input.movementType === 'STOCKTAKE_CORRECTION') requireCapability(actor, InventoryCapability.Stocktake);
     else requireCapability(actor, InventoryCapability.Move);
     return this.insertMovement(actor, input, this.database);
   }
@@ -160,13 +166,14 @@ export class InventoryService {
     return result.rows[0]?.on_hand ?? '0';
   }
 
-  async postStocktakeCorrection(actor: AuthContext, input: InventoryItemInput & { locationId:string; delta:string|number; stocktakeId:string; countId:string }, executor: QueryExecutor): Promise<any | null> {
+  async postStocktakeCorrection(actor: AuthContext, input: InventoryItemInput & { locationId:string; delta:string|number; stocktakeId:string; countId:string }, executor: QueryExecutor): Promise<any> {
     requireCapability(actor, InventoryCapability.Stocktake);
     const delta = signedDecimal(input.delta,'delta');
-    const inbound = Number(delta) > 0;
+    const inbound = !delta.startsWith('-');
+    const quantity = inbound ? delta : delta.slice(1);
     return this.insertMovement(actor, {
       movementType:'STOCKTAKE_CORRECTION', itemKind:input.itemKind, itemId:input.itemId, unit:input.unit,
-      quantity:Math.abs(Number(delta)).toString(), sourceLocationId:inbound?undefined:input.locationId,
+      quantity, sourceLocationId:inbound?undefined:input.locationId,
       destinationLocationId:inbound?input.locationId:undefined, referenceType:'STOCKTAKE', referenceId:input.stocktakeId,
       reason:'Stocktake reconciliation', idempotencyKey:`stocktake:${input.stocktakeId}:${input.countId}`,
       correlationId:input.stocktakeId,
