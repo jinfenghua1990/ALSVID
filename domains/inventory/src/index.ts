@@ -163,7 +163,6 @@ export class InventoryService {
   async postStocktakeCorrection(actor: AuthContext, input: InventoryItemInput & { locationId:string; delta:string|number; stocktakeId:string; countId:string }, executor: QueryExecutor): Promise<any | null> {
     requireCapability(actor, InventoryCapability.Stocktake);
     const delta = signedDecimal(input.delta,'delta');
-    if (Number(delta) === 0) return null;
     const inbound = Number(delta) > 0;
     return this.insertMovement(actor, {
       movementType:'STOCKTAKE_CORRECTION', itemKind:input.itemKind, itemId:input.itemId, unit:input.unit,
@@ -194,7 +193,7 @@ export class InventoryService {
 
   private async assertItem(kind: InventoryItemKind, id: string, unit: string, executor: QueryExecutor): Promise<void> {
     if (kind === 'PART') {
-      const result = await executor.query<{ unit:string }>(`SELECT unit FROM engineering.parts WHERE id=$1`,[id]);
+      const result = await executor.query<{ unit:string }>(`SELECT default_unit AS unit FROM engineering.parts WHERE id=$1`,[id]);
       if (!result.rows[0]) throw new InventoryNotFoundError('Part not found');
       if (result.rows[0].unit.trim().toUpperCase() !== unit) throw new InventoryValidationError(`Part unit must be ${result.rows[0].unit}`);
       return;
