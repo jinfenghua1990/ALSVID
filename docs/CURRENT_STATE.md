@@ -78,11 +78,45 @@ Not yet implemented in Product/Engineering/Asset scope:
 - substitute-part approval workflow
 - production consumption and as-built deviation evidence; these belong to Production
 
+## Phase 1C — Procurement foundation
+
+Implemented:
+
+- migration `0003_procurement.sql`
+- supplier quotation headers and decimal-safe quotation lines referencing authoritative Part or SKU records
+- purchase orders with decimal-safe quantities and unit prices, commercial terms and explicit lifecycle states
+- database enforcement that procurement suppliers have an enabled Supplier or Factory Partner role
+- PO lifecycle controls for Draft -> Issued -> Confirmed -> Partially Fulfilled -> Fulfilled / Cancelled
+- issued PO line immutability and protection of core commercial terms after issue
+- append-only PO state snapshots containing header and line facts on every state transition
+- supplier confirmation evidence with per-line confirmed quantity/date
+- Physical Receipt and Factory Commitment evidence kept distinct
+- cumulative physical receipts can advance a confirmed PO to partially fulfilled or fulfilled
+- explicit procurement permissions and audit evidence for create/issue/confirm/receipt actions
+- authenticated Procurement API and `/supply` Internal Admin workspace
+- Supply UI sources suppliers from Partner roles and purchasable items from Engineering Part/Product SKU authorities
+- PostgreSQL integration tests covering supplier-role enforcement, invalid transitions, issued-line immutability and automatic state snapshots
+
+Deliberately not owned by Procurement:
+
+- inventory balances or stock movements
+- production-order creation or Vehicle birth
+- bank payment execution, AP settlement or payment allocation
+- 1688, JackYun/吉客云 or CoffeeBear domestic procurement workflows
+
+Not yet implemented in Procurement scope:
+
+- multi-line quotation/PO editing in the first UI surface; the domain/API already accept line arrays
+- formal purchase-order amendment/version workflow after issue
+- RFQ comparison/award workflow across multiple suppliers
+- supplier portal acknowledgement workflow
+- document/PDF rendering for outbound purchase orders
+
 ## Planned capability sequence
 
 1. Identity, access, audit and Partner master — **foundation implemented**
 2. Product + engineering + asset foundation — **foundation implemented**
-3. Procurement + supplier quotation/PO/confirmation/receipts
+3. Procurement + supplier quotation/PO/confirmation/receipts — **foundation implemented**
 4. Production + QC + vehicle birth
 5. Inventory + warehouse operations
 6. Export logistics: China -> Germany warehouse and China -> dealer direct
