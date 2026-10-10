@@ -4,6 +4,9 @@ export interface AppNavItem {
   label: string;
   href: string;
   active?: boolean;
+  section?: string;
+  status?: string;
+  disabled?: boolean;
 }
 
 export interface AppShellClassNames {
@@ -14,6 +17,34 @@ export interface AppShellClassNames {
   active?: string;
   footer?: string;
   workspace?: string;
+}
+
+function NavigationItems({ navigation, activeClassName }: { navigation: readonly AppNavItem[]; activeClassName?: string }) {
+  return (
+    <>
+      {navigation.map((item, index) => {
+        const previousSection = index > 0 ? navigation[index - 1]?.section : undefined;
+        const showSection = item.section && item.section !== previousSection;
+        const content = (
+          <>
+            <span className="navLabel">{item.label}</span>
+            {item.status ? <span className="navStatus">{item.status}</span> : null}
+          </>
+        );
+
+        return (
+          <div className="navEntry" key={`${item.href}-${item.label}`}>
+            {showSection ? <div className="navSection">{item.section}</div> : null}
+            {item.disabled ? (
+              <span className="navItem navItemDisabled" aria-disabled="true">{content}</span>
+            ) : (
+              <a className={`navItem${item.active ? ` ${activeClassName ?? 'active'}` : ''}`} href={item.href}>{content}</a>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
 }
 
 export function AppShell({
@@ -34,14 +65,14 @@ export function AppShell({
 }>) {
   return (
     <main className={classNames.shell ?? 'shell'}>
+      <details className="mobileNav">
+        <summary><strong>{brand}</strong><span>菜单</span></summary>
+        <nav className="mobileNavPanel"><NavigationItems navigation={navigation} activeClassName={classNames.active} /></nav>
+      </details>
       <aside className={classNames.rail ?? 'rail'}>
         <a className={classNames.brand ?? 'brand'} href={brandHref}>{brand}</a>
         <nav className={classNames.nav}>
-          {navigation.map((item) => (
-            <a key={`${item.href}-${item.label}`} className={item.active ? classNames.active ?? 'active' : undefined} href={item.href}>
-              {item.label}
-            </a>
-          ))}
+          <NavigationItems navigation={navigation} activeClassName={classNames.active} />
         </nav>
         <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
       </aside>
