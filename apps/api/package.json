@@ -21,6 +21,7 @@
     "@alsvid/identity": "workspace:*",
     "@alsvid/integrations": "workspace:*",
     "@alsvid/inventory": "workspace:*",
+    "@alsvid/kernel": "workspace:*",
     "@alsvid/logistics": "workspace:*",
     "@alsvid/partners": "workspace:*",
     "@alsvid/procurement": "workspace:*",

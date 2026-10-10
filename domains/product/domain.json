@@ -1,1 +1,1 @@
-{"name":"product","schema":"product","mode":"legacy","dependsOn":["audit","identity"]}
+{"name":"product","schema":"product","mode":"encapsulated","dependsOn":[]}
