@@ -15,16 +15,18 @@ git pull origin main
 bash scripts/test-env-acceptance.sh
 ```
 
-The script:
+The core-runtime script:
 
 1. verifies Docker and Docker Compose
 2. builds Web/API/Worker images
-3. starts PostgreSQL and MinIO
+3. starts PostgreSQL
 4. applies migrations explicitly
 5. starts Web/API/Worker
 6. checks `http://127.0.0.1:4001/api/health`
 7. checks the Web root on `http://127.0.0.1:3001/`
 8. prints container state
+
+Object-storage provider acceptance is intentionally not part of this core smoke check until the concrete provider adapter in Issue #35 exists. Do not use a storage emulator as evidence that R2 production integration is complete.
 
 Stop the Test environment with:
 
@@ -197,7 +199,7 @@ Initial production checks after every release:
 Repository-side packaging, release automation and restore tooling can be completed in GitHub. The following cannot be truthfully marked complete until the actual external resources exist:
 
 - real managed PostgreSQL instance and scheduled backup policy
-- real R2 bucket and credentials
+- production object-storage adapter from Issue #35 plus real R2 bucket and credentials
 - Google Cloud project/WIF/service accounts/Artifact Registry
 - first Cloud Run deployment
 - first real restore drill
