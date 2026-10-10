@@ -76,7 +76,6 @@ Not yet implemented in Product/Engineering/Asset scope:
 - richer Product 360 media/document views
 - engineering change orders / supersession workflow
 - substitute-part approval workflow
-- production consumption and as-built deviation evidence; these belong to Production
 
 ## Phase 1C — Procurement foundation
 
@@ -112,12 +111,56 @@ Not yet implemented in Procurement scope:
 - supplier portal acknowledgement workflow
 - document/PDF rendering for outbound purchase orders
 
+## Phase 1D — Production, QC and Vehicle Birth foundation
+
+Implemented:
+
+- migrations `0004_production_vehicle.sql` and `0005_production_evidence_guards.sql`
+- Production Orders reference one exact released Build Specification, one FACTORY Partner and optional confirmed Procurement PO source
+- database enforcement that draft/unreleased Build Specifications cannot enter Production and non-FACTORY Partners cannot be factories
+- explicit Production Order lifecycle: Draft -> Released -> In Progress -> QC Pending -> Completed / Cancelled
+- release expands planned quantity into individually traceable physical production units
+- released production baseline is immutable for Build Specification, factory, source PO and planned quantity
+- append-only Production Order state history
+- per-unit assembly state and QC state machine
+- append-only PASS / FAIL / HOLD QC inspections
+- Production Order completion requires every physical unit to be QC Passed
+- append-only as-built deviation evidence for authorized part substitution
+- deviation Expected Part must exist in the exact released Build Specification BOM
+- as-built deviations cannot be added after QC Pass
+- separate Vehicle domain and Vehicle registry
+- Vehicle Birth requires a QC-passed production unit and the latest PASS inspection for that same unit
+- Vehicle provenance is fixed to exact Production Order, Build Specification, SKU, factory and birth QC inspection
+- unique immutable frame number enforced by PostgreSQL
+- one production unit can birth at most one Vehicle
+- Vehicle birth identity/provenance cannot be edited or deleted through normal data operations
+- authenticated Production/Vehicle APIs and `/production` Internal Admin workspace
+- Production UI supports order creation/release/start, assembly completion, QC, deviations, order completion and Vehicle Birth
+- Vehicle registry surfaces frame identity plus SKU/Build Spec/Production Order/factory provenance
+- PostgreSQL integration tests cover factory-role/build-spec gates, QC birth gates, deviation/BOM integrity, one-unit-one-Vehicle identity, immutable frame identity and no-delete protection
+
+Deliberately not owned by Production/Vehicle Birth:
+
+- Procurement commercial truth
+- Engineering BOM/Build Specification mutation
+- inventory stock balances or warehouse bins
+- export shipment execution
+- customer ownership and Vehicle 360 lifecycle
+- finance/payment settlement
+
+Not yet implemented in Production/Vehicle scope:
+
+- full component consumption ledger and serial tracking beyond explicit deviation evidence
+- richer configurable QC checklist templates/evidence assets
+- privileged Vehicle identity correction workflow for exceptional real-world mistakes
+- Vehicle lifecycle after birth, ownership, dealer/customer handover and Vehicle 360
+
 ## Planned capability sequence
 
 1. Identity, access, audit and Partner master — **foundation implemented**
 2. Product + engineering + asset foundation — **foundation implemented**
 3. Procurement + supplier quotation/PO/confirmation/receipts — **foundation implemented**
-4. Production + QC + vehicle birth
+4. Production + QC + Vehicle Birth — **foundation implemented**
 5. Inventory + warehouse operations
 6. Export logistics: China -> Germany warehouse and China -> dealer direct
 7. Dealer + commerce + Shopify fact synchronization
