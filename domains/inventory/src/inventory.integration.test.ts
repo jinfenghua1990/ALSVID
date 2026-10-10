@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { AuditService } from '@alsvid/audit';
 import { Database } from '@alsvid/database';
-import type { AuthContext } from '@alsvid/identity';
-import { InventoryConflictError, InventoryService } from './index.js';
+import { InventoryConflictError, createInventoryService } from './index.js';
 
 const hasDatabase=Boolean(process.env.DATABASE_URL);
 const suffix=()=>randomUUID().replaceAll('-','').slice(0,10).toUpperCase();
+const audit={async record():Promise<void>{}};
+type TestActor={userId:string;permissions:string[]};
 
-async function actor(db:Database):Promise<AuthContext>{
+async function actor(db:Database):Promise<TestActor>{
   const email=`inventory-${suffix().toLowerCase()}@example.com`;
   const user=await db.query<{id:string}>(`INSERT INTO identity.users(email,display_name,password_hash) VALUES ($1,'Inventory Test','x') RETURNING id`,[email]);
-  return{userId:user.rows[0]!.id,email,displayName:'Inventory Test',roles:['inventory_manager'],permissions:['inventory.read','inventory.move','inventory.reserve','inventory.stocktake','inventory.adjust','warehouse.manage']};
+  return{userId:user.rows[0]!.id,permissions:['inventory.read','inventory.move','inventory.reserve','inventory.stocktake','inventory.adjust','warehouse.manage']};
 }
 
 async function warehouse(db:Database,userId:string):Promise<{warehouseId:string;locationA:string;locationB:string}>{
@@ -50,7 +50,7 @@ async function vehicle(db:Database,userId:string):Promise<string>{
 test('movement ledger derives balances, is immutable/idempotent, and protects reservations', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const audit=new AuditService(db);const service=new InventoryService(db,audit);const places=await warehouse(db,auth.userId);const partId=await part(db);
+    const auth=await actor(db);const service=createInventoryService(db,audit);const places=await warehouse(db,auth.userId);const partId=await part(db);
     const receipt=await service.postMovement(auth,{movementType:'RECEIPT',itemKind:'PART',itemId:partId,unit:'EA',quantity:'10',destinationLocationId:places.locationA,idempotencyKey:`receipt-${suffix()}`});
     await service.postMovement(auth,{movementType:'TRANSFER',itemKind:'PART',itemId:partId,unit:'EA',quantity:'4',sourceLocationId:places.locationA,destinationLocationId:places.locationB,idempotencyKey:`transfer-${suffix()}`});
     assert.equal(Number(await service.balanceAt({itemKind:'PART',itemId:partId,unit:'EA',locationId:places.locationA})),6);
@@ -70,7 +70,7 @@ test('movement ledger derives balances, is immutable/idempotent, and protects re
 test('serialized Vehicle can occupy only one inventory location and must move from its current location', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const service=new InventoryService(db,new AuditService(db));const places=await warehouse(db,auth.userId);const vehicleId=await vehicle(db,auth.userId);
+    const auth=await actor(db);const service=createInventoryService(db,audit);const places=await warehouse(db,auth.userId);const vehicleId=await vehicle(db,auth.userId);
     await service.postMovement(auth,{movementType:'RECEIPT',itemKind:'VEHICLE',itemId:vehicleId,unit:'EA',quantity:'1',destinationLocationId:places.locationA,idempotencyKey:`vehicle-receipt-${suffix()}`});
     await assert.rejects(service.postMovement(auth,{movementType:'RECEIPT',itemKind:'VEHICLE',itemId:vehicleId,unit:'EA',quantity:'1',destinationLocationId:places.locationB,idempotencyKey:`vehicle-double-${suffix()}`}),InventoryConflictError);
     await service.postMovement(auth,{movementType:'TRANSFER',itemKind:'VEHICLE',itemId:vehicleId,unit:'EA',quantity:'1',sourceLocationId:places.locationA,destinationLocationId:places.locationB,idempotencyKey:`vehicle-transfer-${suffix()}`});
@@ -83,7 +83,7 @@ test('serialized Vehicle can occupy only one inventory location and must move fr
 test('concurrent issues and reservations serialize on the inventory position', {skip:!hasDatabase}, async()=>{
   const db=new Database();
   try{
-    const auth=await actor(db);const service=new InventoryService(db,new AuditService(db));const places=await warehouse(db,auth.userId);const partId=await part(db);
+    const auth=await actor(db);const service=createInventoryService(db,audit);const places=await warehouse(db,auth.userId);const partId=await part(db);
     await service.postMovement(auth,{movementType:'RECEIPT',itemKind:'PART',itemId:partId,unit:'EA',quantity:'1',destinationLocationId:places.locationA,idempotencyKey:`concurrent-receipt-${suffix()}`});
     const issues=await Promise.allSettled([
       service.postMovement(auth,{movementType:'ISSUE',itemKind:'PART',itemId:partId,unit:'EA',quantity:'1',sourceLocationId:places.locationA,idempotencyKey:`concurrent-issue-a-${suffix()}`}),
