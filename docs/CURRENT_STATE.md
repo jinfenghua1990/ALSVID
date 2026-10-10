@@ -159,7 +159,7 @@ Not yet implemented in Production/Vehicle scope:
 
 Implemented:
 
-- migrations `0006_inventory_warehouse.sql` and `0007_inventory_adjustment_guard.sql`
+- migrations `0006_inventory_warehouse.sql`, `0007_inventory_adjustment_guard.sql` and `0008_inventory_concurrency_guards.sql`
 - Inventory quantity truth is an append-only movement ledger; no mutable `on_hand` column is authoritative
 - derived PostgreSQL views for location on-hand, active reservations and available quantity
 - one inventory model for Engineering Part, Product SKU and serialized Vehicle stock
@@ -168,6 +168,8 @@ Implemented:
 - immutable movement types for Receipt, Transfer, Issue, Return, Adjustment and Stocktake Correction
 - unique movement idempotency keys prevent accidental duplicate stock posting
 - PostgreSQL guards reject negative stock and reject ordinary movements that would consume active reserved quantity
+- PostgreSQL transaction-level advisory locks serialize concurrent writes to the same inventory position; Vehicle operations also take a Vehicle-wide lock across locations
+- concurrent last-unit Issue and Reservation races are covered by integration tests so only one conflicting operation can succeed
 - reservations are explicit retained facts with Active -> Released / Consumed / Cancelled terminal lifecycle
 - reservation-backed Issue validates the reserved item/location/quantity and consumes the reservation in the same database transaction
 - serialized Vehicle inventory enforces one current physical inventory location and validates transfer/issue source location
@@ -178,7 +180,7 @@ Implemented:
 - explicit inventory/warehouse permissions and role templates
 - authenticated Inventory and Warehouse APIs
 - `/inventory` Internal Admin workspace for warehouse/location setup, receipt/transfer/issue/return, reservations, adjustments, derived availability, stocktake and immutable movement history
-- PostgreSQL integration tests cover ledger-derived balances, movement immutability, duplicate idempotency, reservation protection/consumption, negative stock, serialized Vehicle location and stocktake correction behavior
+- PostgreSQL integration tests cover ledger-derived balances, movement immutability, duplicate idempotency, reservation protection/consumption, negative stock, concurrent position writes, serialized Vehicle location and stocktake correction behavior
 
 Deliberately not owned by Inventory/Warehouse:
 
