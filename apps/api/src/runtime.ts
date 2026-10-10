@@ -14,4 +14,23 @@ import { createProductService } from '@alsvid/product';
 import { createProductionService } from '@alsvid/production';
 import { createVehicleService } from '@alsvid/vehicle';
 import { createWarehouseService } from '@alsvid/warehouse';
-export const database=new Database();export const auditService=createAuditService(database);export const identityService=createIdentityService(database,auditService);export const partnerService=createPartnerService(database,auditService);export const productService=createProductService(database,auditService);export const engineeringService=createEngineeringService(database,auditService);export const assetService=createAssetService(database,auditService);export const procurementService=createProcurementService(database,auditService);export const productionService=createProductionService(database,auditService);export const vehicleService=createVehicleService(database,auditService);export const inventoryService=createInventoryService(database,auditService);export const warehouseService=createWarehouseService(database,auditService,inventoryService);export const logisticsService=createLogisticsService(database,auditService,inventoryService);export const dealerService=createDealerService(database,auditService);export const commerceService=createCommerceService(database,auditService);export const integrationService=createIntegrationService(database,auditService,commerceService);
+import { ContextualAuditService } from './platform/contextual-audit-service.js';
+
+export const database = new Database();
+const persistedAuditService = createAuditService(database);
+export const auditService = new ContextualAuditService(persistedAuditService);
+
+export const identityService = createIdentityService(database, auditService);
+export const partnerService = createPartnerService(database, auditService);
+export const productService = createProductService(database, auditService);
+export const engineeringService = createEngineeringService(database, auditService);
+export const assetService = createAssetService(database, auditService);
+export const procurementService = createProcurementService(database, auditService);
+export const productionService = createProductionService(database, auditService);
+export const vehicleService = createVehicleService(database, auditService);
+export const inventoryService = createInventoryService(database, auditService);
+export const warehouseService = createWarehouseService(database, auditService, inventoryService);
+export const logisticsService = createLogisticsService(database, auditService, inventoryService);
+export const dealerService = createDealerService(database, auditService);
+export const commerceService = createCommerceService(database, auditService);
+export const integrationService = createIntegrationService(database, auditService, commerceService);

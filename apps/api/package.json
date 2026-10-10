@@ -23,6 +23,7 @@
     "@alsvid/inventory": "workspace:*",
     "@alsvid/kernel": "workspace:*",
     "@alsvid/logistics": "workspace:*",
+    "@alsvid/observability": "workspace:*",
     "@alsvid/partners": "workspace:*",
     "@alsvid/procurement": "workspace:*",
     "@alsvid/product": "workspace:*",
