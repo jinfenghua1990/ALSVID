@@ -155,13 +155,59 @@ Not yet implemented in Production/Vehicle scope:
 - privileged Vehicle identity correction workflow for exceptional real-world mistakes
 - Vehicle lifecycle after birth, ownership, dealer/customer handover and Vehicle 360
 
+## Phase 1E — Inventory and Warehouse foundation
+
+Implemented:
+
+- migrations `0006_inventory_warehouse.sql`, `0007_inventory_adjustment_guard.sql` and `0008_inventory_concurrency_guards.sql`
+- Inventory quantity truth is an append-only movement ledger; no mutable `on_hand` column is authoritative
+- derived PostgreSQL views for location on-hand, active reservations and available quantity
+- one inventory model for Engineering Part, Product SKU and serialized Vehicle stock
+- warehouse master plus reusable location hierarchy for receiving, storage, staging, pick, quarantine and dispatch
+- Germany warehouse, factory staging and future dealer/shipment staging use the same location model rather than separate inventory subsystems
+- immutable movement types for Receipt, Transfer, Issue, Return, Adjustment and Stocktake Correction
+- unique movement idempotency keys prevent accidental duplicate stock posting
+- PostgreSQL guards reject negative stock and reject ordinary movements that would consume active reserved quantity
+- PostgreSQL transaction-level advisory locks serialize concurrent writes to the same inventory position; Vehicle operations also take a Vehicle-wide lock across locations
+- concurrent last-unit Issue and Reservation races are covered by integration tests so only one conflicting operation can succeed
+- reservations are explicit retained facts with Active -> Released / Consumed / Cancelled terminal lifecycle
+- reservation-backed Issue validates the reserved item/location/quantity and consumes the reservation in the same database transaction
+- serialized Vehicle inventory enforces one current physical inventory location and validates transfer/issue source location
+- privileged Adjustment requires explicit reason in both application and PostgreSQL layers
+- stocktake sessions use append-only physical count evidence
+- closing a stocktake compares the latest count against the ledger-derived balance and creates compensating `STOCKTAKE_CORRECTION` movements instead of overwriting balances
+- stocktake reconciliation runs transactionally through the Inventory application contract
+- explicit inventory/warehouse permissions and role templates
+- authenticated Inventory and Warehouse APIs
+- `/inventory` Internal Admin workspace for warehouse/location setup, receipt/transfer/issue/return, reservations, adjustments, derived availability, stocktake and immutable movement history
+- PostgreSQL integration tests cover ledger-derived balances, movement immutability, duplicate idempotency, reservation protection/consumption, negative stock, concurrent position writes, serialized Vehicle location and stocktake correction behavior
+
+Deliberately not owned by Inventory/Warehouse:
+
+- Procurement receipt/commercial truth; a Procurement physical receipt is only source evidence until Inventory posts a receipt movement
+- Production/QC/Vehicle Birth truth; those domains never write inventory tables directly
+- export shipment/customs/milestones
+- Shopify fulfillment/order truth
+- dealer/customer ownership and handover
+- finance valuation, landed cost and GL/accounting representation
+- 1688, JackYun/吉客云 or CoffeeBear domestic inventory workflows
+
+Not yet implemented in Inventory/Warehouse scope:
+
+- dedicated putaway task queue and directed putaway rules
+- richer pick/pack/dispatch task execution; base locations and Issue movement foundation exist
+- replenishment/min-max rules
+- lot/batch/serial tracking beyond Vehicle identity
+- barcode/scan-first warehouse UX
+- carrier/shipment-linked dispatch workflow, which belongs to Logistics integration
+
 ## Planned capability sequence
 
 1. Identity, access, audit and Partner master — **foundation implemented**
 2. Product + engineering + asset foundation — **foundation implemented**
 3. Procurement + supplier quotation/PO/confirmation/receipts — **foundation implemented**
 4. Production + QC + Vehicle Birth — **foundation implemented**
-5. Inventory + warehouse operations
+5. Inventory + warehouse operations — **foundation implemented**
 6. Export logistics: China -> Germany warehouse and China -> dealer direct
 7. Dealer + commerce + Shopify fact synchronization
 8. Finance: AR/AP, invoice, payment, allocation, settlement, FX and landed cost
