@@ -1,0 +1,20 @@
+{
+  "name": "alsvid",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @alsvid/web --filter @alsvid/api --filter @alsvid/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0"
+  }
+}
