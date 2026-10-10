@@ -1,1 +1,1 @@
-export { createAuditService } from './factory.js';
+export { AuditService, createAuditService } from './factory.js';
