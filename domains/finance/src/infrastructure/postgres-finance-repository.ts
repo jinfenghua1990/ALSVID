@@ -1,12 +1,26 @@
 import type { DatabasePort, QueryExecutor } from '@alsvid/database';
-import type { FinanceRepository } from '../application/ports.js';
-import type { AddLandedCostComponentInput, AllocateLandedCostInput, AllocatePaymentInput, CreateFinanceDocumentInput, CreateFxRateInput, CreateLandedCostBatchInput, CreateObligationInput, CreatePaymentInput, FinanceDocumentLineInput, FinanceSourceType } from '../core/model.js';
+import type {
+  FinanceRepository,
+  NormalizedAllocationInput,
+  NormalizedDocumentInput,
+  NormalizedFxRateInput,
+  NormalizedLandedAllocationInput,
+  NormalizedLandedCostBatchInput,
+  NormalizedLandedCostComponentInput,
+  NormalizedLineInput,
+  NormalizedObligationInput,
+  NormalizedPaymentInput,
+} from '../application/ports.js';
 
-export class PostgresFinanceRepository implements FinanceRepository{
-  constructor(private readonly database:DatabasePort){}
-  transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>{return this.database.transaction(work)}
-  async summary():Promise<any>{
-    const [documents,lines,obligations,payments,allocations,fxRates,landedBatches,landedComponents,landedAllocations,partnerBalances,partners,purchaseOrders,commerceOrders,shipments,cargo,customsLines]=await Promise.all([
+export class PostgresFinanceRepository implements FinanceRepository {
+  constructor(private readonly database: DatabasePort) {}
+
+  transaction<T>(work: (executor: QueryExecutor) => Promise<T>): Promise<T> {
+    return this.database.transaction(work);
+  }
+
+  async summary(): Promise<any> {
+    const [documents, lines, obligations, payments, allocations, fxRates, landedBatches, landedComponents, landedAllocations, partnerBalances, partners, purchaseOrders, commerceOrders, shipments, cargo, customsLines] = await Promise.all([
       this.database.query<any>(`SELECT d.*,p.partner_code,p.display_name AS partner_name FROM finance.documents d JOIN partners.partners p ON p.id=d.partner_id ORDER BY d.created_at DESC LIMIT 1000`),
       this.database.query<any>(`SELECT l.*,s.sku,sh.shipment_number FROM finance.document_lines l LEFT JOIN product.skus s ON s.id=l.sku_id LEFT JOIN logistics.shipments sh ON sh.id=l.shipment_id ORDER BY l.document_id,l.line_no`),
       this.database.query<any>(`SELECT o.*,p.partner_code,p.display_name AS partner_name,d.document_number,d.external_reference FROM finance.v_obligations o JOIN partners.partners p ON p.id=o.partner_id LEFT JOIN finance.documents d ON d.id=o.document_id ORDER BY o.created_at DESC LIMIT 1500`),
@@ -24,24 +38,98 @@ export class PostgresFinanceRepository implements FinanceRepository{
       this.database.query<any>(`SELECT c.id,c.shipment_id,c.item_kind,c.sku_id,c.vehicle_id,c.quantity,s.sku,v.frame_number FROM logistics.shipment_cargo c LEFT JOIN product.skus s ON s.id=c.sku_id LEFT JOIN vehicle.vehicles v ON v.id=c.vehicle_id ORDER BY c.created_at,c.id`),
       this.database.query<any>(`SELECT l.*,d.shipment_id,d.currency,d.declaration_code FROM logistics.customs_lines l JOIN logistics.customs_declarations d ON d.id=l.declaration_id ORDER BY l.created_at,l.id`),
     ]);
-    return{documents:documents.rows,lines:lines.rows,obligations:obligations.rows,payments:payments.rows,allocations:allocations.rows,fxRates:fxRates.rows,landedBatches:landedBatches.rows,landedComponents:landedComponents.rows,landedAllocations:landedAllocations.rows,partnerBalances:partnerBalances.rows,references:{partners:partners.rows,purchaseOrders:purchaseOrders.rows,commerceOrders:commerceOrders.rows,shipments:shipments.rows,cargo:cargo.rows,customsLines:customsLines.rows}};
+    return {
+      documents: documents.rows,
+      lines: lines.rows,
+      obligations: obligations.rows,
+      payments: payments.rows,
+      allocations: allocations.rows,
+      fxRates: fxRates.rows,
+      landedBatches: landedBatches.rows,
+      landedComponents: landedComponents.rows,
+      landedAllocations: landedAllocations.rows,
+      partnerBalances: partnerBalances.rows,
+      references: { partners: partners.rows, purchaseOrders: purchaseOrders.rows, commerceOrders: commerceOrders.rows, shipments: shipments.rows, cargo: cargo.rows, customsLines: customsLines.rows },
+    };
   }
-  async createDocument(input:CreateFinanceDocumentInput&{currency:string;sourceType:FinanceSourceType;sourceId:string|null;actorUserId:string},e:QueryExecutor):Promise<any>{const r=await e.query<any>(`INSERT INTO finance.documents(document_type,partner_id,external_reference,currency,issue_date,due_date,source_type,source_id,note,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10) RETURNING *`,[input.documentType,input.partnerId,input.externalReference?.trim()||null,input.currency,input.issueDate,input.dueDate||null,input.sourceType,input.sourceId,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
-  async addDocumentLine(documentId:string,lineNo:number,input:FinanceDocumentLineInput&{quantity:string;unit:string;unitPrice:string;netAmount:string;taxAmount:string},e:QueryExecutor):Promise<void>{await e.query(`INSERT INTO finance.document_lines(document_id,line_no,category,description,quantity,unit,unit_price,net_amount,tax_amount,sku_id,shipment_id,metadata) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb)`,[documentId,lineNo,input.category,input.description?.trim()??'',input.quantity,input.unit,input.unitPrice,input.netAmount,input.taxAmount,input.skuId||null,input.shipmentId||null,JSON.stringify(input.metadata??{})])}
-  async refreshDocumentTotals(id:string,e:QueryExecutor):Promise<any>{const r=await e.query<any>(`UPDATE finance.documents d SET subtotal_amount=x.net,tax_amount=x.tax,total_amount=x.net+x.tax,updated_at=now() FROM (SELECT COALESCE(sum(net_amount),0)::numeric(20,6) AS net,COALESCE(sum(tax_amount),0)::numeric(20,6) AS tax FROM finance.document_lines WHERE document_id=$1) x WHERE d.id=$1 RETURNING d.*`,[id]);return r.rows[0]}
-  async transitionDocument(id:string,version:number,status:'VERIFIED'|'DRAFT',actor:string):Promise<any|null>{const r=await this.database.query<any>(`UPDATE finance.documents SET status=$3,verified_at=CASE WHEN $3='VERIFIED' THEN now() ELSE NULL END,verified_by=CASE WHEN $3='VERIFIED' THEN $4::uuid ELSE NULL END,version=version+1,updated_by=$4,updated_at=now() WHERE id=$1 AND version=$2 RETURNING *`,[id,version,status,actor]);return r.rows[0]??null}
-  async voidDocument(id:string,version:number,reason:string,actor:string):Promise<any|null>{const r=await this.database.query<any>(`UPDATE finance.documents SET status='VOIDED',voided_at=now(),voided_by=$3,void_reason=$4,version=version+1,updated_by=$3,updated_at=now() WHERE id=$1 AND version=$2 AND status IN ('DRAFT','VERIFIED') RETURNING *`,[id,version,actor,reason]);return r.rows[0]??null}
-  async lockDocument(id:string,e:QueryExecutor):Promise<any|null>{const r=await e.query<any>(`SELECT * FROM finance.documents WHERE id=$1 FOR UPDATE`,[id]);return r.rows[0]??null}
-  async postDocument(id:string,version:number,actor:string,e:QueryExecutor):Promise<any|null>{const r=await e.query<any>(`UPDATE finance.documents SET status='POSTED',posted_at=now(),posted_by=$3,version=version+1,updated_by=$3,updated_at=now() WHERE id=$1 AND version=$2 AND status='VERIFIED' RETURNING *`,[id,version,actor]);return r.rows[0]??null}
-  async createObligation(input:CreateObligationInput&{currency:string;amount:string;sourceType:FinanceSourceType;sourceId:string|null;actorUserId:string;documentId?:string|null},e:QueryExecutor=this.database):Promise<any>{const r=await e.query<any>(`INSERT INTO finance.obligations(direction,partner_id,document_id,currency,original_amount,due_date,source_type,source_id,note,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,[input.direction,input.partnerId,input.documentId??null,input.currency,input.amount,input.dueDate||null,input.sourceType,input.sourceId,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
-  async voidObligation(id:string,reason:string,actor:string):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.obligation_voids(obligation_id,reason,voided_by) VALUES ($1,$2,$3) RETURNING *`,[id,reason,actor]);return r.rows[0]}
-  async createPayment(input:CreatePaymentInput&{currency:string;amount:string;actorUserId:string}):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.payments(direction,partner_id,currency,amount,value_date,provider,account_reference,external_reference,idempotency_key,note,posted_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,[input.direction,input.partnerId||null,input.currency,input.amount,input.valueDate,input.provider?.trim()||'MANUAL',input.accountReference?.trim()||null,input.externalReference?.trim()||null,input.idempotencyKey,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
-  async reversePayment(id:string,reason:string,actor:string):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.payment_reversals(payment_id,reason,reversed_by) VALUES ($1,$2,$3) RETURNING *`,[id,reason,actor]);return r.rows[0]}
-  async createFxRate(input:CreateFxRateInput&{baseCurrency:string;quoteCurrency:string;rate:string;actorUserId:string}):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.fx_rates(base_currency,quote_currency,rate,effective_at,source,external_reference,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,[input.baseCurrency,input.quoteCurrency,input.rate,input.effectiveAt,input.source,input.externalReference?.trim()||null,input.actorUserId]);return r.rows[0]}
-  async allocatePayment(input:AllocatePaymentInput&{paymentAmount:string;obligationAmount:string;actorUserId:string}):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.allocations(payment_id,obligation_id,payment_amount,obligation_amount,fx_rate_id,note,allocated_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,[input.paymentId,input.obligationId,input.paymentAmount,input.obligationAmount,input.fxRateId||null,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
-  async reverseAllocation(id:string,reason:string,actor:string):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.allocation_reversals(allocation_id,reason,reversed_by) VALUES ($1,$2,$3) RETURNING *`,[id,reason,actor]);return r.rows[0]}
-  async createLandedCostBatch(input:CreateLandedCostBatchInput&{currency:string;actorUserId:string}):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.landed_cost_batches(shipment_id,currency,allocation_basis,note,created_by) VALUES ($1,$2,$3,$4,$5) RETURNING *`,[input.shipmentId,input.currency,input.allocationBasis,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
-  async addLandedCostComponent(batchId:string,input:AddLandedCostComponentInput&{amount:string;currency:string;batchCurrencyAmount:string;actorUserId:string}):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.landed_cost_components(batch_id,category,amount,currency,batch_currency_amount,fx_rate_id,source_document_id,source_customs_line_id,capitalizable,note,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,[batchId,input.category,input.amount,input.currency,input.batchCurrencyAmount,input.fxRateId||null,input.sourceDocumentId||null,input.sourceCustomsLineId||null,input.capitalizable??true,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
-  async allocateLandedCost(componentId:string,input:AllocateLandedCostInput&{allocatedAmount:string;basisValue:string|null;actorUserId:string}):Promise<any>{const r=await this.database.query<any>(`INSERT INTO finance.landed_cost_allocations(component_id,cargo_id,basis_value,allocated_amount,created_by) VALUES ($1,$2,$3,$4,$5) RETURNING *`,[componentId,input.cargoId,input.basisValue,input.allocatedAmount,input.actorUserId]);return r.rows[0]}
-  async finalizeLandedCostBatch(id:string,actor:string):Promise<any|null>{const r=await this.database.query<any>(`UPDATE finance.landed_cost_batches SET status='FINALIZED',finalized_at=now(),finalized_by=$2 WHERE id=$1 AND status='DRAFT' RETURNING *`,[id,actor]);return r.rows[0]??null}
+
+  async createDocument(input: NormalizedDocumentInput, executor: QueryExecutor): Promise<any> {
+    const result = await executor.query<any>(`INSERT INTO finance.documents(document_type,partner_id,external_reference,currency,issue_date,due_date,source_type,source_id,note,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10) RETURNING *`, [input.documentType,input.partnerId,input.externalReference?.trim()||null,input.currency,input.issueDate,input.dueDate||null,input.sourceType,input.sourceId,input.note?.trim()??'',input.actorUserId]);
+    return result.rows[0];
+  }
+
+  async addDocumentLine(documentId: string, lineNo: number, input: NormalizedLineInput, executor: QueryExecutor): Promise<void> {
+    await executor.query(`INSERT INTO finance.document_lines(document_id,line_no,category,description,quantity,unit,unit_price,net_amount,tax_amount,sku_id,shipment_id,metadata) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb)`, [documentId,lineNo,input.category,input.description?.trim()??'',input.quantity,input.unit,input.unitPrice,input.netAmount,input.taxAmount,input.skuId||null,input.shipmentId||null,JSON.stringify(input.metadata??{})]);
+  }
+
+  async refreshDocumentTotals(id: string, executor: QueryExecutor): Promise<any> {
+    const result = await executor.query<any>(`UPDATE finance.documents d SET subtotal_amount=x.net,tax_amount=x.tax,total_amount=x.net+x.tax,updated_at=now() FROM (SELECT COALESCE(sum(net_amount),0)::numeric(20,6) AS net,COALESCE(sum(tax_amount),0)::numeric(20,6) AS tax FROM finance.document_lines WHERE document_id=$1) x WHERE d.id=$1 RETURNING d.*`, [id]);
+    return result.rows[0];
+  }
+
+  async transitionDocument(id: string, version: number, status: 'VERIFIED' | 'DRAFT', actor: string): Promise<any | null> {
+    const result = await this.database.query<any>(`UPDATE finance.documents SET status=$3,verified_at=CASE WHEN $3='VERIFIED' THEN now() ELSE NULL END,verified_by=CASE WHEN $3='VERIFIED' THEN $4::uuid ELSE NULL END,version=version+1,updated_by=$4,updated_at=now() WHERE id=$1 AND version=$2 RETURNING *`, [id,version,status,actor]);
+    return result.rows[0] ?? null;
+  }
+
+  async voidDocument(id: string, version: number, reason: string, actor: string): Promise<any | null> {
+    const result = await this.database.query<any>(`UPDATE finance.documents SET status='VOIDED',voided_at=now(),voided_by=$3,void_reason=$4,version=version+1,updated_by=$3,updated_at=now() WHERE id=$1 AND version=$2 AND status IN ('DRAFT','VERIFIED') RETURNING *`, [id,version,actor,reason]);
+    return result.rows[0] ?? null;
+  }
+
+  async lockDocument(id: string, executor: QueryExecutor): Promise<any | null> {
+    const result = await executor.query<any>(`SELECT * FROM finance.documents WHERE id=$1 FOR UPDATE`, [id]);
+    return result.rows[0] ?? null;
+  }
+
+  async postDocument(id: string, version: number, actor: string, executor: QueryExecutor): Promise<any | null> {
+    const result = await executor.query<any>(`UPDATE finance.documents SET status='POSTED',posted_at=now(),posted_by=$3,version=version+1,updated_by=$3,updated_at=now() WHERE id=$1 AND version=$2 AND status='VERIFIED' RETURNING *`, [id,version,actor]);
+    return result.rows[0] ?? null;
+  }
+
+  async createObligation(input: NormalizedObligationInput, executor: QueryExecutor = this.database): Promise<any> {
+    const result = await executor.query<any>(`INSERT INTO finance.obligations(direction,partner_id,document_id,currency,original_amount,due_date,source_type,source_id,note,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`, [input.direction,input.partnerId,input.documentId??null,input.currency,input.amount,input.dueDate||null,input.sourceType,input.sourceId,input.note?.trim()??'',input.actorUserId]);
+    return result.rows[0];
+  }
+
+  async voidObligation(id: string, reason: string, actor: string): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.obligation_voids(obligation_id,reason,voided_by) VALUES ($1,$2,$3) RETURNING *`, [id,reason,actor])).rows[0];
+  }
+
+  async createPayment(input: NormalizedPaymentInput): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.payments(direction,partner_id,currency,amount,value_date,provider,account_reference,external_reference,idempotency_key,note,posted_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`, [input.direction,input.partnerId||null,input.currency,input.amount,input.valueDate,input.provider?.trim()||'MANUAL',input.accountReference?.trim()||null,input.externalReference?.trim()||null,input.idempotencyKey,input.note?.trim()??'',input.actorUserId])).rows[0];
+  }
+
+  async reversePayment(id: string, reason: string, actor: string): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.payment_reversals(payment_id,reason,reversed_by) VALUES ($1,$2,$3) RETURNING *`, [id,reason,actor])).rows[0];
+  }
+
+  async createFxRate(input: NormalizedFxRateInput): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.fx_rates(base_currency,quote_currency,rate,effective_at,source,external_reference,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`, [input.baseCurrency,input.quoteCurrency,input.rate,input.effectiveAt,input.source,input.externalReference?.trim()||null,input.actorUserId])).rows[0];
+  }
+
+  async allocatePayment(input: NormalizedAllocationInput): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.allocations(payment_id,obligation_id,payment_amount,obligation_amount,fx_rate_id,note,allocated_by) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`, [input.paymentId,input.obligationId,input.paymentAmount,input.obligationAmount,input.fxRateId||null,input.note?.trim()??'',input.actorUserId])).rows[0];
+  }
+
+  async reverseAllocation(id: string, reason: string, actor: string): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.allocation_reversals(allocation_id,reason,reversed_by) VALUES ($1,$2,$3) RETURNING *`, [id,reason,actor])).rows[0];
+  }
+
+  async createLandedCostBatch(input: NormalizedLandedCostBatchInput): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.landed_cost_batches(shipment_id,currency,allocation_basis,note,created_by) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [input.shipmentId,input.currency,input.allocationBasis,input.note?.trim()??'',input.actorUserId])).rows[0];
+  }
+
+  async addLandedCostComponent(batchId: string, input: NormalizedLandedCostComponentInput): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.landed_cost_components(batch_id,category,amount,currency,batch_currency_amount,fx_rate_id,source_document_id,source_customs_line_id,capitalizable,note,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`, [batchId,input.category,input.amount,input.currency,input.batchCurrencyAmount,input.fxRateId||null,input.sourceDocumentId||null,input.sourceCustomsLineId||null,input.capitalizable??true,input.note?.trim()??'',input.actorUserId])).rows[0];
+  }
+
+  async allocateLandedCost(componentId: string, input: NormalizedLandedAllocationInput): Promise<any> {
+    return (await this.database.query<any>(`INSERT INTO finance.landed_cost_allocations(component_id,cargo_id,basis_value,allocated_amount,created_by) VALUES ($1,$2,$3,$4,$5) RETURNING *`, [componentId,input.cargoId,input.basisValue,input.allocatedAmount,input.actorUserId])).rows[0];
+  }
+
+  async finalizeLandedCostBatch(id: string, actor: string): Promise<any | null> {
+    const result = await this.database.query<any>(`UPDATE finance.landed_cost_batches SET status='FINALIZED',finalized_at=now(),finalized_by=$2 WHERE id=$1 AND status='DRAFT' RETURNING *`, [id,actor]);
+    return result.rows[0] ?? null;
+  }
 }
