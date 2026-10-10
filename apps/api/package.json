@@ -18,6 +18,7 @@
     "@alsvid/database": "workspace:*",
     "@alsvid/dealer": "workspace:*",
     "@alsvid/engineering": "workspace:*",
+    "@alsvid/finance": "workspace:*",
     "@alsvid/identity": "workspace:*",
     "@alsvid/integrations": "workspace:*",
     "@alsvid/inventory": "workspace:*",
