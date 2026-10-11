@@ -260,6 +260,14 @@ After restore:
 
 Production business data must not be accepted until this has succeeded at least once with Neon as the selected production PostgreSQL provider.
 
+### Client-version and credential safety
+
+The production Neon server currently runs PostgreSQL 18.6. Use a PostgreSQL 18 client for
+`pg_dump` and `pg_restore`; an older client may refuse the backup before making any change.
+When running the clients in Docker, provide credentials through a protected `PGPASSFILE` or
+standard input mechanism. Never pass the complete connection URL as a command-line argument,
+because local process listings can expose it.
+
 ## 11. R2 and Q4 backup
 
 R2 is the production authority for binary objects. Enable the appropriate Cloudflare durability/versioning controls and maintain an independent periodic copy to the Q4 backup location.
@@ -300,9 +308,25 @@ The repository now contains Docker packaging, release automation, R2 adapter, Go
 - GitHub `production` Environment variables configured
 - Secret Manager versions populated from trusted local/account tooling
 - first Cloud Run deployment
-- first live R2 read/write/checksum verification
+- first live Production R2 read/write/checksum verification
 - first real Neon restore drill
 - Q4 independent object/database backup copy
 - budget/alerts and operational monitoring acceptance
 
 Issue #34 stays open until those live acceptance steps have evidence.
+
+## 14. Latest operational acceptance record
+
+On 2026-10-11 the Development R2 bucket passed a real temporary-object acceptance: put,
+metadata head, signed read with HTTP 200, SHA-256 verification, delete, and post-delete
+absence. The temporary object was removed.
+
+The production Neon restore drill remains pending. The host PostgreSQL 16 client was rejected
+by the PostgreSQL 18.6 server, and a retry was stopped before any database mutation after
+detecting unsafe command-line credential exposure. The next drill must use PostgreSQL 18 client
+tools and protected credential input, then record the isolated restore target and checksum in
+Issue #61.
+
+The production rollback workflow is configured for any merged `main` SHA, but no live rollback
+was triggered during this audit. Google Cloud billing has no budget configured yet; the monthly
+threshold must be chosen explicitly before creating the alert.
