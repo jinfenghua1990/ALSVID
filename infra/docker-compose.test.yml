@@ -31,6 +31,7 @@ services:
     environment:
       NODE_ENV: test
       DATABASE_URL: ${DATABASE_URL:-postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test}
+      ALSVID_MIN_PASSWORD_LENGTH: ${ALSVID_MIN_PASSWORD_LENGTH:-4}
       OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-unconfigured}
       OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-}
       OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:-}

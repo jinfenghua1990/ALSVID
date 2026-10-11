@@ -29,7 +29,7 @@ export default function LoginPage() {
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
-      setError(payload?.message ?? '登录失败，请检查邮箱和密码');
+      setError(payload?.message ?? '登录失败，请检查用户名和密码');
       setBusy(false);
       return;
     }
@@ -44,7 +44,7 @@ export default function LoginPage() {
         <div className="eyebrow">内部管理控制台</div>
         <h1 className="authTitle">登录 ALSVID 管理后台</h1>
         <form className="stack" onSubmit={submit}>
-          <label>公司邮箱<input name="email" type="email" autoComplete="username" required /></label>
+          <label>用户名<input name="email" type="text" autoComplete="username" required /></label>
           <label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
           {error ? <p className="formError">{error}</p> : null}
           <button className="primaryButton" disabled={busy}>{busy ? '正在登录…' : '登录'}</button>
