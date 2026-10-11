@@ -21,6 +21,7 @@ Before changing application behavior or architecture, read in this order:
 13. `docs/BUSINESS_FLOWS.md`
 14. relevant ADRs under `docs/adr/`
 15. the current issue/PR and affected `domain.json`
+16. `docs/ENVIRONMENT_ARCHITECTURE.md`
 
 Confirmed architecture decisions are not suggestions. Do not replace providers, redraw system boundaries, or add major infrastructure merely because a different stack appears fashionable. First identify the concrete problem, review the recorded rationale, and document the new decision.
 
