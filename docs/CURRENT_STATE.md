@@ -69,7 +69,11 @@ The Internal Admin now has a Chinese-first shell foundation aligned with Issue #
 - a persistent Test environment banner and `[测试] ALSVID` document title outside Production;
 - mobile navigation instead of hiding the desktop rail without replacement;
 - an Employee Center scaffold for the centralized employee/provisioning direction in Issue #51;
-- an Environment & Infrastructure surface that exposes safe runtime/resource metadata and configured/missing status without revealing database URLs, passwords, R2 secret keys or provider tokens.
+- an Environment & Infrastructure surface that exposes safe runtime/resource metadata and configured/missing status without revealing database URLs, passwords, R2 secret keys or provider tokens;
+- the Product & Engineering workbench is converged onto the shared Chinese AppShell rather than maintaining its own independent navigation shell;
+- the Commerce workbench is converged onto the shared Chinese AppShell and treats Shopify, Amazon and future providers as external Commerce channels rather than separate ALSVID OMS implementations.
+
+The Amazon Marketplace phase-one scaffold from Issue #55 makes `AMAZON` a valid Commerce provider and supports safe channel/account references plus external product/SKU mapping. It does **not** mean a Seller Central account, SP-API authorization, Amazon order polling, FBA synchronization or settlement import is connected. Amazon credentials/tokens are not stored or rendered by the Commerce UI.
 
 This is a shell/foundation milestone, not a claim that all existing business workbenches have already been redesigned or fully localized. Existing deep domain screens will converge on the shared Chinese Internal Admin patterns incrementally.
 
@@ -89,8 +93,9 @@ Remaining business/launch work is tracked in GitHub before implementation:
 - Marketing consent / suppression / campaigns — Issue #33
 - live production resource provisioning, first deployment, backup/restore and operational acceptance — Issue #34
 - production mail and AI provider adapters — Issue #35
+- Amazon live SP-API adapter, authorization, ingestion and operational monitoring after the phase-one Commerce scaffold — Issue #55
 
-Cloudflare R2 object storage adapter work from Issue #35 is complete through PR #42. Shopify/another OMS remains external; ALSVID does not expand into storefront order, payment or fulfillment orchestration.
+Cloudflare R2 object storage adapter work from Issue #35 is complete through PR #42. Shopify, Amazon or another marketplace/OMS remains external; ALSVID does not expand into storefront/marketplace checkout, payment capture or provider-owned fulfillment orchestration.
 
 Each meaningful change must use a dedicated branch, Pull Request and CI. Feature work must not be added directly to `main`.
 
@@ -102,7 +107,7 @@ This repository is the implementation authority for the new ALSVID codebase. Pre
 
 ALSVID is the integrated operating platform for the bicycle/export business. CoffeeBear domestic workflows, including 1688 and JackYun/吉客云, remain outside ALSVID.
 
-Shopify or another external OMS remains responsible for storefront order, payment and fulfillment orchestration. ALSVID may normalize only the minimum external facts needed for its own Vehicle, Customer, Finance, Warranty and Service responsibilities.
+Shopify, Amazon or another external OMS/marketplace remains responsible for its storefront/marketplace order, payment and provider-owned fulfillment orchestration. ALSVID may normalize only the minimum external facts needed for its own Vehicle, Customer, Finance, Warranty and Service responsibilities.
 
 ## Runtime model
 
