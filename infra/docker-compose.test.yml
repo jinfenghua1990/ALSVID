@@ -16,6 +16,11 @@ services:
     environment:
       NODE_ENV: test
       ALSVID_API_BASE_URL: http://api:4000/api
+      OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-unconfigured}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:-}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-}
     depends_on:
       - api
 
@@ -25,8 +30,12 @@ services:
       dockerfile: infra/docker/Dockerfile.api
     environment:
       NODE_ENV: test
-      DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
-      OBJECT_STORAGE_PROVIDER: unconfigured
+      DATABASE_URL: ${DATABASE_URL:-postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test}
+      OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-unconfigured}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:-}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,8 +46,12 @@ services:
       dockerfile: infra/docker/Dockerfile.worker
     environment:
       NODE_ENV: test
-      DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
-      OBJECT_STORAGE_PROVIDER: unconfigured
+      DATABASE_URL: ${DATABASE_URL:-postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test}
+      OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-unconfigured}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:-}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy

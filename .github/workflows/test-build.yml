@@ -1,4 +1,4 @@
-name: ALSVID Test Build
+name: ALSVID Development/Test Build
 
 on:
   push:
