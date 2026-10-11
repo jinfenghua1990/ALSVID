@@ -38,7 +38,7 @@ jobs:
       - name: Checkout release
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_sha || 'main' }}
+          ref: ${{ inputs.release_sha || (github.event_name == 'push' && github.sha) || 'main' }}
           fetch-depth: 0
 
       - name: Validate release and deployment variables
