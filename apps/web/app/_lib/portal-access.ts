@@ -39,3 +39,26 @@ export async function requireInternalPreviewSession(): Promise<PortalSession> {
 
   return session;
 }
+
+// Non-redirecting variant for the public portal launcher: returns null when
+// there is no valid administrator session so the page can offer modal login.
+export async function readInternalPreviewSession(): Promise<PortalSession | null> {
+  const token = (await cookies()).get('alsvid_session')?.value;
+  if (!token) return null;
+
+  try {
+    const response = await fetch(`${apiBase}/v1/auth/me`, {
+      headers: { authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!response.ok) return null;
+
+    const payload = await response.json() as { data?: PortalSession };
+    const session = payload.data;
+    if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) return null;
+    if (!session.roles.includes('system_admin')) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
