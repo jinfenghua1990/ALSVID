@@ -152,3 +152,5 @@ The runtime, deployment and secret authority decision is recorded in ADR 0003 an
 ## Internal Admin UI consistency — 2026-10-11
 
 Existing AppShell workbenches now share a compact internal header with a Portal Launcher link, collapsible navigation groups, visible active-page state and readable operational typography. Existing module routes and disabled roadmap entries are retained. The Environment page explicitly labels Web-only configuration visibility; missing Web secrets are not presented as API/Worker connection failures. Live backend connection health is not implemented by this UI change.
+
+The Portal Launcher has Chinese-first Admin/Dealer/My entry cards, a server-validated operator greeting and a runtime-derived environment label. Admin Center uses the same AppShell as its business modules. Login continues to land at `/portal-launcher`; Dealer/My remain internal preview surfaces. The Environment page is dynamically rendered so runtime metadata is not frozen at build time. M1 Docker images require pulling main and rebuilding Web before these changes appear locally.
