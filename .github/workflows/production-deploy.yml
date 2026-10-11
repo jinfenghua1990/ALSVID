@@ -82,7 +82,7 @@ jobs:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          docker build -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
+          docker build --platform linux/amd64 --build-arg ALSVID_ENV=production -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
           docker build -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
           docker build -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
 
@@ -216,7 +216,7 @@ jobs:
             --min 0 \
             --max 3 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,ALSVID_API_BASE_URL=${API_URL}/api" \
+            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_API_BASE_URL=${API_URL}/api" \
             --quiet
 
       - name: Verify Web and record deployed release
