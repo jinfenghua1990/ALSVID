@@ -2,124 +2,97 @@
 
 ## Status
 
-This document defines the authoritative two-environment model for ALSVID and must remain consistent with `README.md` and `docs/ENVIRONMENT_STRATEGY.md`.
+This document is the authoritative environment naming rule for ALSVID.
 
-## Final environment model: exactly two modes
+## Final environment model: two environments only
 
-ALSVID currently uses **exactly two environment modes**:
-
-1. **Development / Test** — combined non-production mode
-2. **Production** — formal production mode
-
-Do **not** split Development and Test into separate environment tiers at the current stage.
+ALSVID uses exactly two environments:
 
 ```text
-Mode 1: Development / Test
---------------------------------
-M1 Mac + Docker
-        |
-        +--> Neon Test
-        +--> R2 Test
-        +--> Test-only secrets
+ALSVID Development
+=
+Development / Test combined environment
 
-Mode 2: Production
---------------------------------
-Google Cloud Run
-        |
-        +--> Neon Production
-        +--> R2 Production
-        +--> Google Secret Manager / Production secrets
+ALSVID Production
+=
+Formal production environment
 ```
 
-## 1. Development / Test
+There is no separate Staging environment at the current stage.
 
-Development and Test are intentionally combined into one non-production mode.
+## 1. ALSVID Development
+
+ALSVID Development is the combined Development / Test environment.
 
 It covers:
 
 - coding and debugging;
-- Docker-based local runtime;
+- Docker-based runtime validation;
 - integration testing;
+- migration testing;
 - release acceptance before production;
-- migration and connector testing;
-- QA for Admin / Dealer / My ALSVID.
-
-Current runtime:
-
-- Compute: **M1 Mac**
-- Runtime: **Docker / Docker Compose**
-- Database: **Neon Test**
-- Object storage: **Cloudflare R2 Test**
-- Secrets: **Test-only credentials**
-
-Local PostgreSQL / MinIO may exist only as offline or temporary fallback tools. They are not the normal Test authority.
-
-There is currently **no separate Cloud Run Test environment** and no separate `ALSVID Development` Google Cloud project required for runtime.
-
-## 2. Production
-
-Production is the only formal cloud runtime environment at the current stage.
+- Admin / Dealer / My ALSVID verification.
 
 Resources:
 
-- Compute/runtime: **Google Cloud Run**
-- Database: **Neon Production**
-- Object storage: **Cloudflare R2 Production**
-- Secrets: **Google Secret Manager / Production-only credentials**
+- M1 Mac + Docker Compose
+- Neon Test
+- Cloudflare R2 Test
+- Development/Test secrets
 
-Production serves real employee, dealer and customer workloads.
+The purpose is to keep development and testing in one controlled non-production environment.
+
+## 2. ALSVID Production
+
+ALSVID Production is the formal production environment.
+
+Resources:
+
+- Google Cloud Run
+- Neon Production
+- Cloudflare R2 Production
+- Google Secret Manager / Production secrets
+
+Production serves real business workloads.
+
+## Environment separation
+
+```text
+ALSVID Development
+(Development / Test combined)
+        |
+        | approved version
+        v
+ALSVID Production
+```
+
+Test data and Test files are never promoted as Production data.
 
 ## Naming rules
 
-Use the following terminology in documentation, CI/CD and infrastructure discussions:
+Use:
 
 ```text
-Development / Test
-Production
+ALSVID Development
+ALSVID Production
 ```
 
-Avoid introducing these as separate current environments:
+The meaning of ALSVID Development must always be understood as:
 
 ```text
-Development
-Test / Staging
-Production
+Development / Test combined environment
 ```
 
-Do not create a third environment merely for naming symmetry.
-
-## Google Cloud naming
-
-At the current stage, Google Cloud is used for the **Production runtime**.
-
-Recommended project:
+Do not introduce:
 
 ```text
-Project name: ALSVID Production
-Project ID:   alsvid-prod   (or another available equivalent)
+ALSVID Test
+ALSVID Staging
+ALSVID Dev + Test + Staging + Production
 ```
 
-The combined Development / Test mode continues to run on M1 + Docker while using Neon Test and R2 Test resources.
+as separate current environments.
 
-## Release flow
+## Future expansion
 
-```text
-M1 + Docker
-Development / Test
-      |
-      | CI / acceptance
-      v
-GitHub main
-      |
-      | automated production deployment
-      v
-Google Cloud Run Production
-```
-
-The same approved Git commit/version is promoted to Production. Test data and Test objects are never promoted into Production data.
-
-## Future exception
-
-A separate cloud Test/Staging runtime may be introduced later only if there is a concrete need such as multi-user shared testing, external callback testing, Cloud Run-specific defects or load testing.
-
-Until such a decision is explicitly approved, the ALSVID environment model remains **two modes only**: `Development / Test` and `Production`.
+A separate cloud testing environment may only be introduced when there is a real operational need. Until then ALSVID remains a two-environment architecture.
