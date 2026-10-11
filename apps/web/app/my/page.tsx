@@ -1,3 +1,4 @@
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
 import styles from '../admin/portal-page.module.css';
 
@@ -8,7 +9,8 @@ const features = [
   ['所有权与转让', '可信交付凭据、所有权历史与转让流程', '待开发'],
 ] as const;
 
-export default function MyALSVIDPage() {
+export default async function MyALSVIDPage() {
+  await requireInternalPreviewSession();
   return (
     <PortalShell kind="my">
       <header className={styles.heading}>
