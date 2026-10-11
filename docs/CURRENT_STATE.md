@@ -148,3 +148,7 @@ CI -> merge to main -> deploy. See `docs/DEVELOPMENT_WORKFLOW.md`.
 
 The runtime, deployment and secret authority decision is recorded in ADR 0003 and described in
 `docs/RUNTIME_ARCHITECTURE.md`.
+
+## Internal Admin UI consistency — 2026-10-11
+
+Existing AppShell workbenches now share a compact internal header with a Portal Launcher link, collapsible navigation groups, visible active-page state and readable operational typography. Existing module routes and disabled roadmap entries are retained. The Environment page explicitly labels Web-only configuration visibility; missing Web secrets are not presented as API/Worker connection failures. Live backend connection health is not implemented by this UI change.
