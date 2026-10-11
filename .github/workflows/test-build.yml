@@ -78,9 +78,11 @@ jobs:
           fi
 
           for route in /portal-launcher /admin /dealer /my; do
-            response="$(curl --silent --output /dev/null --write-out '%{http_code} %{redirect_url}' "http://127.0.0.1:3001$route")"
-            if [[ "$response" != "307 http://127.0.0.1:3001/login" ]]; then
-              echo "Expected unauthenticated $route to redirect to /login, got: $response" >&2
+            response="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:3001$route")"
+            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:3001$route")"
+            if [[ "$response" != "307" ]] || ! grep -Eiq '^location: /login?$' <<< "$headers"; then
+              echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
+              echo "$headers" >&2
               exit 1
             fi
           done
