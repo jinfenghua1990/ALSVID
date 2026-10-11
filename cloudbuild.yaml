@@ -1,0 +1,18 @@
+steps:
+  - name: 'node:22-bookworm'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        corepack enable
+        pnpm install --frozen-lockfile
+        pnpm verify
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Production deployment can be added later:
+# - Cloud Run deploy
+# - Secret Manager injection
+# - Artifact Registry image publishing
+# Keep this pipeline verification-first until production infrastructure is enabled.
