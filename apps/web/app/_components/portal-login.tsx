@@ -43,7 +43,8 @@ export function PortalLoginGate({ authenticated, children }: { authenticated: bo
         return;
       }
 
-      if (!Array.isArray(payload?.data?.roles) || !payload.data.roles.includes('system_admin')) {
+      const roles = payload?.data?.roles;
+      if (!Array.isArray(roles) || !roles.includes('system_admin')) {
         setError('账号验证成功，但没有 ALSVID 内部管理权限。请联系管理员分配 system_admin 角色。');
         setBusy(false);
         return;
