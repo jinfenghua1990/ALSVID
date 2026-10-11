@@ -186,13 +186,15 @@ The runtime service account has Secret Manager Secret Accessor. GitHub authentic
 
 ## 8. First production release
 
-Production deployment is intentionally manual until the first real environment is accepted.
+After a reviewed change is merged into `main`, Production deployment runs automatically from GitHub Actions. The workflow remains manually dispatchable for a controlled release or rollback.
 
-Run GitHub Actions -> `ALSVID Production Deploy` -> `Run workflow`.
+For a normal manual release or rollback, run GitHub Actions -> `ALSVID Production Deploy` -> `Run workflow`.
 
 - leave `release_sha` blank to deploy current `main`
 - or enter an older commit SHA already merged into `main`
 - type `deploy` in the confirmation field
+
+For an automatic release, no manual action is needed after the PR is merged into `main`. The `main` branch must remain protected so the CI and Docker/Test acceptance checks pass before a merge is allowed.
 
 The workflow refuses a commit that is not contained in `main`.
 

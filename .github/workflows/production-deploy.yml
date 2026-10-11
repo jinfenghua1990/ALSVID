@@ -1,10 +1,12 @@
 name: ALSVID Production Deploy
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       release_sha:
-        description: "Merged main commit to deploy (blank = current main)"
+        description: "Target merged main commit (blank = current main; use an older SHA to roll back)"
         required: false
         type: string
       confirm:
@@ -28,7 +30,7 @@ env:
 
 jobs:
   deploy:
-    if: ${{ inputs.confirm == 'deploy' }}
+    if: ${{ github.event_name == 'push' || inputs.confirm == 'deploy' }}
     runs-on: ubuntu-latest
     environment: production
 
