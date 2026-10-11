@@ -94,13 +94,17 @@ Non-secret GitHub `production` Environment variables are documented in `docs/PRO
 
 ## Release
 
-Production releases are reproducible from a Git commit SHA. `.github/workflows/production-deploy.yml` is manually dispatched until the first live environment is accepted. It builds immutable images, authenticates to Google Cloud through Workload Identity Federation, pushes images, runs migrations explicitly, deploys API/Worker/Web and verifies health.
+Production releases are reproducible from a Git commit SHA. After a change is merged into `main`, `.github/workflows/production-deploy.yml` automatically builds and deploys that exact commit. The same workflow remains manually dispatchable so an operator can deploy a specific merged commit, including a previous compatible commit for application rollback. It builds immutable images, authenticates to Google Cloud through Workload Identity Federation, pushes images, runs migrations explicitly, deploys API/Worker/Web and verifies health.
 
 No production fix is made by editing a running container.
 
 ## Portability
 
 Cloud Run, Neon and R2 are selected production providers, not Domain dependencies. Environment-driven configuration and provider ports preserve the ability to replace runtime/database/object-storage infrastructure without redesigning ALSVID business logic.
+
+## Rollback rule
+
+Application rollback means redeploying a previous known-good commit that is already contained in `main`. It does not restore the database over the live database. A release with an irreversible schema change must have a reviewed forward-fix or database recovery plan before deployment; application code and database schema must remain compatible during rollback.
 
 ## Acceptance boundary
 

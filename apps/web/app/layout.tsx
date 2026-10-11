@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { RefreshButton } from './_components/refresh-button';
 import './globals.css';
 
 function runtimeEnvironment() {
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <div className="environmentBanner" role="status">
             <strong>测试环境</strong>
             <span>当前数据仅用于开发与验收，不属于正式业务数据。</span>
+            <RefreshButton />
           </div>
         ) : null}
         {children}

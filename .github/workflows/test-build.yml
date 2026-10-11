@@ -43,7 +43,7 @@ jobs:
         run: docker compose -f infra/docker-compose.test.yml run --rm api pnpm db:migrate
 
       - name: Start Test applications
-        run: docker compose -f infra/docker-compose.test.yml up -d web api worker
+        run: docker compose -f infra/docker-compose.test.yml up -d web api worker gateway
 
       - name: Smoke test API and Web
         shell: bash
@@ -51,7 +51,7 @@ jobs:
           set -euo pipefail
 
           for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:4001/api/health >/dev/null; then
+            if curl --fail --silent http://127.0.0.1:8080/api/health >/dev/null; then
               break
             fi
             if [[ "$attempt" == "30" ]]; then
@@ -62,7 +62,7 @@ jobs:
           done
 
           for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:3001/ >/dev/null; then
+            if curl --fail --silent http://127.0.0.1:8080/ >/dev/null; then
               break
             fi
             if [[ "$attempt" == "30" ]]; then
@@ -72,14 +72,14 @@ jobs:
             sleep 2
           done
 
-          if ! curl --fail --silent http://127.0.0.1:3001/login >/dev/null; then
+          if ! curl --fail --silent http://127.0.0.1:8080/login >/dev/null; then
             echo "Login page failed smoke check" >&2
             exit 1
           fi
 
           for route in /portal-launcher /admin /dealer /my; do
-            response="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:3001$route")"
-            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:3001$route")"
+            response="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:8080$route")"
+            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:8080$route" | tr -d '\r' | sed -E 's#^(location:) https?://[^/]+(/login)$#\1 \2#I')"
             if [[ "$response" != "307" ]] || ! grep -Eiq '^location: /login?$' <<< "$headers"; then
               echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
               echo "$headers" >&2

@@ -1,4 +1,14 @@
 services:
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+      - api
+
   web:
     build:
       context: ..
@@ -6,8 +16,6 @@ services:
     environment:
       NODE_ENV: test
       ALSVID_API_BASE_URL: http://api:4000/api
-    ports:
-      - "3001:3000"
     depends_on:
       - api
 
@@ -19,8 +27,6 @@ services:
       NODE_ENV: test
       DATABASE_URL: postgresql://alsvid_test:alsvid_test@postgres:5432/alsvid_test
       OBJECT_STORAGE_PROVIDER: unconfigured
-    ports:
-      - "4001:4000"
     depends_on:
       postgres:
         condition: service_healthy

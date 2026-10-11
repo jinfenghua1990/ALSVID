@@ -40,6 +40,10 @@ GitHub is the software source of truth.
 8. Run explicit migrations through the approved deployment path.
 9. Verify Web/API/Worker health and key business flows.
 
+After the first accepted Production environment, merging a reviewed commit into `main` starts the same release workflow automatically through GitHub Actions. The workflow is also available through `Run workflow` when an operator needs to release a specific merged commit or roll back to a previous compatible commit.
+
+Application rollback is performed by entering the previous known-good `main` commit SHA as `release_sha` in `ALSVID Production Deploy`. This rebuilds and deploys the same Web/API/Worker source version. It does not restore or downgrade the live database; schema rollback requires a separate reviewed recovery or forward-fix plan.
+
 ## Customer-visible external data freshness
 
 ALSVID does not require permanent real-time synchronization from Shopify/WMS at the current stage.
