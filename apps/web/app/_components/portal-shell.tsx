@@ -62,10 +62,16 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
           <div className={styles.sidebarLabel}>{config.subtitle}</div>
           <nav>
             {config.links.map((item) => (
-              <Link className={styles.navLink} href={item.href} key={item.href}>
-                <span>{item.label}</span>
-                {item.status ? <small>{item.status}</small> : null}
-              </Link>
+              item.status === '待开发' ? (
+                <span className={styles.navLink} aria-disabled="true" key={item.href}>
+                  <span>{item.label}</span><small>{item.status}</small>
+                </span>
+              ) : (
+                <Link className={styles.navLink} href={item.href} key={item.href}>
+                  <span>{item.label}</span>
+                  {item.status ? <small>{item.status}</small> : null}
+                </Link>
+              )
             ))}
           </nav>
           {kind !== 'admin' ? <p className={styles.scopeNote}>页面仅为体验骨架。登录身份、组织/车主关系和服务端数据权限接入后，才会显示真实业务记录。</p> : null}
