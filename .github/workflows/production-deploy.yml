@@ -214,7 +214,7 @@ jobs:
             --min 0 \
             --max 3 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,ALSVID_API_BASE_URL=$API_URL" \
+            --set-env-vars "NODE_ENV=production,ALSVID_API_BASE_URL=${API_URL}/api" \
             --quiet
 
       - name: Verify Web and record deployed release
@@ -228,7 +228,7 @@ jobs:
           curl --fail --silent --show-error --retry 6 --retry-delay 5 "$web_url" >/dev/null
           {
             echo "### ALSVID production deployment"
-            echo "- Release: \`$RELEASE_SHA\`"
+            echo "- Release: `$RELEASE_SHA`"
             echo "- Web: $web_url"
             echo "- API: ${{ steps.api.outputs.url }}"
             echo "- Worker pool: $WORKER_POOL"
