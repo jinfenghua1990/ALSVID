@@ -4,6 +4,11 @@ import { useState, type MouseEvent, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../portal-launcher/portal-launcher.module.css';
 
+interface LoginResponse {
+  data?: { roles?: string[] };
+  message?: string;
+}
+
 // Wraps the portal launcher content. When signed out, portal navigation is
 // intercepted and the login dialog opens instead; signing in via the dialog
 // refreshes the server components so the authenticated view appears in place.
@@ -22,21 +27,37 @@ export function PortalLoginGate({ authenticated, children }: { authenticated: bo
     event.preventDefault();
     setBusy(true);
     setError('');
-    const form = new FormData(event.currentTarget);
-    const response = await fetch('/api/session/login', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
-    });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      setError(payload?.message ?? '登录失败，请检查用户名和密码');
+
+    try {
+      const form = new FormData(event.currentTarget);
+      const response = await fetch('/api/session/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
+      });
+      const payload = await response.json().catch(() => null) as LoginResponse | null;
+
+      if (!response.ok) {
+        setError(payload?.message ?? '登录失败，请检查用户名和密码');
+        setBusy(false);
+        return;
+      }
+
+      if (!Array.isArray(payload?.data?.roles) || !payload.data.roles.includes('system_admin')) {
+        setError('账号验证成功，但没有 ALSVID 内部管理权限。请联系管理员分配 system_admin 角色。');
+        setBusy(false);
+        return;
+      }
+
+      // Do not close the dialog optimistically. Keep it visible until the
+      // refreshed server view confirms the session cookie and renders the
+      // authenticated launcher. This avoids the old "flash out" failure mode.
+      router.refresh();
       setBusy(false);
-      return;
+    } catch {
+      setError('无法连接登录服务，请稍后重试。');
+      setBusy(false);
     }
-    setBusy(false);
-    setOpen(false);
-    router.refresh();
   }
 
   function handleClickCapture(event: MouseEvent) {
