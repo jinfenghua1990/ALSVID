@@ -1,6 +1,8 @@
 import { AppShell } from '@alsvid/ui';
 import { navigationFor } from '../../app-navigation';
 
+export const dynamic = 'force-dynamic';
+
 function configured(value: string | undefined) {
   return Boolean(value && value.trim().length > 0);
 }
