@@ -13,7 +13,7 @@ export const appNavigation: readonly AppNavItem[] = [
 
   { label: '经销商', href: '/dealers', section: '商业' },
   { label: '合作伙伴', href: '/partners', section: '商业' },
-  { label: '商城 / Shopify', href: '/commerce', section: '商业' },
+  { label: '电商渠道', href: '/commerce', section: '商业' },
   { label: '业务员代下单', href: '#', section: '商业', status: '预留', disabled: true },
   { label: '财务', href: '/finance', section: '商业' },
 
