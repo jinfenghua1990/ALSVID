@@ -74,7 +74,7 @@ The bootstrap is idempotent and creates/configures:
 - Artifact Registry Docker repository
 - dedicated GitHub deploy service account
 - dedicated Cloud Run runtime service account
-- GitHub OIDC Workload Identity Pool/provider restricted to `jinfenghua1990/ALSVID-Next`
+- GitHub OIDC Workload Identity Pool/provider restricted to `jinfenghua1990/ALSVID`
 - least-purpose deployment/runtime IAM bindings
 - Secret Manager resource shells for Neon `DATABASE_URL` and R2 credentials
 

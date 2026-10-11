@@ -72,7 +72,7 @@ Optional names have safe defaults and may be overridden:
 
 ```bash
 export GAR_REPOSITORY='alsvid'
-export GITHUB_REPOSITORY='jinfenghua1990/ALSVID-Next'
+export GITHUB_REPOSITORY='jinfenghua1990/ALSVID'
 export WIF_POOL_ID='github'
 export WIF_PROVIDER_ID='alsvid-next'
 export DEPLOY_SERVICE_ACCOUNT_ID='alsvid-github-deploy'

@@ -26,7 +26,7 @@ require_env GCP_PROJECT_ID
 require_env GCP_REGION
 
 GAR_REPOSITORY="${GAR_REPOSITORY:-alsvid}"
-GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-jinfenghua1990/ALSVID-Next}"
+GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-jinfenghua1990/ALSVID}"
 WIF_POOL_ID="${WIF_POOL_ID:-github}"
 WIF_PROVIDER_ID="${WIF_PROVIDER_ID:-alsvid-next}"
 DEPLOY_SERVICE_ACCOUNT_ID="${DEPLOY_SERVICE_ACCOUNT_ID:-alsvid-github-deploy}"
@@ -111,6 +111,13 @@ if ! gcloud iam workload-identity-pools providers describe "$WIF_PROVIDER_ID" \
     --attribute-mapping "google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
     --attribute-condition "assertion.repository=='${GITHUB_REPOSITORY}'" \
     --quiet
+else
+  gcloud iam workload-identity-pools providers update-oidc "$WIF_PROVIDER_ID" \
+    --project "$GCP_PROJECT_ID" \
+    --location global \
+    --workload-identity-pool "$WIF_POOL_ID" \
+    --attribute-condition "assertion.repository=='${GITHUB_REPOSITORY}'" \
+    --quiet >/dev/null
 fi
 
 project_number="$(gcloud projects describe "$GCP_PROJECT_ID" --format='value(projectNumber)')"
@@ -119,6 +126,12 @@ principal_set="principalSet://iam.googleapis.com/projects/${project_number}/loca
 gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SERVICE_ACCOUNT" \
   --project "$GCP_PROJECT_ID" \
   --role roles/iam.workloadIdentityUser \
+  --member "$principal_set" \
+  --quiet >/dev/null
+
+gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SERVICE_ACCOUNT" \
+  --project "$GCP_PROJECT_ID" \
+  --role roles/iam.serviceAccountTokenCreator \
   --member "$principal_set" \
   --quiet >/dev/null
 
