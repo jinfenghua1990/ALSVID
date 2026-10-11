@@ -14,33 +14,38 @@ export default async function PortalLauncherPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link className={styles.wordmark} href="/">ALSVID</Link>
-        <span className={styles.environment}><i /> {isProduction ? '正式环境 · 内部预览' : '开发 / 测试环境'}</span>
+        <Link className={styles.wordmark} href="/">△ ALSVID</Link>
+        <div className={styles.headerRight}>
+          <span className={styles.environment}><i /> {isProduction ? 'PRODUCTION' : 'TEST ENVIRONMENT'}⌄</span>
+          <span className={styles.user}><b>◯</b><span>{session.displayName || 'ALSVID User'}<small>{session.email}</small></span></span>
+          <Link className={styles.logout} href="/api/session/logout">↪ 退出</Link>
+        </div>
       </header>
       <section className={styles.intro}>
-        <p className={styles.kicker}>ALSVID 数字工作台 / PORTAL</p>
-        <h1>一个入口，连接你的工作<span>。</span></h1>
-        <p className={styles.lead}>产品、运营与车辆服务，从这里开始。选择工作入口，进入对应的业务空间。</p>
+        <p className={styles.kicker}>ALSVID</p>
+        <h1>ALSVID <small>INTERNAL PORTAL</small></h1>
+        <p className={styles.lead}>ONE BRAND · THREE WORLDS · A CONNECTED FUTURE</p>
       </section>
-      <div className={styles.welcome}>你好，{session.displayName || session.email}<span>请选择工作空间</span></div>
       <section className={styles.cards} aria-label="选择门户">
         {portals.map((portal) => (
           <Link className={styles.card} href={portal.href} key={portal.href}>
             <div className={styles.cardTop}><span>{portal.tag}</span><span className={styles.mark}>{portal.mark}</span></div>
             <div className={styles.cardBody}>
               <div className={styles.english}>{portal.english}</div>
-              <h2>{portal.title}<span aria-hidden="true"> ↗</span></h2>
+              <h2>{portal.title}<span aria-hidden="true">↗</span></h2>
               <p>{portal.description}</p>
             </div>
-            <div className={styles.cardFoot}><span>{portal.audience}</span><span className={styles.enter}>进入工作空间 →</span></div>
+            <div className={styles.cardFoot}><span>{portal.audience}</span><span className={styles.enter}>→</span></div>
           </Link>
         ))}
       </section>
-      <aside className={styles.notice}>
-        <strong>预览说明</strong>
-        <span>当前页面用于内部开发与验收，内部管理中心连接现有工作台。经销商与车主门户为内部预览，真实成员授权与业务数据仍待接入。</span>
+      <aside className={styles.statusBar}>
+        <span>◉ <b>System Status</b><strong>All Systems Operational</strong></span>
+        <span>▱ <b>Environment</b><strong>{isProduction ? 'PRODUCTION' : 'TEST'}</strong></span>
+        <span>◇ <b>Version</b><strong>v0.1.0</strong></span>
+        <span>◷ <b>Last Updated</b><strong>Just now</strong></span>
       </aside>
-      <footer className={styles.footer}><span>ALSVID · 自行车全生命周期平台</span><Link href="/">返回现有管理概览</Link></footer>
+      <footer className={styles.footer}><span>ALSVID &nbsp;|&nbsp; RIDE FURTHER · LIVE WIDER</span><Link href="/">返回管理概览</Link></footer>
     </main>
   );
 }
