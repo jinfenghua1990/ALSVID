@@ -18,6 +18,12 @@ export class Database implements DatabasePort {
   constructor(connectionString = process.env.DATABASE_URL) {
     if (!connectionString) throw new Error('DATABASE_URL is required');
     this.pool = new Pool({ connectionString });
+    // Serverless providers such as Neon drop idle connections; pg surfaces
+    // these as 'error' events which terminate the process when unhandled.
+    // Log them and let pg replace the connection on the next checkout.
+    this.pool.on('error', (error) => {
+      console.error(`[${new Date().toISOString()}] database idle-client error:`, error instanceof Error ? error.message : error);
+    });
   }
 
   query<R extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = []): Promise<QueryResult<R>> {
@@ -26,13 +32,18 @@ export class Database implements DatabasePort {
 
   async transaction<T>(work: (executor: QueryExecutor) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
+    client.on('error', () => {});
     try {
       await client.query('BEGIN');
       const result = await work(client);
       await client.query('COMMIT');
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        // The connection is already gone; the original error is more useful.
+      }
       throw error;
     } finally {
       client.release();
