@@ -317,9 +317,9 @@ Issue #34 stays open until those live acceptance steps have evidence.
 
 ## 14. Latest operational acceptance record
 
-On 2026-10-11 the Development R2 bucket passed a real temporary-object acceptance: put,
-metadata head, signed read with HTTP 200, SHA-256 verification, delete, and post-delete
-absence. The temporary object was removed.
+On 2026-10-11 the Development and Production R2 buckets passed real temporary-object
+acceptance: put, metadata head, signed read with HTTP 200, SHA-256 verification, delete, and
+post-delete absence. Both temporary objects were removed.
 
 The production Neon restore drill remains pending. The host PostgreSQL 16 client was rejected
 by the PostgreSQL 18.6 server, and a retry was stopped before any database mutation after
