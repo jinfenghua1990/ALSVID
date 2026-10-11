@@ -22,25 +22,27 @@ export interface AppShellClassNames {
 function NavigationItems({ navigation, activeClassName }: { navigation: readonly AppNavItem[]; activeClassName: string | undefined }) {
   return (
     <>
-      {navigation.map((item, index) => {
-        const previousSection = index > 0 ? navigation[index - 1]?.section : undefined;
-        const showSection = item.section && item.section !== previousSection;
-        const content = (
-          <>
-            <span className="navLabel">{item.label}</span>
-            {item.status ? <span className="navStatus">{item.status}</span> : null}
-          </>
-        );
-
+      {Array.from(new Set(navigation.map((item) => item.section ?? '导航'))).map((section) => {
+        const items = navigation.filter((item) => (item.section ?? '导航') === section);
         return (
-          <div className="navEntry" key={`${item.href}-${item.label}`}>
-            {showSection ? <div className="navSection">{item.section}</div> : null}
-            {item.disabled ? (
-              <span className="navItem navItemDisabled" aria-disabled="true">{content}</span>
-            ) : (
-              <a className={`navItem${item.active ? ` ${activeClassName ?? 'active'}` : ''}`} href={item.href}>{content}</a>
-            )}
-          </div>
+          <details className="navGroup" key={section} open={items.some((item) => item.active) || section === '总览'}>
+            <summary className="navSection">{section}<span aria-hidden="true">⌄</span></summary>
+            {items.map((item) => (
+              <div className="navEntry" key={`${item.href}-${item.label}`}>
+                {item.disabled ? (
+                  <span className="navItem navItemDisabled" aria-disabled="true">
+                    <span className="navLabel">{item.label}</span>
+                    {item.status ? <span className="navStatus">{item.status}</span> : null}
+                  </span>
+                ) : (
+                  <a className={`navItem${item.active ? ` ${activeClassName ?? 'active'}` : ''}`} href={item.href} aria-current={item.active ? 'page' : undefined}>
+                    <span className="navLabel">{item.label}</span>
+                    {item.status ? <span className="navStatus">{item.status}</span> : null}
+                  </a>
+                )}
+              </div>
+            ))}
+          </details>
         );
       })}
     </>
@@ -76,7 +78,13 @@ export function AppShell({
         </nav>
         <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
       </aside>
-      <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
+      <div className="adminBody">
+        <header className="adminTopbar">
+          <span>内部管理 <span aria-hidden="true">/</span> <strong>{navigation.find((item) => item.active)?.label ?? '工作台'}</strong></span>
+          <a href="/portal-launcher">切换工作入口 ↗</a>
+        </header>
+        <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
+      </div>
     </main>
   );
 }
