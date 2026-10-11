@@ -5,7 +5,7 @@ services:
       dockerfile: infra/docker/Dockerfile.web
     environment:
       NODE_ENV: test
-      ALSVID_API_BASE_URL: http://api:4000
+      ALSVID_API_BASE_URL: http://api:4000/api
     ports:
       - "3001:3000"
     depends_on:

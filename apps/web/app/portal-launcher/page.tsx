@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import styles from './portal-launcher.module.css';
 
 const portals = [
@@ -7,7 +8,8 @@ const portals = [
   { title: 'My ALSVID', audience: '已验证车主 / 客户', description: '以我的车库为中心，查看车辆档案、保修、说明书、维修记录与适配配件。', href: '/my', tag: '车主服务', mark: '03' },
 ] as const;
 
-export default function PortalLauncherPage() {
+export default async function PortalLauncherPage() {
+  await requireInternalPreviewSession();
   return (
     <main className={styles.page}>
       <header className={styles.header}>

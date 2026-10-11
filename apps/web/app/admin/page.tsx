@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
 import styles from './portal-page.module.css';
 
@@ -11,7 +12,8 @@ const adminModules = [
   { name: '环境与基础设施', detail: 'Test / Production 安全状态与配置情况', status: '已可用', href: '/settings/environment' },
 ] as const;
 
-export default function AdminPortalPage() {
+export default async function AdminPortalPage() {
+  await requireInternalPreviewSession();
   return (
     <PortalShell kind="admin">
       <header className={styles.heading}>

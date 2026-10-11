@@ -1,12 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const reason = new URLSearchParams(window.location.search).get('reason');
+    if (reason === 'portal-access-denied') {
+      setError('此账号没有 ALSVID 内部预览权限，请联系管理员分配 system_admin 角色。');
+    } else if (reason === 'session-expired') {
+      setError('登录状态已失效，请重新登录。');
+    }
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
