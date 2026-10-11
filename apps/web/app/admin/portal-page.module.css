@@ -13,3 +13,9 @@
 .callout { margin-top: 13px; padding: 14px 15px; display: flex; gap: 12px; border: 1px solid #deded8; border-radius: 9px; background: rgba(255,255,255,.55); color: #777870; font-size: 10px; line-height: 1.6; }
 .callout strong { flex: none; color: #383a34; }
 @media (max-width: 640px) { .heading { display: block; } .badge { display: inline-block; margin-top: 17px; } .moduleGrid { grid-template-columns: 1fr; } .callout { display: grid; gap: 4px; } }
+
+.eyebrow, .badge, .moduleStatus { font-size: 12px; }
+.moduleCard { padding: 24px; min-height: 180px; }
+.moduleCard h2 { font-size: 21px; }
+.moduleCard p, .heading p:last-child, .callout { font-size: 14px; }
+.moduleCard:focus-visible { outline: 2px solid #385b55; outline-offset: 3px; }
