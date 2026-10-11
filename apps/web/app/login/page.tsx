@@ -24,7 +24,7 @@ export default function LoginPage() {
       setBusy(false);
       return;
     }
-    router.push('/');
+    router.push('/portal-launcher');
     router.refresh();
   }
 
