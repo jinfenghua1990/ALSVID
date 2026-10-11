@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-compose=(docker compose -f infra/docker-compose.test.yml)
+compose=(docker compose)
+if [[ -f infra/.env.test.local ]]; then
+  compose+=(--env-file infra/.env.test.local)
+fi
+compose+=(-f infra/docker-compose.test.yml)
 
 echo "== Docker versions =="
 docker --version
 docker compose version
 
-echo "== Build ALSVID Test images =="
+echo "== Build ALSVID Development/Test images =="
 "${compose[@]}" build
 
 echo "== Start PostgreSQL =="
@@ -16,8 +20,8 @@ echo "== Start PostgreSQL =="
 echo "== Apply migrations =="
 "${compose[@]}" run --rm api pnpm db:migrate
 
-echo "== Start Web, API and Worker =="
-"${compose[@]}" up -d web api worker
+echo "== Start Gateway, Web, API and Worker =="
+"${compose[@]}" up -d gateway web api worker
 
 wait_for_url() {
   local name="$1"
@@ -34,16 +38,15 @@ wait_for_url() {
   return 1
 }
 
-wait_for_url "API" "http://127.0.0.1:4001/api/health"
-wait_for_url "Web" "http://127.0.0.1:3001/"
+wait_for_url "Gateway API" "http://127.0.0.1:8080/api/health"
+wait_for_url "Gateway Web" "http://127.0.0.1:8080/"
 
 echo "== Container state =="
 "${compose[@]}" ps
 
 echo
-echo "ALSVID core Test acceptance passed."
-echo "Web: http://127.0.0.1:3001/"
-echo "API health: http://127.0.0.1:4001/api/health"
-echo "Object-storage provider acceptance is tracked separately in Issue #35."
+echo "ALSVID Development/Test acceptance passed."
+echo "Gateway: http://127.0.0.1:8080/"
+echo "Gateway API health: http://127.0.0.1:8080/api/health"
 echo
 echo "To stop Test: docker compose -f infra/docker-compose.test.yml down"
