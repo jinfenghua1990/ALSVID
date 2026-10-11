@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { requireInternalPreviewSession } from '../_lib/portal-access';
-import { PortalShell } from '../_components/portal-shell';
+import { AppShell } from '@alsvid/ui';
+import { navigationFor } from '../app-navigation';
 import styles from './portal-page.module.css';
 
 const adminModules = [
@@ -9,15 +10,15 @@ const adminModules = [
   { name: '商业工作台', detail: '经销商、合作伙伴、电商渠道与财务', status: '已可用', href: '/commerce' },
   { name: '车辆中心', detail: 'Vehicle 360、交付、所有权与售后', status: '基础 / 持续建设', href: '/production' },
   { name: '员工中心', detail: '员工主数据与后续账号开通接口', status: '骨架', href: '/people/employees' },
-  { name: '环境与基础设施', detail: 'Test / Production 安全状态与配置情况', status: '已可用', href: '/settings/environment' },
+  { name: '环境与基础设施', detail: '开发 / 正式环境配置可见性', status: '已可用', href: '/settings/environment' },
 ] as const;
 
 export default async function AdminPortalPage() {
   await requireInternalPreviewSession();
   return (
-    <PortalShell kind="admin">
+    <AppShell navigation={navigationFor('/admin')} footer="ALSVID · 内部管理">
       <header className={styles.heading}>
-        <div><p className={styles.eyebrow}>ALSVID / INTERNAL ADMIN</p><h1>Admin Center</h1><p>内部运营入口。现有管理页面保持原路由与功能，本页提供统一入口和实施状态。</p></div>
+        <div><p className={styles.eyebrow}>ALSVID / 内部管理</p><h1>内部管理中心</h1><p>选择业务模块，进入产品、运营与车辆服务工作台。</p></div>
         <span className={styles.badge}>内部预览</span>
       </header>
       <section className={styles.moduleGrid} aria-label="管理模块">
@@ -30,6 +31,6 @@ export default async function AdminPortalPage() {
         ))}
       </section>
       <div className={styles.callout}><strong>模块状态透明</strong><span>尚未接入的能力会标为“预览 / 待开发”。当前模块卡片只链接到仓库中已有的工作台，不伪造数据或操作。</span></div>
-    </PortalShell>
+    </AppShell>
   );
 }
