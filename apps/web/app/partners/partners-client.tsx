@@ -1,5 +1,8 @@
 'use client';
 
+import { AppShell } from '@alsvid/ui';
+import { navigationFor } from '../app-navigation';
+
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -103,13 +106,9 @@ export default function PartnersClient() {
   }
 
   return (
-    <main className="partnerShell">
-      <aside className="rail">
-        <a className="brand" href="/">ALSVID</a>
-        <nav><a href="/">Overview</a><a className="active" href="/partners">Partners</a></nav>
-        <div className="railFoot">Identity · Audit · Partner V1</div>
-      </aside>
-      <section className="workspace partnerWorkspace">
+    <AppShell navigation={navigationFor('/partners')} footer="ALSVID · 内部管理">
+      
+      <section className="partnerWorkspace">
         <header className="partnerHeader">
           <div><div className="eyebrow">PARTNER MASTER</div><h1 className="sectionTitle">One identity. Many roles.</h1><p className="sectionLead">Suppliers, factories, dealers, customers and service partners share one durable business identity.</p></div>
           <button className="primaryButton" onClick={() => setCreateOpen(true)}>New Partner</button>
@@ -153,6 +152,6 @@ export default function PartnersClient() {
         <fieldset><legend>Business roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset>
         <button className="primaryButton">Create Partner</button>
       </form></div> : null}
-    </main>
+    </AppShell>
   );
 }

@@ -1,5 +1,8 @@
 'use client';
 
+import { AppShell } from '@alsvid/ui';
+import { navigationFor } from '../app-navigation';
+
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './supply.module.css';
@@ -110,14 +113,10 @@ export default function SupplyClient() {
   }
 
   return (
-    <main className={styles.shell}>
-      <aside className={styles.rail}>
-        <a className={styles.brand} href="/">ALSVID</a>
-        <nav><a href="/">Overview</a><a href="/product">Product</a><a className={styles.active} href="/supply">Supply</a><a href="/partners">Partners</a></nav>
-        <div className={styles.foot}>Procurement V1</div>
-      </aside>
+    <AppShell navigation={navigationFor('/supply')} footer="ALSVID · 内部管理">
+      
 
-      <section className={styles.workspace}>
+      <section>
         <header className={styles.header}>
           <div><div className={styles.eyebrow}>SUPPLY · PROCUREMENT</div><h1>Turn supplier promises into controlled facts.</h1><p>Quotation, PO, supplier confirmation and receipt/commitment are explicit. Procurement never edits inventory balances or executes payments.</p></div>
         </header>
@@ -175,6 +174,6 @@ export default function SupplyClient() {
           <div className={styles.history}><span>IMMUTABLE STATE HISTORY</span>{data.snapshots.filter((snapshot) => snapshot.purchase_order_id === selected.id).map((snapshot) => <div key={snapshot.id}><b>{snapshot.state}</b><small>v{snapshot.po_version} · {new Date(snapshot.created_at).toLocaleString()}</small></div>)}</div>
         </section> : null}
       </section>
-    </main>
+    </AppShell>
   );
 }

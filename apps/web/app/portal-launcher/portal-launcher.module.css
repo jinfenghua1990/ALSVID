@@ -26,3 +26,23 @@
 .footer a { color: #5b5c56; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 850px) { .cards { grid-template-columns: 1fr; } .card { min-height: 230px; } }
 @media (max-width: 560px) { .page { padding: 0 18px; } .intro { padding: 44px 0 26px; } .notice { display: grid; gap: 4px; } .footer { align-items: flex-start; gap: 12px; flex-direction: column; } }
+
+.page { max-width: 1600px; margin: 0 auto; }
+.wordmark { font-size: 18px; }
+.environment { font-size: 12px; }
+.kicker { font-size: 12px; letter-spacing: .08em; }
+.intro h1 { max-width: 1000px; font-size: clamp(34px, 4.5vw, 60px); line-height: 1.2; letter-spacing: -.035em; }
+.welcome { margin: 0 0 18px; display: flex; justify-content: space-between; gap: 16px; font-size: 14px; color: #45473f; }
+.welcome span { color: #777870; }
+.cards { gap: 20px; }
+.card { min-height: 320px; padding: 28px; border-radius: 16px; }
+.card:focus-visible { outline: 2px solid #385b55; outline-offset: 4px; }
+.cardTop, .cardFoot { font-size: 12px; }
+.cardBody p { font-size: 14px; }
+.english { margin-bottom: 10px; color: #777870; font-size: 12px; letter-spacing: .04em; }
+.card:nth-child(2) { background: #edf3ef; border-color: #d5e2d9; }
+.card:nth-child(3) { background: #edf2f7; border-color: #d6e1ed; }
+.notice { font-size: 13px; padding: 16px 18px; }
+.footer { font-size: 12px; }
+@media (max-width: 560px) { .welcome { flex-direction: column; gap: 6px; } .card { min-height: 260px; padding: 22px; } }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }

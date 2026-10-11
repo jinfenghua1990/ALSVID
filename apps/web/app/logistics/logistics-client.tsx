@@ -1,5 +1,8 @@
 'use client';
 
+import { AppShell } from '@alsvid/ui';
+import { navigationFor } from '../app-navigation';
+
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './logistics.module.css';
@@ -85,9 +88,9 @@ export default function LogisticsClient(){
   function itemLabel(row:Balance){return row.sku??row.frame_number??'Unknown';}
   function cargoLabel(row:Cargo){return row.sku??row.frame_number??'Unknown';}
 
-  return <main className={styles.shell}>
-    <aside className={styles.rail}><a className={styles.brand} href="/">ALSVID</a><nav><a href="/">Overview</a><a href="/product">Product</a><a href="/supply">Procurement</a><a href="/production">Production</a><a href="/inventory">Inventory</a><a className={styles.active} href="/logistics">Logistics</a><a href="/partners">Partners</a></nav><div className={styles.foot}>China → Europe · Route-aware execution</div></aside>
-    <section className={styles.workspace}>
+  return <AppShell navigation={navigationFor('/logistics')} footer="ALSVID · 内部管理">
+    
+    <section>
       <header className={styles.header}><div><div className={styles.eyebrow}>EXPORT LOGISTICS</div><h1>One shipment model. Two real routes.</h1><p>China factory → Germany warehouse and China factory → dealer direct share the same execution backbone, while inventory, customs and delivery facts stay explicit and route-correct.</p></div></header>
       {message?<div className={styles.notice}>{message}</div>:null}
       <div className={styles.metrics}><div><span>DRAFT</span><b>{metric.draft}</b></div><div><span>IN EXECUTION</span><b>{metric.active}</b></div><div><span>DELIVERED</span><b>{metric.delivered}</b></div><div><span>HOLD EVENTS</span><b>{metric.holds}</b></div></div>
@@ -129,5 +132,5 @@ export default function LogisticsClient(){
         {selectedDeclaration?<><div className={styles.customsActions}><b>{selectedDeclaration.direction} · {selectedDeclaration.status}</b><button onClick={()=>void action(`/v1/logistics/customs/${selectedDeclaration.id}/events`,{eventType:'DECLARED'})} disabled={selectedDeclaration.status!=='DRAFT'}>Declare</button><button onClick={()=>void action(`/v1/logistics/customs/${selectedDeclaration.id}/events`,{eventType:'HELD'})}>Hold</button><button onClick={()=>void action(`/v1/logistics/customs/${selectedDeclaration.id}/events`,{eventType:'RELEASED_FROM_HOLD'})}>Release hold</button><button onClick={()=>void action(`/v1/logistics/customs/${selectedDeclaration.id}/events`,{eventType:'CLEARED'})}>Clear</button></div><div className={styles.customsFacts}>{customsLines.map(line=><div key={line.id}><b>{line.sku??line.frame_number}</b><span>HS {line.hs_code} · CN {line.cn_code??'—'} · TARIC {line.taric_code??'—'}</span><small>Value {line.declared_value} · Duty {line.duty_amount??'—'} · VAT {line.import_vat_amount??'—'} · AD {line.anti_dumping_amount??'—'} · CVD {line.countervailing_amount??'—'} · Fees {line.operational_fees_amount??'—'}</small></div>)}</div><div className={styles.customsTimeline}>{customsEvents.map(item=><div key={item.id}><time>{new Date(item.occurred_at).toLocaleString()}</time><b>{item.event_type}</b><span>{item.reference??''}</span></div>)}</div></>:null}
       </section></>:null}
     </section>
-  </main>;
+  </AppShell>;
 }

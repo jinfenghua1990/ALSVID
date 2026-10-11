@@ -1,5 +1,8 @@
 'use client';
 
+import { AppShell } from '@alsvid/ui';
+import { navigationFor } from '../app-navigation';
+
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './production.module.css';
@@ -52,9 +55,9 @@ export default function ProductionClient(){
   async function action(endpoint:string,body:unknown={}){try{await api(endpoint,{method:'POST',body:JSON.stringify(body)});setMessage('Updated.');await reload();}catch(error){setMessage(error instanceof Error?error.message:'Unable to update');}}
   async function submit(event:FormEvent<HTMLFormElement>,endpoint:string,build:(form:FormData)=>unknown){event.preventDefault();const form=new FormData(event.currentTarget);try{await api(endpoint,{method:'POST',body:JSON.stringify(build(form))});setMessage('Saved.');await reload();}catch(error){setMessage(error instanceof Error?error.message:'Unable to save');}}
 
-  return <main className={styles.shell}>
-    <aside className={styles.rail}><a className={styles.brand} href="/">ALSVID</a><nav><a href="/">Overview</a><a href="/product">Product</a><a href="/supply">Procurement</a><a className={styles.active} href="/production">Production</a><a href="/partners">Partners</a></nav><div className={styles.foot}>Production · QC · Vehicle Birth</div></aside>
-    <section className={styles.workspace}>
+  return <AppShell navigation={navigationFor('/production')} footer="ALSVID · 内部管理">
+    
+    <section>
       <header className={styles.header}><div><div className={styles.eyebrow}>FACTORY EXECUTION</div><h1>Build a physical bicycle from released truth.</h1><p>Every unit inherits an immutable Build Specification baseline. QC evidence gates Vehicle birth; a frame number is never just another editable product field.</p></div></header>
       {message?<div className={styles.notice}>{message}</div>:null}
       <div className={styles.metrics}>{metrics.map(([status,count])=><div key={status}><span>{status.replaceAll('_',' ')}</span><b>{count}</b></div>)}</div>
@@ -78,5 +81,5 @@ export default function ProductionClient(){
 
       <section className={styles.vehicles}><div className={styles.sectionHead}><span>VEHICLE REGISTRY</span><h2>Physical identity born from production</h2></div><div className={styles.vehicleGrid}>{vehicles.map(vehicle=><article key={vehicle.id}><span>{vehicle.vehicle_code}</span><b>{vehicle.frame_number}</b><p>{vehicle.sku} · {vehicle.build_spec_code}</p><small>{vehicle.production_order_number} / Unit {vehicle.unit_no} · {vehicle.factory_name}</small></article>)}{!vehicles.length?<p className={styles.empty}>No Vehicles have been born yet.</p>:null}</div></section>
     </section>
-  </main>;
+  </AppShell>;
 }
