@@ -6,6 +6,7 @@
   "engines": { "node": ">=22.18.0" },
   "scripts": {
     "dev": "pnpm --parallel --filter @alsvid/web --filter @alsvid/api --filter @alsvid/worker dev",
+    "dev:lan": "bash scripts/dev-lan.sh",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
