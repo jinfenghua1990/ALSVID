@@ -16,7 +16,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   result.cookies.set('alsvid_session', payload.data.token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    // NODE_ENV is inlined at build time as 'production'; use a runtime flag so
+    // Development/Test over plain HTTP (e.g. LAN IP) can still store the cookie.
+    secure: process.env.ALSVID_COOKIE_SECURE !== 'false',
     path: '/',
     expires: new Date(payload.data.expiresAt),
   });
