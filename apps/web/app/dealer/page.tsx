@@ -1,3 +1,4 @@
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
 import styles from '../admin/portal-page.module.css';
 
@@ -8,7 +9,8 @@ const sections = [
   ['售后与保修', '经销商范围内的服务申请、保修与配件信息', '待开发'],
 ] as const;
 
-export default function DealerPortalPage() {
+export default async function DealerPortalPage() {
+  await requireInternalPreviewSession();
   return (
     <PortalShell kind="dealer">
       <header className={styles.heading}>
