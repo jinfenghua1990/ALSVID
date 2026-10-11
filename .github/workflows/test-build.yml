@@ -69,6 +69,13 @@ jobs:
             sleep 2
           done
 
+          for route in /portal-launcher /admin /dealer /my; do
+            if ! curl --fail --silent "http://127.0.0.1:3001$route" >/dev/null; then
+              echo "Web portal route failed smoke check: $route" >&2
+              exit 1
+            fi
+          done
+
       - name: Show Test container state
         if: always()
         run: docker compose -f infra/docker-compose.test.yml ps
