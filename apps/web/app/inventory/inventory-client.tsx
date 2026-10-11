@@ -1,5 +1,8 @@
 'use client';
 
+import { AppShell } from '@alsvid/ui';
+import { navigationFor } from '../app-navigation';
+
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './inventory.module.css';
@@ -68,9 +71,9 @@ export default function InventoryClient(){
   async function action(path:string,body:unknown={}){try{await api(path,{method:'POST',body:JSON.stringify(body)});setMessage('Updated.');await reload();}catch(error){setMessage(error instanceof Error?error.message:'Unable to update');}}
   async function submit(event:FormEvent<HTMLFormElement>,path:string,build:(form:FormData)=>unknown){event.preventDefault();const formElement=event.currentTarget;const form=new FormData(formElement);try{await api(path,{method:'POST',body:JSON.stringify(build(form))});setMessage('Saved.');formElement.reset();await reload();}catch(error){setMessage(error instanceof Error?error.message:'Unable to save');}}
 
-  return <main className={styles.shell}>
-    <aside className={styles.rail}><a className={styles.brand} href="/">ALSVID</a><nav><a href="/">Overview</a><a href="/product">Product</a><a href="/supply">Procurement</a><a href="/production">Production</a><a className={styles.active} href="/inventory">Inventory</a><a href="/partners">Partners</a></nav><div className={styles.foot}>Movement ledger · Warehouse ops</div></aside>
-    <section className={styles.workspace}>
+  return <AppShell navigation={navigationFor('/inventory')} footer="ALSVID · 内部管理">
+    
+    <section>
       <header className={styles.header}><div><div className={styles.eyebrow}>INVENTORY CONTROL</div><h1>Stock is a history, not an editable number.</h1><p>Every receipt, transfer, issue, adjustment and stocktake correction is append-only. On-hand and available stock are always derived from the ledger plus active reservations.</p></div></header>
       {message?<div className={styles.notice}>{message}</div>:null}
       <div className={styles.metrics}><div><span>WAREHOUSES</span><b>{metrics.warehouses}</b></div><div><span>LOCATIONS</span><b>{metrics.locations}</b></div><div><span>STOCK POSITIONS</span><b>{metrics.stockPositions}</b></div><div><span>ACTIVE RESERVATIONS</span><b>{metrics.activeReservations}</b></div><div><span>OPEN STOCKTAKES</span><b>{metrics.openStocktakes}</b></div></div>
@@ -106,5 +109,5 @@ export default function InventoryClient(){
 
       <section className={styles.panel}><div className={styles.sectionHead}><span>MOVEMENT HISTORY</span><h2>Immutable stock timeline</h2></div><div className={styles.tableWrap}><table><thead><tr><th>Movement</th><th>Item</th><th>Type</th><th>Route</th><th>Quantity</th><th>Time</th></tr></thead><tbody>{inventory.movements.map(row=><tr key={row.id}><td>{row.movement_number}</td><td><b>{movementLabel(row)}</b></td><td>{row.movement_type}</td><td>{row.source_warehouse_code?`${row.source_warehouse_code}/${row.source_location_code}`:'External'} → {row.destination_warehouse_code?`${row.destination_warehouse_code}/${row.destination_location_code}`:'External'}</td><td>{row.quantity} {row.unit}</td><td>{new Date(row.occurred_at).toLocaleString()}</td></tr>)}</tbody></table>{!inventory.movements.length?<p className={styles.empty}>No inventory movements yet.</p>:null}</div></section>
     </section>
-  </main>;
+  </AppShell>;
 }
