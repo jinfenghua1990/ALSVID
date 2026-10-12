@@ -1,7 +1,9 @@
 'use client';
 
+import { ThemeToggle } from '@alsvid/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
+import styles from './login.module.css';
 
 interface LoginResponse {
   data?: { roles?: string[] };
@@ -58,17 +60,28 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="authPage">
-      <section className="authCard">
-        <div className="brand">ALSVID</div>
-        <div className="eyebrow">内部管理控制台</div>
-        <h1 className="authTitle">登录 ALSVID 管理后台</h1>
-        <form className="stack" onSubmit={submit}>
-          <label>用户名<input name="email" type="text" autoComplete="username" required /></label>
+    <main className={styles.page}>
+      <section className={styles.visual} aria-hidden="true">
+        <div className={styles.visualCopy}>
+          <span>ALSVID</span>
+          <h2>Explore<br />Further.</h2>
+          <p>LIGHTER · SMARTER · FURTHER</p>
+        </div>
+      </section>
+
+      <section className={styles.panel}>
+        <div className={styles.top}><ThemeToggle /></div>
+        <div className={styles.brand}>ALSVID</div>
+        <div className={styles.eyebrow}>INTERNAL PLATFORM</div>
+        <h1 className={styles.title}>登录 ALSVID</h1>
+        <p className={styles.lead}>进入产品、车辆、订单、经销商与售后管理工作台。</p>
+        <form className={styles.form} onSubmit={submit}>
+          <label>公司邮箱 / 用户名<input name="email" type="text" autoComplete="username" required /></label>
           <label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
-          {error ? <p className="formError">{error}</p> : null}
-          <button className="primaryButton" disabled={busy}>{busy ? '正在登录…' : '登录'}</button>
+          {error ? <p className={styles.error}>{error}</p> : null}
+          <button className={styles.submit} disabled={busy}>{busy ? '正在登录…' : '登录'}</button>
         </form>
+        <p className={styles.foot}>ALSVID Internal · 仅限已授权账户。界面数据以实际录入和已连接业务系统为准。</p>
       </section>
     </main>
   );
