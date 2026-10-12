@@ -48,6 +48,7 @@
   white-space: nowrap;
 }
 .primaryNavItem:hover { color: var(--alsvid-text); background: var(--alsvid-bg-soft); }
+.primaryNavActive { color: var(--portal-accent); background: var(--alsvid-bg-soft); }
 .primaryNavDisabled { opacity: .46; cursor: default; }
 .primaryNavDisabled:hover { color: var(--alsvid-muted); background: transparent; }
 .headerTools { display: flex; align-items: center; gap: 7px; }
@@ -112,7 +113,7 @@
   white-space: nowrap;
 }
 .navLink:hover { color: var(--alsvid-text); border-bottom-color: var(--portal-accent); }
-.navLink:first-child { color: var(--portal-accent); border-bottom-color: var(--portal-accent); }
+.navActive { color: var(--portal-accent); border-bottom-color: var(--portal-accent); }
 .navLink small {
   padding: 2px 5px;
   border-radius: 999px;
