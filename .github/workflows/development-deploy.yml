@@ -25,6 +25,8 @@ env:
   GCP_WORKLOAD_IDENTITY_PROVIDER: projects/737930071497/locations/global/workloadIdentityPools/github/providers/alsvid-development
   GCP_DEPLOY_SERVICE_ACCOUNT: alsvid-github-deploy@alsvid-dev.iam.gserviceaccount.com
   GCP_RUNTIME_SERVICE_ACCOUNT: alsvid-runtime@alsvid-dev.iam.gserviceaccount.com
+  R2_ENDPOINT: https://6023c5c1a7870ab69144389d71bca0a8.r2.cloudflarestorage.com
+  R2_BUCKET: alsvid-development
   WEB_SERVICE: alsvid-web
   API_SERVICE: alsvid-api
   WORKER_POOL: alsvid-worker
@@ -116,8 +118,8 @@ jobs:
             --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
             --port 4000 --cpu 1 --memory 512Mi --min 0 --max 2 \
             --allow-unauthenticated \
-            --set-env-vars NODE_ENV=test,OBJECT_STORAGE_PROVIDER=unconfigured \
-            --set-secrets DATABASE_URL=alsvid-database-url:latest \
+            --set-env-vars "NODE_ENV=test,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET}" \
+            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest" \
             --quiet
 
       - name: Deploy Development worker pool
@@ -132,8 +134,8 @@ jobs:
             --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
             --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
             --instances 1 --cpu 1 --memory 512Mi \
-            --set-env-vars NODE_ENV=test,OBJECT_STORAGE_PROVIDER=unconfigured,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000 \
-            --set-secrets DATABASE_URL=alsvid-database-url:latest \
+            --set-env-vars "NODE_ENV=test,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET},WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
+            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest" \
             --quiet
 
       - name: Deploy Development web
