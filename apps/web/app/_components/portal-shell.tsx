@@ -55,7 +55,7 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
   },
 };
 
-function NavEntry({ item, className }: { item: PortalLink; className: string }) {
+function NavEntry({ item, className }: { item: PortalLink; className: string | undefined }) {
   if (item.disabled) {
     return (
       <span className={className} aria-disabled="true">
