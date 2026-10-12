@@ -1,6 +1,8 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { ThemeToggle } from './theme-toggle';
 
+export { ThemeToggle } from './theme-toggle';
+
 export interface AppNavItem {
   label: string;
   href: string;
