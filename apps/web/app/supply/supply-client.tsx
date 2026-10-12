@@ -20,6 +20,11 @@ type Snapshot = { id: string; purchase_order_id: string; state: string; po_versi
 type Procurement = { quotations: Quotation[]; quoteLines: QuoteLine[]; purchaseOrders: PurchaseOrder[]; purchaseOrderLines: PoLine[]; confirmations: unknown[]; confirmationLines: unknown[]; receipts: Receipt[]; receiptLines: unknown[]; snapshots: Snapshot[] };
 
 const empty: Procurement = { quotations: [], quoteLines: [], purchaseOrders: [], purchaseOrderLines: [], confirmations: [], confirmationLines: [], receipts: [], receiptLines: [], snapshots: [] };
+const statusLabels: Record<string,string> = {
+  DRAFT:'草稿', ISSUED:'已发出', CONFIRMED:'供应商已确认', PARTIALLY_FULFILLED:'部分履约', FULFILLED:'已完成',
+  ACCEPTED:'已接受', REJECTED:'已拒绝', PHYSICAL_RECEIPT:'实物收货', FACTORY_COMMITMENT:'工厂承诺',
+};
+const statusLabel=(status:string)=>statusLabels[status]??status.replaceAll('_',' ');
 
 export default function SupplyClient() {
   const router = useRouter();
@@ -38,10 +43,10 @@ export default function SupplyClient() {
     const response = await fetch(`/api/control${path}`, { ...init, headers });
     if (response.status === 401) {
       router.push('/login');
-      throw new Error('Session expired');
+      throw new Error('登录状态已失效');
     }
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload?.message ?? 'Request failed');
+    if (!response.ok) throw new Error(payload?.message ?? '请求失败');
     return payload.data;
   }
 
@@ -58,7 +63,7 @@ export default function SupplyClient() {
       setParts(engineering.parts);
       setSkus(catalog.skus);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to load Supply workspace');
+      setMessage(error instanceof Error ? error.message : '无法加载采购 / 供应工作台');
     }
   }
 
@@ -77,20 +82,20 @@ export default function SupplyClient() {
     const form = new FormData(formElement);
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(build(form)) });
-      setMessage('Saved.');
+      setMessage('已保存。');
       await reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to save');
+      setMessage(error instanceof Error ? error.message : '无法保存');
     }
   }
 
   async function action(endpoint: string, body: unknown = {}) {
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(body) });
-      setMessage('Updated.');
+      setMessage('已更新。');
       await reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to update');
+      setMessage(error instanceof Error ? error.message : '无法更新');
     }
   }
 
@@ -114,64 +119,62 @@ export default function SupplyClient() {
 
   return (
     <AppShell navigation={navigationFor('/supply')} footer="ALSVID · 内部管理">
-      
-
       <section>
         <header className={styles.header}>
-          <div><div className={styles.eyebrow}>SUPPLY · PROCUREMENT</div><h1>Turn supplier promises into controlled facts.</h1><p>Quotation, PO, supplier confirmation and receipt/commitment are explicit. Procurement never edits inventory balances or executes payments.</p></div>
+          <div><div className={styles.eyebrow}>采购 / SUPPLY</div><h1>把供应商承诺，变成可追溯的采购事实。</h1><p>报价、采购订单、供应商确认与收货 / 承诺分别记录。采购只管理商业承诺，不直接修改库存余额，也不执行付款。</p></div>
         </header>
         {message ? <div className={styles.notice}>{message}</div> : null}
-        <div className={styles.metrics}>{metrics.map(([status, count]) => <div key={status}><span>{status.replaceAll('_', ' ')}</span><b>{count}</b></div>)}</div>
+        <div className={styles.metrics}>{metrics.map(([status, count]) => <div key={status}><span>{statusLabel(status)}</span><b>{count}</b></div>)}</div>
 
         <section className={styles.twoCol}>
           <div className={styles.panel}>
-            <div className={styles.panelHead}><span>SUPPLIER QUOTATIONS</span><h2>Sourcing evidence</h2></div>
-            {data.quotations.map((quotation) => <article className={styles.docRow} key={quotation.id}><div><b>{quotation.quotation_number}</b><span>{quotation.supplier_name}</span><small>{quotation.currency.trim()} · {quotation.status}</small></div><div className={styles.actions}>{quotation.status === 'DRAFT' ? <><button onClick={() => void action(`/v1/procurement/quotations/${quotation.id}/status`, { status: 'ACCEPTED' })}>Accept</button><button onClick={() => void action(`/v1/procurement/quotations/${quotation.id}/status`, { status: 'REJECTED' })}>Reject</button></> : null}</div></article>)}
-            {!data.quotations.length ? <p className={styles.empty}>No supplier quotations yet.</p> : null}
+            <div className={styles.panelHead}><span>供应商报价</span><h2>采购询价依据</h2></div>
+            {data.quotations.map((quotation) => <article className={styles.docRow} key={quotation.id}><div><b>{quotation.quotation_number}</b><span>{quotation.supplier_name}</span><small>{quotation.currency.trim()} · {statusLabel(quotation.status)}</small></div><div className={styles.actions}>{quotation.status === 'DRAFT' ? <><button onClick={() => void action(`/v1/procurement/quotations/${quotation.id}/status`, { status: 'ACCEPTED' })}>接受</button><button onClick={() => void action(`/v1/procurement/quotations/${quotation.id}/status`, { status: 'REJECTED' })}>拒绝</button></> : null}</div></article>)}
+            {!data.quotations.length ? <p className={styles.empty}>暂无供应商报价。</p> : null}
           </div>
 
           <div className={styles.panel}>
-            <div className={styles.panelHead}><span>PURCHASE ORDERS</span><h2>Commercial commitments</h2></div>
-            {data.purchaseOrders.map((po) => <article className={`${styles.docRow} ${selectedPo === po.id ? styles.selected : ''}`} key={po.id} onClick={() => setSelectedPo(po.id)}><div><b>{po.po_number}</b><span>{po.supplier_name}</span><small>{po.currency.trim()} {po.total_amount} · {po.status}</small></div><div className={styles.actions}>{po.status === 'DRAFT' ? <button onClick={(event) => { event.stopPropagation(); void action(`/v1/procurement/purchase-orders/${po.id}/issue`); }}>Issue PO</button> : null}<i>{data.snapshots.filter((snapshot) => snapshot.purchase_order_id === po.id).length} snapshots</i></div></article>)}
-            {!data.purchaseOrders.length ? <p className={styles.empty}>No purchase orders yet.</p> : null}
+            <div className={styles.panelHead}><span>采购订单</span><h2>商业采购承诺</h2></div>
+            {data.purchaseOrders.map((po) => <article className={`${styles.docRow} ${selectedPo === po.id ? styles.selected : ''}`} key={po.id} onClick={() => setSelectedPo(po.id)}><div><b>{po.po_number}</b><span>{po.supplier_name}</span><small>{po.currency.trim()} {po.total_amount} · {statusLabel(po.status)}</small></div><div className={styles.actions}>{po.status === 'DRAFT' ? <button onClick={(event) => { event.stopPropagation(); void action(`/v1/procurement/purchase-orders/${po.id}/issue`); }}>发出采购单</button> : null}<i>{data.snapshots.filter((snapshot) => snapshot.purchase_order_id === po.id).length} 个快照</i></div></article>)}
+            {!data.purchaseOrders.length ? <p className={styles.empty}>暂无采购订单。</p> : null}
           </div>
         </section>
 
         <section className={styles.forms}>
           <form onSubmit={(event) => void post(event, '/v1/procurement/quotations', (form) => ({ supplierPartnerId: form.get('supplierPartnerId'), supplierReference: form.get('supplierReference') || undefined, currency: form.get('currency'), validUntil: form.get('validUntil') || undefined, incoterm: form.get('incoterm') || undefined, paymentTerms: form.get('paymentTerms') || undefined, lines: [itemLine(form)] }))}>
-            <span>NEW QUOTATION</span><h3>Record supplier quote</h3>
-            <select name="supplierPartnerId" required defaultValue=""><option value="" disabled>Supplier / Factory</option>{partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.partnerCode} · {partner.displayName}</option>)}</select>
+            <span>新建报价</span><h3>记录供应商报价</h3>
+            <select name="supplierPartnerId" required defaultValue=""><option value="" disabled>选择供应商 / 工厂</option>{partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.partnerCode} · {partner.displayName}</option>)}</select>
             <div className={styles.inline}><input name="currency" defaultValue="EUR" maxLength={3} required /><input name="incoterm" placeholder="FCA / FOB" /></div>
-            <input name="supplierReference" placeholder="Supplier quotation ref" /><input name="paymentTerms" placeholder="Payment terms" />
-            <div className={styles.item}><select name="itemType" value={quoteItemType} onChange={(event) => setQuoteItemType(event.target.value as ItemType)}><option value="PART">PART</option><option value="SKU">SKU</option></select><select key={quoteItemType} name="itemId" required defaultValue=""><option value="" disabled>Item</option>{itemOptions(quoteItemType)}</select></div>
-            <div className={styles.inline}><input name="quantity" inputMode="decimal" placeholder="Qty" required /><input name="unit" defaultValue="EA" /><input name="unitPrice" inputMode="decimal" placeholder="Unit price" required /></div>
-            <input name="validUntil" type="date" /><button>Save quotation</button>
+            <input name="supplierReference" placeholder="供应商报价单号" /><input name="paymentTerms" placeholder="付款条件" />
+            <div className={styles.item}><select name="itemType" value={quoteItemType} onChange={(event) => setQuoteItemType(event.target.value as ItemType)}><option value="PART">零件</option><option value="SKU">整车 SKU</option></select><select key={quoteItemType} name="itemId" required defaultValue=""><option value="" disabled>选择物料</option>{itemOptions(quoteItemType)}</select></div>
+            <div className={styles.inline}><input name="quantity" inputMode="decimal" placeholder="数量" required /><input name="unit" defaultValue="EA" /><input name="unitPrice" inputMode="decimal" placeholder="单价" required /></div>
+            <input name="validUntil" type="date" /><button>保存报价</button>
           </form>
 
           <form onSubmit={(event) => void post(event, '/v1/procurement/purchase-orders', (form) => ({ supplierPartnerId: form.get('supplierPartnerId'), sourceQuotationId: form.get('sourceQuotationId') || undefined, currency: form.get('currency'), incoterm: form.get('incoterm') || undefined, paymentTerms: form.get('paymentTerms') || undefined, depositTerms: form.get('depositTerms') || undefined, lines: [itemLine(form)] }))}>
-            <span>NEW PURCHASE ORDER</span><h3>Create draft PO</h3>
-            <select name="supplierPartnerId" required defaultValue=""><option value="" disabled>Supplier / Factory</option>{partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.partnerCode} · {partner.displayName}</option>)}</select>
-            <select name="sourceQuotationId" defaultValue=""><option value="">No source quotation</option>{data.quotations.filter((quotation) => quotation.status === 'ACCEPTED').map((quotation) => <option key={quotation.id} value={quotation.id}>{quotation.quotation_number} · {quotation.supplier_name}</option>)}</select>
+            <span>新建采购订单</span><h3>创建采购单草稿</h3>
+            <select name="supplierPartnerId" required defaultValue=""><option value="" disabled>选择供应商 / 工厂</option>{partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.partnerCode} · {partner.displayName}</option>)}</select>
+            <select name="sourceQuotationId" defaultValue=""><option value="">不关联源报价</option>{data.quotations.filter((quotation) => quotation.status === 'ACCEPTED').map((quotation) => <option key={quotation.id} value={quotation.id}>{quotation.quotation_number} · {quotation.supplier_name}</option>)}</select>
             <div className={styles.inline}><input name="currency" defaultValue="EUR" maxLength={3} required /><input name="incoterm" placeholder="FCA / FOB" /></div>
-            <input name="paymentTerms" placeholder="Payment terms" /><input name="depositTerms" placeholder="Deposit terms" />
-            <div className={styles.item}><select name="itemType" value={poItemType} onChange={(event) => setPoItemType(event.target.value as ItemType)}><option value="PART">PART</option><option value="SKU">SKU</option></select><select key={poItemType} name="itemId" required defaultValue=""><option value="" disabled>Item</option>{itemOptions(poItemType)}</select></div>
-            <div className={styles.inline}><input name="quantity" inputMode="decimal" placeholder="Qty" required /><input name="unit" defaultValue="EA" /><input name="unitPrice" inputMode="decimal" placeholder="Unit price" required /></div>
-            <input name="requestedDate" type="date" /><button>Create draft PO</button>
+            <input name="paymentTerms" placeholder="付款条件" /><input name="depositTerms" placeholder="定金条件" />
+            <div className={styles.item}><select name="itemType" value={poItemType} onChange={(event) => setPoItemType(event.target.value as ItemType)}><option value="PART">零件</option><option value="SKU">整车 SKU</option></select><select key={poItemType} name="itemId" required defaultValue=""><option value="" disabled>选择物料</option>{itemOptions(poItemType)}</select></div>
+            <div className={styles.inline}><input name="quantity" inputMode="decimal" placeholder="数量" required /><input name="unit" defaultValue="EA" /><input name="unitPrice" inputMode="decimal" placeholder="单价" required /></div>
+            <input name="requestedDate" type="date" /><button>创建采购单草稿</button>
           </form>
         </section>
 
         {selected ? <section className={styles.detail}>
-          <div className={styles.detailHead}><div><span>SELECTED PO</span><h2>{selected.po_number} · {selected.supplier_name}</h2><p>{selected.status} · {selected.currency.trim()} {selected.total_amount}</p></div></div>
-          <div className={styles.lineGrid}>{selectedLines.map((line) => <div key={line.id}><b>Line {line.line_no}</b><span>{line.part_number ?? line.sku}</span><small>{line.ordered_quantity} {line.unit} × {line.unit_price}</small></div>)}</div>
+          <div className={styles.detailHead}><div><span>当前采购订单</span><h2>{selected.po_number} · {selected.supplier_name}</h2><p>{statusLabel(selected.status)} · {selected.currency.trim()} {selected.total_amount}</p></div></div>
+          <div className={styles.lineGrid}>{selectedLines.map((line) => <div key={line.id}><b>行 {line.line_no}</b><span>{line.part_number ?? line.sku}</span><small>{line.ordered_quantity} {line.unit} × {line.unit_price}</small></div>)}</div>
           <div className={styles.detailForms}>
             <form onSubmit={(event) => { const line = selectedLines[0]; if (!line) return; void post(event, `/v1/procurement/purchase-orders/${selected.id}/confirm`, (form) => ({ supplierReference: form.get('supplierReference') || undefined, note: form.get('note') || undefined, lines: [{ purchaseOrderLineId: line.id, confirmedQuantity: form.get('confirmedQuantity'), confirmedDate: form.get('confirmedDate') || undefined }] })); }}>
-              <span>SUPPLIER CONFIRMATION</span><h3>Confirm first line</h3><input name="supplierReference" placeholder="Supplier confirmation ref" /><input name="confirmedQuantity" inputMode="decimal" defaultValue={selectedLines[0]?.ordered_quantity ?? ''} required /><input name="confirmedDate" type="date" /><input name="note" placeholder="Note" /><button disabled={selected.status !== 'ISSUED'}>Record confirmation</button>
+              <span>供应商确认</span><h3>确认首行交付承诺</h3><input name="supplierReference" placeholder="供应商确认单号" /><input name="confirmedQuantity" inputMode="decimal" defaultValue={selectedLines[0]?.ordered_quantity ?? ''} required /><input name="confirmedDate" type="date" /><input name="note" placeholder="备注" /><button disabled={selected.status !== 'ISSUED'}>记录确认</button>
             </form>
             <form onSubmit={(event) => { const line = selectedLines[0]; if (!line) return; void post(event, `/v1/procurement/purchase-orders/${selected.id}/receipts`, (form) => ({ kind: form.get('kind'), reference: form.get('reference') || undefined, occurredOn: form.get('occurredOn'), note: form.get('note') || undefined, lines: [{ purchaseOrderLineId: line.id, quantity: form.get('quantity'), unit: line.unit }] })); }}>
-              <span>RECEIPT / COMMITMENT</span><h3>Record first line evidence</h3><select name="kind"><option>PHYSICAL_RECEIPT</option><option>FACTORY_COMMITMENT</option></select><input name="reference" placeholder="Receipt / commitment ref" /><input name="quantity" inputMode="decimal" placeholder="Quantity" required /><input name="occurredOn" type="date" required /><input name="note" placeholder="Note" /><button disabled={!['CONFIRMED', 'PARTIALLY_FULFILLED'].includes(selected.status)}>Record evidence</button>
+              <span>收货 / 承诺证据</span><h3>记录首行履约证据</h3><select name="kind"><option value="PHYSICAL_RECEIPT">实物收货</option><option value="FACTORY_COMMITMENT">工厂承诺</option></select><input name="reference" placeholder="收货 / 承诺参考号" /><input name="quantity" inputMode="decimal" placeholder="数量" required /><input name="occurredOn" type="date" required /><input name="note" placeholder="备注" /><button disabled={!['CONFIRMED', 'PARTIALLY_FULFILLED'].includes(selected.status)}>记录证据</button>
             </form>
           </div>
-          <div className={styles.history}><span>IMMUTABLE STATE HISTORY</span>{data.snapshots.filter((snapshot) => snapshot.purchase_order_id === selected.id).map((snapshot) => <div key={snapshot.id}><b>{snapshot.state}</b><small>v{snapshot.po_version} · {new Date(snapshot.created_at).toLocaleString()}</small></div>)}</div>
+          <div className={styles.history}><span>不可变状态历史</span>{data.snapshots.filter((snapshot) => snapshot.purchase_order_id === selected.id).map((snapshot) => <div key={snapshot.id}><b>{statusLabel(snapshot.state)}</b><small>v{snapshot.po_version} · {new Date(snapshot.created_at).toLocaleString()}</small></div>)}</div>
         </section> : null}
       </section>
     </AppShell>
