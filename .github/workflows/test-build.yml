@@ -1,4 +1,4 @@
-name: ALSVID Development/Test Build
+name: ALSVID Development Build
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  test-build:
+  development-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,19 +33,19 @@ jobs:
       - name: Type check
         run: pnpm -r typecheck
 
-      - name: Build Docker images
+      - name: Build Development Docker images
         run: docker compose -f infra/docker-compose.test.yml build
 
-      - name: Start Test PostgreSQL
+      - name: Start Development PostgreSQL
         run: docker compose -f infra/docker-compose.test.yml up -d postgres
 
-      - name: Run Test database migrations
+      - name: Run Development database migrations
         run: docker compose -f infra/docker-compose.test.yml run --rm api pnpm db:migrate
 
-      - name: Start Test applications
+      - name: Start Development applications
         run: docker compose -f infra/docker-compose.test.yml up -d web api worker gateway
 
-      - name: Smoke test API and Web
+      - name: Smoke check Development API and Web
         shell: bash
         run: |
           set -euo pipefail
@@ -95,14 +95,14 @@ jobs:
             fi
           done
 
-      - name: Show Test container state
+      - name: Show Development container state
         if: always()
         run: docker compose -f infra/docker-compose.test.yml ps
 
-      - name: Show Test logs on failure
+      - name: Show Development logs on failure
         if: failure()
         run: docker compose -f infra/docker-compose.test.yml logs --no-color
 
-      - name: Tear down Test environment
+      - name: Tear down Development containers
         if: always()
         run: docker compose -f infra/docker-compose.test.yml down -v --remove-orphans
