@@ -135,7 +135,7 @@ Neon PostgreSQL
 - Passwords and configuration — Google Cloud Secret Manager
 - Logs — Google Cloud Logging
 - Backup — GitHub + Neon/PostgreSQL backup + R2 + Q4
-- Mail — provider-neutral; concrete production provider not selected yet
+- Mail — Resend transactional delivery is wired for verification and password reset; Development requires its own `alsvid-mail-api-key` secret and Production uses the verified `chaibenn.com` sender
 - AI — provider-neutral; concrete production provider/model not selected yet
 
 Provider choices above are architecture decisions, not claims that live account resources already exist. Issue #34 remains open until the real Neon, R2 and Google Cloud resources are provisioned, the first production release succeeds, and backup/restore is demonstrated.
@@ -153,7 +153,7 @@ The runtime, deployment and secret authority decision is recorded in ADR 0003 an
 
 Existing AppShell workbenches now share a compact internal header with a Portal Launcher link, collapsible navigation groups, visible active-page state and readable operational typography. Existing module routes and disabled roadmap entries are retained. The Environment page explicitly labels Web-only configuration visibility; missing Web secrets are not presented as API/Worker connection failures. Live backend connection health is not implemented by this UI change.
 
-The Portal Launcher has Chinese-first Admin/Dealer/My entry cards, a server-validated operator greeting and a runtime-derived environment label. Admin Center uses the same AppShell as its business modules. Login continues to land at `/portal-launcher`; Dealer/My remain internal preview surfaces. The Environment page is dynamically rendered so runtime metadata is not frozen at build time. M1 Docker images require pulling main and rebuilding Web before these changes appear locally.
+The old portal launcher is now a compatibility redirect. `/` and `/portal-launcher` lead to the authenticated Admin Center, while `/login` is the single email/password login center and successful authentication routes directly to `/admin`. Password reset uses one-time 30-minute tokens, sends through the configured transactional mail provider, and revokes existing sessions after completion. The Environment page is dynamically rendered so runtime metadata is not frozen at build time. M1 Docker images require pulling main and rebuilding Web before these changes appear locally.
 
 ## M1 Test update automation — repository support
 
