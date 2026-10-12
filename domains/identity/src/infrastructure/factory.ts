@@ -48,6 +48,7 @@ export function createIdentityService(database: DatabasePort, audit: IdentityAud
     new SecureOneTimeCodeService(),
     new SecureSessionTokenService(),
     options.verificationDelivery ?? unavailableDelivery,
+    options.passwordResetDelivery ?? unavailablePasswordResetDelivery,
     policy,
   );
 }
