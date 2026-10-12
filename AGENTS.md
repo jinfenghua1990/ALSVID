@@ -25,6 +25,15 @@ Before changing application behavior or architecture, read in this order:
 
 Confirmed architecture decisions are not suggestions. Do not replace providers, redraw system boundaries, or add major infrastructure merely because a different stack appears fashionable. First identify the concrete problem, review the recorded rationale, and document the new decision.
 
+## Environment names and communication
+
+- 开发/测试：`ALSVID Development` (Google Cloud project `alsvid-dev`).
+- 正式/生产：`ALSVID Production` (Google Cloud project `alsvid-prod`).
+- Use these complete names when reporting configuration, links, versions and deployment results.
+- Development includes testing; Test is not a third business environment. Runtime test flags and test filenames do not create another environment.
+- Keep each environment's database, R2 bucket and credentials isolated.
+- Review `docs/ENVIRONMENT_AUDIT_2026-10-12.md` for the dated audit; verify current state before reusing its deployment claims.
+
 ## Current rebuild gate
 
 Feature expansion is frozen until Issue #20 is complete. Do not add Finance, Vehicle 360, Service, Communication or other new capability while implemented domains are still being encapsulated.
@@ -52,9 +61,9 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Production database primary: Neon PostgreSQL.
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
-- Current Development/Test compute: M1 Mac + Docker.
-- Current Test database/object storage: isolated managed cloud Test resources (Neon Test + R2 Test), not Production resources.
-- A separate Cloud Run Test environment is not maintained at the current stage.
+- 开发/测试：ALSVID Development uses shared Cloud Run in alsvid-dev; M1 Mac + Docker provides local development.
+- 开发/测试：ALSVID Development uses independent Neon Development and the alsvid-development R2 bucket.
+- 正式/生产：ALSVID Production uses Cloud Run in alsvid-prod, Neon Production and the alsvid-production R2 bucket.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
 ## Architecture rules
