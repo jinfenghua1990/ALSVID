@@ -12,19 +12,12 @@ const series = [
 ] as const;
 
 const metrics = [
-  { label: '产品系列', value: '4', detail: 'FC · CT · FT · GT', icon: '◇', tone: 'blue' },
-  { label: '产品型号', value: '5', detail: '当前产品结构', icon: '◉', tone: 'green' },
-  { label: '经销商数量', value: '—', detail: '接入业务数据后显示', icon: '▣', tone: 'purple' },
-  { label: '订单总数', value: '—', detail: '接入 Shopify 后显示', icon: '▤', tone: 'orange' },
-  { label: '待处理售后', value: '—', detail: '售后模块接入后显示', icon: '×', tone: 'red' },
-  { label: '客户数量', value: '—', detail: '客户中心接入后显示', icon: '○', tone: 'cyan' },
-] as const;
-
-const activities = [
-  { icon: '◉', title: 'FC1 Pro 产品资料', detail: '产品中心 · 已纳入 V2 结构', time: '产品' },
-  { icon: '↗', title: '订单与渠道数据', detail: '等待外部系统事实接入', time: '订单' },
-  { icon: '×', title: '售后记录', detail: '按客户 / 经销商反馈形成记录', time: '售后' },
-  { icon: '◇', title: 'Vehicle 360', detail: '用于车辆全流程追踪，不做实时健康监控', time: '车辆' },
+  { label: '产品系列', href: '/product#series', icon: '◇', tone: 'blue' },
+  { label: '产品型号', href: '/product#models', icon: '◉', tone: 'green' },
+  { label: '经销商数量', href: '/dealers', icon: '▣', tone: 'purple' },
+  { label: '订单总数', href: '/commerce', icon: '▤', tone: 'orange' },
+  { label: '待处理售后', href: '/vehicle360', icon: '×', tone: 'red' },
+  { label: '客户数量', href: '#', icon: '○', tone: 'cyan' },
 ] as const;
 
 export default async function AdminPortalPage() {
@@ -76,14 +69,14 @@ export default async function AdminPortalPage() {
         </div>
         <div className={styles.metrics}>
           {metrics.map((metric) => (
-            <article className={styles.metricCard} key={metric.label}>
+            <Link className={styles.metricCard} href={metric.href} key={metric.label}>
               <span className={`${styles.metricIcon} ${styles[metric.tone]}`}>{metric.icon}</span>
               <div>
                 <span className={styles.metricLabel}>{metric.label}</span>
-                <strong>{metric.value}</strong>
-                <small>{metric.detail}</small>
+                <strong className={styles.emptyMetricValue} aria-label="暂无数据">&nbsp;</strong>
+                <small>&nbsp;</small>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
@@ -92,46 +85,25 @@ export default async function AdminPortalPage() {
         <article className={`${styles.panel} ${styles.trendPanel}`}>
           <header className={styles.panelHead}>
             <div><span>运营概览</span><h3>订单趋势</h3></div>
-            <div className={styles.legend}><span><i className={styles.dotBlue} />订单数量</span><span><i className={styles.dotGreen} />出货数量</span></div>
           </header>
-          <div className={styles.chartPlaceholder} aria-label="订单趋势数据接入提示">
-            <svg viewBox="0 0 760 250" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="areaA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2f80ff" stopOpacity=".24"/><stop offset="1" stopColor="#2f80ff" stopOpacity="0"/></linearGradient>
-                <linearGradient id="areaB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2fc79a" stopOpacity=".18"/><stop offset="1" stopColor="#2fc79a" stopOpacity="0"/></linearGradient>
-              </defs>
-              <path d="M0 208 C80 180 120 188 180 150 S285 175 350 116 455 146 515 92 625 128 760 42 L760 250 L0 250Z" fill="url(#areaA)"/>
-              <path d="M0 222 C72 208 110 184 174 198 S285 140 355 164 460 105 530 138 640 60 760 98 L760 250 L0 250Z" fill="url(#areaB)"/>
-              <path d="M0 208 C80 180 120 188 180 150 S285 175 350 116 455 146 515 92 625 128 760 42" fill="none" stroke="#2f80ff" strokeWidth="4"/>
-              <path d="M0 222 C72 208 110 184 174 198 S285 140 355 164 460 105 530 138 640 60 760 98" fill="none" stroke="#2fc79a" strokeWidth="4"/>
-            </svg>
-            <span>当前为界面占位示意，接入订单事实后显示真实趋势。</span>
+          <div className={styles.emptyPanelState}>
+            <span>暂无数据</span>
+            <Link href="/commerce">录入 / 查看订单 →</Link>
           </div>
         </article>
 
         <article className={`${styles.panel} ${styles.distributionPanel}`}>
           <header className={styles.panelHead}><div><span>产品结构</span><h3>销售分布（按系列）</h3></div></header>
-          <div className={styles.distributionBody}>
-            <div className={styles.donut}><span><strong>4</strong><small>产品系列</small></span></div>
-            <div className={styles.distributionList}>
-              <span><i className={styles.fcDot} />FC Series <b>待接入</b></span>
-              <span><i className={styles.ctDot} />CT Series <b>待接入</b></span>
-              <span><i className={styles.ftDot} />FT Series <b>待接入</b></span>
-              <span><i className={styles.gtDot} />GT Series <b>待接入</b></span>
-            </div>
+          <div className={styles.emptyPanelState}>
+            <span>暂无数据</span>
+            <Link href="/product">管理产品 →</Link>
           </div>
         </article>
 
         <article className={`${styles.panel} ${styles.activityPanel}`}>
-          <header className={styles.panelHead}><div><span>ACTIVITY</span><h3>最新动态</h3></div><Link href="/product">查看更多 →</Link></header>
-          <div className={styles.activityList}>
-            {activities.map((item) => (
-              <div className={styles.activityRow} key={item.title}>
-                <span className={styles.activityIcon}>{item.icon}</span>
-                <div><strong>{item.title}</strong><small>{item.detail}</small></div>
-                <time>{item.time}</time>
-              </div>
-            ))}
+          <header className={styles.panelHead}><div><span>ACTIVITY</span><h3>最新动态</h3></div></header>
+          <div className={styles.emptyPanelState}>
+            <span>暂无数据</span>
           </div>
         </article>
       </section>
