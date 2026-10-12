@@ -103,13 +103,13 @@ export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; 
   return (
     <div className={styles.portal} data-portal={kind}>
       <header className={styles.header}>
-        <Link className={styles.brand} href="/">ALSVID</Link>
+        <Link className={styles.brand} href="/admin">ALSVID</Link>
         <nav className={styles.primaryNavigation} aria-label="主导航">
           {primaryNavigation.map((item) => <NavEntry item={item} primary active={isPrimaryActive(item.href, currentHref)} key={item.label} />)}
         </nav>
         <div className={styles.headerTools}>
           <ThemeToggle />
-          <Link className={styles.launcherLink} href="/">工作入口 ↗</Link>
+          <Link className={styles.launcherLink} href="/">管理首页 ↗</Link>
         </div>
       </header>
 
