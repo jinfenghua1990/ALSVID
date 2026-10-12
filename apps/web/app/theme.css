@@ -1,0 +1,336 @@
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+  --alsvid-bg: #f5f7fb;
+  --alsvid-bg-soft: #eef2f7;
+  --alsvid-panel: #ffffff;
+  --alsvid-panel-2: #fbfcfe;
+  --alsvid-text: #111827;
+  --alsvid-text-2: #334155;
+  --alsvid-muted: #8792a3;
+  --alsvid-line: #e7ebf1;
+  --alsvid-line-strong: #d9e0e9;
+  --alsvid-accent: #0b61ff;
+  --alsvid-accent-soft: #eaf2ff;
+  --alsvid-success: #19b98b;
+  --alsvid-warning: #f2a33a;
+  --alsvid-danger: #ef5b5b;
+  --alsvid-shadow: 0 16px 38px rgba(28, 42, 62, .08);
+  --alsvid-header: rgba(255, 255, 255, .94);
+  --alsvid-rail: #ffffff;
+  --alsvid-input: #ffffff;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --alsvid-bg: #0b1018;
+  --alsvid-bg-soft: #111826;
+  --alsvid-panel: #121a26;
+  --alsvid-panel-2: #172130;
+  --alsvid-text: #f5f7fb;
+  --alsvid-text-2: #cbd5e1;
+  --alsvid-muted: #8290a5;
+  --alsvid-line: #273244;
+  --alsvid-line-strong: #344157;
+  --alsvid-accent: #4b8dff;
+  --alsvid-accent-soft: #152b4d;
+  --alsvid-success: #37d5a8;
+  --alsvid-warning: #f5b95f;
+  --alsvid-danger: #ff7d7d;
+  --alsvid-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+  --alsvid-header: rgba(11, 16, 24, .94);
+  --alsvid-rail: #0e151f;
+  --alsvid-input: #172130;
+}
+
+html,
+body {
+  background: var(--alsvid-bg);
+  color: var(--alsvid-text);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.shellV2,
+.shellV2 .adminBody {
+  background: var(--alsvid-bg) !important;
+  color: var(--alsvid-text);
+}
+
+.shellV2 .primaryHeader {
+  border-color: var(--alsvid-line) !important;
+  background: var(--alsvid-header) !important;
+}
+
+.shellV2 .primaryBrand,
+.shellV2 .primaryNavItemActive,
+.shellV2 .contextRailTitle strong,
+.shellV2 .profileCopy strong {
+  color: var(--alsvid-text) !important;
+}
+
+.shellV2 .primaryNavItem,
+.shellV2 .profileCopy small,
+.shellV2 .contextRailTitle span,
+.shellV2 .railFoot,
+.shellV2 .navSection,
+.shellV2 .navItem {
+  color: var(--alsvid-muted) !important;
+}
+
+.shellV2 .primaryNavItem:hover,
+.shellV2 .navItem:hover {
+  color: var(--alsvid-text) !important;
+  background: var(--alsvid-bg-soft) !important;
+}
+
+.shellV2 .primaryNavItemActive::after {
+  background: var(--alsvid-accent) !important;
+}
+
+.shellV2 .rail {
+  border-color: var(--alsvid-line) !important;
+  background: var(--alsvid-rail) !important;
+}
+
+.shellV2 .contextRailTitle {
+  border-color: var(--alsvid-line) !important;
+}
+
+.shellV2 .navItem.active {
+  background: var(--alsvid-accent-soft) !important;
+  color: var(--alsvid-accent) !important;
+}
+
+.shellV2 .navStatus {
+  border-color: var(--alsvid-line) !important;
+  background: var(--alsvid-panel-2) !important;
+  color: var(--alsvid-muted) !important;
+}
+
+.primaryUtilities {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.utilityButton,
+.themeToggle {
+  height: 36px;
+  min-width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--alsvid-text-2);
+}
+
+.utilityButton:hover,
+.themeToggle:hover {
+  border-color: var(--alsvid-line);
+  background: var(--alsvid-bg-soft);
+  color: var(--alsvid-text);
+}
+
+.themeToggleIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.themeToggleLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+
+.utilityNotify {
+  position: relative;
+}
+
+.utilityNotify > span {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  color: var(--alsvid-danger);
+}
+
+.primaryProfile {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 34px auto 12px;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 7px;
+  border-radius: 12px;
+  color: var(--alsvid-text-2);
+}
+
+.primaryProfile:hover {
+  background: var(--alsvid-bg-soft);
+}
+
+.profileAvatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1b2738, #3b4b61);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileCopy {
+  display: grid;
+  gap: 1px;
+}
+
+.profileCopy strong {
+  font-size: 10px;
+}
+
+.profileCopy small {
+  font-size: 8px;
+}
+
+html[data-theme="dark"] .environmentBanner {
+  border-color: #6e5720;
+  background: #2d260f;
+  color: #f1d985;
+}
+
+html[data-theme="dark"] .refreshButton {
+  border-color: #6e5720;
+  background: #3a3014;
+  color: #f1d985;
+}
+
+/* Shared application surfaces */
+html[data-theme="dark"] .shellV2 :is(
+  [class*="Card"],
+  [class*="card"],
+  [class*="Panel"],
+  [class*="panel"],
+  [class*="Metric"],
+  [class*="metric"],
+  [class*="Table"],
+  [class*="table"],
+  [class*="Form"],
+  [class*="form"]
+) {
+  border-color: var(--alsvid-line) !important;
+}
+
+html[data-theme="dark"] .shellV2 :is(
+  [class*="metricCard"],
+  [class*="panel"],
+  [class*="listCard"],
+  [class*="modelBlock"],
+  [class*="variantBlock"],
+  [class*="sku"],
+  [class*="formCard"],
+  [class*="tableCard"],
+  [class*="detailCard"],
+  [class*="infoCard"]
+) {
+  background: var(--alsvid-panel) !important;
+  color: var(--alsvid-text) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .shellV2 :is(h1, h2, h3, h4, strong, b) {
+  color: var(--alsvid-text);
+}
+
+html[data-theme="dark"] .shellV2 :is(p, small, label) {
+  color: var(--alsvid-muted);
+}
+
+html[data-theme="dark"] .shellV2 :is(input, select, textarea) {
+  border-color: var(--alsvid-line) !important;
+  background: var(--alsvid-input) !important;
+  color: var(--alsvid-text) !important;
+}
+
+html[data-theme="dark"] .shellV2 :is(button:not(.themeToggle):not(.utilityButton)) {
+  border-color: var(--alsvid-line);
+}
+
+html[data-theme="dark"] .shellV2 table,
+html[data-theme="dark"] .shellV2 thead,
+html[data-theme="dark"] .shellV2 tbody,
+html[data-theme="dark"] .shellV2 tr,
+html[data-theme="dark"] .shellV2 td,
+html[data-theme="dark"] .shellV2 th {
+  border-color: var(--alsvid-line) !important;
+  color: var(--alsvid-text-2);
+}
+
+html[data-theme="dark"] .shellV2 [class*="empty"] {
+  color: var(--alsvid-muted) !important;
+}
+
+/* Login / launcher / non-AppShell surfaces */
+html[data-theme="dark"] :is(.authPage, .partnerWorkspace) {
+  background: var(--alsvid-bg) !important;
+  color: var(--alsvid-text) !important;
+}
+
+html[data-theme="dark"] :is(.authCard, .tableCard, .detailCard, .infoCard, .modalCard, .status) {
+  border-color: var(--alsvid-line) !important;
+  background: var(--alsvid-panel) !important;
+  color: var(--alsvid-text) !important;
+}
+
+html[data-theme="dark"] :is(input, select, textarea) {
+  border-color: var(--alsvid-line);
+  background: var(--alsvid-input);
+  color: var(--alsvid-text);
+}
+
+html[data-theme="dark"] .tableRow {
+  border-color: var(--alsvid-line);
+  background: var(--alsvid-panel);
+  color: var(--alsvid-text);
+}
+
+html[data-theme="dark"] .tableRow:hover {
+  background: var(--alsvid-panel-2);
+}
+
+@media (max-width: 1180px) {
+  .themeToggleLabel,
+  .profileCopy {
+    display: none;
+  }
+
+  .primaryProfile {
+    grid-template-columns: 34px 12px;
+  }
+}
+
+@media (max-width: 850px) {
+  .primaryUtilities {
+    gap: 2px;
+  }
+
+  .primaryProfile {
+    display: none;
+  }
+
+  .themeToggle {
+    padding: 0 8px;
+  }
+}
