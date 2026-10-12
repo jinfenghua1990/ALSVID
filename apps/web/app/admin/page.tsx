@@ -5,10 +5,10 @@ import { navigationFor } from '../app-navigation';
 import styles from './portal-page.module.css';
 
 const series = [
-  { code: 'FC1', name: 'FC Series', detail: '城市通勤系列', english: 'Folding Carbon', tone: 'city' },
-  { code: 'CT1', name: 'CT Series', detail: '全地形系列', english: 'City Touring', tone: 'forest' },
-  { code: 'FT1', name: 'FT Series', detail: '旅行探索系列', english: 'Fat Tire', tone: 'travel' },
-  { code: 'GT1', name: 'GT Series', detail: '高性能系列', english: 'Grand Touring', tone: 'grand' },
+  { code: 'FC1', name: 'FC Series', detail: '折叠碳纤维旗舰系列', english: 'Folding Carbon', tone: 'city' },
+  { code: 'CT1', name: 'CT Series', detail: '都市通勤系列', english: 'City Touring', tone: 'forest' },
+  { code: 'FT1', name: 'FT Series', detail: '胖胎全地形系列', english: 'Fat Tire', tone: 'travel' },
+  { code: 'GT1', name: 'GT Series', detail: '长途旅行系列', english: 'Grand Touring', tone: 'grand' },
 ] as const;
 
 const metrics = [
@@ -34,14 +34,14 @@ export default async function AdminPortalPage() {
   await requireInternalPreviewSession();
 
   return (
-    <AppShell navigation={navigationFor('/admin')} footer="ALSVID · Internal Platform">
+    <AppShell navigation={navigationFor('/admin')} footer="ALSVID · 内部管理">
       <section className={styles.hero}>
         <div className={styles.heroShade} />
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>ALSVID</p>
           <h1>Explore Further</h1>
           <p className={styles.heroChinese}>为更远的探索而生</p>
-          <p className={styles.heroMeta}>折叠 · 都市 · 越野 · 长途</p>
+          <p className={styles.heroMeta}>折叠 · 都市 · 胖胎 · 长途</p>
           <div className={styles.heroActions}>
             <Link className={styles.primaryAction} href="/product#series">了解产品系列 <span>→</span></Link>
             <Link className={styles.secondaryAction} href="/product">查看品牌资料</Link>
@@ -111,7 +111,7 @@ export default async function AdminPortalPage() {
         </article>
 
         <article className={`${styles.panel} ${styles.activityPanel}`}>
-          <header className={styles.panelHead}><div><span>ACTIVITY</span><h3>最新动态</h3></div></header>
+          <header className={styles.panelHead}><div><span>最新动态</span><h3>业务活动</h3></div></header>
           <div style={emptyPanelStyle}><span>暂无数据</span></div>
         </article>
       </section>
