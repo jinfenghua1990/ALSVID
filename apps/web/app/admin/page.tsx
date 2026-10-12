@@ -20,6 +20,16 @@ const metrics = [
   { label: '客户数量', href: '#', icon: '○', tone: 'cyan' },
 ] as const;
 
+const emptyPanelStyle = {
+  minHeight: 190,
+  display: 'grid',
+  placeItems: 'center',
+  alignContent: 'center',
+  gap: 10,
+  color: 'var(--alsvid-muted)',
+  fontSize: 12,
+} as const;
+
 export default async function AdminPortalPage() {
   await requireInternalPreviewSession();
 
@@ -73,7 +83,7 @@ export default async function AdminPortalPage() {
               <span className={`${styles.metricIcon} ${styles[metric.tone]}`}>{metric.icon}</span>
               <div>
                 <span className={styles.metricLabel}>{metric.label}</span>
-                <strong className={styles.emptyMetricValue} aria-label="暂无数据">&nbsp;</strong>
+                <strong aria-label="暂无数据">&nbsp;</strong>
                 <small>&nbsp;</small>
               </div>
             </Link>
@@ -86,25 +96,23 @@ export default async function AdminPortalPage() {
           <header className={styles.panelHead}>
             <div><span>运营概览</span><h3>订单趋势</h3></div>
           </header>
-          <div className={styles.emptyPanelState}>
+          <div style={emptyPanelStyle}>
             <span>暂无数据</span>
-            <Link href="/commerce">录入 / 查看订单 →</Link>
+            <Link href="/commerce" style={{ color: 'var(--alsvid-accent)', fontWeight: 700 }}>录入 / 查看订单 →</Link>
           </div>
         </article>
 
         <article className={`${styles.panel} ${styles.distributionPanel}`}>
           <header className={styles.panelHead}><div><span>产品结构</span><h3>销售分布（按系列）</h3></div></header>
-          <div className={styles.emptyPanelState}>
+          <div style={emptyPanelStyle}>
             <span>暂无数据</span>
-            <Link href="/product">管理产品 →</Link>
+            <Link href="/product" style={{ color: 'var(--alsvid-accent)', fontWeight: 700 }}>管理产品 →</Link>
           </div>
         </article>
 
         <article className={`${styles.panel} ${styles.activityPanel}`}>
           <header className={styles.panelHead}><div><span>ACTIVITY</span><h3>最新动态</h3></div></header>
-          <div className={styles.emptyPanelState}>
-            <span>暂无数据</span>
-          </div>
+          <div style={emptyPanelStyle}><span>暂无数据</span></div>
         </article>
       </section>
     </AppShell>
