@@ -113,16 +113,10 @@ export function AppShell({
           ))}
         </div>
         <nav className="mobileNavPanel"><NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} /></nav>
+        <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
       </details>
 
-      <div className="shellFrame">
-        <aside className={classNames.rail ?? 'rail'}>
-          <div className="contextRailTitle"><span>ALSVID</span><strong>{activeArea}</strong></div>
-          <nav className={classNames.nav} aria-label={`${activeArea} 二级导航`}>
-            <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />
-          </nav>
-          <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
-        </aside>
+      <div className="shellFrame" style={{ display: 'block' }}>
         <div className="adminBody">
           <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
         </div>
