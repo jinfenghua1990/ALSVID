@@ -94,10 +94,10 @@ jobs:
         if: ${{ !inputs.publish_only }}
         run: |
           set -euo pipefail
-          gcloud secrets add-iam-policy-binding alsvid-mail-api-key \\
-            --project "$GCP_PROJECT_ID" \\
-            --member "serviceAccount:${GCP_RUNTIME_SERVICE_ACCOUNT}" \\
-            --role roles/secretmanager.secretAccessor \\
+          gcloud secrets add-iam-policy-binding alsvid-mail-api-key \
+            --project "$GCP_PROJECT_ID" \
+            --member "serviceAccount:${GCP_RUNTIME_SERVICE_ACCOUNT}" \
+            --role roles/secretmanager.secretAccessor \
             --quiet
 
       - name: Log in to GitHub Container Registry
