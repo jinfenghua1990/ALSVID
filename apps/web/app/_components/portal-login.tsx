@@ -105,6 +105,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
   function handleClickCapture(event: MouseEvent) {
     if (authenticated && !setupRequired) return;
     const anchor = (event.target as HTMLElement).closest('a');
+    if (anchor?.getAttribute('href') === '/reset-password') return;
     if (!anchor) return;
     event.preventDefault(); event.stopPropagation(); openDialog();
   }
