@@ -1,20 +1,23 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ThemeToggle } from '@alsvid/ui';
 import styles from './portal-shell.module.css';
 
 export type PortalKind = 'admin' | 'dealer' | 'my';
 
 type PortalLink = { label: string; href: string; status?: string };
 
-const primaryNavigation = [
+type PrimaryLink = { label: string; href?: string; status?: string };
+
+const primaryNavigation: PrimaryLink[] = [
   { label: '首页', href: '/admin' },
   { label: '产品中心', href: '/product' },
-  { label: 'Vehicle 360', href: '/vehicles' },
-  { label: '订单管理', href: '/orders' },
+  { label: 'Vehicle 360', href: '/vehicle360' },
+  { label: '订单管理', href: '/commerce' },
   { label: '经销商', href: '/dealers' },
-  { label: '售后服务', href: '/service' },
-  { label: '配件 BOM', href: '/bom' },
-  { label: '客户中心', href: '/customers' },
+  { label: '售后服务', status: '规划中' },
+  { label: '配件 BOM', href: '/product#engineering' },
+  { label: '客户中心', status: '规划中' },
 ];
 
 const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: PortalLink[] }> = {
@@ -22,13 +25,13 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     name: 'ALSVID Admin',
     subtitle: '产品中心',
     links: [
-      { label: '产品系列', href: '/product' },
-      { label: '产品型号', href: '/product/models' },
-      { label: '配置管理', href: '/product/configuration' },
-      { label: 'BOM结构', href: '/bom' },
-      { label: '图片 / 视频素材', href: '/product/media' },
-      { label: '技术资料', href: '/product/documents' },
-      { label: '供应商管理', href: '/suppliers' },
+      { label: '产品系列', href: '/product#series' },
+      { label: '产品型号', href: '/product#models' },
+      { label: '配置管理', href: '/product#configuration' },
+      { label: 'BOM 结构', href: '/product#engineering' },
+      { label: '图片 / 视频素材', href: '/product#media', status: '规划中' },
+      { label: '技术资料', href: '/product#documents', status: '规划中' },
+      { label: '供应商管理', href: '/partners' },
     ],
   },
   dealer: {
@@ -36,6 +39,7 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     subtitle: '经销商门户',
     links: [
       { label: '工作台', href: '/dealer' },
+      { label: '我的公司', href: '/dealer/company', status: '待开发' },
       { label: '订单与物流', href: '/dealer/orders', status: '待开发' },
       { label: '车辆交付', href: '/dealer/vehicles', status: '待开发' },
       { label: '售后服务', href: '/dealer/service', status: '待开发' },
@@ -47,7 +51,9 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     links: [
       { label: '我的车辆', href: '/my' },
       { label: '车辆档案', href: '/my/vehicles', status: '待开发' },
-      { label: '服务记录', href: '/my/service', status: '待开发' },
+      { label: '保修与服务', href: '/my/service', status: '待开发' },
+      { label: '说明书与配件', href: '/my/library', status: '待开发' },
+      { label: '账户与偏好', href: '/my/account', status: '待开发' },
     ],
   },
 };
@@ -60,13 +66,16 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
       <header className={styles.header}>
         <Link className={styles.brand} href="/portal-launcher">ALSVID</Link>
         <nav className={styles.primaryNavigation} aria-label="主导航">
-          {primaryNavigation.map((item) => (
-            <Link key={item.href} href={item.href} className={styles.primaryNavItem}>
-              {item.label}
-            </Link>
+          {primaryNavigation.map((item) => item.href ? (
+            <Link key={item.label} href={item.href} className={styles.primaryNavItem}>{item.label}</Link>
+          ) : (
+            <span key={item.label} className={`${styles.primaryNavItem} ${styles.primaryNavDisabled}`} aria-disabled="true">{item.label}</span>
           ))}
         </nav>
-        <Link className={styles.launcherLink} href="/portal-launcher">Portal ↗</Link>
+        <div className={styles.headerTools}>
+          <ThemeToggle />
+          <Link className={styles.launcherLink} href="/portal-launcher">Portal ↗</Link>
+        </div>
       </header>
 
       <div className={styles.frame}>
@@ -81,7 +90,10 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
             ))}
           </nav>
         </aside>
-        <main className={styles.main}>{children}</main>
+        <main className={styles.main}>
+          <div className={styles.portalTitle}><span>{config.name}</span><small>{config.subtitle}</small></div>
+          {children}
+        </main>
       </div>
     </div>
   );
