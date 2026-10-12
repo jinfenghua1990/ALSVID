@@ -52,7 +52,6 @@ jobs:
           release_sha="$(git rev-parse HEAD)"
           git fetch origin main develop
           git merge-base --is-ancestor "$release_sha" origin/develop
-          git merge-base --is-ancestor origin/main "$release_sha"
           registry="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "registry=$registry" >> "$GITHUB_OUTPUT"
