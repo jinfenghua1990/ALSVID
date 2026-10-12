@@ -2,112 +2,303 @@
 
 import { AppShell } from '@alsvid/ui';
 import { navigationFor } from '../app-navigation';
-
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './inventory.module.css';
 
-type ItemKind='PART'|'SKU'|'VEHICLE';
-type Warehouse={id:string;code:string;name:string;country_code:string;timezone:string;partner_name:string|null;active:boolean};
-type Location={id:string;warehouse_id:string;warehouse_code:string;warehouse_name:string;code:string;name:string;location_type:string;active:boolean};
-type Part={id:string;part_number:string;name:string;default_unit:string};
-type Sku={id:string;sku:string;name:string};
-type Vehicle={id:string;vehicle_code:string;frame_number:string;sku:string};
-type Balance={item_kind:ItemKind;part_id:string|null;sku_id:string|null;vehicle_id:string|null;warehouse_code:string;warehouse_name:string;location_code:string;location_name:string;unit:string;on_hand:string;reserved:string;available:string;part_number:string|null;part_name:string|null;sku:string|null;sku_name:string|null;frame_number:string|null};
-type Movement={id:string;movement_number:string;movement_type:string;item_kind:ItemKind;part_number:string|null;sku:string|null;frame_number:string|null;quantity:string;unit:string;source_warehouse_code:string|null;source_location_code:string|null;destination_warehouse_code:string|null;destination_location_code:string|null;reason:string;occurred_at:string};
-type Reservation={id:string;item_kind:ItemKind;part_number:string|null;sku:string|null;frame_number:string|null;warehouse_code:string;location_code:string;quantity:string;unit:string;status:string;reference_type:string|null;created_at:string};
-type Stocktake={id:string;stocktake_number:string;warehouse_id:string;warehouse_code:string;warehouse_name:string;status:string;note:string;opened_at:string;closed_at:string|null};
-type Count={id:string;session_id:string;location_id:string;location_code:string;item_kind:ItemKind;part_number:string|null;sku:string|null;frame_number:string|null;counted_quantity:string;unit:string;counted_at:string};
-type InventorySummary={balances:Balance[];movements:Movement[];reservations:Reservation[]};
-type WarehouseSummary={warehouses:Warehouse[];locations:Location[];stocktakes:Stocktake[];counts:Count[]};
+type ItemKind = 'PART' | 'SKU' | 'VEHICLE';
+type Warehouse = { id: string; code: string; name: string; country_code: string; timezone: string; partner_name: string | null; active: boolean };
+type Location = { id: string; warehouse_id: string; warehouse_code: string; warehouse_name: string; code: string; name: string; location_type: string; active: boolean };
+type Part = { id: string; part_number: string; name: string; default_unit: string };
+type Sku = { id: string; sku: string; name: string };
+type Vehicle = { id: string; vehicle_code: string; frame_number: string; sku: string };
+type Balance = { item_kind: ItemKind; part_id: string | null; sku_id: string | null; vehicle_id: string | null; warehouse_code: string; warehouse_name: string; location_code: string; location_name: string; unit: string; on_hand: string; reserved: string; available: string; part_number: string | null; part_name: string | null; sku: string | null; sku_name: string | null; frame_number: string | null };
+type Movement = { id: string; movement_number: string; movement_type: string; item_kind: ItemKind; part_number: string | null; sku: string | null; frame_number: string | null; quantity: string; unit: string; source_warehouse_code: string | null; source_location_code: string | null; destination_warehouse_code: string | null; destination_location_code: string | null; reason: string; occurred_at: string };
+type Reservation = { id: string; item_kind: ItemKind; part_number: string | null; sku: string | null; frame_number: string | null; warehouse_code: string; location_code: string; quantity: string; unit: string; status: string; reference_type: string | null; created_at: string };
+type Stocktake = { id: string; stocktake_number: string; warehouse_id: string; warehouse_code: string; warehouse_name: string; status: string; note: string; opened_at: string; closed_at: string | null };
+type Count = { id: string; session_id: string; location_id: string; location_code: string; item_kind: ItemKind; part_number: string | null; sku: string | null; frame_number: string | null; counted_quantity: string; unit: string; counted_at: string };
+type InventorySummary = { balances: Balance[]; movements: Movement[]; reservations: Reservation[] };
+type WarehouseSummary = { warehouses: Warehouse[]; locations: Location[]; stocktakes: Stocktake[]; counts: Count[] };
 
-const emptyInventory:InventorySummary={balances:[],movements:[],reservations:[]};
-const emptyWarehouse:WarehouseSummary={warehouses:[],locations:[],stocktakes:[],counts:[]};
+const emptyInventory: InventorySummary = { balances: [], movements: [], reservations: [] };
+const emptyWarehouse: WarehouseSummary = { warehouses: [], locations: [], stocktakes: [], counts: [] };
 
-export default function InventoryClient(){
-  const router=useRouter();
-  const [inventory,setInventory]=useState<InventorySummary>(emptyInventory);
-  const [warehouse,setWarehouse]=useState<WarehouseSummary>(emptyWarehouse);
-  const [parts,setParts]=useState<Part[]>([]);
-  const [skus,setSkus]=useState<Sku[]>([]);
-  const [vehicles,setVehicles]=useState<Vehicle[]>([]);
-  const [movementKind,setMovementKind]=useState<ItemKind>('PART');
-  const [reservationKind,setReservationKind]=useState<ItemKind>('PART');
-  const [countKind,setCountKind]=useState<ItemKind>('PART');
-  const [adjustKind,setAdjustKind]=useState<ItemKind>('PART');
-  const [movementType,setMovementType]=useState('RECEIPT');
-  const [selectedStocktakeId,setSelectedStocktakeId]=useState('');
-  const [message,setMessage]=useState('');
+const itemKindLabel: Record<ItemKind, string> = { PART: '零部件', SKU: 'SKU', VEHICLE: '整车' };
+const movementTypeLabel: Record<string, string> = {
+  RECEIPT: '入库',
+  TRANSFER: '移库',
+  ISSUE: '出库',
+  RETURN: '退回',
+  ADJUSTMENT: '库存调整',
+  STOCKTAKE: '盘点调整',
+};
+const stocktakeStatusLabel: Record<string, string> = { OPEN: '盘点中', CLOSED: '已完成', CANCELLED: '已取消' };
 
-  async function api(path:string,init?:RequestInit){
-    const headers=new Headers(init?.headers);headers.set('content-type','application/json');
-    const response=await fetch(`/api/control${path}`,{...init,headers});
-    if(response.status===401){router.push('/login');throw new Error('Session expired');}
-    const payload=await response.json();if(!response.ok)throw new Error(payload?.message??'Request failed');return payload.data;
+function displayMovementType(value: string) { return movementTypeLabel[value] ?? value; }
+function displayStocktakeStatus(value: string) { return stocktakeStatusLabel[value] ?? value; }
+
+export default function InventoryClient() {
+  const router = useRouter();
+  const [inventory, setInventory] = useState<InventorySummary>(emptyInventory);
+  const [warehouse, setWarehouse] = useState<WarehouseSummary>(emptyWarehouse);
+  const [parts, setParts] = useState<Part[]>([]);
+  const [skus, setSkus] = useState<Sku[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [movementKind, setMovementKind] = useState<ItemKind>('PART');
+  const [reservationKind, setReservationKind] = useState<ItemKind>('PART');
+  const [countKind, setCountKind] = useState<ItemKind>('PART');
+  const [adjustKind, setAdjustKind] = useState<ItemKind>('PART');
+  const [movementType, setMovementType] = useState('RECEIPT');
+  const [selectedStocktakeId, setSelectedStocktakeId] = useState('');
+  const [message, setMessage] = useState('');
+
+  async function api(path: string, init?: RequestInit) {
+    const headers = new Headers(init?.headers);
+    headers.set('content-type', 'application/json');
+    const response = await fetch(`/api/control${path}`, { ...init, headers });
+    if (response.status === 401) {
+      router.push('/login');
+      throw new Error('登录状态已过期，请重新登录');
+    }
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload?.message ?? '请求失败');
+    return payload.data;
   }
 
-  async function reload(){
-    try{
-      const [inv,wh,engineering,product,vehicleRows]=await Promise.all([api('/v1/inventory'),api('/v1/warehouse'),api('/v1/engineering'),api('/v1/product'),api('/v1/vehicles')]);
-      setInventory(inv);setWarehouse(wh);setParts(engineering.parts);setSkus(product.skus);setVehicles(vehicleRows);
-      if(!selectedStocktakeId){const open=wh.stocktakes.find((item:Stocktake)=>item.status==='OPEN');if(open)setSelectedStocktakeId(open.id);}
-    }catch(error){setMessage(error instanceof Error?error.message:'Unable to load Inventory workspace');}
+  async function reload() {
+    try {
+      const [inv, wh, engineering, product, vehicleRows] = await Promise.all([
+        api('/v1/inventory'), api('/v1/warehouse'), api('/v1/engineering'), api('/v1/product'), api('/v1/vehicles'),
+      ]);
+      setInventory(inv);
+      setWarehouse(wh);
+      setParts(engineering.parts);
+      setSkus(product.skus);
+      setVehicles(vehicleRows);
+      if (!selectedStocktakeId) {
+        const open = wh.stocktakes.find((item: Stocktake) => item.status === 'OPEN');
+        if (open) setSelectedStocktakeId(open.id);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '无法加载库存与仓库工作台');
+    }
   }
-  useEffect(()=>{void reload();},[]);
 
-  function items(kind:ItemKind){
-    if(kind==='PART')return parts.map(item=>({id:item.id,label:`${item.part_number} · ${item.name}`,unit:item.default_unit}));
-    if(kind==='SKU')return skus.map(item=>({id:item.id,label:`${item.sku} · ${item.name}`,unit:'EA'}));
-    return vehicles.map(item=>({id:item.id,label:`${item.frame_number} · ${item.sku}`,unit:'EA'}));
+  useEffect(() => { void reload(); }, []);
+
+  function items(kind: ItemKind) {
+    if (kind === 'PART') return parts.map((item) => ({ id: item.id, label: `${item.part_number} · ${item.name}`, unit: item.default_unit }));
+    if (kind === 'SKU') return skus.map((item) => ({ id: item.id, label: `${item.sku} · ${item.name}`, unit: 'EA' }));
+    return vehicles.map((item) => ({ id: item.id, label: `${item.frame_number} · ${item.sku}`, unit: 'EA' }));
   }
-  function unitFor(kind:ItemKind,itemId:string){return items(kind).find(item=>item.id===itemId)?.unit??'EA';}
-  function label(balance:Balance){return balance.part_number??balance.sku??balance.frame_number??'Unknown';}
-  function movementLabel(row:Movement){return row.part_number??row.sku??row.frame_number??'Unknown';}
-  const activeReservations=inventory.reservations.filter(item=>item.status==='ACTIVE');
-  const selectedStocktake=warehouse.stocktakes.find(item=>item.id===selectedStocktakeId)??null;
-  const stocktakeCounts=selectedStocktake?warehouse.counts.filter(item=>item.session_id===selectedStocktake.id):[];
-  const metrics=useMemo(()=>({warehouses:warehouse.warehouses.length,locations:warehouse.locations.length,stockPositions:inventory.balances.length,activeReservations:inventory.reservations.filter(row=>row.status==='ACTIVE').length,openStocktakes:warehouse.stocktakes.filter(row=>row.status==='OPEN').length}),[inventory.balances,inventory.reservations,warehouse]);
 
-  async function action(path:string,body:unknown={}){try{await api(path,{method:'POST',body:JSON.stringify(body)});setMessage('Updated.');await reload();}catch(error){setMessage(error instanceof Error?error.message:'Unable to update');}}
-  async function submit(event:FormEvent<HTMLFormElement>,path:string,build:(form:FormData)=>unknown){event.preventDefault();const formElement=event.currentTarget;const form=new FormData(formElement);try{await api(path,{method:'POST',body:JSON.stringify(build(form))});setMessage('Saved.');formElement.reset();await reload();}catch(error){setMessage(error instanceof Error?error.message:'Unable to save');}}
+  function unitFor(kind: ItemKind, itemId: string) { return items(kind).find((item) => item.id === itemId)?.unit ?? 'EA'; }
+  function balanceLabel(balance: Balance) { return balance.part_number ?? balance.sku ?? balance.frame_number ?? '未知物料'; }
+  function movementLabel(row: Movement) { return row.part_number ?? row.sku ?? row.frame_number ?? '未知物料'; }
 
-  return <AppShell navigation={navigationFor('/inventory')} footer="ALSVID · 内部管理">
-    
-    <section>
-      <header className={styles.header}><div><div className={styles.eyebrow}>INVENTORY CONTROL</div><h1>Stock is a history, not an editable number.</h1><p>Every receipt, transfer, issue, adjustment and stocktake correction is append-only. On-hand and available stock are always derived from the ledger plus active reservations.</p></div></header>
-      {message?<div className={styles.notice}>{message}</div>:null}
-      <div className={styles.metrics}><div><span>WAREHOUSES</span><b>{metrics.warehouses}</b></div><div><span>LOCATIONS</span><b>{metrics.locations}</b></div><div><span>STOCK POSITIONS</span><b>{metrics.stockPositions}</b></div><div><span>ACTIVE RESERVATIONS</span><b>{metrics.activeReservations}</b></div><div><span>OPEN STOCKTAKES</span><b>{metrics.openStocktakes}</b></div></div>
+  const activeReservations = inventory.reservations.filter((item) => item.status === 'ACTIVE');
+  const selectedStocktake = warehouse.stocktakes.find((item) => item.id === selectedStocktakeId) ?? null;
+  const stocktakeCounts = selectedStocktake ? warehouse.counts.filter((item) => item.session_id === selectedStocktake.id) : [];
+  const metrics = useMemo(() => ({
+    warehouses: warehouse.warehouses.length,
+    locations: warehouse.locations.length,
+    stockPositions: inventory.balances.length,
+    activeReservations: activeReservations.length,
+    openStocktakes: warehouse.stocktakes.filter((row) => row.status === 'OPEN').length,
+  }), [inventory.balances, activeReservations.length, warehouse]);
 
-      <section className={styles.topGrid}>
-        <form className={styles.card} onSubmit={(event)=>void submit(event,'/v1/warehouse/warehouses',(form)=>({code:form.get('code'),name:form.get('name'),countryCode:form.get('countryCode'),timezone:form.get('timezone')}))}><span>WAREHOUSE MASTER</span><h2>Create warehouse</h2><div className={styles.inline}><input name="code" placeholder="DE-BERLIN" required/><input name="name" placeholder="Germany Warehouse" required/></div><div className={styles.inline}><input name="countryCode" defaultValue="DE" maxLength={2} required/><input name="timezone" defaultValue="Europe/Berlin" required/></div><button>Create warehouse</button></form>
-        <form className={styles.card} onSubmit={(event)=>void submit(event,'/v1/warehouse/locations',(form)=>({warehouseId:form.get('warehouseId'),code:form.get('code'),name:form.get('name'),locationType:form.get('locationType')}))}><span>WAREHOUSE LOCATION</span><h2>Create bin / staging area</h2><select name="warehouseId" required defaultValue=""><option value="" disabled>Warehouse</option>{warehouse.warehouses.map(item=><option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select><div className={styles.inline}><input name="code" placeholder="A01-01" required/><input name="name" placeholder="Storage A01-01" required/></div><select name="locationType"><option>STORAGE</option><option>RECEIVING</option><option>STAGING</option><option>PICK</option><option>QUARANTINE</option><option>DISPATCH</option></select><button>Create location</button></form>
-      </section>
+  async function action(path: string, body: unknown = {}) {
+    try {
+      await api(path, { method: 'POST', body: JSON.stringify(body) });
+      setMessage('操作已完成。');
+      await reload();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '操作失败');
+    }
+  }
 
-      <section className={styles.opsGrid}>
-        <form className={styles.card} onSubmit={(event)=>void submit(event,'/v1/inventory/movements',(form)=>{const kind=form.get('itemKind') as ItemKind;const itemId=String(form.get('itemId'));return{movementType:form.get('movementType'),itemKind:kind,itemId,unit:unitFor(kind,itemId),quantity:form.get('quantity'),sourceLocationId:form.get('sourceLocationId')||undefined,destinationLocationId:form.get('destinationLocationId')||undefined,reason:form.get('reason')||undefined,idempotencyKey:crypto.randomUUID()};})}><span>NORMAL MOVEMENT</span><h2>Receipt · Transfer · Issue · Return</h2><select name="movementType" value={movementType} onChange={event=>setMovementType(event.target.value)}><option>RECEIPT</option><option>TRANSFER</option><option>ISSUE</option><option>RETURN</option></select><select name="itemKind" value={movementKind} onChange={event=>setMovementKind(event.target.value as ItemKind)}><option>PART</option><option>SKU</option><option>VEHICLE</option></select><select name="itemId" required defaultValue=""><option value="" disabled>Inventory item</option>{items(movementKind).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><input name="quantity" inputMode="decimal" defaultValue={movementKind==='VEHICLE'?'1':''} placeholder="Quantity" required/><div className={styles.inline}><select name="sourceLocationId" defaultValue=""><option value="">No source</option>{warehouse.locations.map(item=><option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select><select name="destinationLocationId" defaultValue=""><option value="">No destination</option>{warehouse.locations.map(item=><option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select></div><input name="reason" placeholder={`${movementType} reason / reference`}/><button>Post immutable movement</button></form>
+  async function submit(event: FormEvent<HTMLFormElement>, path: string, build: (form: FormData) => unknown) {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    try {
+      await api(path, { method: 'POST', body: JSON.stringify(build(form)) });
+      setMessage('已保存。');
+      formElement.reset();
+      await reload();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '保存失败');
+    }
+  }
 
-        <form className={styles.card} onSubmit={(event)=>void submit(event,'/v1/inventory/reservations',(form)=>{const kind=form.get('itemKind') as ItemKind;const itemId=String(form.get('itemId'));return{itemKind:kind,itemId,unit:unitFor(kind,itemId),locationId:form.get('locationId'),quantity:form.get('quantity'),referenceType:form.get('referenceType')||undefined,note:form.get('note')||undefined};})}><span>RESERVATION</span><h2>Protect stock for demand</h2><select name="itemKind" value={reservationKind} onChange={event=>setReservationKind(event.target.value as ItemKind)}><option>PART</option><option>SKU</option><option>VEHICLE</option></select><select name="itemId" required defaultValue=""><option value="" disabled>Inventory item</option>{items(reservationKind).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><select name="locationId" required defaultValue=""><option value="" disabled>Reserve from location</option>{warehouse.locations.map(item=><option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select><input name="quantity" inputMode="decimal" defaultValue={reservationKind==='VEHICLE'?'1':''} placeholder="Quantity" required/><input name="referenceType" placeholder="DEALER_ORDER / SHIPMENT / COMMERCE"/><input name="note" placeholder="Reservation note"/><button>Create reservation</button></form>
+  return (
+    <AppShell navigation={navigationFor('/inventory')} footer="ALSVID · 库存 / 仓库">
+      <section>
+        <header className={styles.header}>
+          <div>
+            <div className={styles.eyebrow}>库存控制 / INVENTORY CONTROL</div>
+            <h1>库存是可追溯的历史，不是可随意改写的数字。</h1>
+            <p>收货、移库、出库、退回、调整与盘点修正全部追加记录。现存量与可用量始终由库存流水和有效预留共同推导。</p>
+          </div>
+        </header>
+        {message ? <div className={styles.notice}>{message}</div> : null}
 
-        <form className={styles.card} onSubmit={(event)=>void submit(event,'/v1/inventory/movements',(form)=>{const kind=form.get('itemKind') as ItemKind;const itemId=String(form.get('itemId'));const direction=String(form.get('direction'));const locationId=String(form.get('locationId'));return{movementType:'ADJUSTMENT',itemKind:kind,itemId,unit:unitFor(kind,itemId),quantity:form.get('quantity'),sourceLocationId:direction==='OUT'?locationId:undefined,destinationLocationId:direction==='IN'?locationId:undefined,reason:form.get('reason'),idempotencyKey:crypto.randomUUID()};})}><span>CONTROLLED ADJUSTMENT</span><h2>Privileged correction</h2><select name="direction"><option value="IN">INCREASE</option><option value="OUT">DECREASE</option></select><select name="itemKind" value={adjustKind} onChange={event=>setAdjustKind(event.target.value as ItemKind)}><option>PART</option><option>SKU</option><option>VEHICLE</option></select><select name="itemId" required defaultValue=""><option value="" disabled>Inventory item</option>{items(adjustKind).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><select name="locationId" required defaultValue=""><option value="" disabled>Location</option>{warehouse.locations.map(item=><option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select><input name="quantity" inputMode="decimal" placeholder="Quantity" required/><input name="reason" placeholder="Adjustment reason is mandatory operational evidence" required/><button>Post adjustment</button></form>
-      </section>
-
-      <section className={styles.twoCol}>
-        <div className={styles.panel}><div className={styles.sectionHead}><span>AVAILABLE STOCK</span><h2>Derived location balances</h2></div><div className={styles.tableWrap}><table><thead><tr><th>Item</th><th>Type</th><th>Warehouse / Location</th><th>On hand</th><th>Reserved</th><th>Available</th></tr></thead><tbody>{inventory.balances.map((row,index)=><tr key={`${row.item_kind}-${row.part_id??row.sku_id??row.vehicle_id}-${row.location_code}-${index}`}><td><b>{label(row)}</b></td><td>{row.item_kind}</td><td>{row.warehouse_code}/{row.location_code}</td><td>{row.on_hand} {row.unit}</td><td>{row.reserved}</td><td><b>{row.available}</b></td></tr>)}</tbody></table>{!inventory.balances.length?<p className={styles.empty}>No stock has been posted yet.</p>:null}</div></div>
-        <div className={styles.panel}><div className={styles.sectionHead}><span>ACTIVE RESERVATIONS</span><h2>Protected demand</h2></div>{activeReservations.map(row=><article className={styles.row} key={row.id}><div><b>{row.part_number??row.sku??row.frame_number}</b><span>{row.warehouse_code}/{row.location_code} · {row.quantity} {row.unit}</span><small>{row.reference_type??'No external reference'}</small></div><div className={styles.rowActions}><button onClick={()=>void action(`/v1/inventory/reservations/${row.id}/issue`,{idempotencyKey:crypto.randomUUID(),reason:'Reserved stock issue'})}>Issue</button><button className={styles.secondary} onClick={()=>void action(`/v1/inventory/reservations/${row.id}/release`)}>Release</button></div></article>)}{!activeReservations.length?<p className={styles.empty}>No active reservations.</p>:null}</div>
-      </section>
-
-      <section className={styles.stocktakePanel}>
-        <div className={styles.sectionHead}><span>STOCKTAKE</span><h2>Count evidence → correction movements</h2><p>Counts never overwrite stock. Closing a session compares the latest count with the movement ledger and posts only the required compensating movement.</p></div>
-        <div className={styles.stocktakeGrid}>
-          <form className={styles.card} onSubmit={(event)=>void submit(event,'/v1/warehouse/stocktakes',(form)=>({warehouseId:form.get('warehouseId'),note:form.get('note')||undefined}))}><span>OPEN SESSION</span><select name="warehouseId" required defaultValue=""><option value="" disabled>Warehouse</option>{warehouse.warehouses.map(item=><option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select><input name="note" placeholder="Cycle count / annual stocktake"/><button>Open stocktake</button></form>
-          <div className={styles.stocktakeList}>{warehouse.stocktakes.map(item=><button key={item.id} className={selectedStocktakeId===item.id?styles.selected:''} onClick={()=>setSelectedStocktakeId(item.id)}><b>{item.stocktake_number}</b><span>{item.warehouse_code} · {item.status}</span><small>{new Date(item.opened_at).toLocaleString()}</small></button>)}</div>
-          {selectedStocktake?<form className={styles.card} onSubmit={(event)=>void submit(event,`/v1/warehouse/stocktakes/${selectedStocktake.id}/counts`,(form)=>{const kind=form.get('itemKind') as ItemKind;const itemId=String(form.get('itemId'));return{locationId:form.get('locationId'),itemKind:kind,itemId,countedQuantity:form.get('countedQuantity'),unit:unitFor(kind,itemId)};})}><span>APPEND COUNT</span><select name="locationId" required defaultValue=""><option value="" disabled>Location</option>{warehouse.locations.filter(item=>item.warehouse_id===selectedStocktake.warehouse_id).map(item=><option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select><select name="itemKind" value={countKind} onChange={event=>setCountKind(event.target.value as ItemKind)}><option>PART</option><option>SKU</option><option>VEHICLE</option></select><select name="itemId" required defaultValue=""><option value="" disabled>Inventory item</option>{items(countKind).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><input name="countedQuantity" inputMode="decimal" placeholder="Physical count" required/><button disabled={selectedStocktake.status!=='OPEN'}>Record count evidence</button></form>:<div className={styles.card}><p className={styles.empty}>Select a stocktake session.</p></div>}
+        <div className={styles.metrics}>
+          <div><span>仓库</span><b>{metrics.warehouses}</b></div>
+          <div><span>库位</span><b>{metrics.locations}</b></div>
+          <div><span>库存位置</span><b>{metrics.stockPositions}</b></div>
+          <div><span>有效预留</span><b>{metrics.activeReservations}</b></div>
+          <div><span>进行中盘点</span><b>{metrics.openStocktakes}</b></div>
         </div>
-        {selectedStocktake?<div className={styles.stocktakeDetail}><div><b>{selectedStocktake.stocktake_number}</b><span>{selectedStocktake.warehouse_name} · {selectedStocktake.status}</span></div><div className={styles.rowActions}>{selectedStocktake.status==='OPEN'?<><button onClick={()=>void action(`/v1/warehouse/stocktakes/${selectedStocktake.id}/close`)}>Close & reconcile</button><button className={styles.secondary} onClick={()=>void action(`/v1/warehouse/stocktakes/${selectedStocktake.id}/cancel`)}>Cancel</button></>:null}</div></div>:null}
-        {stocktakeCounts.length?<div className={styles.counts}>{stocktakeCounts.map(row=><div key={row.id}><b>{row.part_number??row.sku??row.frame_number}</b><span>{row.location_code} · {row.counted_quantity} {row.unit}</span><small>{new Date(row.counted_at).toLocaleString()}</small></div>)}</div>:null}
-      </section>
 
-      <section className={styles.panel}><div className={styles.sectionHead}><span>MOVEMENT HISTORY</span><h2>Immutable stock timeline</h2></div><div className={styles.tableWrap}><table><thead><tr><th>Movement</th><th>Item</th><th>Type</th><th>Route</th><th>Quantity</th><th>Time</th></tr></thead><tbody>{inventory.movements.map(row=><tr key={row.id}><td>{row.movement_number}</td><td><b>{movementLabel(row)}</b></td><td>{row.movement_type}</td><td>{row.source_warehouse_code?`${row.source_warehouse_code}/${row.source_location_code}`:'External'} → {row.destination_warehouse_code?`${row.destination_warehouse_code}/${row.destination_location_code}`:'External'}</td><td>{row.quantity} {row.unit}</td><td>{new Date(row.occurred_at).toLocaleString()}</td></tr>)}</tbody></table>{!inventory.movements.length?<p className={styles.empty}>No inventory movements yet.</p>:null}</div></section>
-    </section>
-  </AppShell>;
+        <section className={styles.topGrid}>
+          <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/warehouse/warehouses', (form) => ({ code: form.get('code'), name: form.get('name'), countryCode: form.get('countryCode'), timezone: form.get('timezone') }))}>
+            <span>仓库主数据</span><h2>创建仓库</h2>
+            <div className={styles.inline}><input name="code" placeholder="例如：DE-BERLIN" required /><input name="name" placeholder="例如：德国仓" required /></div>
+            <div className={styles.inline}><input name="countryCode" defaultValue="DE" maxLength={2} required /><input name="timezone" defaultValue="Europe/Berlin" required /></div>
+            <button>创建仓库</button>
+          </form>
+
+          <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/warehouse/locations', (form) => ({ warehouseId: form.get('warehouseId'), code: form.get('code'), name: form.get('name'), locationType: form.get('locationType') }))}>
+            <span>仓库库位</span><h2>创建库位 / 暂存区</h2>
+            <select name="warehouseId" required defaultValue=""><option value="" disabled>选择仓库</option>{warehouse.warehouses.map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select>
+            <div className={styles.inline}><input name="code" placeholder="例如：A01-01" required /><input name="name" placeholder="例如：A01-01 存储位" required /></div>
+            <select name="locationType" defaultValue="STORAGE">
+              <option value="STORAGE">存储</option><option value="RECEIVING">收货</option><option value="STAGING">暂存</option><option value="PICK">拣货</option><option value="QUARANTINE">隔离</option><option value="DISPATCH">发货</option>
+            </select>
+            <button>创建库位</button>
+          </form>
+        </section>
+
+        <section className={styles.opsGrid}>
+          <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/inventory/movements', (form) => {
+            const kind = form.get('itemKind') as ItemKind;
+            const itemId = String(form.get('itemId'));
+            return { movementType: form.get('movementType'), itemKind: kind, itemId, unit: unitFor(kind, itemId), quantity: form.get('quantity'), sourceLocationId: form.get('sourceLocationId') || undefined, destinationLocationId: form.get('destinationLocationId') || undefined, reason: form.get('reason') || undefined, idempotencyKey: crypto.randomUUID() };
+          })}>
+            <span>正常库存流水</span><h2>入库 · 移库 · 出库 · 退回</h2>
+            <select name="movementType" value={movementType} onChange={(event) => setMovementType(event.target.value)}>
+              <option value="RECEIPT">入库</option><option value="TRANSFER">移库</option><option value="ISSUE">出库</option><option value="RETURN">退回</option>
+            </select>
+            <select name="itemKind" value={movementKind} onChange={(event) => setMovementKind(event.target.value as ItemKind)}>
+              <option value="PART">零部件</option><option value="SKU">SKU</option><option value="VEHICLE">整车</option>
+            </select>
+            <select name="itemId" required defaultValue=""><option value="" disabled>选择库存对象</option>{items(movementKind).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+            <input name="quantity" inputMode="decimal" defaultValue={movementKind === 'VEHICLE' ? '1' : ''} placeholder="数量" required />
+            <div className={styles.inline}>
+              <select name="sourceLocationId" defaultValue=""><option value="">无来源库位</option>{warehouse.locations.map((item) => <option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select>
+              <select name="destinationLocationId" defaultValue=""><option value="">无目标库位</option>{warehouse.locations.map((item) => <option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select>
+            </div>
+            <input name="reason" placeholder={`${displayMovementType(movementType)}原因 / 外部引用`} />
+            <button>写入不可变库存流水</button>
+          </form>
+
+          <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/inventory/reservations', (form) => {
+            const kind = form.get('itemKind') as ItemKind;
+            const itemId = String(form.get('itemId'));
+            return { itemKind: kind, itemId, unit: unitFor(kind, itemId), locationId: form.get('locationId'), quantity: form.get('quantity'), referenceType: form.get('referenceType') || undefined, note: form.get('note') || undefined };
+          })}>
+            <span>库存预留</span><h2>为订单 / 履约锁定库存</h2>
+            <select name="itemKind" value={reservationKind} onChange={(event) => setReservationKind(event.target.value as ItemKind)}><option value="PART">零部件</option><option value="SKU">SKU</option><option value="VEHICLE">整车</option></select>
+            <select name="itemId" required defaultValue=""><option value="" disabled>选择库存对象</option>{items(reservationKind).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+            <select name="locationId" required defaultValue=""><option value="" disabled>选择预留库位</option>{warehouse.locations.map((item) => <option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select>
+            <input name="quantity" inputMode="decimal" defaultValue={reservationKind === 'VEHICLE' ? '1' : ''} placeholder="数量" required />
+            <input name="referenceType" placeholder="引用类型：DEALER_ORDER / SHIPMENT / COMMERCE" />
+            <input name="note" placeholder="预留备注" />
+            <button>创建库存预留</button>
+          </form>
+
+          <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/inventory/movements', (form) => {
+            const kind = form.get('itemKind') as ItemKind;
+            const itemId = String(form.get('itemId'));
+            const direction = String(form.get('direction'));
+            const locationId = String(form.get('locationId'));
+            return { movementType: 'ADJUSTMENT', itemKind: kind, itemId, unit: unitFor(kind, itemId), quantity: form.get('quantity'), sourceLocationId: direction === 'OUT' ? locationId : undefined, destinationLocationId: direction === 'IN' ? locationId : undefined, reason: form.get('reason'), idempotencyKey: crypto.randomUUID() };
+          })}>
+            <span>受控库存调整</span><h2>有依据的库存修正</h2>
+            <select name="direction"><option value="IN">增加库存</option><option value="OUT">减少库存</option></select>
+            <select name="itemKind" value={adjustKind} onChange={(event) => setAdjustKind(event.target.value as ItemKind)}><option value="PART">零部件</option><option value="SKU">SKU</option><option value="VEHICLE">整车</option></select>
+            <select name="itemId" required defaultValue=""><option value="" disabled>选择库存对象</option>{items(adjustKind).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+            <select name="locationId" required defaultValue=""><option value="" disabled>选择库位</option>{warehouse.locations.map((item) => <option key={item.id} value={item.id}>{item.warehouse_code}/{item.code}</option>)}</select>
+            <input name="quantity" inputMode="decimal" placeholder="数量" required />
+            <input name="reason" placeholder="必须填写库存调整原因，作为运营证据" required />
+            <button>提交库存调整</button>
+          </form>
+        </section>
+
+        <section className={styles.twoCol}>
+          <div className={styles.panel}>
+            <div className={styles.sectionHead}><span>可用库存</span><h2>按库位推导的库存余额</h2></div>
+            <div className={styles.tableWrap}>
+              <table><thead><tr><th>库存对象</th><th>类型</th><th>仓库 / 库位</th><th>现存量</th><th>已预留</th><th>可用量</th></tr></thead>
+                <tbody>{inventory.balances.map((row, index) => <tr key={`${row.item_kind}-${row.part_id ?? row.sku_id ?? row.vehicle_id}-${row.location_code}-${index}`}><td><b>{balanceLabel(row)}</b></td><td>{itemKindLabel[row.item_kind]}</td><td>{row.warehouse_code}/{row.location_code}</td><td>{row.on_hand} {row.unit}</td><td>{row.reserved}</td><td><b>{row.available}</b></td></tr>)}</tbody>
+              </table>
+              {!inventory.balances.length ? <p className={styles.empty}>暂无库存流水，因此没有可显示的库存余额。</p> : null}
+            </div>
+          </div>
+
+          <div className={styles.panel}>
+            <div className={styles.sectionHead}><span>有效预留</span><h2>已锁定需求</h2></div>
+            {activeReservations.map((row) => <article className={styles.row} key={row.id}>
+              <div><b>{row.part_number ?? row.sku ?? row.frame_number}</b><span>{row.warehouse_code}/{row.location_code} · {row.quantity} {row.unit}</span><small>{row.reference_type ?? '无外部引用'}</small></div>
+              <div className={styles.rowActions}><button onClick={() => void action(`/v1/inventory/reservations/${row.id}/issue`, { idempotencyKey: crypto.randomUUID(), reason: '预留库存出库' })}>确认出库</button><button className={styles.secondary} onClick={() => void action(`/v1/inventory/reservations/${row.id}/release`)}>释放预留</button></div>
+            </article>)}
+            {!activeReservations.length ? <p className={styles.empty}>暂无有效库存预留。</p> : null}
+          </div>
+        </section>
+
+        <section className={styles.stocktakePanel}>
+          <div className={styles.sectionHead}>
+            <span>库存盘点</span><h2>盘点证据 → 修正流水</h2>
+            <p>盘点数量不会直接覆盖库存。关闭盘点时，系统比较最新实盘数量与库存流水，并仅生成必要的补偿流水。</p>
+          </div>
+          <div className={styles.stocktakeGrid}>
+            <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/warehouse/stocktakes', (form) => ({ warehouseId: form.get('warehouseId'), note: form.get('note') || undefined }))}>
+              <span>新建盘点</span>
+              <select name="warehouseId" required defaultValue=""><option value="" disabled>选择仓库</option>{warehouse.warehouses.map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select>
+              <input name="note" placeholder="循环盘点 / 年度盘点备注" />
+              <button>开始盘点</button>
+            </form>
+
+            <div className={styles.stocktakeList}>
+              {warehouse.stocktakes.map((item) => <button key={item.id} className={selectedStocktakeId === item.id ? styles.selected : ''} onClick={() => setSelectedStocktakeId(item.id)}><b>{item.stocktake_number}</b><span>{item.warehouse_code} · {displayStocktakeStatus(item.status)}</span><small>{new Date(item.opened_at).toLocaleString()}</small></button>)}
+              {!warehouse.stocktakes.length ? <p className={styles.empty}>暂无盘点会话。</p> : null}
+            </div>
+
+            {selectedStocktake ? (
+              <form className={styles.card} onSubmit={(event) => void submit(event, `/v1/warehouse/stocktakes/${selectedStocktake.id}/counts`, (form) => {
+                const kind = form.get('itemKind') as ItemKind;
+                const itemId = String(form.get('itemId'));
+                return { locationId: form.get('locationId'), itemKind: kind, itemId, countedQuantity: form.get('countedQuantity'), unit: unitFor(kind, itemId) };
+              })}>
+                <span>追加实盘数量</span>
+                <select name="locationId" required defaultValue=""><option value="" disabled>选择库位</option>{warehouse.locations.filter((item) => item.warehouse_id === selectedStocktake.warehouse_id).map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select>
+                <select name="itemKind" value={countKind} onChange={(event) => setCountKind(event.target.value as ItemKind)}><option value="PART">零部件</option><option value="SKU">SKU</option><option value="VEHICLE">整车</option></select>
+                <select name="itemId" required defaultValue=""><option value="" disabled>选择库存对象</option>{items(countKind).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+                <input name="countedQuantity" inputMode="decimal" placeholder="实盘数量" required />
+                <button disabled={selectedStocktake.status !== 'OPEN'}>记录盘点证据</button>
+              </form>
+            ) : <div className={styles.card}><p className={styles.empty}>请选择一个盘点会话。</p></div>}
+          </div>
+
+          {selectedStocktake ? <div className={styles.stocktakeDetail}>
+            <div><b>{selectedStocktake.stocktake_number}</b><span>{selectedStocktake.warehouse_name} · {displayStocktakeStatus(selectedStocktake.status)}</span></div>
+            <div className={styles.rowActions}>{selectedStocktake.status === 'OPEN' ? <><button onClick={() => void action(`/v1/warehouse/stocktakes/${selectedStocktake.id}/close`)}>关闭并对账</button><button className={styles.secondary} onClick={() => void action(`/v1/warehouse/stocktakes/${selectedStocktake.id}/cancel`)}>取消盘点</button></> : null}</div>
+          </div> : null}
+
+          {stocktakeCounts.length ? <div className={styles.counts}>{stocktakeCounts.map((row) => <div key={row.id}><b>{row.part_number ?? row.sku ?? row.frame_number}</b><span>{row.location_code} · {row.counted_quantity} {row.unit}</span><small>{new Date(row.counted_at).toLocaleString()}</small></div>)}</div> : null}
+        </section>
+
+        <section className={styles.panel}>
+          <div className={styles.sectionHead}><span>库存流水历史</span><h2>不可变库存时间线</h2></div>
+          <div className={styles.tableWrap}>
+            <table><thead><tr><th>流水号</th><th>库存对象</th><th>类型</th><th>路径</th><th>数量</th><th>时间</th></tr></thead>
+              <tbody>{inventory.movements.map((row) => <tr key={row.id}><td>{row.movement_number}</td><td><b>{movementLabel(row)}</b></td><td>{displayMovementType(row.movement_type)}</td><td>{row.source_warehouse_code ? `${row.source_warehouse_code}/${row.source_location_code}` : '外部'} → {row.destination_warehouse_code ? `${row.destination_warehouse_code}/${row.destination_location_code}` : '外部'}</td><td>{row.quantity} {row.unit}</td><td>{new Date(row.occurred_at).toLocaleString()}</td></tr>)}</tbody>
+            </table>
+            {!inventory.movements.length ? <p className={styles.empty}>暂无库存流水。</p> : null}
+          </div>
+        </section>
+      </section>
+    </AppShell>
+  );
 }
