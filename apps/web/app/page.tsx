@@ -12,13 +12,15 @@ const portals = [
 export default async function PortalLauncherPage() {
   const session = await readInternalPreviewSession();
   const isProduction = process.env.ALSVID_ENV === 'production';
+  const releaseSha = process.env.ALSVID_RELEASE_SHA;
+  const release = releaseSha && /^[a-f0-9]{40}$/i.test(releaseSha) ? releaseSha.slice(0, 8) : '未提供';
   return (
     <PortalLoginGate authenticated={Boolean(session)}>
       <main className={styles.page}>
         <header className={styles.header}>
           <Link className={styles.wordmark} href="/">△ ALSVID</Link>
           <div className={styles.headerRight}>
-            <span className={styles.environment}><i /> {isProduction ? 'PRODUCTION' : 'TEST ENVIRONMENT'}⌄</span>
+            <span className={styles.environment}><i /> {isProduction ? '正式环境' : '开发环境'}</span>
             {session ? (
               <>
                 <span className={styles.user}><b>◯</b><span>{session.displayName || 'ALSVID User'}<small>{session.email}</small></span></span>
@@ -46,10 +48,10 @@ export default async function PortalLauncherPage() {
           ))}
         </section>
         <aside className={styles.statusBar}>
-          <span>◉ <b>System Status</b><strong>All Systems Operational</strong></span>
-          <span>▱ <b>Environment</b><strong>{isProduction ? 'PRODUCTION' : 'TEST'}</strong></span>
-          <span>◇ <b>Version</b><strong>v0.1.0</strong></span>
-          <span>◷ <b>Last Updated</b><strong>Just now</strong></span>
+          <span>◉ <b>服务状态</b><strong>尚未检测</strong></span>
+          <span>▱ <b>运行环境</b><strong>{isProduction ? '正式环境' : '开发环境'}</strong></span>
+          <span>◇ <b>发布版本</b><strong>{release}</strong></span>
+          <span>◷ <b>登录状态</b><strong>{session ? '已登录' : '未登录'}</strong></span>
         </aside>
         <footer className={styles.footer}><span>ALSVID &nbsp;|&nbsp; RIDE FURTHER · LIVE WIDER</span><Link href="/overview">返回管理概览</Link></footer>
       </main>

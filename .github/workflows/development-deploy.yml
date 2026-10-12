@@ -185,7 +185,7 @@ jobs:
             --min 0 \
             --max 2 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,ALSVID_ENV=development,ALSVID_COOKIE_SECURE=true,ALSVID_API_BASE_URL=${API_URL}/api" \
+            --set-env-vars "NODE_ENV=production,ALSVID_ENV=development,ALSVID_COOKIE_SECURE=true,ALSVID_API_BASE_URL=${API_URL}/api,ALSVID_RELEASE_SHA=$RELEASE_SHA" \
             --quiet
 
       - name: Verify Development Web and record candidate

@@ -216,7 +216,7 @@ jobs:
             --min 0 \
             --max 3 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_API_BASE_URL=${API_URL}/api" \
+            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_API_BASE_URL=${API_URL}/api,ALSVID_RELEASE_SHA=$RELEASE_SHA" \
             --quiet
 
       - name: Verify Web and record deployed release

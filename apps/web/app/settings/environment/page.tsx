@@ -14,7 +14,7 @@ export default function EnvironmentPage() {
   const storageReady = configured(process.env.OBJECT_STORAGE_BUCKET)
     && configured(process.env.OBJECT_STORAGE_ACCESS_KEY)
     && configured(process.env.OBJECT_STORAGE_SECRET_KEY);
-  const releaseSha = process.env.K_REVISION ?? process.env.GITHUB_SHA ?? '未注入';
+  const releaseSha = process.env.ALSVID_RELEASE_SHA ?? process.env.K_REVISION ?? process.env.GITHUB_SHA ?? '未注入';
   const bucket = process.env.OBJECT_STORAGE_BUCKET ?? (isProduction ? 'alsvid-production（预期）' : 'R2 Development（待注入）');
 
   return (
