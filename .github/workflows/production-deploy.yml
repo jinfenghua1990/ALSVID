@@ -26,7 +26,6 @@ concurrency:
 env:
   WEB_SERVICE: alsvid-web
   API_SERVICE: alsvid-api
-  WORKER_POOL: alsvid-worker
   MIGRATION_JOB: alsvid-migrate
 
 jobs:
@@ -96,7 +95,6 @@ jobs:
           set -euo pipefail
           docker build --platform linux/amd64 --build-arg ALSVID_ENV=production -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
           docker build -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
-          docker build -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3
@@ -118,7 +116,6 @@ jobs:
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
           docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
           docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
-          docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
 
       - name: Run database migrations as an explicit release job
         env:
@@ -173,29 +170,6 @@ jobs:
             --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
             --quiet
 
-      - name: Deploy continuous worker pool
-        env:
-          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          GCP_REGION: ${{ vars.GCP_REGION }}
-          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
-          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
-          R2_BUCKET: ${{ vars.R2_BUCKET }}
-          REGISTRY: ${{ steps.release.outputs.registry }}
-          RELEASE_SHA: ${{ steps.release.outputs.sha }}
-        run: |
-          set -euo pipefail
-          gcloud run worker-pools deploy "$WORKER_POOL" \
-            --project "$GCP_PROJECT_ID" \
-            --region "$GCP_REGION" \
-            --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
-            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
-            --instances 1 \
-            --cpu 1 \
-            --memory 512Mi \
-            --set-env-vars "NODE_ENV=production,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
-            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
-            --quiet
-
       - name: Resolve API URL and verify health
         id: api
         env:
@@ -245,7 +219,6 @@ jobs:
             echo "- Release: $RELEASE_SHA"
             echo "- Web: $web_url"
             echo "- API: ${{ steps.api.outputs.url }}"
-            echo "- Worker pool: $WORKER_POOL"
           } >> "$GITHUB_STEP_SUMMARY"
 
   sync-development:
