@@ -13,7 +13,7 @@ const series = [
 
 const modules = [
   { name: '产品中心', detail: '产品系列、车型、Variant、SKU 与工程资料', status: '已可用', href: '/product' },
-  { name: 'Vehicle 360', detail: '按车辆记录生产、交付与后续生命周期事实', status: '基础', href: '/production' },
+  { name: 'Vehicle 360', detail: '当前可查看生产、质检与车辆出生记录；交付和所有权档案待完善', status: '基础', href: '/production' },
   { name: '订单管理', detail: '查看外部商业订单事实、供应、库存、物流与结算', status: '已可用', href: '/commerce' },
   { name: '经销商', detail: '经销商与合作伙伴业务信息', status: '已可用', href: '/dealers' },
   { name: '售后服务', detail: '保修、维修与配件历史工作台', status: '规划中', href: null },
@@ -34,7 +34,7 @@ export default async function AdminPortalPage() {
           <p className={styles.lead}>产品中心管理“卖什么”，Vehicle 360 管理“每一台真实车辆发生过什么”。订单、经销商与售后围绕这两条主线展开。</p>
           <div className={styles.heroActions}>
             <Link className={styles.primaryAction} href="/product">进入产品中心</Link>
-            <Link className={styles.secondaryAction} href="/production">查看 Vehicle 360</Link>
+            <Link className={styles.secondaryAction} href="/production">查看生产与车辆出生记录</Link>
           </div>
         </div>
         <div className={styles.heroMark} aria-hidden="true">
@@ -86,7 +86,7 @@ export default async function AdminPortalPage() {
           <span>VEHICLE 360</span>
           <h2>一台车，从出生到售后的完整档案。</h2>
           <p>当前 Vehicle 360 是业务全流程追踪，不是联网车辆健康监控。没有实时 GPS、BMS、OTA 或远程诊断数据时，界面不会制造这些状态。</p>
-          <Link href="/production">进入全流程追踪 →</Link>
+          <Link href="/production">查看生产与车辆出生记录 →</Link>
         </div>
         <div className={styles.lifecycle}>
           {lifecycle.map((step, index) => (

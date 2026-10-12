@@ -158,3 +158,13 @@ The Portal Launcher has Chinese-first Admin/Dealer/My entry cards, a server-vali
 ## M1 Test update automation — repository support
 
 The macOS per-user updater in `scripts/macos-test-auto-update.mjs` can discover an existing checkout, register five-minute checks and update a separate managed Test checkout only after current-main CI and Development/Test Build pass. It reuses Test configuration/project identity and checks service health. It does not change Production or developer branches. See `docs/M1_TEST_AUTO_UPDATE.md`. Installation and end-to-end acceptance on the actual M1 are pending; the repository capability does not claim a registered local agent.
+
+## Portal and transaction reliability follow-up — 2026-10-12
+
+- The business overview navigation targets `/overview`, while `/` remains the public portal launcher.
+- Portal environment labels use 开发环境 / 正式环境. The launcher no longer claims unmeasured service health or a fabricated update time/version.
+- Development and Production Web releases inject `ALSVID_RELEASE_SHA`; the launcher and environment diagnostics show the deployed source identity when available.
+- The existing Vehicle 360 entry accurately labels the available Production/QC/Vehicle Birth foundation; handover and ownership remain roadmap work.
+- Database transaction error listeners are scoped to one checkout and removed before release. Connections with client errors or failed rollback are discarded without hiding the original operation error. Regression tests cover repeated client reuse and failure cleanup.
+
+Cloud acceptance remains separate: the observed Development deployment failed during variable validation (`GCP_PROJECT_ID` missing). Google Secret Manager is still the secret authority, with separate resources in `alsvid-dev` and `alsvid-prod`. This follow-up does not provision cloud resources or assert successful cloud deployment.
