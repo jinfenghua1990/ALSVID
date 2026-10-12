@@ -79,9 +79,9 @@ export function AppShell({
   });
 
   return (
-    <main className={`${classNames.shell ?? 'shell'} shellV2`}>
+    <main className={`shellV2 ${classNames.shell ?? ''}`.trim()} data-alsvid-app-shell="true">
       <header className="primaryHeader">
-        <a className={`primaryBrand ${classNames.brand ?? ''}`} href={brandHref}>{brand}</a>
+        <a className={`primaryBrand ${classNames.brand ?? ''}`.trim()} href={brandHref}>{brand}</a>
         <nav className="primaryNavigation" aria-label="一级导航">
           {areas.map((area) => area.disabled ? (
             <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true">{area.label}</span>
@@ -90,9 +90,9 @@ export function AppShell({
           ))}
         </nav>
         <div className="primaryUtilities" aria-label="快捷工具">
-          <button className="utilityButton" type="button" aria-label="搜索">⌕</button>
+          <button className="utilityButton" type="button" aria-label="搜索（待接入）" title="搜索（待接入）" disabled>⌕</button>
           <ThemeToggle />
-          <button className="utilityButton utilityNotify" type="button" aria-label="通知">♢<span>•</span></button>
+          <button className="utilityButton utilityNotify" type="button" aria-label="通知（待接入）" title="通知（待接入）" disabled>♢</button>
           <a className="primaryProfile" href="/portal-launcher" aria-label="工作入口">
             <span className="profileAvatar">A</span>
             <span className="profileCopy"><strong>管理员</strong><small>ALSVID</small></span>
@@ -129,9 +129,9 @@ export function AppShell({
         <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
       </details>
 
-      <div className="shellFrame" style={{ display: 'block' }}>
+      <div className="shellFrame">
         <div className="adminBody">
-          <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
+          <section className={`workspace ${classNames.workspace ?? ''}`.trim()} id={workspaceId} data-alsvid-workspace="true">{children}</section>
         </div>
       </div>
     </main>
