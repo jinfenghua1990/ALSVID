@@ -1,12 +1,13 @@
 import Link from 'next/link';
+import { ThemeToggle } from '@alsvid/ui';
 import { readInternalPreviewSession } from './_lib/portal-access';
 import { PortalLoginGate } from './_components/portal-login';
 import styles from './portal-launcher/portal-launcher.module.css';
 
 const portals = [
-  { title: '内部管理中心', english: 'Admin Center', audience: 'ALSVID 内部员工', description: '产品、采购、生产、库存、商业、人员与系统管理。现有内管工作台继续保留并逐步纳入统一入口。', href: '/admin', tag: '内部管理', mark: '01' },
-  { title: '经销商门户', english: 'Dealer Portal', audience: '已授权经销商用户', description: '查看本经销商的公司资料、订单物流、已售车辆与售后信息。B2B 下单跳转至授权的外部渠道。', href: '/dealer', tag: '经销商', mark: '02' },
-  { title: '我的 ALSVID', english: 'My ALSVID', audience: '已验证车主 / 客户', description: '以我的车库为中心，查看车辆档案、保修、说明书、维修记录与适配配件。', href: '/my', tag: '车主服务', mark: '03' },
+  { title: '内部管理中心', english: 'Admin Center', audience: 'ALSVID 内部员工', description: '产品、车辆、订单、经销商与系统管理。所有运营数据仅来自实际录入或已连接业务系统。', href: '/admin', tag: '内部管理', mark: '01' },
+  { title: '经销商门户', english: 'Dealer Portal', audience: '已授权经销商用户', description: '查看本经销商的公司资料、订单物流、已售车辆与售后信息。B2B 下单继续使用授权外部渠道。', href: '/dealer', tag: '经销商', mark: '02' },
+  { title: '我的 ALSVID', english: 'My ALSVID', audience: '已验证车主 / 客户', description: '以我的车辆为中心，查看车辆档案、保修、说明书、维修记录与适配配件。', href: '/my', tag: '车主服务', mark: '03' },
 ] as const;
 
 export default async function PortalLauncherPage() {
@@ -16,21 +17,22 @@ export default async function PortalLauncherPage() {
     <PortalLoginGate authenticated={Boolean(session)}>
       <main className={styles.page}>
         <header className={styles.header}>
-          <Link className={styles.wordmark} href="/">△ ALSVID</Link>
+          <Link className={styles.wordmark} href="/">ALSVID</Link>
           <div className={styles.headerRight}>
-            <span className={styles.environment}><i /> {isProduction ? '正式/生产：ALSVID Production' : '开发/测试：ALSVID Development'}⌄</span>
+            <ThemeToggle />
+            <span className={styles.environment}><i /> {isProduction ? 'ALSVID Production' : 'ALSVID Development'}</span>
             {session ? (
               <>
                 <span className={styles.user}><b>◯</b><span>{session.displayName || 'ALSVID User'}<small>{session.email}</small></span></span>
-                <Link className={styles.logout} href="/api/session/logout">↪ 退出</Link>
+                <Link className={styles.logout} href="/api/session/logout">退出</Link>
               </>
             ) : null}
           </div>
         </header>
         <section className={styles.intro}>
           <p className={styles.kicker}>ALSVID</p>
-          <h1>ALSVID <small>INTERNAL PORTAL</small></h1>
-          <p className={styles.lead}>ONE BRAND · THREE WORLDS · A CONNECTED FUTURE</p>
+          <h1>ONE BRAND <small>THREE WORLDS</small></h1>
+          <p className={styles.lead}>RIDE FURTHER · LIVE WIDER</p>
         </section>
         <section className={styles.cards} aria-label="选择门户">
           {portals.map((portal) => (
@@ -46,12 +48,12 @@ export default async function PortalLauncherPage() {
           ))}
         </section>
         <aside className={styles.statusBar}>
-          <span>◉ <b>System Status</b><strong>All Systems Operational</strong></span>
-          <span>▱ <b>Environment</b><strong>{isProduction ? 'ALSVID Production' : 'ALSVID Development'}</strong></span>
-          <span>◇ <b>Version</b><strong>{process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? '本地开发'}</strong></span>
-          <span>◷ <b>Last Updated</b><strong>Just now</strong></span>
+          <span>◉ <b>System</b><strong>Operational</strong></span>
+          <span>▱ <b>Environment</b><strong>{isProduction ? 'Production' : 'Development'}</strong></span>
+          <span>◇ <b>Version</b><strong>{process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? 'Local'}</strong></span>
+          <span>◷ <b>Data</b><strong>Real facts only</strong></span>
         </aside>
-        <footer className={styles.footer}><span>ALSVID &nbsp;|&nbsp; RIDE FURTHER · LIVE WIDER</span><Link href="/overview">返回管理概览</Link></footer>
+        <footer className={styles.footer}><span>ALSVID · RIDE FURTHER · LIVE WIDER</span><Link href="/admin">进入管理后台</Link></footer>
       </main>
     </PortalLoginGate>
   );
