@@ -4,20 +4,13 @@ import { AppShell } from '@alsvid/ui';
 import { navigationFor } from '../app-navigation';
 import styles from './portal-page.module.css';
 
-const series = [
-  { code: 'FC1', name: 'FC Series', detail: '折叠碳纤维旗舰系列', english: 'Folding Carbon', tone: 'city' },
-  { code: 'CT1', name: 'CT Series', detail: '都市通勤系列', english: 'City Touring', tone: 'forest' },
-  { code: 'FT1', name: 'FT Series', detail: '胖胎全地形系列', english: 'Fat Tire', tone: 'travel' },
-  { code: 'GT1', name: 'GT Series', detail: '长途旅行系列', english: 'Grand Touring', tone: 'grand' },
-] as const;
-
 const metrics = [
   { label: '产品系列', href: '/product#series', icon: '◇', tone: 'blue' },
   { label: '产品型号', href: '/product#models', icon: '◉', tone: 'green' },
   { label: '经销商数量', href: '/dealers', icon: '▣', tone: 'purple' },
   { label: '订单总数', href: '/commerce', icon: '▤', tone: 'orange' },
   { label: '待处理售后', href: '/vehicle360', icon: '×', tone: 'red' },
-  { label: '客户数量', href: '#', icon: '○', tone: 'cyan' },
+  { label: '客户数量', href: null, icon: '○', tone: 'cyan' },
 ] as const;
 
 const emptyPanelStyle = {
@@ -43,8 +36,8 @@ export default async function AdminPortalPage() {
           <p className={styles.heroChinese}>为更远的探索而生</p>
           <p className={styles.heroMeta}>折叠 · 都市 · 胖胎 · 长途</p>
           <div className={styles.heroActions}>
-            <Link className={styles.primaryAction} href="/product#series">了解产品系列 <span>→</span></Link>
-            <Link className={styles.secondaryAction} href="/product">查看品牌资料</Link>
+            <Link className={styles.primaryAction} href="/product#series">管理产品系列 <span>→</span></Link>
+            <Link className={styles.secondaryAction} href="/product">进入产品中心</Link>
           </div>
         </div>
         <div className={styles.heroSlogan}>
@@ -55,39 +48,38 @@ export default async function AdminPortalPage() {
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <h2>产品系列</h2>
-          <Link href="/product#series">查看全部产品 <span>→</span></Link>
+          <Link href="/product#series">进入产品中心 <span>→</span></Link>
         </div>
-        <div className={styles.seriesGrid}>
-          {series.map((item) => (
-            <Link className={`${styles.seriesCard} ${styles[item.tone]}`} href="/product#series" key={item.code}>
-              <div className={styles.seriesOverlay} />
-              <div className={styles.seriesCopy}>
-                <strong>{item.code}</strong>
-                <span>{item.detail}</span>
-                <small>{item.english}</small>
-              </div>
-              <span className={styles.seriesArrow}>→</span>
-            </Link>
-          ))}
-        </div>
+        <article className={styles.panel}>
+          <div style={emptyPanelStyle}>
+            <strong style={{ color: 'var(--alsvid-text-2)', fontSize: 13 }}>暂无已录入产品系列</strong>
+            <span>这里不会使用演示产品填充。你录入真实产品系列后，再从产品主数据展示。</span>
+            <Link href="/product#series" style={{ color: 'var(--alsvid-accent)', fontWeight: 700 }}>录入产品系列 →</Link>
+          </div>
+        </article>
       </section>
 
       <section className={styles.metricSection}>
         <div className={styles.sectionHeadCompact}>
           <h2>关键数据</h2>
-          <div className={styles.periodTabs}><span className={styles.periodActive}>本月</span><span>本季度</span><span>本年</span></div>
+          <div className={styles.periodTabs} aria-label="统计周期（数据接入后启用）"><span className={styles.periodActive}>本月</span><span>本季度</span><span>本年</span></div>
         </div>
         <div className={styles.metrics}>
-          {metrics.map((metric) => (
-            <Link className={styles.metricCard} href={metric.href} key={metric.label}>
+          {metrics.map((metric) => {
+            const content = <>
               <span className={`${styles.metricIcon} ${styles[metric.tone]}`}>{metric.icon}</span>
               <div>
                 <span className={styles.metricLabel}>{metric.label}</span>
                 <strong aria-label="暂无数据">&nbsp;</strong>
-                <small>&nbsp;</small>
+                <small>暂无数据</small>
               </div>
-            </Link>
-          ))}
+            </>;
+            return metric.href ? (
+              <Link className={styles.metricCard} href={metric.href} key={metric.label}>{content}</Link>
+            ) : (
+              <div className={styles.metricCard} key={metric.label} aria-disabled="true">{content}</div>
+            );
+          })}
         </div>
       </section>
 
