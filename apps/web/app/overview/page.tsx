@@ -1,5 +1,6 @@
 import { AppShell } from '@alsvid/ui';
 import { navigationFor } from '../app-navigation';
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 
 const domains = [
   ['产品', '平台、车型、SKU、工程发布与后续配件目录'],
@@ -19,7 +20,8 @@ function domainStatus(name: string) {
   return '已规划 · 等待后续实现';
 }
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  await requireInternalPreviewSession();
   return (
     <AppShell navigation={navigationFor('/overview')} footer="ALSVID 内部管理后台" workspaceId="overview">
       <header className="topbar">
