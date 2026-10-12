@@ -1,119 +1,151 @@
 # ALSVID Environment Architecture
 
 > Status: Confirmed  
-> Purpose: Prevent confusion between local development, cloud Test, and Production environments.
+> Purpose: Prevent confusion between local developer tooling, ALSVID Development, and ALSVID Production.
 
-## 1. Environment model
+## 1. Canonical environment model
 
-ALSVID currently recognizes two cloud runtime environments:
+ALSVID has exactly two cloud business environments:
 
-1. Test
-2. Production
+1. **ALSVID Development** — Google Cloud project `alsvid-dev`
+2. **ALSVID Production** — Google Cloud project `alsvid-prod`
 
-A developer machine such as the M1 Mac is a separate Local Development environment. It is not the ALSVID Test environment.
+ALSVID Development = Development / Test 合并环境
+
+The product/UI name is **Development / 开发环境**. Do not label the cloud Development environment as `Test` in user-facing pages, deployment summaries, or operator instructions.
+
+A developer machine such as the M1 Mac is local developer tooling. It may run the same code for fast iteration, but it is not a third cloud business environment.
 
 ```text
-Local Development != Cloud Test != Production
+Local developer tooling
+        ↓ optional
+ALSVID Development (alsvid-dev)
+        ↓ approved software version
+ALSVID Production (alsvid-prod)
 ```
 
-Do not add a third cloud runtime environment at the current stage.
+Do not add a third shared cloud environment unless a reviewed architecture decision explicitly changes this model.
 
-## 2. Local Development
+## 2. Local developer tooling
 
-The local machine is development support infrastructure. It may use:
+The local machine may use Docker Compose, localhost services, temporary databases, local gateways and development watchers.
 
-- Docker Compose;
-- localhost PostgreSQL;
-- localhost services;
-- temporary containers;
-- local gateways and development watchers.
+Local resources are disposable developer support infrastructure. They do not define the state of ALSVID Development or ALSVID Production, and local `.env`, Compose ports or container names must never be used as evidence of live cloud bindings.
 
-For example, localhost port 5433 represents a temporary database on the developer machine. It does not prove which database the cloud Test application uses.
+## 3. ALSVID Development
 
-A local Compose file is an implementation tool for local development and acceptance. It must not be used as evidence of the live cloud Test or Production resource binding.
+ALSVID Development is the shared non-production cloud environment used to inspect and accept candidate changes before they enter Production.
 
-## 3. Cloud Test
-
-Cloud Test is an independent environment intended to approximate Production behavior.
-
-It must have separate resources:
-
-- Test application deployment;
-- Test PostgreSQL database, such as alsvid-test-db;
-- Test object-storage bucket, such as alsvid-test-assets;
-- Test-only secrets and API keys.
-
-Test data and files must never be stored in Production resources.
-
-## 4. Production
-
-Production is the live business environment and must have separate resources:
-
-- Production application deployment;
-- Production PostgreSQL database, such as alsvid-prod-db;
-- Production object-storage bucket, such as alsvid-prod-assets;
-- Production-only secrets and API keys.
-
-The same variable names may be used in both environments, but the injected values and secret targets must be different.
-
-For example:
+Its authority is the dedicated Google Cloud project:
 
 ```text
-Test:
-DATABASE_URL -> Test database
-R2_BUCKET    -> Test bucket
-secrets      -> Test secrets
+alsvid-dev
+```
+
+Development must use resources isolated from Production, including:
+
+- Development Cloud Run Web/API deployment;
+- Development database / Neon resource;
+- Development object-storage bucket / R2 credentials;
+- Development-only Google Secret Manager secrets;
+- Development-only Workload Identity and deploy/runtime service accounts;
+- Development Artifact Registry images.
+
+Development data is non-authoritative and must never be written to Production resources.
+
+## 4. ALSVID Production
+
+ALSVID Production is the live business environment. Its Google Cloud project is:
+
+```text
+alsvid-prod
+```
+
+Production must use its own Cloud Run deployments, Neon database, R2 bucket/credentials, Secret Manager secrets, Workload Identity and service accounts.
+
+The same variable names may be used in Development and Production, but the values and resource targets must be different.
+
+Example:
+
+```text
+Development:
+GCP_PROJECT_ID -> alsvid-dev
+DATABASE_URL   -> Neon Development
+R2_BUCKET      -> R2 Development
+secrets        -> Development Secret Manager
 
 Production:
-DATABASE_URL -> Production database
-R2_BUCKET    -> Production bucket
-secrets      -> Production secrets
+GCP_PROJECT_ID -> alsvid-prod
+DATABASE_URL   -> Neon Production
+R2_BUCKET      -> R2 Production
+secrets        -> Production Secret Manager
 ```
 
-NODE_ENV=test does not automatically redirect an application to Test resources. Resource isolation is determined by the actual deployment bindings and injected values.
+`NODE_ENV` is a framework/runtime mode and does not determine business-environment ownership. `ALSVID_ENV=development|production` is the ALSVID environment label.
 
-## 5. Environment audit rule
+## 5. Delivery rule
 
-An environment audit must inspect the actual deployment path, not only local source files:
+The standard remote-development path is:
+
+```text
+feature branch / pull request
+        ↓
+CI / build / architecture checks
+        ↓
+ALSVID Development Deploy
+        ↓
+Google Cloud Run — alsvid-dev
+        ↓
+owner acceptance
+        ↓
+merge to main
+        ↓
+ALSVID Production Deploy
+        ↓
+Google Cloud Run — alsvid-prod
+```
+
+A Production deployment must come from an approved commit merged into `main`. Development acceptance promotes a software version only; it never promotes Development data or files into Production.
+
+## 6. Environment audit rule
+
+An environment audit must inspect the real deployment chain:
 
 ```text
 GitHub Actions
-  -> Cloud Run or deployment platform
-  -> Secret Manager bindings
-  -> Database binding
-  -> Object-storage binding
+  -> GitHub Environment (development | production)
+  -> Google Workload Identity
+  -> Google Cloud project
+  -> Cloud Run / Secret Manager
+  -> Neon database
+  -> R2 object storage
 ```
 
-For each environment, record:
+For each cloud environment, record the application deployment, database, object storage and secret bindings. Do not infer cloud state from local files.
 
-- Application deployment;
-- Database;
-- Object storage;
-- Secrets.
+## 7. Configuration drift guards
 
-Do not infer cloud state from docker-compose files, .env.example, checkout names, or port numbers.
-
-## 6. Configuration drift
-
-The following are configuration drift:
+The following are invalid and must fail deployment or startup when detectable:
 
 ```text
-Cloud Test application -> Production database
-Cloud Test application -> Production object-storage bucket
-Cloud Test application -> Production secrets
+Development application -> alsvid-prod resources
+Development application -> Production database
+Development application -> Production R2 bucket
+Development application -> Production secrets
+Production application  -> Development resources
 ```
 
-When drift is found:
+The Development deployment workflow must explicitly refuse `GCP_PROJECT_ID` values other than `alsvid-dev` and must refuse the canonical Production R2 bucket.
 
-1. confirm the actual binding;
-2. correct the Secret Manager or deployment configuration;
-3. update this documentation if the architecture rule changed;
-4. record the evidence and correction in GitHub.
+## 8. UI naming
 
-## 7. Delivery rule
+Use these names consistently:
 
-Local development proceeds on the M1. A tested commit is then promoted through GitHub to Cloud Test and, after explicit Production approval, to Production.
+```text
+开发环境  = Development
+正式环境  = Production
+```
 
-Test approval promotes a software version, not Test data.
+The Development banner and browser title must say `开发` / `Development`, not `测试` / `Test`.
 
 Future agents and developers must preserve this model unless a reviewed architecture decision explicitly changes it.

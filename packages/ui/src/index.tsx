@@ -4,6 +4,7 @@ export interface AppNavItem {
   label: string;
   href: string;
   active?: boolean;
+  area?: string;
   section?: string;
   status?: string;
   disabled?: boolean;
@@ -25,7 +26,7 @@ function NavigationItems({ navigation, activeClassName }: { navigation: readonly
       {Array.from(new Set(navigation.map((item) => item.section ?? '导航'))).map((section) => {
         const items = navigation.filter((item) => (item.section ?? '导航') === section);
         return (
-          <details className="navGroup" key={section} open={items.some((item) => item.active) || section === '总览'}>
+          <details className="navGroup" key={section} open={items.some((item) => item.active) || navigation.length <= 8}>
             <summary className="navSection">{section}<span aria-hidden="true">⌄</span></summary>
             {items.map((item) => (
               <div className="navEntry" key={`${item.href}-${item.label}`}>
@@ -65,25 +66,56 @@ export function AppShell({
   workspaceId?: string;
   classNames?: AppShellClassNames;
 }>) {
+  const activeItem = navigation.find((item) => item.active);
+  const activeArea = activeItem?.area ?? activeItem?.section ?? '首页';
+  const contextualNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
+  const areas = Array.from(new Set(navigation.map((item) => item.area ?? item.section ?? '首页'))).map((label) => {
+    const items = navigation.filter((item) => (item.area ?? item.section ?? '首页') === label);
+    const enabled = items.find((item) => !item.disabled);
+    return { label, href: enabled?.href ?? '#', disabled: !enabled, active: label === activeArea };
+  });
+
   return (
-    <main className={classNames.shell ?? 'shell'}>
-      <details className="mobileNav">
-        <summary><strong>{brand}</strong><span>菜单</span></summary>
-        <nav className="mobileNavPanel"><NavigationItems navigation={navigation} activeClassName={classNames.active} /></nav>
-      </details>
-      <aside className={classNames.rail ?? 'rail'}>
-        <a className={classNames.brand ?? 'brand'} href={brandHref}>{brand}</a>
-        <nav className={classNames.nav}>
-          <NavigationItems navigation={navigation} activeClassName={classNames.active} />
+    <main className={`${classNames.shell ?? 'shell'} shellV2`}>
+      <header className="primaryHeader">
+        <a className={`primaryBrand ${classNames.brand ?? ''}`} href={brandHref}>{brand}</a>
+        <nav className="primaryNavigation" aria-label="一级导航">
+          {areas.map((area) => area.disabled ? (
+            <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true">{area.label}</span>
+          ) : (
+            <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined}>{area.label}</a>
+          ))}
         </nav>
-        <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
-      </aside>
-      <div className="adminBody">
-        <header className="adminTopbar">
-          <span>内部管理 <span aria-hidden="true">/</span> <strong>{navigation.find((item) => item.active)?.label ?? '工作台'}</strong></span>
-          <a href="/portal-launcher">切换工作入口 ↗</a>
-        </header>
-        <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
+        <a className="primaryLauncher" href="/portal-launcher">工作入口</a>
+      </header>
+
+      <details className="mobileNav mobileNavV2">
+        <summary><strong>{brand}</strong><span>{activeArea} · 菜单</span></summary>
+        <div className="mobilePrimaryNavigation" aria-label="一级导航">
+          {areas.map((area) => area.disabled ? (
+            <span className="mobilePrimaryItem mobilePrimaryItemDisabled" key={area.label}>{area.label}</span>
+          ) : (
+            <a className={`mobilePrimaryItem${area.active ? ' mobilePrimaryItemActive' : ''}`} href={area.href} key={area.label}>{area.label}</a>
+          ))}
+        </div>
+        <nav className="mobileNavPanel"><NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} /></nav>
+      </details>
+
+      <div className="shellFrame">
+        <aside className={classNames.rail ?? 'rail'}>
+          <div className="contextRailTitle"><span>当前模块</span><strong>{activeArea}</strong></div>
+          <nav className={classNames.nav} aria-label={`${activeArea} 二级导航`}>
+            <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />
+          </nav>
+          <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
+        </aside>
+        <div className="adminBody">
+          <header className="adminTopbar">
+            <span>{activeArea} <span aria-hidden="true">/</span> <strong>{activeItem?.label ?? '工作台'}</strong></span>
+            <span className="adminTopbarHint">ALSVID Internal</span>
+          </header>
+          <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
+        </div>
       </div>
     </main>
   );

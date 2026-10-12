@@ -3,6 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 
+interface LoginResponse {
+  data?: { roles?: string[] };
+  message?: string;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -21,20 +26,35 @@ export default function LoginPage() {
     event.preventDefault();
     setBusy(true);
     setError('');
-    const form = new FormData(event.currentTarget);
-    const response = await fetch('/api/session/login', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
-    });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      setError(payload?.message ?? '登录失败，请检查用户名和密码');
+
+    try {
+      const form = new FormData(event.currentTarget);
+      const response = await fetch('/api/session/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
+      });
+      const payload = await response.json().catch(() => null) as LoginResponse | null;
+
+      if (!response.ok) {
+        setError(payload?.message ?? '登录失败，请检查用户名和密码');
+        setBusy(false);
+        return;
+      }
+
+      const roles = payload?.data?.roles;
+      if (!Array.isArray(roles) || !roles.includes('system_admin')) {
+        setError('账号验证成功，但没有 ALSVID 内部管理权限。请联系管理员分配 system_admin 角色。');
+        setBusy(false);
+        return;
+      }
+
+      router.replace('/');
+      router.refresh();
+    } catch {
+      setError('无法连接登录服务，请稍后重试。');
       setBusy(false);
-      return;
     }
-    router.push('/portal-launcher');
-    router.refresh();
   }
 
   return (
