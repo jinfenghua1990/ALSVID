@@ -158,3 +158,20 @@ The Portal Launcher has Chinese-first Admin/Dealer/My entry cards, a server-vali
 ## M1 Test update automation — repository support
 
 The macOS per-user updater in `scripts/macos-test-auto-update.mjs` can discover an existing checkout, register five-minute checks and update a separate managed Test checkout only after current-main CI and Development/Test Build pass. It reuses Test configuration/project identity and checks service health. It does not change Production or developer branches. See `docs/M1_TEST_AUTO_UPDATE.md`. Installation and end-to-end acceptance on the actual M1 are pending; the repository capability does not claim a registered local agent.
+
+## Portal and transaction reliability follow-up — 2026-10-12
+
+- The business overview navigation targets `/overview`, while `/` remains the public portal launcher.
+- Portal environment labels use the canonical names 开发/测试：ALSVID Development and 正式/生产：ALSVID Production. The launcher no longer claims unmeasured service health or a fabricated update time/version; it reports 尚未检测 for service health and the signed-in state instead.
+- Development and Production Web releases inject `ALSVID_RELEASE_SHA`; the launcher and environment diagnostics show the deployed source identity when available.
+- The existing Vehicle 360 entry accurately labels the available Production/QC/Vehicle Birth foundation; handover and ownership remain roadmap work.
+- Database transaction error listeners are scoped to one checkout and removed before release. Connections with client errors or failed rollback are discarded without hiding the original operation error. Regression tests cover repeated client reuse and failure cleanup.
+- Schema migrations hold one dedicated connection for the advisory lock, because `pg_advisory_lock` is session-scoped and a pooled unlock could otherwise land on a different connection.
+- Every Internal Admin surface that renders the AppShell requires a validated internal session, including `/overview`.
+- Portal and Internal Admin navigation never link to routes this application does not implement; planned areas render as labelled, non-clickable entries.
+- Commerce and Inventory request the existing `/v1/product/catalog` endpoint instead of a non-existent `/v1/product` collection.
+- The M1 Test updater waits for the workflow name that actually exists (`ALSVID Development Build`), and the Development bootstrap script creates the R2 secret names that the Development deployment workflow reads.
+
+Delivery state: the shared Development environment deploys successfully, and Production stays blocked until the same source has been accepted in Development. At the time of writing, Production runs fail the release gate because `main` carried commits that had never been on `develop`; restoring that history is the prerequisite for the next Production release.
+
+Cloud acceptance remains separate: Google Secret Manager is still the secret authority, with separate resources in `alsvid-dev` and `alsvid-prod`. The Development workflow currently deploys Web and API with migration job and health verification; the Production workflow additionally builds and deploys the continuous worker pool. This follow-up does not provision cloud resources and does not claim a new successful Production deployment.

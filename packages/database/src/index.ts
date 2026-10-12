@@ -32,7 +32,9 @@ export class Database implements DatabasePort {
 
   async transaction<T>(work: (executor: QueryExecutor) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
-    client.on('error', () => {});
+    let discardClient = false;
+    const onClientError = () => { discardClient = true; };
+    client.on('error', onClientError);
     try {
       await client.query('BEGIN');
       const result = await work(client);
@@ -42,11 +44,13 @@ export class Database implements DatabasePort {
       try {
         await client.query('ROLLBACK');
       } catch {
+        discardClient = true;
         // The connection is already gone; the original error is more useful.
       }
       throw error;
     } finally {
-      client.release();
+      client.removeListener('error', onClientError);
+      client.release(discardClient);
     }
   }
 

@@ -1,4 +1,4 @@
-# ALSVID UI Design V1
+# ALSVID UI Design V2
 
 ## Design Direction
 
@@ -10,12 +10,40 @@ Core principles:
 
 - Product-first presentation
 - Large hero imagery
-- Clean white interface
 - Premium automotive feeling
 - High whitespace
 - Rounded cards
 - Blue accent color
 - Professional enterprise usability
+- One visual system across every user-facing page
+- First-class Light and Dark modes
+- Real business data only; never invent dashboard values
+
+## Global Theme
+
+Every user-facing ALSVID page must support both Light and Dark modes.
+
+Rules:
+
+- Theme selection is global, not page-specific.
+- Theme choice persists in the browser.
+- On first visit, ALSVID follows the operating-system color preference when the user has not chosen a theme.
+- Primary navigation, secondary navigation, cards, tables, forms, dialogs, login, portal launcher, Admin, Dealer Portal and My ALSVID all inherit the same design tokens.
+- A page must not remain visually in the old theme merely because its business module predates the V2 redesign.
+
+## Real-data Rule
+
+The interface must never display invented business facts merely to make a dashboard look populated.
+
+When no real record exists:
+
+- KPI values remain blank or show a neutral empty state.
+- Charts show `暂无数据` instead of synthetic curves.
+- Activity feeds show `暂无数据` instead of example activities.
+- Vehicle 360 does not invent vehicle health, GPS, battery, OTA or online state.
+- Dealer, customer, order, service and finance data appears only after manual entry or an approved external integration provides a real fact.
+
+Conceptual product taxonomy such as FC / CT / FT / GT may be shown as product structure, but operational counts and transactions must come from actual stored data.
 
 ## Navigation Structure
 
@@ -37,7 +65,7 @@ The top navigation is the primary business navigation:
 
 Secondary navigation appears on the left according to the active module.
 
-The sidebar should be minimal Tesla-style, not a traditional heavy ERP sidebar.
+The sidebar should be minimal and light, not a traditional heavy ERP sidebar.
 
 Example: Product Center
 
@@ -59,6 +87,8 @@ Example: Vehicle 360
 - 销售记录
 - 售后记录
 
+Planned routes must be visibly disabled or marked as planned; do not link users to non-existent pages.
+
 ## Dashboard Layout
 
 Homepage should include:
@@ -76,6 +106,8 @@ Product series cards:
 - CT1 City Touring Series
 - FT1 Fat Tire Series
 - GT1 Grand Touring Series
+
+Operational sections remain empty until real data exists.
 
 ## Product Center Definition
 
@@ -129,23 +161,50 @@ Not included at current stage:
 - GPS tracking
 - OTA
 
-Future expansion may add smart vehicle functions if ALSVID products support connected hardware.
+Vehicle 360 only shows facts that have actually occurred and been entered or synchronized. Future expansion may add smart vehicle functions only if ALSVID products later support connected hardware.
+
+## Page Coverage
+
+The V2 visual system applies to the complete current web surface, including:
+
+- Portal Launcher
+- Login
+- Admin Dashboard
+- Business Overview
+- Product Center
+- Vehicle 360
+- Production / Quality
+- Supply / Procurement
+- Inventory / Warehouse
+- Logistics / Customs
+- Commerce / Orders
+- Dealer Management
+- Finance
+- Partner Management
+- Employee Center
+- System / Environment Settings
+- Dealer Portal
+- My ALSVID
+
+New user-facing pages must use the same shared tokens and Light/Dark behavior from their first implementation.
 
 ## Frontend Implementation Direction
 
-First implementation priority:
+Implementation priority is now a shared system rather than isolated page redesigns:
 
-1. Global Layout
+1. Global Design System
+   - Light / Dark tokens
+   - Theme persistence
    - Top navigation
    - Dynamic left sidebar
-   - Main content area
+   - Shared cards, forms, tables and empty states
 
-2. Dashboard
+2. Apply the system to every existing page
 
-3. Product Center
+3. Dashboard and Product Center product-led presentation
 
-4. Vehicle 360 lifecycle management
+4. Vehicle 360 lifecycle tracking
 
-5. Dealer and after-sales modules
+5. Dealer, after-sales and customer modules as real capabilities become available
 
-This document is the reference for future ALSVID frontend implementation.
+This document is the authoritative UI reference for current ALSVID frontend work.

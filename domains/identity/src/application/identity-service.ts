@@ -1,43 +1,203 @@
 import type { Clock } from '@alsvid/kernel';
 import { systemClock } from '@alsvid/kernel';
-import { assertPermission } from '../core/permissions.js';
-import { InvalidCredentialsError, IdentityValidationError } from '../core/errors.js';
 import { Permission, type AuthContext } from '../core/auth.js';
-import type { IdentityAuditPort, IdentityRepository, PasswordHasher, SessionTokenService } from './ports.js';
+import {
+  EmailVerificationRateLimitError,
+  IdentityMailUnavailableError,
+  IdentityValidationError,
+  InternalRegistrationDeniedError,
+  InvalidCredentialsError,
+  InvalidEmailCodeError,
+} from '../core/errors.js';
+import { assertPermission } from '../core/permissions.js';
+import type {
+  IdentityAuditPort,
+  IdentityRegistrationPolicy,
+  IdentityRepository,
+  IdentityVerificationDelivery,
+  OneTimeCodeService,
+  PasswordHasher,
+  SessionTokenService,
+} from './ports.js';
+
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
 export class IdentityService {
   constructor(
     private readonly repository: IdentityRepository,
     private readonly audit: IdentityAuditPort,
     private readonly passwords: PasswordHasher,
+    private readonly codes: OneTimeCodeService,
     private readonly tokens: SessionTokenService,
+    private readonly verificationDelivery: IdentityVerificationDelivery,
+    private readonly registrationPolicy: IdentityRegistrationPolicy,
     private readonly clock: Clock = systemClock,
   ) {}
 
   async bootstrapAdmin(email: string, password: string, displayName = 'ALSVID Administrator'): Promise<string> {
     const normalizedEmail = normalizeEmail(email);
     const passwordHash = await this.passwords.hash(password);
+    const verifiedAt = this.clock.now();
     return this.repository.transaction(async (executor) => {
       let userId = await this.repository.findUserIdByEmail(normalizedEmail, executor);
-      if (userId) await this.repository.updateBootstrapUser(userId, displayName.trim(), passwordHash, executor);
-      else userId = await this.repository.createUser(normalizedEmail, displayName.trim(), passwordHash, executor);
+      if (userId) await this.repository.updateBootstrapUser(userId, cleanDisplayName(displayName, normalizedEmail), passwordHash, executor);
+      else userId = await this.repository.createUser(normalizedEmail, cleanDisplayName(displayName, normalizedEmail), passwordHash, verifiedAt, executor);
+      await this.repository.ensureUserRole(userId, 'internal_user', executor);
       await this.repository.ensureUserRole(userId, 'system_admin', executor);
       await this.audit.record({ action: 'identity.bootstrap_admin', targetType: 'user', targetId: userId }, executor);
       return userId;
     });
   }
 
-  async login(email: string, password: string): Promise<{ token: string; expiresAt: string; user: AuthContext }> {
-    const row = await this.repository.findLoginContext(normalizeEmail(email));
-    if (!row || !(await this.passwords.verify(password, row.passwordHash))) throw new InvalidCredentialsError();
+  async registrationStatus(): Promise<{ emailVerificationAvailable: boolean; registrationMode: string; firstAdminRequired: boolean }> {
+    return {
+      emailVerificationAvailable: this.verificationDelivery.configured,
+      registrationMode: this.registrationPolicy.registrationMode,
+      firstAdminRequired: !(await this.repository.hasActiveSystemAdmin()),
+    };
+  }
+
+  async startEmailVerification(email: string): Promise<{ expiresAt: string; testCode?: string }> {
+    if (!this.verificationDelivery.configured) throw new IdentityMailUnavailableError();
+    const normalizedEmail = normalizeEmail(email);
+
+    // Existing users may prove control of the exact email already stored on their
+    // ALSVID account even when it predates the current company-domain policy.
+    // Domain/invite policy applies only to creation of new Internal identities.
+    const existingUserId = await this.repository.findUserIdByEmail(normalizedEmail);
+    if (!existingUserId) assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+
+    const firstAdminCandidate = await this.isFirstAdminCandidate(normalizedEmail);
+    if (!existingUserId && this.registrationPolicy.registrationMode === 'invite_only' && !firstAdminCandidate) {
+      if (!(await this.repository.hasValidRegistrationInvite(normalizedEmail))) throw new InternalRegistrationDeniedError();
+    }
+
+    const now = this.clock.now();
+    const latest = await this.repository.findLatestEmailChallenge(normalizedEmail);
+    if (latest && latest.createdAt.getTime() > now.getTime() - this.registrationPolicy.resendCooldownMs) {
+      throw new EmailVerificationRateLimitError();
+    }
+
+    const code = this.codes.create();
+    const codeHash = await this.codes.hash(code);
+    const expiresAt = new Date(now.getTime() + this.registrationPolicy.verificationTtlMs);
+    const challengeId = await this.repository.transaction(async (executor) => {
+      await this.repository.invalidateActiveEmailChallenges(normalizedEmail, executor);
+      const id = await this.repository.createEmailChallenge(normalizedEmail, codeHash, expiresAt, this.registrationPolicy.maxVerificationAttempts, executor);
+      await this.audit.record({ action: 'identity.email_verification_requested', targetType: 'email_verification', targetId: id, metadata: { email: normalizedEmail, existingUser: Boolean(existingUserId) } }, executor);
+      return id;
+    });
+
+    try {
+      await this.verificationDelivery.sendCode({ email: normalizedEmail, code, expiresAt });
+    } catch {
+      await this.repository.transaction(async (executor) => {
+        await this.repository.consumeEmailChallenge(challengeId, executor);
+        await this.audit.record({ action: 'identity.email_verification_delivery_failed', targetType: 'email_verification', targetId: challengeId, metadata: { email: normalizedEmail } }, executor);
+      });
+      throw new IdentityMailUnavailableError();
+    }
+
+    return {
+      expiresAt: expiresAt.toISOString(),
+      ...(this.registrationPolicy.exposeTestCode ? { testCode: code } : {}),
+    };
+  }
+
+  async completeEmailVerification(email: string, code: string, displayName?: string): Promise<{ token: string; expiresAt: string; user: AuthContext; firstAdminActivated: boolean }> {
+    const normalizedEmail = normalizeEmail(email);
+    if (!/^\d{6}$/.test(code.trim())) throw new InvalidEmailCodeError();
+
     const token = this.tokens.create();
-    const expiresAt = new Date(this.clock.now().getTime() + 12 * 60 * 60 * 1000);
+    const tokenHash = this.tokens.hash(token);
+    const now = this.clock.now();
+    const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
+
+    const result = await this.repository.transaction(async (executor) => {
+      const challenge = await this.repository.findEmailChallengeForUpdate(normalizedEmail, executor);
+      if (!challenge || challenge.consumedAt || challenge.expiresAt.getTime() <= now.getTime() || challenge.attempts >= challenge.maxAttempts) {
+        if (challenge && !challenge.consumedAt) await this.repository.consumeEmailChallenge(challenge.id, executor);
+        return { kind: 'invalid' as const };
+      }
+
+      const verified = await this.codes.verify(code.trim(), challenge.codeHash);
+      if (!verified) {
+        await this.repository.incrementEmailChallengeAttempts(challenge.id, executor);
+        await this.audit.record({ action: 'identity.email_verification_failed', targetType: 'email_verification', targetId: challenge.id, metadata: { email: normalizedEmail } }, executor);
+        return { kind: 'invalid' as const };
+      }
+
+      let userId = await this.repository.findUserIdByEmail(normalizedEmail, executor);
+      const firstAdminCandidate = !(await this.repository.hasActiveSystemAdmin(executor)) && this.registrationPolicy.initialAdminEmail === normalizedEmail;
+      if (!userId) {
+        assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+        const invited = await this.repository.hasValidRegistrationInvite(normalizedEmail, executor);
+        if (this.registrationPolicy.registrationMode === 'invite_only' && !invited && !firstAdminCandidate) {
+          await this.repository.consumeEmailChallenge(challenge.id, executor);
+          await this.audit.record({ action: 'identity.internal_registration_denied', targetType: 'email_verification', targetId: challenge.id, metadata: { email: normalizedEmail } }, executor);
+          return { kind: 'denied' as const };
+        }
+        userId = await this.repository.createUser(normalizedEmail, cleanDisplayName(displayName, normalizedEmail), null, now, executor);
+        if (invited) await this.repository.consumeRegistrationInvite(normalizedEmail, executor);
+        await this.audit.record({ actorUserId: userId, action: 'identity.internal_user_registered', targetType: 'user', targetId: userId }, executor);
+      } else {
+        await this.repository.markEmailVerified(userId, now, executor);
+      }
+
+      await this.repository.ensureUserRole(userId, 'internal_user', executor);
+      let firstAdminActivated = false;
+      if (firstAdminCandidate) {
+        await this.repository.ensureUserRole(userId, 'system_admin', executor);
+        firstAdminActivated = true;
+        await this.audit.record({ actorUserId: userId, action: 'identity.first_admin_activated', targetType: 'user', targetId: userId }, executor);
+      }
+
+      await this.repository.consumeEmailChallenge(challenge.id, executor);
+      await this.repository.createSession(userId, tokenHash, expiresAt, executor);
+      await this.audit.record({ actorUserId: userId, action: 'identity.email_login', targetType: 'session' }, executor);
+      const user = await this.repository.findUserContextById(userId, executor);
+      if (!user) return { kind: 'denied' as const };
+      return { kind: 'success' as const, user, firstAdminActivated };
+    });
+
+    if (result.kind === 'invalid') throw new InvalidEmailCodeError();
+    if (result.kind === 'denied') throw new InternalRegistrationDeniedError();
+    return { token, expiresAt: expiresAt.toISOString(), user: result.user, firstAdminActivated: result.firstAdminActivated };
+  }
+
+  async login(identifier: string, password: string): Promise<{ token: string; expiresAt: string; user: AuthContext }> {
+    const normalizedIdentifier = normalizeLoginIdentifier(identifier);
+    const row = await this.repository.findLoginContext(normalizedIdentifier);
+    if (!row?.passwordHash || !(await this.passwords.verify(password, row.passwordHash))) throw new InvalidCredentialsError();
+    const token = this.tokens.create();
+    const expiresAt = new Date(this.clock.now().getTime() + SESSION_TTL_MS);
     await this.repository.transaction(async (executor) => {
       await this.repository.createSession(row.userId, this.tokens.hash(token), expiresAt, executor);
       await this.audit.record({ actorUserId: row.userId, action: 'identity.login', targetType: 'session' }, executor);
     });
     const { passwordHash: _passwordHash, ...user } = row;
     return { token, expiresAt: expiresAt.toISOString(), user };
+  }
+
+  async setPassword(actor: AuthContext, password: string): Promise<void> {
+    const passwordHash = await this.passwords.hash(password);
+    await this.repository.transaction(async (executor) => {
+      await this.repository.setPasswordHash(actor.userId, passwordHash, executor);
+      await this.audit.record({ actorUserId: actor.userId, action: 'identity.password_set', targetType: 'user', targetId: actor.userId }, executor);
+    });
+  }
+
+  async createRegistrationInvite(actor: AuthContext, email: string, expiresInDays = 7): Promise<{ email: string; expiresAt: string }> {
+    assertPermission(actor, Permission.IdentityRoleManage);
+    const normalizedEmail = normalizeEmail(email);
+    assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+    if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 30) throw new IdentityValidationError('Invite expiry must be between 1 and 30 days');
+    const expiresAt = new Date(this.clock.now().getTime() + expiresInDays * 24 * 60 * 60 * 1000);
+    await this.repository.transaction(async (executor) => {
+      await this.repository.upsertRegistrationInvite(normalizedEmail, actor.userId, expiresAt, executor);
+      await this.audit.record({ actorUserId: actor.userId, action: 'identity.registration_invite_created', targetType: 'registration_invite', targetId: normalizedEmail, metadata: { expiresAt: expiresAt.toISOString() } }, executor);
+    });
+    return { email: normalizedEmail, expiresAt: expiresAt.toISOString() };
   }
 
   async authenticate(token: string): Promise<AuthContext> {
@@ -65,10 +225,38 @@ export class IdentityService {
       await this.audit.record({ actorUserId: actor.userId, action: 'identity.roles_changed', targetType: 'user', targetId: userId, metadata: { roles: distinctRoles } }, executor);
     });
   }
+
+  private async isFirstAdminCandidate(email: string): Promise<boolean> {
+    return this.registrationPolicy.initialAdminEmail === email && !(await this.repository.hasActiveSystemAdmin());
+  }
+}
+
+export function normalizeLoginIdentifier(identifier: string): string {
+  const value = identifier.trim();
+  if (value.includes('@')) return normalizeEmail(value);
+  return normalizePhoneE164(value);
 }
 
 function normalizeEmail(email: string): string {
   const value = email.trim().toLowerCase();
-  if (!value) throw new IdentityValidationError('Email is required');
+  if (!value || !/^\S+@\S+\.\S+$/.test(value)) throw new IdentityValidationError('A valid email address is required');
   return value;
+}
+
+function normalizePhoneE164(phone: string): string {
+  const value = phone.trim().replace(/[\s().-]/g, '');
+  if (!/^\+[1-9]\d{7,14}$/.test(value)) throw new IdentityValidationError('A valid email address or E.164 phone number is required');
+  return value;
+}
+
+function cleanDisplayName(displayName: string | undefined, email: string): string {
+  const fallback = email.slice(0, email.indexOf('@')) || 'ALSVID User';
+  const value = displayName?.trim() || fallback;
+  return value.slice(0, 120);
+}
+
+function assertApprovedCompanyEmail(email: string, domains: readonly string[]): void {
+  const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase();
+  const approved = domains.map((value) => value.trim().toLowerCase().replace(/^@/, '')).filter(Boolean);
+  if (!approved.length || !approved.includes(domain)) throw new InternalRegistrationDeniedError();
 }
