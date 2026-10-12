@@ -44,6 +44,7 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '员工中心', href: '/people/employees', area: '系统设置', section: '人员', status: '骨架' },
   { label: '用户与访问权限', href: '/settings/access', area: '系统设置', section: '人员', status: '骨架' },
   { label: '角色 / 权限', href: '/settings/roles', area: '系统设置', section: '人员', status: '骨架' },
+  { label: '登录安全', href: '/settings/security', area: '系统设置', section: '安全' },
   { label: '通讯中心', href: '/settings/communications', area: '系统设置', section: '系统', status: '骨架' },
   { label: '集成', href: '/settings/integrations', area: '系统设置', section: '系统', status: '骨架' },
   { label: '审计日志', href: '/settings/audit', area: '系统设置', section: '系统', status: '骨架' },

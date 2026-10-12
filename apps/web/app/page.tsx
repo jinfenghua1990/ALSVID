@@ -16,7 +16,7 @@ export default async function PortalLauncherPage() {
   const release = process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? '未注入';
 
   return (
-    <PortalLoginGate authenticated={Boolean(session)}>
+    <PortalLoginGate authenticated={Boolean(session)} passwordSetupRequired={Boolean(session?.passwordSetupRequired)}>
       <main className={styles.page}>
         <header className={styles.header}>
           <Link className={styles.wordmark} href="/">ALSVID</Link>

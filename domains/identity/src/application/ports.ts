@@ -38,6 +38,13 @@ export interface IdentityRegistrationPolicy {
   exposeTestCode: boolean;
 }
 
+export interface IdentitySecurityPolicy {
+  sessionTtlDays: number;
+  forcePasswordSetup: boolean;
+  riskStepUpEnabled: boolean;
+  updatedAt: Date;
+}
+
 export interface EmailVerificationChallenge {
   id: string;
   email: string;
@@ -67,6 +74,8 @@ export interface IdentityRepository {
   listUsers(): Promise<Array<AuthContext & { status: string }>>;
   countKnownRoles(roles: readonly string[], executor?: QueryExecutor): Promise<number>;
   replaceUserRoles(userId: string, roles: readonly string[], executor?: QueryExecutor): Promise<void>;
+  getSecurityPolicy(executor?: QueryExecutor): Promise<IdentitySecurityPolicy>;
+  updateSecurityPolicy(input: { sessionTtlDays: number; forcePasswordSetup: boolean; riskStepUpEnabled: boolean; updatedBy: string }, executor?: QueryExecutor): Promise<IdentitySecurityPolicy>;
   findLatestEmailChallenge(email: string, executor?: QueryExecutor): Promise<EmailVerificationChallenge | null>;
   findEmailChallengeForUpdate(email: string, executor: QueryExecutor): Promise<EmailVerificationChallenge | null>;
   invalidateActiveEmailChallenges(email: string, executor?: QueryExecutor): Promise<void>;
