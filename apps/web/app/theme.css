@@ -19,6 +19,12 @@ html[data-theme="light"] {
   --alsvid-header: rgba(255, 255, 255, .94);
   --alsvid-rail: #ffffff;
   --alsvid-input: #ffffff;
+  --bg: var(--alsvid-bg);
+  --soft: var(--alsvid-bg-soft);
+  --panel: var(--alsvid-panel);
+  --ink: var(--alsvid-text);
+  --muted: var(--alsvid-muted);
+  --line: var(--alsvid-line);
 }
 
 html[data-theme="dark"] {
@@ -41,6 +47,12 @@ html[data-theme="dark"] {
   --alsvid-header: rgba(11, 16, 24, .94);
   --alsvid-rail: #0e151f;
   --alsvid-input: #172130;
+  --bg: var(--alsvid-bg);
+  --soft: var(--alsvid-bg-soft);
+  --panel: var(--alsvid-panel);
+  --ink: var(--alsvid-text);
+  --muted: var(--alsvid-muted);
+  --line: var(--alsvid-line);
 }
 
 html,
@@ -217,7 +229,6 @@ html[data-theme="dark"] .refreshButton {
   color: #f1d985;
 }
 
-/* Shared application surfaces */
 html[data-theme="dark"] .shellV2 :is(
   [class*="Card"],
   [class*="card"],
@@ -282,7 +293,6 @@ html[data-theme="dark"] .shellV2 [class*="empty"] {
   color: var(--alsvid-muted) !important;
 }
 
-/* Login / launcher / non-AppShell surfaces */
 html[data-theme="dark"] :is(.authPage, .partnerWorkspace) {
   background: var(--alsvid-bg) !important;
   color: var(--alsvid-text) !important;
