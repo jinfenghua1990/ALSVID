@@ -51,7 +51,7 @@ export class IdentityService {
 
   async registrationStatus(): Promise<{ emailVerificationAvailable: boolean; registrationMode: string; firstAdminRequired: boolean }> {
     return {
-      emailVerificationAvailable: this.verificationDelivery.configured && this.registrationPolicy.approvedEmailDomains.length > 0,
+      emailVerificationAvailable: this.verificationDelivery.configured,
       registrationMode: this.registrationPolicy.registrationMode,
       firstAdminRequired: !(await this.repository.hasActiveSystemAdmin()),
     };
@@ -60,9 +60,13 @@ export class IdentityService {
   async startEmailVerification(email: string): Promise<{ expiresAt: string; testCode?: string }> {
     if (!this.verificationDelivery.configured) throw new IdentityMailUnavailableError();
     const normalizedEmail = normalizeEmail(email);
-    assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
 
+    // Existing users may prove control of the exact email already stored on their
+    // ALSVID account even when it predates the current company-domain policy.
+    // Domain/invite policy applies only to creation of new Internal identities.
     const existingUserId = await this.repository.findUserIdByEmail(normalizedEmail);
+    if (!existingUserId) assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+
     const firstAdminCandidate = await this.isFirstAdminCandidate(normalizedEmail);
     if (!existingUserId && this.registrationPolicy.registrationMode === 'invite_only' && !firstAdminCandidate) {
       if (!(await this.repository.hasValidRegistrationInvite(normalizedEmail))) throw new InternalRegistrationDeniedError();
@@ -80,7 +84,7 @@ export class IdentityService {
     const challengeId = await this.repository.transaction(async (executor) => {
       await this.repository.invalidateActiveEmailChallenges(normalizedEmail, executor);
       const id = await this.repository.createEmailChallenge(normalizedEmail, codeHash, expiresAt, this.registrationPolicy.maxVerificationAttempts, executor);
-      await this.audit.record({ action: 'identity.email_verification_requested', targetType: 'email_verification', targetId: id, metadata: { email: normalizedEmail } }, executor);
+      await this.audit.record({ action: 'identity.email_verification_requested', targetType: 'email_verification', targetId: id, metadata: { email: normalizedEmail, existingUser: Boolean(existingUserId) } }, executor);
       return id;
     });
 
@@ -102,7 +106,6 @@ export class IdentityService {
 
   async completeEmailVerification(email: string, code: string, displayName?: string): Promise<{ token: string; expiresAt: string; user: AuthContext; firstAdminActivated: boolean }> {
     const normalizedEmail = normalizeEmail(email);
-    assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
     if (!/^\d{6}$/.test(code.trim())) throw new InvalidEmailCodeError();
 
     const token = this.tokens.create();
@@ -127,6 +130,7 @@ export class IdentityService {
       let userId = await this.repository.findUserIdByEmail(normalizedEmail, executor);
       const firstAdminCandidate = !(await this.repository.hasActiveSystemAdmin(executor)) && this.registrationPolicy.initialAdminEmail === normalizedEmail;
       if (!userId) {
+        assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
         const invited = await this.repository.hasValidRegistrationInvite(normalizedEmail, executor);
         if (this.registrationPolicy.registrationMode === 'invite_only' && !invited && !firstAdminCandidate) {
           await this.repository.consumeEmailChallenge(challenge.id, executor);
