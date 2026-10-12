@@ -4,21 +4,34 @@ import styles from './portal-shell.module.css';
 
 export type PortalKind = 'admin' | 'dealer' | 'my';
 
-type PortalLink = { label: string; href: string; status?: string };
+type PortalLink = { label: string; href: string; status?: string; disabled?: boolean };
+
+// Only destinations that exist in this application are rendered as links.
+// Planned areas stay visible as labelled, non-clickable entries instead of
+// presenting dead links that end in a 404.
+const primaryNavigation: readonly PortalLink[] = [
+  { label: '首页', href: '/admin' },
+  { label: '产品中心', href: '/product' },
+  { label: 'Vehicle 360', href: '/vehicle360' },
+  { label: '订单管理', href: '/commerce' },
+  { label: '经销商', href: '/dealers' },
+  { label: '配件 BOM', href: '/product#engineering' },
+  { label: '售后服务', href: '#', status: '规划中', disabled: true },
+  { label: '客户中心', href: '#', status: '规划中', disabled: true },
+];
 
 const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: PortalLink[] }> = {
   admin: {
-    name: 'Admin Center',
-    subtitle: '内部管理',
+    name: 'ALSVID Admin',
+    subtitle: '产品中心',
     links: [
-      { label: '管理概览', href: '/admin' },
-      { label: '产品与工程', href: '/product', status: '基础可用' },
-      { label: '采购 / 供应', href: '/supply', status: '基础可用' },
-      { label: '生产 / 质检', href: '/production', status: '基础可用' },
-      { label: '库存 / 仓库', href: '/inventory', status: '基础可用' },
-      { label: '物流', href: '/logistics', status: '基础可用' },
-      { label: '电商渠道', href: '/commerce', status: '基础可用' },
-      { label: '人员 / 系统', href: '/people/employees', status: '骨架' },
+      { label: '产品系列', href: '/product' },
+      { label: '车型 / Variant / SKU', href: '/product#models' },
+      { label: '配置管理', href: '/product#configuration' },
+      { label: 'BOM 结构', href: '/product#engineering' },
+      { label: '图片 / 视频素材', href: '#', status: '规划中', disabled: true },
+      { label: '技术资料', href: '#', status: '规划中', disabled: true },
+      { label: '供应商管理', href: '#', status: '预留', disabled: true },
     ],
   },
   dealer: {
@@ -26,52 +39,60 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     subtitle: '经销商门户',
     links: [
       { label: '工作台', href: '/dealer' },
-      { label: '我的公司', href: '/dealer/company', status: '待开发' },
-      { label: '订单与物流', href: '/dealer/orders', status: '待开发' },
-      { label: '车辆与交付', href: '/dealer/vehicles', status: '待开发' },
-      { label: '售后与保修', href: '/dealer/service', status: '待开发' },
+      { label: '订单与物流', href: '#', status: '待开发', disabled: true },
+      { label: '车辆交付', href: '#', status: '待开发', disabled: true },
+      { label: '售后服务', href: '#', status: '待开发', disabled: true },
     ],
   },
   my: {
     name: 'My ALSVID',
     subtitle: '车主服务',
     links: [
-      { label: '我的车库', href: '/my' },
-      { label: '车辆档案', href: '/my/vehicles', status: '待开发' },
-      { label: '保修与服务', href: '/my/service', status: '待开发' },
-      { label: '说明书与配件', href: '/my/library', status: '待开发' },
-      { label: '账户与偏好', href: '/my/account', status: '待开发' },
+      { label: '我的车辆', href: '/my' },
+      { label: '车辆档案', href: '#', status: '待开发', disabled: true },
+      { label: '服务记录', href: '#', status: '待开发', disabled: true },
     ],
   },
 };
 
+function NavEntry({ item, className }: { item: PortalLink; className: string | undefined }) {
+  if (item.disabled) {
+    return (
+      <span className={className} aria-disabled="true">
+        <span>{item.label}</span>
+        {item.status ? <small>{item.status}</small> : null}
+      </span>
+    );
+  }
+  return (
+    <Link className={className} href={item.href}>
+      <span>{item.label}</span>
+      {item.status ? <small>{item.status}</small> : null}
+    </Link>
+  );
+}
+
 export function PortalShell({ kind, children }: { kind: PortalKind; children: ReactNode }) {
   const config = portalConfig[kind];
+
   return (
     <div className={styles.portal} data-portal={kind}>
       <header className={styles.header}>
-        <Link className={styles.brand} href="/portal-launcher" aria-label="返回 ALSVID 门户入口">
-          <span className={styles.brandMark}>A</span>
-          <span>ALSVID</span>
-        </Link>
-        <span className={styles.portalName}>{config.name}</span>
-        <Link className={styles.launcherLink} href="/portal-launcher">门户入口 <span aria-hidden="true">↗</span></Link>
+        <Link className={styles.brand} href="/portal-launcher">ALSVID</Link>
+        <nav className={styles.primaryNavigation} aria-label="主导航">
+          {primaryNavigation.map((item) => (
+            <NavEntry item={item} className={styles.primaryNavItem} key={item.label} />
+          ))}
+        </nav>
+        <Link className={styles.launcherLink} href="/portal-launcher">Portal ↗</Link>
       </header>
+
       <div className={styles.frame}>
         <aside className={styles.sidebar} aria-label={config.subtitle + '导航'}>
           <div className={styles.sidebarLabel}>{config.subtitle}</div>
           <nav>
             {config.links.map((item) => (
-              item.status === '待开发' ? (
-                <span className={styles.navLink} aria-disabled="true" key={item.href}>
-                  <span>{item.label}</span><small>{item.status}</small>
-                </span>
-              ) : (
-                <Link className={styles.navLink} href={item.href} key={item.href}>
-                  <span>{item.label}</span>
-                  {item.status ? <small>{item.status}</small> : null}
-                </Link>
-              )
+              <NavEntry item={item} className={styles.navLink} key={item.label} />
             ))}
           </nav>
           {kind !== 'admin' ? <p className={styles.scopeNote}>页面仅为体验骨架。登录身份、组织/车主关系和服务端数据权限接入后，才会显示真实业务记录。</p> : null}

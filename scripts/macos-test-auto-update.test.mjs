@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { acceptedRelease, assertTestConfig, agentPlist } from './macos-test-auto-update.mjs';
 const sha = 'a'.repeat(40);
-const passed = ['CI', 'ALSVID Development/Test Build'].map((name, id) => ({ id, name, head_sha: sha, event: 'push', head_branch: 'main', status: 'completed', conclusion: 'success' }));
+const passed = ['CI', 'ALSVID Development Build'].map((name, id) => ({ id, name, head_sha: sha, event: 'push', head_branch: 'main', status: 'completed', conclusion: 'success' }));
 test('both exact-main push acceptance workflows must pass', () => {
   assert.equal(acceptedRelease(passed, sha), true);
   assert.equal(acceptedRelease(passed.slice(0, 1), sha), false);

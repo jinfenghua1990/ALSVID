@@ -173,8 +173,8 @@ ensure_secret() {
 }
 
 ensure_secret alsvid-database-url
-ensure_secret alsvid-r2-access-key
-ensure_secret alsvid-r2-secret-key
+ensure_secret alsvid-development-r2-access-key
+ensure_secret alsvid-development-r2-secret-key
 
 provider_name="$(gcloud iam workload-identity-pools providers describe "$WIF_PROVIDER_ID" \
   --project "$GCP_PROJECT_ID" \
@@ -199,9 +199,9 @@ Set these to the isolated Development R2 resource:
   R2_BUCKET=<development-bucket-name>
 
 Secret resource shells exist, but no secret VALUES were written:
-  alsvid-database-url       -> Neon Development only
-  alsvid-r2-access-key      -> R2 Development only
-  alsvid-r2-secret-key      -> R2 Development only
+  alsvid-database-url              -> Neon Development only
+  alsvid-development-r2-access-key -> R2 Development only
+  alsvid-development-r2-secret-key -> R2 Development only
 
 Add secret versions using trusted Google Cloud/local account tooling. Never copy Production credentials into Development.
 EOF

@@ -63,7 +63,7 @@ export default function CommerceClient() {
   async function reload() {
     try {
       const [nextCommerce, nextIntegrations, nextPartners, product, logistics] = await Promise.all([
-        api('/v1/commerce'), api('/v1/integrations'), api('/v1/partners'), api('/v1/product'), api('/v1/logistics'),
+        api('/v1/commerce'), api('/v1/integrations'), api('/v1/partners'), api('/v1/product/catalog'), api('/v1/logistics'),
       ]);
       setCommerce(nextCommerce);
       setIntegrations(nextIntegrations);
