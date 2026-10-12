@@ -126,6 +126,82 @@ textarea {
   color: var(--alsvid-muted) !important;
 }
 
+.contextNavigation {
+  position: sticky;
+  top: 68px;
+  z-index: 44;
+  min-height: 44px;
+  border-bottom: 1px solid var(--alsvid-line);
+  background: color-mix(in srgb, var(--alsvid-header) 96%, transparent);
+  backdrop-filter: blur(20px);
+}
+
+body[data-alsvid-environment="development"] .contextNavigation {
+  top: 102px;
+}
+
+.contextNavigationInner {
+  width: 100%;
+  max-width: 1620px;
+  margin: 0 auto;
+  padding: 0 clamp(18px, 2.2vw, 32px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.contextNavigationInner::-webkit-scrollbar {
+  display: none;
+}
+
+.contextNavigationTitle {
+  flex: none;
+  margin-right: 8px;
+  color: var(--alsvid-text);
+  font-size: 11px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.contextNavItem {
+  flex: none;
+  min-height: 43px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-bottom: 2px solid transparent;
+  color: var(--alsvid-muted);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.contextNavItem:hover {
+  color: var(--alsvid-text);
+}
+
+.contextNavItemActive {
+  border-bottom-color: var(--alsvid-accent);
+  color: var(--alsvid-accent);
+}
+
+.contextNavItem small {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--alsvid-bg-soft);
+  color: var(--alsvid-muted);
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.contextNavItemDisabled {
+  opacity: .55;
+  cursor: default;
+}
+
 .primaryUtilities {
   display: flex;
   align-items: center;
@@ -332,6 +408,10 @@ html[data-theme="dark"] .tableRow:hover {
 }
 
 @media (max-width: 850px) {
+  .contextNavigation {
+    display: none;
+  }
+
   .primaryUtilities {
     gap: 2px;
   }
