@@ -120,6 +120,13 @@
   color: var(--alsvid-muted);
   font-size: 8px;
 }
+.navDisabled {
+  opacity: .5;
+  cursor: default;
+  border-bottom-color: transparent !important;
+  color: var(--alsvid-muted) !important;
+}
+.navDisabled:hover { color: var(--alsvid-muted); border-bottom-color: transparent; }
 .main {
   width: 100%;
   max-width: 1560px;
