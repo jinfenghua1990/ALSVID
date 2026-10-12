@@ -37,13 +37,14 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  async login(@Body() body: { email?: string; password?: string }) {
-    if (!body?.email || !body.password) throw new UnauthorizedException('Email and password are required');
+  async login(@Body() body: { identifier?: string; email?: string; password?: string }) {
+    const identifier = body?.identifier ?? body?.email;
+    if (!identifier || !body.password) throw new UnauthorizedException('Account identifier and password are required');
     try {
-      return { data: await identityService.login(body.email, body.password) };
+      return { data: await identityService.login(identifier, body.password) };
     } catch (error) {
       if (error instanceof InvalidCredentialsError) throw new UnauthorizedException(error.message);
-      throw error;
+      return throwHttpDomainError(error);
     }
   }
 
