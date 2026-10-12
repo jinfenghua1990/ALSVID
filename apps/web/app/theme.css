@@ -25,6 +25,10 @@ html[data-theme="light"] {
   --ink: var(--alsvid-text);
   --muted: var(--alsvid-muted);
   --line: var(--alsvid-line);
+  --accent: var(--alsvid-accent);
+  --success: var(--alsvid-success);
+  --warning: var(--alsvid-warning);
+  --danger: var(--alsvid-danger);
 }
 
 html[data-theme="dark"] {
@@ -53,6 +57,10 @@ html[data-theme="dark"] {
   --ink: var(--alsvid-text);
   --muted: var(--alsvid-muted);
   --line: var(--alsvid-line);
+  --accent: var(--alsvid-accent);
+  --success: var(--alsvid-success);
+  --warning: var(--alsvid-warning);
+  --danger: var(--alsvid-danger);
 }
 
 html,
@@ -67,6 +75,11 @@ input,
 select,
 textarea {
   transition: background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--alsvid-accent) 26%, transparent);
+  color: var(--alsvid-text);
 }
 
 .shellV2,
@@ -102,17 +115,12 @@ textarea {
   background: var(--alsvid-bg-soft) !important;
 }
 
+.shellV2 .primaryNavItemActive {
+  color: var(--alsvid-accent) !important;
+}
+
 .shellV2 .primaryNavItemActive::after {
   background: var(--alsvid-accent) !important;
-}
-
-.shellV2 .rail {
-  border-color: var(--alsvid-line) !important;
-  background: var(--alsvid-rail) !important;
-}
-
-.shellV2 .contextRailTitle {
-  border-color: var(--alsvid-line) !important;
 }
 
 .shellV2 .navItem.active {
@@ -224,11 +232,16 @@ body[data-alsvid-environment="development"] .contextNavigation {
   color: var(--alsvid-text-2);
 }
 
-.utilityButton:hover,
+.utilityButton:hover:not(:disabled),
 .themeToggle:hover {
   border-color: var(--alsvid-line);
   background: var(--alsvid-bg-soft);
   color: var(--alsvid-text);
+}
+
+.utilityButton:disabled {
+  color: var(--alsvid-muted);
+  opacity: .34;
 }
 
 .themeToggleIcon {
@@ -240,17 +253,6 @@ body[data-alsvid-environment="development"] .contextNavigation {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .03em;
-}
-
-.utilityNotify {
-  position: relative;
-}
-
-.utilityNotify > span {
-  position: absolute;
-  right: 4px;
-  top: 3px;
-  color: var(--alsvid-danger);
 }
 
 .primaryProfile {
@@ -293,6 +295,16 @@ body[data-alsvid-environment="development"] .contextNavigation {
   font-size: 8px;
 }
 
+[data-alsvid-surface="true"],
+[data-alsvid-notice="true"],
+[data-alsvid-empty-state="true"] {
+  color: var(--alsvid-text);
+}
+
+[data-alsvid-empty-state="true"] {
+  color: var(--alsvid-muted);
+}
+
 html[data-theme="dark"] .environmentBanner {
   border-color: #6e5720;
   background: #2d260f;
@@ -322,6 +334,7 @@ html[data-theme="dark"] .shellV2 :is(
 
 html[data-theme="dark"] .shellV2 :is(
   [class*="metricCard"],
+  [class*="providerCard"],
   [class*="panel"],
   [class*="listCard"],
   [class*="modelBlock"],
@@ -330,7 +343,10 @@ html[data-theme="dark"] .shellV2 :is(
   [class*="formCard"],
   [class*="tableCard"],
   [class*="detailCard"],
-  [class*="infoCard"]
+  [class*="infoCard"],
+  [class*="card"],
+  [class*="rule"],
+  [class*="detail"]
 ) {
   background: var(--alsvid-panel) !important;
   color: var(--alsvid-text) !important;
@@ -394,6 +410,12 @@ html[data-theme="dark"] .tableRow {
 
 html[data-theme="dark"] .tableRow:hover {
   background: var(--alsvid-panel-2);
+}
+
+html[data-theme="dark"] .mobileNav {
+  border-color: var(--alsvid-line);
+  background: var(--alsvid-header);
+  color: var(--alsvid-text);
 }
 
 @media (max-width: 1180px) {
