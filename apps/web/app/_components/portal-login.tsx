@@ -50,9 +50,9 @@ export function PortalLoginGate({ authenticated, children }: { authenticated: bo
     event.preventDefault(); setBusy(true); setError(''); setNotice('');
     try {
       const form = new FormData(event.currentTarget);
-      const response = await fetch('/api/session/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ identifier: form.get('identifier'), password: form.get('password') }) });
+      const response = await fetch('/api/session/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: form.get('email'), password: form.get('password') }) });
       const payload = await response.json().catch(() => null) as AuthResponse | null;
-      if (!response.ok) { setError(payload?.message ?? '登录失败，请检查邮箱/手机号和密码。'); return; }
+      if (!response.ok) { setError(payload?.message ?? '登录失败，请检查邮箱和密码。'); return; }
       router.refresh();
     } catch { setError('无法连接登录服务，请稍后重试。'); }
     finally { setBusy(false); }
@@ -84,7 +84,7 @@ export function PortalLoginGate({ authenticated, children }: { authenticated: bo
           <button className={styles.dialogSubmit} disabled={busy}>{busy ? '处理中…' : codeRequested ? '验证并登录' : '发送验证码'}</button>
           {codeRequested ? <button className={loginStyles.secondary} type="button" disabled={busy} onClick={() => { setCodeRequested(false); setNotice(''); setError(''); }}>更换邮箱 / 重新获取</button> : null}
         </form> : <form className={styles.dialogForm} onSubmit={submitPassword}>
-          <label>邮箱 / 手机号<input name="identifier" type="text" autoComplete="username" placeholder="name@company.com / +86..." required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
+          <label>邮箱<input name="email" type="email" autoComplete="username" placeholder="name@company.com" required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
           {error ? <p className={styles.dialogError}>{error}</p> : null}<button className={styles.dialogSubmit} disabled={busy}>{busy ? '正在登录…' : '账户密码登录'}</button>
         </form>}
       </section>
