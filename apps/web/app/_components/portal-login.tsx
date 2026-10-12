@@ -85,6 +85,7 @@ export function PortalLoginGate({ authenticated, children }: { authenticated: bo
           {codeRequested ? <button className={loginStyles.secondary} type="button" disabled={busy} onClick={() => { setCodeRequested(false); setNotice(''); setError(''); }}>更换邮箱 / 重新获取</button> : null}
         </form> : <form className={styles.dialogForm} onSubmit={submitPassword}>
           <label>邮箱<input name="email" type="email" autoComplete="username" placeholder="name@company.com" required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
+          <div className={loginStyles.pendingCapability} aria-disabled="true"><span>手机号登录</span><span className={loginStyles.pendingBadge}>待启用</span></div>
           {error ? <p className={styles.dialogError}>{error}</p> : null}<button className={styles.dialogSubmit} disabled={busy}>{busy ? '正在登录…' : '账户密码登录'}</button>
         </form>}
       </section>
