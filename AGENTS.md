@@ -52,9 +52,9 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Production database primary: Neon PostgreSQL.
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
-- Current Development/Test compute: M1 Mac + Docker.
+- Local Development compute: M1 Mac + Docker. Shared Development/Test compute: Google Cloud Run when a commit must be tested outside the workstation.
 - Current Test database/object storage: isolated managed cloud Test resources (Neon Test + R2 Test), not Production resources.
-- A separate Cloud Run Test environment is not maintained at the current stage.
+- The shared Cloud Run Development/Test environment is maintained separately from Production and uses only Development/Test resources.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
 ## Architecture rules

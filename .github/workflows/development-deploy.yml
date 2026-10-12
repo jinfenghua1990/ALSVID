@@ -1,0 +1,162 @@
+name: ALSVID Development Deploy
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Optional commit SHA to deploy from develop"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: alsvid-development-deploy
+  cancel-in-progress: true
+
+env:
+  GCP_PROJECT_ID: alsvid-dev
+  GCP_REGION: europe-west3
+  GAR_REPOSITORY: alsvid-dev
+  GCP_WORKLOAD_IDENTITY_PROVIDER: projects/737930071497/locations/global/workloadIdentityPools/github/providers/alsvid-development
+  GCP_DEPLOY_SERVICE_ACCOUNT: alsvid-github-deploy@alsvid-dev.iam.gserviceaccount.com
+  GCP_RUNTIME_SERVICE_ACCOUNT: alsvid-runtime@alsvid-dev.iam.gserviceaccount.com
+  WEB_SERVICE: alsvid-web
+  API_SERVICE: alsvid-api
+  WORKER_POOL: alsvid-worker
+  MIGRATION_JOB: alsvid-migrate
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout development release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_sha || (github.event_name == 'push' && github.sha) || 'develop' }}
+          fetch-depth: 0
+
+      - name: Resolve release image registry
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_sha="$(git rev-parse HEAD)"
+          registry="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+          echo "registry=$registry" >> "$GITHUB_OUTPUT"
+
+      - name: Build immutable development images
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          docker build --platform linux/amd64 --build-arg ALSVID_ENV=test -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
+          docker build --platform linux/amd64 -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
+          docker build --platform linux/amd64 -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
+
+      - name: Authenticate to Google Cloud with Workload Identity Federation
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Push development images
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+          docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
+          docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
+          docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
+
+      - name: Run Development database migrations
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud run jobs deploy "$MIGRATION_JOB" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --command pnpm \
+            --args db:migrate \
+            --set-env-vars NODE_ENV=test \
+            --set-secrets DATABASE_URL=alsvid-database-url:latest \
+            --max-retries 1 \
+            --task-timeout 10m \
+            --quiet
+          gcloud run jobs execute "$MIGRATION_JOB" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --wait --quiet
+
+      - name: Deploy Development API
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$API_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --port 4000 --cpu 1 --memory 512Mi --min 0 --max 2 \
+            --allow-unauthenticated \
+            --set-env-vars NODE_ENV=test,OBJECT_STORAGE_PROVIDER=unconfigured \
+            --set-secrets DATABASE_URL=alsvid-database-url:latest \
+            --quiet
+
+      - name: Deploy Development worker pool
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gcloud run worker-pools deploy "$WORKER_POOL" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --instances 1 --cpu 1 --memory 512Mi \
+            --set-env-vars NODE_ENV=test,OBJECT_STORAGE_PROVIDER=unconfigured,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000 \
+            --set-secrets DATABASE_URL=alsvid-database-url:latest \
+            --quiet
+
+      - name: Deploy Development web
+        env:
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 "$api_url/api/health"
+          gcloud run deploy "$WEB_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "$REGISTRY/alsvid-web:$RELEASE_SHA" \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --port 3000 --cpu 1 --memory 512Mi --min 0 --max 2 \
+            --allow-unauthenticated \
+            --set-env-vars "NODE_ENV=test,ALSVID_ENV=test,ALSVID_API_BASE_URL=${api_url}/api" \
+            --quiet
+
+      - name: Verify Development web
+        run: |
+          set -euo pipefail
+          web_url="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          curl --fail --silent --show-error --retry 6 --retry-delay 5 "$web_url" >/dev/null
+          echo "Development web: $web_url"

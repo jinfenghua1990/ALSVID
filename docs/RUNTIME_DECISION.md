@@ -63,18 +63,15 @@ It is not primary because it is a smaller platform and ALSVID prefers a larger p
 
 Cloudflare remains strategically important for R2 object storage. Cloudflare Workers are useful for lightweight edge functions but are not the selected runtime for the full ALSVID application. Cloudflare Containers may be reconsidered later if its pricing and product maturity become a better fit.
 
-## Test versus Production
+## Development/Test versus Production
 
 Current stage:
 
-- **M1 + Docker:** development and Test compute
-- **Google Cloud Run:** Production runtime
+- **M1 + Docker:** fast local Development/Test feedback
+- **Google Cloud Run in `alsvid-dev`:** shared Development/Test runtime for GitHub commits
+- **Google Cloud Run in `alsvid-prod`:** Production runtime
 
-A separate Cloud Run Test environment is intentionally not maintained yet. It should be added only when one or more of these conditions appear:
-
-1. multiple developers need a shared test environment;
-2. defects repeatedly occur only in Cloud Run/IAM/cloud networking;
-3. realistic cloud load or infrastructure testing is required.
+The shared Cloud Run Development/Test runtime exists because multiple developers and coding agents need a reproducible deployed target. It uses separate Neon Test and R2 Test resources and must never receive Production secrets.
 
 ## Promotion rule
 

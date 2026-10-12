@@ -32,6 +32,7 @@ Resources:
 
 - M1 Mac
 - Docker / Docker Compose
+- Google Cloud Run shared Development/Test services
 - Neon Test
 - Cloudflare R2 Test
 - Development/Test secrets
@@ -67,7 +68,7 @@ ALSVID Production
 Google Cloud Run
 ```
 
-ALSVID does not maintain a separate Staging/Test cloud environment at the current stage.
+ALSVID maintains one shared Development/Test cloud runtime in `alsvid-dev`; it is not a third environment and never uses Production resources.
 
 ## Data isolation rules
 
@@ -76,6 +77,8 @@ ALSVID does not maintain a separate Staging/Test cloud environment at the curren
 - Test data and files are not promoted into Production.
 - Secrets must never be committed to source control.
 
-## Future expansion
+## Delivery implementation
 
-A separate cloud test runtime may be added only when operational requirements justify it, such as multiple teams, external integration callbacks, load testing, or Cloud Run-specific validation needs.
+- Pushes to `develop` deploy automatically to the shared Development/Test Cloud Run project.
+- Merges to `main` deploy automatically to Production after the existing production checks.
+- Local M1 development remains available for fast feedback and offline work.
