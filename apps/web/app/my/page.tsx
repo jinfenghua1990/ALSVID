@@ -1,6 +1,6 @@
 import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
-import styles from '../admin/portal-page.module.css';
+import styles from '../_components/portal-content.module.css';
 
 const features = [
   ['车辆档案', '车型、配置、车架号与激活状态', '待开发'],
@@ -24,7 +24,7 @@ export default async function MyALSVIDPage() {
           </article>
         ))}
       </section>
-      <div className={styles.callout} style={{ marginTop: 13 }}><strong>车主数据保护</strong><span>注册账号或知道车架号都不会自动获得车辆所有权。车辆只有在可信交付、激活或审核关系成立后才会进入车库。</span></div>
+      <div className={styles.callout} style={{ marginTop: 13 }}><strong>车主数据保护</strong><span>注册账号或知道车架号都不会自动获得车辆所有权。车辆只有在可信交付、激活或审核关系成立后才会进入车库；没有车辆时保持空置。</span></div>
     </PortalShell>
   );
 }

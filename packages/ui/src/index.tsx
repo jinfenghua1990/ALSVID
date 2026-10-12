@@ -1,4 +1,7 @@
 import type { PropsWithChildren, ReactNode } from 'react';
+import { ThemeToggle } from './theme-toggle';
+
+export { ThemeToggle } from './theme-toggle';
 
 export interface AppNavItem {
   label: string;
@@ -54,7 +57,7 @@ export function AppShell({
   children,
   navigation,
   brand = 'ALSVID',
-  brandHref = '/',
+  brandHref = '/admin',
   footer = 'ALSVID V1',
   workspaceId,
   classNames = {},
@@ -68,7 +71,9 @@ export function AppShell({
 }>) {
   const activeItem = navigation.find((item) => item.active);
   const activeArea = activeItem?.area ?? activeItem?.section ?? '首页';
-  const contextualNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
+  const contextualNavigation = activeArea === '首页'
+    ? navigation.filter((item) => item.label !== '业务概览')
+    : navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
   const areas = Array.from(new Set(navigation.map((item) => item.area ?? item.section ?? '首页'))).map((label) => {
     const items = navigation.filter((item) => (item.area ?? item.section ?? '首页') === label);
     const enabled = items.find((item) => !item.disabled);
@@ -86,7 +91,16 @@ export function AppShell({
             <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined}>{area.label}</a>
           ))}
         </nav>
-        <a className="primaryLauncher" href="/portal-launcher">工作入口</a>
+        <div className="primaryUtilities" aria-label="快捷工具">\n          <a className="portalTopLink" href="/portal-launcher">Portal <span aria-hidden="true">↗</span></a>
+          <button className="utilityButton" type="button" aria-label="搜索">⌕</button>
+          <ThemeToggle />
+          <button className="utilityButton utilityNotify" type="button" aria-label="通知">♢<span>•</span></button>
+          <a className="primaryProfile" href="/portal-launcher" aria-label="工作入口">
+            <span className="profileAvatar">A</span>
+            <span className="profileCopy"><strong>管理员</strong><small>ALSVID</small></span>
+            <span aria-hidden="true">⌄</span>
+          </a>
+        </div>
       </header>
 
       <details className="mobileNav mobileNavV2">
@@ -103,17 +117,13 @@ export function AppShell({
 
       <div className="shellFrame">
         <aside className={classNames.rail ?? 'rail'}>
-          <div className="contextRailTitle"><span>当前模块</span><strong>{activeArea}</strong></div>
+          <div className="contextRailTitle"><span>ALSVID</span><strong>{activeArea}</strong></div>
           <nav className={classNames.nav} aria-label={`${activeArea} 二级导航`}>
             <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />
           </nav>
           <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
         </aside>
         <div className="adminBody">
-          <header className="adminTopbar">
-            <span>{activeArea} <span aria-hidden="true">/</span> <strong>{activeItem?.label ?? '工作台'}</strong></span>
-            <span className="adminTopbarHint">ALSVID Internal</span>
-          </header>
           <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
         </div>
       </div>

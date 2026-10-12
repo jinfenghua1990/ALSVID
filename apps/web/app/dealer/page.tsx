@@ -1,6 +1,6 @@
 import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
-import styles from '../admin/portal-page.module.css';
+import styles from '../_components/portal-content.module.css';
 
 const sections = [
   ['公司资料', '经审核的公司信息、联系人与服务地址', '待开发'],
@@ -17,7 +17,7 @@ export default async function DealerPortalPage() {
         <div><p className={styles.eyebrow}>ALSVID / DEALER PORTAL</p><h1>经销商工作台</h1><p>为已启用的经销商成员提供公司范围内的订单、车辆与售后信息。</p></div>
         <span className={styles.badge}>Preview · 待接入权限</span>
       </header>
-      <div className={styles.callout}><strong>数据范围</strong><span>真实页面必须由服务端校验用户与 Dealer/Partner 成员关系。当前没有连接经销商账户或业务记录。</span></div>
+      <div className={styles.callout}><strong>数据范围</strong><span>真实页面必须由服务端校验用户与 Dealer/Partner 成员关系。当前没有连接经销商账户或业务记录时保持空置。</span></div>
       <section className={styles.moduleGrid} aria-label="经销商门户功能预览" style={{ marginTop: 13 }}>
         {sections.map(([name, detail, status]) => (
           <article className={styles.moduleCard} key={name}>

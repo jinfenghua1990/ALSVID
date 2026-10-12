@@ -1,0 +1,37 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+type ThemeMode = 'light' | 'dark';
+
+function applyTheme(theme: ThemeMode) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+}
+
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<ThemeMode>('light');
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('alsvid-theme');
+    const next: ThemeMode = stored === 'dark' || stored === 'light'
+      ? stored
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    setTheme(next);
+    applyTheme(next);
+  }, []);
+
+  function toggle() {
+    const next: ThemeMode = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    window.localStorage.setItem('alsvid-theme', next);
+    applyTheme(next);
+  }
+
+  return (
+    <button className="themeToggle" type="button" onClick={toggle} aria-label={theme === 'dark' ? '切换到白天模式' : '切换到黑夜模式'} title={theme === 'dark' ? '白天模式' : '黑夜模式'}>
+      <span className="themeToggleIcon" aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+      <span className="themeToggleLabel">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+    </button>
+  );
+}
