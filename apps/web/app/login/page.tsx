@@ -31,12 +31,12 @@ export default function LoginPage() {
       const response = await fetch('/api/session/login', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ identifier: form.get('identifier'), password: form.get('password') }),
+        body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
       });
       const payload = await response.json().catch(() => null) as LoginResponse | null;
 
       if (!response.ok) {
-        setError(payload?.message ?? '登录失败，请检查邮箱 / 手机号和密码');
+        setError(payload?.message ?? '登录失败，请检查邮箱和密码');
         return;
       }
 
@@ -64,10 +64,11 @@ export default function LoginPage() {
         <div className={styles.brand}>ALSVID</div>
         <div className={styles.eyebrow}>INTERNAL PLATFORM</div>
         <h1 className={styles.title}>账户密码登录</h1>
-        <p className={styles.lead}>使用已验证邮箱或手机号登录。内部员工优先从门户登录中心使用公司邮箱验证码。</p>
+        <p className={styles.lead}>使用已验证邮箱登录。内部员工优先从门户登录中心使用公司邮箱验证码；手机号登录将在完成真实手机号绑定与验证流程后启用。</p>
         <form className={styles.form} onSubmit={submit}>
-          <label>邮箱 / 手机号<input name="identifier" type="text" autoComplete="username" placeholder="name@company.com / +86..." required /></label>
+          <label>邮箱<input name="email" type="email" autoComplete="username" placeholder="name@company.com" required /></label>
           <label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
+          <div className={styles.pendingCapability} aria-disabled="true"><span>手机号登录</span><span>待启用</span></div>
           {error ? <p className={styles.error}>{error}</p> : null}
           <button className={styles.submit} disabled={busy}>{busy ? '正在登录…' : '账户密码登录'}</button>
         </form>
