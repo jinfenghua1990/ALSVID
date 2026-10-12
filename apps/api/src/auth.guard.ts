@@ -1,9 +1,10 @@
-import { type CanActivate, type ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { AuthContext } from '@alsvid/identity';
 import { InvalidCredentialsError } from '@alsvid/identity';
 import { identityService } from './runtime.js';
 import { PUBLIC_ROUTE } from './public.decorator.js';
+import { PASSWORD_SETUP_ALLOWED } from './password-setup.decorator.js';
 
 export interface AuthenticatedRequest {
   headers: { authorization?: string };
@@ -35,6 +36,8 @@ export class AuthGuard implements CanActivate {
 
     try {
       request.auth = await identityService.authenticate(token);
+      const passwordSetupAllowed = this.reflector.getAllAndOverride<boolean>(PASSWORD_SETUP_ALLOWED, [context.getHandler(), context.getClass()]);
+      if (request.auth.passwordSetupRequired && !passwordSetupAllowed) throw new ForbiddenException('Password setup required before accessing ALSVID business APIs');
       return true;
     } catch (error) {
       if (error instanceof InvalidCredentialsError) throw new UnauthorizedException('Session expired or invalid');

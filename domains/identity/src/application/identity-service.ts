@@ -20,7 +20,7 @@ import type {
   SessionTokenService,
 } from './ports.js';
 
-const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class IdentityService {
   constructor(
@@ -36,6 +36,7 @@ export class IdentityService {
 
   async bootstrapAdmin(email: string, password: string, displayName = 'ALSVID Administrator'): Promise<string> {
     const normalizedEmail = normalizeEmail(email);
+    assertPasswordPolicy(password);
     const passwordHash = await this.passwords.hash(password);
     const verifiedAt = this.clock.now();
     return this.repository.transaction(async (executor) => {
@@ -108,10 +109,11 @@ export class IdentityService {
     const normalizedEmail = normalizeEmail(email);
     if (!/^\d{6}$/.test(code.trim())) throw new InvalidEmailCodeError();
 
+    const securityPolicy = await this.repository.getSecurityPolicy();
     const token = this.tokens.create();
     const tokenHash = this.tokens.hash(token);
     const now = this.clock.now();
-    const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
+    const expiresAt = new Date(now.getTime() + securityPolicy.sessionTtlDays * DAY_MS);
 
     const result = await this.repository.transaction(async (executor) => {
       const challenge = await this.repository.findEmailChallengeForUpdate(normalizedEmail, executor);
@@ -169,8 +171,9 @@ export class IdentityService {
     const normalizedIdentifier = normalizeLoginIdentifier(identifier);
     const row = await this.repository.findLoginContext(normalizedIdentifier);
     if (!row?.passwordHash || !(await this.passwords.verify(password, row.passwordHash))) throw new InvalidCredentialsError();
+    const securityPolicy = await this.repository.getSecurityPolicy();
     const token = this.tokens.create();
-    const expiresAt = new Date(this.clock.now().getTime() + SESSION_TTL_MS);
+    const expiresAt = new Date(this.clock.now().getTime() + securityPolicy.sessionTtlDays * DAY_MS);
     await this.repository.transaction(async (executor) => {
       await this.repository.createSession(row.userId, this.tokens.hash(token), expiresAt, executor);
       await this.audit.record({ actorUserId: row.userId, action: 'identity.login', targetType: 'session' }, executor);
@@ -180,11 +183,35 @@ export class IdentityService {
   }
 
   async setPassword(actor: AuthContext, password: string): Promise<void> {
+    assertPasswordPolicy(password);
     const passwordHash = await this.passwords.hash(password);
     await this.repository.transaction(async (executor) => {
       await this.repository.setPasswordHash(actor.userId, passwordHash, executor);
-      await this.audit.record({ actorUserId: actor.userId, action: 'identity.password_set', targetType: 'user', targetId: actor.userId }, executor);
+      await this.audit.record({ actorUserId: actor.userId, action: 'identity.password_set', targetType: 'user', targetId: actor.userId, metadata: { completedRequiredSetup: Boolean(actor.passwordSetupRequired) } }, executor);
     });
+  }
+
+  async securityPolicy(actor: AuthContext): Promise<{ sessionTtlDays: number; forcePasswordSetup: boolean; riskStepUpEnabled: boolean; updatedAt: string }> {
+    assertPermission(actor, Permission.IdentityRoleManage);
+    const policy = await this.repository.getSecurityPolicy();
+    return { sessionTtlDays: policy.sessionTtlDays, forcePasswordSetup: policy.forcePasswordSetup, riskStepUpEnabled: policy.riskStepUpEnabled, updatedAt: policy.updatedAt.toISOString() };
+  }
+
+  async updateSecurityPolicy(actor: AuthContext, input: { sessionTtlDays?: number; forcePasswordSetup?: boolean; riskStepUpEnabled?: boolean }): Promise<{ sessionTtlDays: number; forcePasswordSetup: boolean; riskStepUpEnabled: boolean; updatedAt: string }> {
+    assertPermission(actor, Permission.IdentityRoleManage);
+    const current = await this.repository.getSecurityPolicy();
+    const sessionTtlDays = input.sessionTtlDays ?? current.sessionTtlDays;
+    if (!Number.isInteger(sessionTtlDays) || sessionTtlDays < 1 || sessionTtlDays > 90) throw new IdentityValidationError('Session duration must be between 1 and 90 days');
+    const forcePasswordSetup = input.forcePasswordSetup ?? current.forcePasswordSetup;
+    const riskStepUpEnabled = input.riskStepUpEnabled ?? current.riskStepUpEnabled;
+    if (typeof forcePasswordSetup !== 'boolean' || typeof riskStepUpEnabled !== 'boolean') throw new IdentityValidationError('Security policy values must be boolean');
+
+    const updated = await this.repository.transaction(async (executor) => {
+      const value = await this.repository.updateSecurityPolicy({ sessionTtlDays, forcePasswordSetup, riskStepUpEnabled, updatedBy: actor.userId }, executor);
+      await this.audit.record({ actorUserId: actor.userId, action: 'identity.security_policy_updated', targetType: 'security_policy', targetId: 'default', metadata: { sessionTtlDays, forcePasswordSetup, riskStepUpEnabled } }, executor);
+      return value;
+    });
+    return { sessionTtlDays: updated.sessionTtlDays, forcePasswordSetup: updated.forcePasswordSetup, riskStepUpEnabled: updated.riskStepUpEnabled, updatedAt: updated.updatedAt.toISOString() };
   }
 
   async createRegistrationInvite(actor: AuthContext, email: string, expiresInDays = 7): Promise<{ email: string; expiresAt: string }> {
@@ -192,7 +219,7 @@ export class IdentityService {
     const normalizedEmail = normalizeEmail(email);
     assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
     if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 30) throw new IdentityValidationError('Invite expiry must be between 1 and 30 days');
-    const expiresAt = new Date(this.clock.now().getTime() + expiresInDays * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(this.clock.now().getTime() + expiresInDays * DAY_MS);
     await this.repository.transaction(async (executor) => {
       await this.repository.upsertRegistrationInvite(normalizedEmail, actor.userId, expiresAt, executor);
       await this.audit.record({ actorUserId: actor.userId, action: 'identity.registration_invite_created', targetType: 'registration_invite', targetId: normalizedEmail, metadata: { expiresAt: expiresAt.toISOString() } }, executor);
@@ -259,4 +286,9 @@ function assertApprovedCompanyEmail(email: string, domains: readonly string[]): 
   const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase();
   const approved = domains.map((value) => value.trim().toLowerCase().replace(/^@/, '')).filter(Boolean);
   if (!approved.length || !approved.includes(domain)) throw new InternalRegistrationDeniedError();
+}
+
+function assertPasswordPolicy(password: string): void {
+  if (password.length < 10 || password.length > 128) throw new IdentityValidationError('Password must be between 10 and 128 characters');
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) throw new IdentityValidationError('Password must include at least one letter and one number');
 }
