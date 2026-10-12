@@ -1,0 +1,240 @@
+.page {
+  display: grid;
+  gap: 24px;
+  padding: 4px 0 32px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header p,
+.formHeading p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  opacity: .58;
+}
+
+.header h1,
+.formHeading h2 {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1.08;
+}
+
+.header > div > span {
+  display: block;
+  margin-top: 10px;
+  max-width: 720px;
+  line-height: 1.7;
+  opacity: .7;
+}
+
+.status {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid rgba(127, 127, 127, .28);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card,
+.form {
+  border: 1px solid rgba(127, 127, 127, .24);
+  border-radius: 18px;
+  background: rgba(127, 127, 127, .045);
+}
+
+.card {
+  min-height: 220px;
+  padding: 22px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  opacity: .55;
+}
+
+.card h2 {
+  margin: 10px 0 8px;
+  font-size: 21px;
+}
+
+.card p {
+  min-height: 54px;
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.65;
+  opacity: .7;
+}
+
+.rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(127, 127, 127, .18);
+  font-size: 13px;
+}
+
+.rule b {
+  font-weight: 600;
+}
+
+.rule strong,
+.rule em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.rule strong {
+  opacity: .9;
+}
+
+.rule em {
+  opacity: .48;
+}
+
+.form {
+  display: grid;
+  gap: 2px;
+  padding: 22px;
+}
+
+.formHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 16px;
+}
+
+.formHeading h2 {
+  font-size: 22px;
+}
+
+.formHeading small {
+  font-size: 12px;
+  opacity: .56;
+}
+
+.field,
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 17px 0;
+  border-top: 1px solid rgba(127, 127, 127, .18);
+}
+
+.field span,
+.toggle span {
+  display: grid;
+  gap: 5px;
+}
+
+.field b,
+.toggle b {
+  font-size: 14px;
+}
+
+.field small,
+.toggle small,
+.updated {
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: .58;
+}
+
+.field input[type='number'] {
+  width: 94px;
+  padding: 10px 12px;
+  border: 1px solid rgba(127, 127, 127, .32);
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.toggle input[type='checkbox'] {
+  width: 42px;
+  height: 22px;
+  accent-color: currentColor;
+}
+
+.updated,
+.notice,
+.error {
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+
+.notice {
+  opacity: .78;
+}
+
+.error {
+  color: #c43b3b;
+}
+
+.form button {
+  justify-self: start;
+  margin-top: 14px;
+  padding: 11px 17px;
+  border: 0;
+  border-radius: 10px;
+  background: currentColor;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form button::first-line {
+  color: Canvas;
+}
+
+.form button:disabled {
+  cursor: wait;
+  opacity: .45;
+}
+
+@media (max-width: 820px) {
+  .header,
+  .formHeading,
+  .field,
+  .toggle {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status {
+    align-self: flex-start;
+  }
+
+  .field input[type='number'] {
+    width: 100%;
+  }
+}
