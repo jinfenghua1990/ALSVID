@@ -52,9 +52,9 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Production database primary: Neon PostgreSQL.
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
-- Current Development/Test compute: M1 Mac + Docker.
-- Current Test database/object storage: isolated managed cloud Test resources (Neon Test + R2 Test), not Production resources.
-- A separate Cloud Run Test environment is not maintained at the current stage.
+- Local Development compute: M1 Mac + Docker. Shared Development/Test compute: Google Cloud Run when a commit must be tested outside the workstation.
+- Current Development database/object storage: isolated managed cloud Development resources (Neon Development + R2 Development), not Production resources.
+- The shared Cloud Run Development/Test environment is maintained separately from Production and uses only Development/Test resources.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
 ## Architecture rules
@@ -100,6 +100,10 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 
 ## Delivery discipline
 
+- Canonical names in all communication: 开发/测试：`ALSVID Development`; 正式/生产：`ALSVID Production`.
+- Feature PRs target `develop`. Only an accepted `develop` release is promoted to `main`.
+- `develop` must contain the released `main` history. Resolve drift into Development first; never skip Development to publish a feature.
+- Production release gates require identical source content to a successful Development deployment with passing CI/container checks. Explicit rollback may select a previously successful Production release.
 - Every meaningful change maps to an issue or coherent PR.
 - Update `docs/CURRENT_STATE.md` only when behavior or architecture becomes real.
 - Add tests for changed invariants.

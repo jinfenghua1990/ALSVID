@@ -77,7 +77,8 @@ Storage:
 
 Development/Test:
 
-- M1 Mac provides compute and Docker execution.
+- M1 Mac provides local compute and Docker execution.
+- Google Cloud Run provides the shared Development/Test runtime when multiple developers or robots need the same deployed commit.
 - Managed cloud test database and object storage are used for production similarity.
 
 Production:

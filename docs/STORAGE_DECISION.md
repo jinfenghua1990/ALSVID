@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This document records why ALSVID uses object storage, why Cloudflare R2 is the current choice, how Test and Production are separated, and what must remain portable.
+This document records why ALSVID uses object storage, why Cloudflare R2 is the current choice, how Development and Production are separated, and what must remain portable.
 
 ## Decision summary
 
 - **Object-storage standard:** S3-compatible object storage behind ALSVID ports/adapters
 - **Current provider:** Cloudflare R2
-- **Test storage:** dedicated Test bucket/resources
+- **Development storage:** dedicated Development bucket/resources
 - **Production storage:** separate Production bucket/resources
 - **Database rule:** binary files do not belong inside PostgreSQL; PostgreSQL stores metadata, references and business relationships.
 
@@ -41,9 +41,9 @@ R2 is currently preferred because:
 - it is globally reachable and can later integrate with Cloudflare's broader delivery/security ecosystem;
 - the S3-compatible approach preserves migration options.
 
-## Why not local MinIO as the normal Test target
+## Why not local MinIO as the normal Development target
 
-MinIO is useful for offline development, but it is not the default ALSVID Test storage because local object storage introduces behavior that differs from Production:
+MinIO is useful for offline development, but it is not the default ALSVID Development storage because local object storage introduces behavior that differs from Production:
 
 - localhost/port-based URLs;
 - different HTTPS behavior;
@@ -52,17 +52,17 @@ MinIO is useful for offline development, but it is not the default ALSVID Test s
 - external Shopify/WMS/customer devices cannot reach localhost;
 - local credentials/policies can hide Production permission mistakes.
 
-For ALSVID's normal connected development workflow, using a dedicated R2 Test bucket gives higher confidence that upload/download, CORS, object keys, permissions and presigned URLs behave like Production.
+For ALSVID's normal connected development workflow, using a dedicated R2 Development bucket gives higher confidence that upload/download, CORS, object keys, permissions and presigned URLs behave like Production.
 
 Local S3-compatible storage remains optional only for true offline development or isolated unit/integration testing.
 
-## Test and Production isolation
+## Development and Production isolation
 
-Test and Production must never share the same object-storage namespace for business files.
+Development and Production must never share the same object-storage namespace for business files.
 
 Conceptually:
 
-- `ALSVID Test` -> dedicated R2 Test bucket/resources
+- `ALSVID Development` -> dedicated R2 Development bucket/resources
 - `ALSVID Production` -> dedicated R2 Production bucket/resources
 
 The exact bucket names may change, but the isolation rule must not.

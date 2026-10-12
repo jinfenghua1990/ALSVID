@@ -18,7 +18,7 @@ export default async function PortalLauncherPage() {
         <header className={styles.header}>
           <Link className={styles.wordmark} href="/">△ ALSVID</Link>
           <div className={styles.headerRight}>
-            <span className={styles.environment}><i /> {isProduction ? 'PRODUCTION' : 'TEST ENVIRONMENT'}⌄</span>
+            <span className={styles.environment}><i /> {isProduction ? '正式/生产：ALSVID Production' : '开发/测试：ALSVID Development'}⌄</span>
             {session ? (
               <>
                 <span className={styles.user}><b>◯</b><span>{session.displayName || 'ALSVID User'}<small>{session.email}</small></span></span>
@@ -47,8 +47,8 @@ export default async function PortalLauncherPage() {
         </section>
         <aside className={styles.statusBar}>
           <span>◉ <b>System Status</b><strong>All Systems Operational</strong></span>
-          <span>▱ <b>Environment</b><strong>{isProduction ? 'PRODUCTION' : 'TEST'}</strong></span>
-          <span>◇ <b>Version</b><strong>v0.1.0</strong></span>
+          <span>▱ <b>Environment</b><strong>{isProduction ? 'ALSVID Production' : 'ALSVID Development'}</strong></span>
+          <span>◇ <b>Version</b><strong>{process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? '本地开发'}</strong></span>
           <span>◷ <b>Last Updated</b><strong>Just now</strong></span>
         </aside>
         <footer className={styles.footer}><span>ALSVID &nbsp;|&nbsp; RIDE FURTHER · LIVE WIDER</span><Link href="/overview">返回管理概览</Link></footer>

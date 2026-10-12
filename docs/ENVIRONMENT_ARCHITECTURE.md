@@ -12,7 +12,7 @@ ALSVID has exactly two cloud business environments:
 
 ALSVID Development = Development / Test 合并环境
 
-The product/UI name is **Development / 开发环境**. Do not label the cloud Development environment as `Test` in user-facing pages, deployment summaries, or operator instructions.
+The canonical communication names are **开发/测试：ALSVID Development** and **正式/生产：ALSVID Production**. Test is part of Development, never a third environment.
 
 A developer machine such as the M1 Mac is local developer tooling. It may run the same code for fast iteration, but it is not a third cloud business environment.
 
@@ -88,7 +88,7 @@ secrets        -> Production Secret Manager
 The standard remote-development path is:
 
 ```text
-feature branch / pull request
+feature branch / pull request into develop
         ↓
 CI / build / architecture checks
         ↓
@@ -98,7 +98,7 @@ Google Cloud Run — alsvid-dev
         ↓
 owner acceptance
         ↓
-merge to main
+develop -> main release PR (identical tested source content)
         ↓
 ALSVID Production Deploy
         ↓
@@ -106,6 +106,8 @@ Google Cloud Run — alsvid-prod
 ```
 
 A Production deployment must come from an approved commit merged into `main`. Development acceptance promotes a software version only; it never promotes Development data or files into Production.
+
+The Production workflow verifies successful Development deployment and CI/container checks for the same Git tree before deploying. Explicit rollback can select a previously successful Production release. After release, synchronize main history into develop; newer features stay in Development until their own acceptance.
 
 ## 6. Environment audit rule
 
