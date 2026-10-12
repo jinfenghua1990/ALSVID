@@ -26,6 +26,11 @@ export interface IdentityVerificationDelivery {
   sendCode(input: { email: string; code: string; expiresAt: Date }): Promise<void>;
 }
 
+export interface IdentityPasswordResetDelivery {
+  readonly configured: boolean;
+  sendResetEmail(input: { email: string; displayName: string; resetUrl: string; expiresAt: Date }): Promise<void>;
+}
+
 export type InternalRegistrationMode = 'company_domain' | 'invite_only';
 
 export interface IdentityRegistrationPolicy {
@@ -66,6 +71,10 @@ export interface IdentityRepository {
   findUserContextById(userId: string, executor?: QueryExecutor): Promise<AuthContext | null>;
   markEmailVerified(userId: string, verifiedAt: Date, executor?: QueryExecutor): Promise<void>;
   setPasswordHash(userId: string, passwordHash: string, executor?: QueryExecutor): Promise<void>;
+  findPasswordResetUser(email: string, executor?: QueryExecutor): Promise<{ userId: string; email: string; displayName: string } | null>;
+  createPasswordResetToken(userId: string, tokenHash: string, expiresAt: Date, executor?: QueryExecutor): Promise<void>;
+  resetPassword(tokenHash: string, passwordHash: string, now: Date, executor?: QueryExecutor): Promise<string | null>;
+  revokeUserSessions(userId: string, executor?: QueryExecutor): Promise<void>;
   hasActiveSystemAdmin(executor?: QueryExecutor): Promise<boolean>;
   createSession(userId: string, tokenHash: string, expiresAt: Date, executor?: QueryExecutor): Promise<void>;
   findAuthenticatedContext(tokenHash: string): Promise<AuthContext | null>;
