@@ -23,17 +23,17 @@ export default function Vehicle360Page() {
           <p>Vehicle 360 用于追踪一台 ALSVID 自行车从生产、质检、出货、经销商交付到客户与售后的完整事实。车辆当前不联网，因此不展示 GPS、电池健康、OTA 或任何虚构的实时状态。</p>
         </div>
         <div className={styles.heroMeta}>
-          <span>TRACKING SCOPE</span>
+          <span>追踪范围</span>
           <strong>生产 → 售后</strong>
-          <span>DATA SOURCE</span>
+          <span>数据来源</span>
           <strong>人工录入 / 业务系统事实</strong>
         </div>
       </section>
 
       <div className={styles.toolbar}>
-        <label className={styles.search}>
+        <label className={`${styles.search} ${styles.searchDisabled}`} title="车辆搜索将在真实车辆档案查询接口接入后启用">
           <span aria-hidden="true">⌕</span>
-          <input type="search" placeholder="搜索 VIN / 车架号 / 订单号 / 客户 / 经销商" aria-label="搜索车辆档案" />
+          <input type="search" placeholder="车辆搜索待接入" aria-label="车辆搜索待接入" disabled />
         </label>
         <Link className={styles.action} href="/production">录入车辆流程</Link>
       </div>
