@@ -14,8 +14,8 @@ const primaryNavigation: readonly PortalLink[] = [
   { label: '订单管理', href: '/commerce' },
   { label: '经销商', href: '/dealers' },
   { label: '配件 BOM', href: '/product#engineering' },
-  { label: '售后服务', href: '#', status: '规划中', disabled: true },
-  { label: '客户中心', href: '#', status: '规划中', disabled: true },
+  { label: '售后服务', href: '/after-sales' },
+  { label: '客户中心', href: '/customers' },
 ];
 
 const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: PortalLink[] }> = {
@@ -27,9 +27,10 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
       { label: '车型 / Variant / SKU', href: '/product#models' },
       { label: '配置管理', href: '/product#configuration' },
       { label: 'BOM 结构', href: '/product#engineering' },
-      { label: '图片 / 视频素材', href: '#', status: '规划中', disabled: true },
-      { label: '技术资料', href: '#', status: '规划中', disabled: true },
-      { label: '供应商管理', href: '/partners' },
+      { label: '外观与颜色', href: '/product/appearance' },
+      { label: '图片 / 视频素材', href: '/product/media' },
+      { label: '技术资料', href: '/product/documents' },
+      { label: '供应商关联', href: '/product/suppliers' },
     ],
   },
   dealer: {
@@ -84,6 +85,17 @@ function defaultActiveHref(kind: PortalKind) {
   return '/product';
 }
 
+function isPrimaryActive(href: string, currentHref: string) {
+  if (href.includes('#')) return currentHref.startsWith('/product');
+  if (href === '/product') return currentHref.startsWith('/product');
+  if (href === '/vehicle360') return currentHref.startsWith('/vehicle360') || currentHref === '/production';
+  if (href === '/commerce') return ['/commerce', '/supply', '/inventory', '/logistics', '/finance'].some((prefix) => currentHref.startsWith(prefix));
+  if (href === '/dealers') return currentHref.startsWith('/dealers') || currentHref.startsWith('/partners');
+  if (href === '/after-sales') return currentHref.startsWith('/after-sales');
+  if (href === '/customers') return currentHref.startsWith('/customers') || currentHref.startsWith('/my');
+  return href === currentHref;
+}
+
 export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; activeHref?: string; children: ReactNode }) {
   const config = portalConfig[kind];
   const currentHref = activeHref ?? defaultActiveHref(kind);
@@ -93,7 +105,7 @@ export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; 
       <header className={styles.header}>
         <Link className={styles.brand} href="/">ALSVID</Link>
         <nav className={styles.primaryNavigation} aria-label="主导航">
-          {primaryNavigation.map((item) => <NavEntry item={item} primary active={item.href === currentHref} key={item.label} />)}
+          {primaryNavigation.map((item) => <NavEntry item={item} primary active={isPrimaryActive(item.href, currentHref)} key={item.label} />)}
         </nav>
         <div className={styles.headerTools}>
           <ThemeToggle />
