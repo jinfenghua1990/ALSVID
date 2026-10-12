@@ -20,28 +20,20 @@ export async function requireInternalPreviewSession(): Promise<PortalSession> {
     cache: 'no-store',
   });
 
-  if (response.status === 401 || response.status === 403) {
-    redirect('/login?reason=session-expired');
-  }
+  if (response.status === 401 || response.status === 403) redirect('/login?reason=session-expired');
   if (!response.ok) throw new Error('Unable to validate ALSVID session');
 
   const payload = await response.json() as { data?: PortalSession };
   const session = payload.data;
-  if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) {
-    redirect('/login?reason=session-expired');
-  }
+  if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) redirect('/login?reason=session-expired');
 
-  // Portal previews are an internal operator tool. A valid session alone does
-  // not grant access; require the explicitly assigned ALSVID administrator role.
-  if (!session.roles.includes('system_admin')) {
-    redirect('/login?reason=portal-access-denied');
-  }
-
+  // Authentication proves identity; Admin access remains an explicit role check.
+  if (!session.roles.includes('system_admin')) redirect('/login?reason=portal-access-denied');
   return session;
 }
 
-// Non-redirecting variant for the public portal launcher: returns null when
-// there is no valid administrator session so the page can offer modal login.
+// The launcher accepts any valid Internal session. Each destination is
+// responsible for its own authorization rules.
 export async function readInternalPreviewSession(): Promise<PortalSession | null> {
   const token = (await cookies()).get('alsvid_session')?.value;
   if (!token) return null;
@@ -52,11 +44,9 @@ export async function readInternalPreviewSession(): Promise<PortalSession | null
       cache: 'no-store',
     });
     if (!response.ok) return null;
-
     const payload = await response.json() as { data?: PortalSession };
     const session = payload.data;
     if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) return null;
-    if (!session.roles.includes('system_admin')) return null;
     return session;
   } catch {
     return null;

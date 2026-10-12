@@ -131,9 +131,22 @@ jobs:
             --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
             --port 4000 --cpu 1 --memory 512Mi --min 0 --max 2 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=test,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET}" \
+            --set-env-vars "NODE_ENV=test,ALSVID_ENV=development,ALSVID_INTERNAL_EMAIL_DOMAINS=development.alsvid.invalid,ALSVID_INTERNAL_REGISTRATION_MODE=company_domain,ALSVID_INITIAL_ADMIN_EMAIL=auth-smoke@development.alsvid.invalid,ALSVID_EMAIL_TEST_MODE=true,MAIL_PROVIDER=console,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET}" \
             --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest" \
             --quiet
+
+      - name: Smoke Development email registration and session
+        run: |
+          set -euo pipefail
+          api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          email='auth-smoke@development.alsvid.invalid'
+          start="$(curl --fail --silent --show-error --retry 6 --retry-delay 5 -X POST "$api_url/api/v1/auth/email/start" -H 'content-type: application/json' --data "{\"email\":\"$email\"}")"
+          code="$(printf '%s' "$start" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).data?.testCode||''))")"
+          [[ "$code" =~ ^[0-9]{6}$ ]]
+          complete="$(curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/email/complete" -H 'content-type: application/json' --data "{\"email\":\"$email\",\"displayName\":\"Development Auth Smoke\",\"code\":\"$code\"}")"
+          token="$(printf '%s' "$complete" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data; if(!d?.user?.roles?.includes('internal_user')) process.exit(2); process.stdout.write(d.token||'')})")"
+          [[ -n "$token" ]]
+          curl --fail --silent --show-error "$api_url/api/v1/auth/me" -H "authorization: Bearer $token" >/dev/null
 
       - name: Deploy Development worker pool
         env:
