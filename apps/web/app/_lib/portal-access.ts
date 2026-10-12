@@ -28,7 +28,7 @@ export async function requireInternalPreviewSession(): Promise<PortalSession> {
   const payload = await response.json() as { data?: PortalSession };
   const session = payload.data;
   if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) redirect('/login?reason=session-expired');
-  if (session.passwordSetupRequired) redirect('/?reason=password-setup-required');
+  if (session.passwordSetupRequired) redirect('/login?reason=password-setup-required');
 
   // Authentication proves identity; Admin access remains an explicit role check.
   if (!session.roles.includes('system_admin')) redirect('/login?reason=portal-access-denied');
