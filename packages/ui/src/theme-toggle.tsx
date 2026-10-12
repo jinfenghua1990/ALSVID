@@ -28,10 +28,18 @@ export function ThemeToggle() {
     applyTheme(next);
   }
 
+  const targetLabel = theme === 'dark' ? '白天模式' : '黑夜模式';
+
   return (
-    <button className="themeToggle" type="button" onClick={toggle} aria-label={theme === 'dark' ? '切换到白天模式' : '切换到黑夜模式'} title={theme === 'dark' ? '白天模式' : '黑夜模式'}>
+    <button
+      className="themeToggle"
+      type="button"
+      onClick={toggle}
+      aria-label={`切换到${targetLabel}`}
+      title={`切换到${targetLabel}`}
+    >
       <span className="themeToggleIcon" aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
-      <span className="themeToggleLabel">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+      <span className="themeToggleLabel">{theme === 'dark' ? '白天' : '黑夜'}</span>
     </button>
   );
 }

@@ -71,9 +71,7 @@ export function AppShell({
 }>) {
   const activeItem = navigation.find((item) => item.active);
   const activeArea = activeItem?.area ?? activeItem?.section ?? '首页';
-  const contextualNavigation = activeArea === '首页'
-    ? navigation.filter((item) => item.label !== '业务概览')
-    : navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
+  const contextualNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
   const areas = Array.from(new Set(navigation.map((item) => item.area ?? item.section ?? '首页'))).map((label) => {
     const items = navigation.filter((item) => (item.area ?? item.section ?? '首页') === label);
     const enabled = items.find((item) => !item.disabled);
@@ -81,9 +79,9 @@ export function AppShell({
   });
 
   return (
-    <main className={`${classNames.shell ?? 'shell'} shellV2`}>
+    <main className={`shellV2 ${classNames.shell ?? ''}`.trim()} data-alsvid-app-shell="true">
       <header className="primaryHeader">
-        <a className={`primaryBrand ${classNames.brand ?? ''}`} href={brandHref}>{brand}</a>
+        <a className={`primaryBrand ${classNames.brand ?? ''}`.trim()} href={brandHref}>{brand}</a>
         <nav className="primaryNavigation" aria-label="一级导航">
           {areas.map((area) => area.disabled ? (
             <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true">{area.label}</span>
@@ -91,10 +89,10 @@ export function AppShell({
             <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined}>{area.label}</a>
           ))}
         </nav>
-        <div className="primaryUtilities" aria-label="快捷工具">\n          <a className="portalTopLink" href="/portal-launcher">Portal <span aria-hidden="true">↗</span></a>
-          <button className="utilityButton" type="button" aria-label="搜索">⌕</button>
+        <div className="primaryUtilities" aria-label="快捷工具">
+          <button className="utilityButton" type="button" aria-label="搜索（待接入）" title="搜索（待接入）" disabled>⌕</button>
           <ThemeToggle />
-          <button className="utilityButton utilityNotify" type="button" aria-label="通知">♢<span>•</span></button>
+          <button className="utilityButton utilityNotify" type="button" aria-label="通知（待接入）" title="通知（待接入）" disabled>♢</button>
           <a className="primaryProfile" href="/portal-launcher" aria-label="工作入口">
             <span className="profileAvatar">A</span>
             <span className="profileCopy"><strong>管理员</strong><small>ALSVID</small></span>
@@ -102,6 +100,21 @@ export function AppShell({
           </a>
         </div>
       </header>
+
+      <nav className="contextNavigation" aria-label={`${activeArea} 快捷导航`}>
+        <div className="contextNavigationInner">
+          <strong className="contextNavigationTitle">{activeArea}</strong>
+          {contextualNavigation.map((item) => item.disabled ? (
+            <span className="contextNavItem contextNavItemDisabled" key={`${item.href}-${item.label}`} aria-disabled="true">
+              {item.label}{item.status ? <small>{item.status}</small> : null}
+            </span>
+          ) : (
+            <a className={`contextNavItem${item.active ? ' contextNavItemActive' : ''}`} href={item.href} key={`${item.href}-${item.label}`} aria-current={item.active ? 'page' : undefined}>
+              {item.label}{item.status ? <small>{item.status}</small> : null}
+            </a>
+          ))}
+        </div>
+      </nav>
 
       <details className="mobileNav mobileNavV2">
         <summary><strong>{brand}</strong><span>{activeArea} · 菜单</span></summary>
@@ -113,18 +126,12 @@ export function AppShell({
           ))}
         </div>
         <nav className="mobileNavPanel"><NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} /></nav>
+        <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
       </details>
 
       <div className="shellFrame">
-        <aside className={classNames.rail ?? 'rail'}>
-          <div className="contextRailTitle"><span>ALSVID</span><strong>{activeArea}</strong></div>
-          <nav className={classNames.nav} aria-label={`${activeArea} 二级导航`}>
-            <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />
-          </nav>
-          <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
-        </aside>
         <div className="adminBody">
-          <section className={classNames.workspace ?? 'workspace'} id={workspaceId}>{children}</section>
+          <section className={`workspace ${classNames.workspace ?? ''}`.trim()} id={workspaceId} data-alsvid-workspace="true">{children}</section>
         </div>
       </div>
     </main>

@@ -10,14 +10,11 @@ const portals = [
   { title: '我的 ALSVID', english: 'My ALSVID', audience: '已验证车主 / 客户', description: '以我的车辆为中心，查看车辆档案、保修、说明书、维修记录与适配配件。', href: '/my', tag: '车主服务', mark: '03' },
 ] as const;
 
-function releaseLabel() {
-  const sha = process.env.ALSVID_RELEASE_SHA;
-  return sha && /^[0-9a-f]{40}$/i.test(sha) ? sha.slice(0, 8) : '未提供';
-}
-
 export default async function PortalLauncherPage() {
   const session = await readInternalPreviewSession();
   const isProduction = process.env.ALSVID_ENV === 'production';
+  const release = process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? '未注入';
+
   return (
     <PortalLoginGate authenticated={Boolean(session)}>
       <main className={styles.page}>
@@ -28,7 +25,7 @@ export default async function PortalLauncherPage() {
             <span className={styles.environment}><i /> {isProduction ? 'ALSVID Production' : 'ALSVID Development'}</span>
             {session ? (
               <>
-                <span className={styles.user}><b>◯</b><span>{session.displayName || 'ALSVID User'}<small>{session.email}</small></span></span>
+                <span className={styles.user}><b>◯</b><span>{session.displayName || 'ALSVID 用户'}<small>{session.email}</small></span></span>
                 <Link className={styles.logout} href="/api/session/logout">退出</Link>
               </>
             ) : null}
@@ -53,10 +50,10 @@ export default async function PortalLauncherPage() {
           ))}
         </section>
         <aside className={styles.statusBar}>
-          <span>◉ <b>System</b><strong>运行状态尚未检测</strong></span>
-          <span>▱ <b>Environment</b><strong>{isProduction ? 'Production' : 'Development'}</strong></span>
-          <span>◇ <b>Version</b><strong>{releaseLabel()}</strong></span>
-          <span>◷ <b>Data</b><strong>Real facts only</strong></span>
+          <span>◉ <b>当前页面</b><strong>门户已加载</strong></span>
+          <span>▱ <b>环境</b><strong>{isProduction ? 'Production' : 'Development'}</strong></span>
+          <span>◇ <b>发布版本</b><strong>{release}</strong></span>
+          <span>◷ <b>数据原则</b><strong>仅显示实际事实</strong></span>
         </aside>
         <footer className={styles.footer}><span>ALSVID · RIDE FURTHER · LIVE WIDER</span><Link href="/admin">进入管理后台</Link></footer>
       </main>
