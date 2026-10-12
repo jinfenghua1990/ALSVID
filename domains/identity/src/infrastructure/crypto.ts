@@ -1,5 +1,5 @@
-import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
-import type { PasswordHasher, SessionTokenService } from '../application/ports.js';
+import { createHash, randomBytes, randomInt, scrypt, timingSafeEqual } from 'node:crypto';
+import type { OneTimeCodeService, PasswordHasher, SessionTokenService } from '../application/ports.js';
 import { IdentityValidationError } from '../core/errors.js';
 
 function scryptAsync(password: string, salt: Buffer): Promise<Buffer> {
@@ -23,6 +23,13 @@ export class ScryptPasswordHasher implements PasswordHasher {
     const expected = Buffer.from(hashText, 'base64url');
     return derived.length === expected.length && timingSafeEqual(derived, expected);
   }
+}
+
+export class SecureOneTimeCodeService implements OneTimeCodeService {
+  private readonly hasher = new ScryptPasswordHasher(6);
+  create(): string { return randomInt(0, 1_000_000).toString().padStart(6, '0'); }
+  hash(code: string): Promise<string> { return this.hasher.hash(code); }
+  verify(code: string, encoded: string): Promise<boolean> { return this.hasher.verify(code, encoded); }
 }
 
 export class SecureSessionTokenService implements SessionTokenService {

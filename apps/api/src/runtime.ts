@@ -15,13 +15,17 @@ import { createProductService } from '@alsvid/product';
 import { createProductionService } from '@alsvid/production';
 import { createVehicleService } from '@alsvid/vehicle';
 import { createWarehouseService } from '@alsvid/warehouse';
+import { createIdentityVerificationDelivery, identityRegistrationConfigFromEnv } from './identity-email-delivery.js';
 import { ContextualAuditService } from './platform/contextual-audit-service.js';
 
 export const database = new Database();
 const persistedAuditService = createAuditService(database);
 export const auditService = new ContextualAuditService(persistedAuditService);
 
-export const identityService = createIdentityService(database, auditService);
+export const identityService = createIdentityService(database, auditService, {
+  ...identityRegistrationConfigFromEnv(),
+  verificationDelivery: createIdentityVerificationDelivery(),
+});
 export const partnerService = createPartnerService(database, auditService);
 export const productService = createProductService(database, auditService);
 export const engineeringService = createEngineeringService(database, auditService);

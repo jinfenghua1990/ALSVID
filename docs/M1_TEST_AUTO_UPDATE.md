@@ -21,7 +21,7 @@ Do not install a GitHub self-hosted runner on the M1 for this purpose. No inboun
 ## Behavior
 
 - At user login and every five minutes while the Mac is awake, check the latest main SHA.
-- Wait for both exact-SHA, main-push CI and Development/Test Build to succeed.
+- Wait for both exact-SHA, main-push CI and Development Build to succeed.
 - Build in a separate managed checkout under `~/Library/Application Support/ALSVID/test-auto-update/repo`; never switch, reset, stash or overwrite the user's development checkout.
 - Reuse the original `.env` and `infra/.env.test.local` files when present; never copy secret values to GitHub or log rendered Compose configuration.
 - Preserve the existing Test Compose project name and database volumes. Do not run `down -v`, cleanup volumes or operate on Production.

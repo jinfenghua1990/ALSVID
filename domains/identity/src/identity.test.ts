@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { normalizeLoginIdentifier } from './application/identity-service.js';
 import { assertPermission, hashPassword, Permission, PermissionDeniedError, verifyPassword } from './index.js';
 
 const actor = {
@@ -20,4 +21,13 @@ test('password hashes verify without storing the plaintext password', async () =
   assert.equal(encoded.includes('correct-horse-battery-staple'), false);
   assert.equal(await verifyPassword('correct-horse-battery-staple', encoded), true);
   assert.equal(await verifyPassword('wrong-password', encoded), false);
+});
+
+test('account-password login normalizes email identifiers', () => {
+  assert.equal(normalizeLoginIdentifier('  Admin@Example.COM  '), 'admin@example.com');
+});
+
+test('account-password login accepts E.164 phone identifiers without guessing country codes', () => {
+  assert.equal(normalizeLoginIdentifier('+86 138-1234-5678'), '+8613812345678');
+  assert.throws(() => normalizeLoginIdentifier('13812345678'));
 });

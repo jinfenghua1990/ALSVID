@@ -1,4 +1,5 @@
 import { AppShell } from '@alsvid/ui';
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { navigationFor } from '../app-navigation';
 import styles from './overview.module.css';
 
@@ -20,7 +21,8 @@ function domainStatus(name: string) {
   return <span>暂无业务数据</span>;
 }
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  await requireInternalPreviewSession();
   return (
     <AppShell navigation={navigationFor('/overview')} footer="ALSVID · Internal Platform" workspaceId="overview">
       <section className={styles.hero}>
@@ -29,7 +31,6 @@ export default function OverviewPage() {
         <p>ALSVID 保留自己的业务事实，同时让 Shopify、WMS 等专业系统继续承担各自职责。没有真实业务记录的模块保持空置，不生成演示数据。</p>
         <div className={styles.flow}>产品 <b>→</b> 运营 <b>→</b> 商业 <b>→</b> Vehicle 360 <b>→</b> 经销商 <b>→</b> 客户 <b>→</b> 售后</div>
       </section>
-
       <section className={styles.section}>
         <header className={styles.sectionHead}><h2>业务模块</h2><p>统一入口 · 真实数据优先</p></header>
         <div className={styles.grid}>
