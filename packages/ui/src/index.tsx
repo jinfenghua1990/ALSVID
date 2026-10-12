@@ -1,4 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react';
+import { ThemeToggle } from './theme-toggle';
 
 export interface AppNavItem {
   label: string;
@@ -90,6 +91,7 @@ export function AppShell({
         </nav>
         <div className="primaryUtilities" aria-label="快捷工具">
           <button className="utilityButton" type="button" aria-label="搜索">⌕</button>
+          <ThemeToggle />
           <button className="utilityButton utilityNotify" type="button" aria-label="通知">♢<span>•</span></button>
           <a className="primaryProfile" href="/portal-launcher" aria-label="工作入口">
             <span className="profileAvatar">A</span>
