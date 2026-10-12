@@ -1,79 +1,26 @@
-'use client';
-
-import { ThemeToggle } from '@alsvid/ui';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, type FormEvent } from 'react';
+import { redirect } from 'next/navigation';
+import { PortalLoginGate } from '../_components/portal-login';
+import { readInternalPreviewSession } from '../_lib/portal-access';
 import styles from './login.module.css';
 
-interface LoginResponse { message?: string }
-
-export default function LoginPage() {
-  const router = useRouter();
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    const reason = new URLSearchParams(window.location.search).get('reason');
-    if (reason === 'portal-access-denied') {
-      setError('此账号已登录，但没有当前管理页面所需的 system_admin 权限。请联系管理员分配角色。');
-    } else if (reason === 'session-expired') {
-      setError('登录状态已失效，请重新登录。');
-    }
-  }, []);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError('');
-
-    try {
-      const form = new FormData(event.currentTarget);
-      const response = await fetch('/api/session/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
-      });
-      const payload = await response.json().catch(() => null) as LoginResponse | null;
-
-      if (!response.ok) {
-        setError(payload?.message ?? '登录失败，请检查邮箱和密码');
-        return;
-      }
-
-      router.replace('/');
-      router.refresh();
-    } catch {
-      setError('无法连接登录服务，请稍后重试。');
-    } finally {
-      setBusy(false);
-    }
-  }
+export default async function LoginPage() {
+  const session = await readInternalPreviewSession();
+  if (session?.roles.includes('system_admin') && !session.passwordSetupRequired) redirect('/admin');
 
   return (
-    <main className={styles.page}>
-      <section className={styles.visual} aria-hidden="true">
-        <div className={styles.visualCopy}>
-          <span>ALSVID</span>
-          <h2>Explore<br />Further.</h2>
-          <p>LIGHTER · SMARTER · FURTHER</p>
-        </div>
-      </section>
-
-      <section className={styles.panel}>
-        <div className={styles.top}><ThemeToggle /></div>
-        <div className={styles.brand}>ALSVID</div>
-        <div className={styles.eyebrow}>INTERNAL PLATFORM</div>
-        <h1 className={styles.title}>账户密码登录</h1>
-        <p className={styles.lead}>使用已验证邮箱登录。内部员工优先从门户登录中心使用公司邮箱验证码；手机号登录将在完成真实手机号绑定与验证流程后启用。</p>
-        <form className={styles.form} onSubmit={submit}>
-          <label>邮箱<input name="email" type="email" autoComplete="username" placeholder="name@company.com" required /></label>
-          <label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
-          <div className={styles.pendingCapability} aria-disabled="true"><span>手机号登录</span><span>待启用</span></div>
-          {error ? <p className={styles.error}>{error}</p> : null}
-          <button className={styles.submit} disabled={busy}>{busy ? '正在登录…' : '账户密码登录'}</button>
-        </form>
-        <p className={styles.foot}>ALSVID Internal · 仅限已授权账户。权限由服务端 ALSVID 角色校验，界面数据仅来自实际录入和已连接业务系统。</p>
-      </section>
-    </main>
+    <PortalLoginGate
+      authenticated={Boolean(session)}
+      passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
+      redirectTo="/admin"
+    >
+      <main className={styles.page} aria-hidden="true">
+        <section className={styles.panel}>
+          <div className={styles.brand}>ALSVID</div>
+          <div className={styles.eyebrow}>INTERNAL PLATFORM</div>
+          <h1 className={styles.title}>登录中心</h1>
+          <p className={styles.lead}>使用公司邮箱验证或账户密码登录。成功后直接进入内部管理中心。</p>
+        </section>
+      </main>
+    </PortalLoginGate>
   );
 }
