@@ -14,10 +14,10 @@
 .header p,
 .formHeading p {
   margin: 0 0 8px;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: .14em;
-  opacity: .58;
 }
 
 .header h1,
@@ -31,15 +31,16 @@
   display: block;
   margin-top: 10px;
   max-width: 720px;
+  color: var(--muted);
   line-height: 1.7;
-  opacity: .7;
 }
 
 .status {
   flex: 0 0 auto;
   padding: 8px 12px;
-  border: 1px solid rgba(127, 127, 127, .28);
+  border: 1px solid var(--line);
   border-radius: 999px;
+  background: var(--panel);
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
@@ -53,9 +54,9 @@
 
 .card,
 .form {
-  border: 1px solid rgba(127, 127, 127, .24);
+  border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(127, 127, 127, .045);
+  background: var(--panel);
 }
 
 .card {
@@ -64,10 +65,10 @@
 }
 
 .eyebrow {
+  color: var(--muted);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .12em;
-  opacity: .55;
 }
 
 .card h2 {
@@ -78,9 +79,9 @@
 .card p {
   min-height: 54px;
   margin: 0 0 18px;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.65;
-  opacity: .7;
 }
 
 .rule {
@@ -89,7 +90,7 @@
   justify-content: space-between;
   gap: 18px;
   padding: 11px 0;
-  border-top: 1px solid rgba(127, 127, 127, .18);
+  border-top: 1px solid var(--line);
   font-size: 13px;
 }
 
@@ -105,11 +106,11 @@
 }
 
 .rule strong {
-  opacity: .9;
+  color: var(--success);
 }
 
 .rule em {
-  opacity: .48;
+  color: var(--muted);
 }
 
 .form {
@@ -131,8 +132,8 @@
 }
 
 .formHeading small {
+  color: var(--muted);
   font-size: 12px;
-  opacity: .56;
 }
 
 .field,
@@ -142,7 +143,7 @@
   justify-content: space-between;
   gap: 24px;
   padding: 17px 0;
-  border-top: 1px solid rgba(127, 127, 127, .18);
+  border-top: 1px solid var(--line);
 }
 
 .field span,
@@ -159,25 +160,25 @@
 .field small,
 .toggle small,
 .updated {
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.55;
-  opacity: .58;
 }
 
 .field input[type='number'] {
   width: 94px;
   padding: 10px 12px;
-  border: 1px solid rgba(127, 127, 127, .32);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: transparent;
-  color: inherit;
+  background: var(--panel);
+  color: var(--ink);
   font: inherit;
 }
 
 .toggle input[type='checkbox'] {
   width: 42px;
   height: 22px;
-  accent-color: currentColor;
+  accent-color: var(--accent);
 }
 
 .updated,
@@ -188,11 +189,11 @@
 }
 
 .notice {
-  opacity: .78;
+  color: var(--success);
 }
 
 .error {
-  color: #c43b3b;
+  color: var(--danger);
 }
 
 .form button {
@@ -201,15 +202,12 @@
   padding: 11px 17px;
   border: 0;
   border-radius: 10px;
-  background: currentColor;
+  background: var(--ink);
+  color: #fff;
   cursor: pointer;
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-}
-
-.form button::first-line {
-  color: Canvas;
 }
 
 .form button:disabled {
