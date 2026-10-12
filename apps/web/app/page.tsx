@@ -13,6 +13,8 @@ const portals = [
 export default async function PortalLauncherPage() {
   const session = await readInternalPreviewSession();
   const isProduction = process.env.ALSVID_ENV === 'production';
+  const release = process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? '未注入';
+
   return (
     <PortalLoginGate authenticated={Boolean(session)}>
       <main className={styles.page}>
@@ -48,9 +50,9 @@ export default async function PortalLauncherPage() {
           ))}
         </section>
         <aside className={styles.statusBar}>
-          <span>◉ <b>系统</b><strong>运行正常</strong></span>
+          <span>◉ <b>当前页面</b><strong>门户已加载</strong></span>
           <span>▱ <b>环境</b><strong>{isProduction ? 'Production' : 'Development'}</strong></span>
-          <span>◇ <b>版本</b><strong>{process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? 'Local'}</strong></span>
+          <span>◇ <b>发布版本</b><strong>{release}</strong></span>
           <span>◷ <b>数据原则</b><strong>仅显示实际事实</strong></span>
         </aside>
         <footer className={styles.footer}><span>ALSVID · RIDE FURTHER · LIVE WIDER</span><Link href="/admin">进入管理后台</Link></footer>
