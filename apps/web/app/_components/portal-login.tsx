@@ -12,7 +12,7 @@ interface AuthResponse {
 
 type LoginMethod = 'email' | 'password' | 'setup';
 
-export function PortalLoginGate({ authenticated, passwordSetupRequired = false, children }: { authenticated: boolean; passwordSetupRequired?: boolean; children: ReactNode }) {
+export function PortalLoginGate({ authenticated, passwordSetupRequired = false, redirectTo = '/admin', children }: { authenticated: boolean; passwordSetupRequired?: boolean; redirectTo?: string; children: ReactNode }) {
   const [open, setOpen] = useState(!authenticated || passwordSetupRequired);
   const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : 'email');
   const [setupRequired, setSetupRequired] = useState(passwordSetupRequired);
@@ -44,6 +44,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
       setNotice('身份验证成功。首次登录需要先设置你的个人密码。');
       return;
     }
+    router.replace(redirectTo);
     router.refresh();
   }
 
@@ -94,6 +95,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
       if (!response.ok) { setError(payload?.message ?? '密码设置失败，请重新输入。'); return; }
       setSetupRequired(false);
       setNotice('个人密码已设置。以后可以直接使用邮箱和密码登录。');
+      router.replace(redirectTo);
       router.refresh();
     } catch { setError('无法连接密码服务，请稍后重试。'); }
     finally { setBusy(false); }
@@ -129,6 +131,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
         {method === 'password' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitPassword}>
           <label>邮箱<input name="email" type="email" autoComplete="username" placeholder="name@company.com" required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
           <div className={loginStyles.pendingCapability} aria-disabled="true"><span>手机号登录</span><span className={loginStyles.pendingBadge}>待启用</span></div>
+          <a className={loginStyles.resetLink} href="/reset-password">忘记密码？通过邮箱重置</a>
           {error ? <p className={styles.dialogError}>{error}</p> : null}<button className={styles.dialogSubmit} disabled={busy}>{busy ? '正在登录…' : '账户密码登录'}</button>
         </form> : null}
         {setupRequired ? <form className={styles.dialogForm} onSubmit={submitPasswordSetup}>
