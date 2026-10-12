@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   verify:
@@ -39,6 +39,7 @@ jobs:
           node-version: 22
       - run: pnpm install --no-frozen-lockfile
       - run: node --test scripts/macos-test-auto-update.test.mjs
+      - run: node --test scripts/release-gate.test.mjs
       - run: pnpm db:migrate
       - run: pnpm db:migrate
       - run: pnpm arch:check

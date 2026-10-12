@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   id-token: write
 
 concurrency:
@@ -40,6 +41,17 @@ jobs:
         with:
           ref: ${{ inputs.release_sha || (github.event_name == 'push' && github.sha) || 'main' }}
           fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Require prior Development acceptance or a previously released rollback
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALLOW_PREVIOUS_PRODUCTION: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy' }}
+        run: git show "${{ github.sha }}:scripts/release-gate.mjs" | node --input-type=module - production
 
       - name: Validate release and deployment variables
         id: release
@@ -216,7 +228,7 @@ jobs:
             --min 0 \
             --max 3 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_API_BASE_URL=${API_URL}/api" \
+            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},ALSVID_API_BASE_URL=${API_URL}/api" \
             --quiet
 
       - name: Verify Web and record deployed release
@@ -235,3 +247,22 @@ jobs:
             echo "- API: ${{ steps.api.outputs.url }}"
             echo "- Worker pool: $WORKER_POOL"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  sync-development:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+      - name: Keep Development history ahead of the released main branch
+        run: |
+          set -euo pipefail
+          git fetch origin main develop
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git merge --no-edit origin/main
+          git push origin HEAD:develop

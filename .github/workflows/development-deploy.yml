@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   id-token: write
 
 concurrency:
@@ -50,9 +51,21 @@ jobs:
         run: |
           set -euo pipefail
           release_sha="$(git rev-parse HEAD)"
+          git fetch origin main develop
+          git merge-base --is-ancestor "$release_sha" origin/develop
+          git merge-base --is-ancestor origin/main "$release_sha"
           registry="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "registry=$registry" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Require CI and container acceptance before Development deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-gate.mjs checks
 
       - name: Build immutable development images
         env:
@@ -60,7 +73,7 @@ jobs:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          docker build --platform linux/amd64 --build-arg ALSVID_ENV=test -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
+          docker build --platform linux/amd64 --build-arg ALSVID_ENV=development -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
           docker build --platform linux/amd64 -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
           docker build --platform linux/amd64 -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
 
@@ -153,7 +166,7 @@ jobs:
             --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
             --port 3000 --cpu 1 --memory 512Mi --min 0 --max 2 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=test,ALSVID_ENV=test,ALSVID_API_BASE_URL=${api_url}/api" \
+            --set-env-vars "NODE_ENV=test,ALSVID_ENV=development,ALSVID_RELEASE_SHA=${RELEASE_SHA},ALSVID_COOKIE_SECURE=true,ALSVID_API_BASE_URL=${api_url}/api" \
             --quiet
 
       - name: Verify Development web

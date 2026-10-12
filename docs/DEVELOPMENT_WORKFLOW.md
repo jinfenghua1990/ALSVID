@@ -21,10 +21,19 @@ Pull Request
 CI
     |
     v
-Merge to main
+Merge to develop
     |
     v
-Deploy
+CI + container acceptance
+    |
+    v
+开发/测试：ALSVID Development
+    |
+    v
+Owner acceptance + develop -> main release PR
+    |
+    v
+正式/生产：ALSVID Production
 ```
 
 Every meaningful change follows this path. There is no shortcut around it.
@@ -46,7 +55,7 @@ Feature work must not be invented outside the roadmap in `docs/CURRENT_STATE.md`
 
 ## 3. Branch
 
-Work happens on a branch. `main` is never edited directly.
+Feature branches start from `develop` and their PRs target `develop`. `main` receives release promotions only; it is never edited directly.
 
 Suggested naming:
 
@@ -93,7 +102,13 @@ could be released.
 
 ## 8. Deploy
 
-Deployment runs from a commit SHA on `main`.
+Development deployment runs from `develop`, after CI and container acceptance pass for that exact commit. The candidate must include the current `main` history.
+
+Production deployment runs from a commit SHA on `main`. Before cloud authentication, the release gate requires a successful Development deployment and CI/container checks for identical source content. A merge commit or squash commit may have a different SHA, but its Git tree must match the tested candidate. Changes introduced while resolving a release PR must be deployed and tested in Development again.
+
+After successful Production deployment, the workflow merges `main` history back into `develop`. It never force-pushes or overwrites newer Development changes. A conflict or concurrent push is reported as a workflow failure and requires resolution before the next Development deployment. The GitHub token's synchronization push does not trigger another Actions run; the tested code is already deployed, and the next normal developer push triggers CI and Development deployment.
+
+For explicit rollback, a previously successful main-push Production release may be selected even if it is no longer the current Development candidate. Code rollback does not reverse database migrations. GitHub branch protection should require review and checks; deployment gates do not prevent an administrator from rewriting the workflow itself.
 
 - Migrations run explicitly as a release step.
 - Configuration and secrets come from Secret Manager.

@@ -33,8 +33,8 @@ Resources:
 - M1 Mac
 - Docker / Docker Compose
 - Google Cloud Run shared Development/Test services
-- Neon Test
-- Cloudflare R2 Test
+- Neon Development
+- Cloudflare R2 Development
 - Development/Test secrets
 
 Docker is the required acceptance path because Production runs with containerized workloads.
@@ -79,6 +79,8 @@ ALSVID maintains one shared Development/Test cloud runtime in `alsvid-dev`; it i
 
 ## Delivery implementation
 
-- Pushes to `develop` deploy automatically to the shared Development/Test Cloud Run project.
-- Merges to `main` deploy automatically to Production after the existing production checks.
+- 开发/测试：`ALSVID Development`; 正式/生产：`ALSVID Production` are the canonical communication names.
+- Pushes to `develop` deploy to ALSVID Development after CI and container acceptance pass.
+- Merges to `main` deploy to ALSVID Production only if identical source content already passed Development deployment and CI/container acceptance.
+- Successful Production releases synchronize `main` history back into `develop` so Development remains ahead or equal in software content. Explicit rollback is the exception and can select a previously successful Production release.
 - Local M1 development remains available for fast feedback and offline work.

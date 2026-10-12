@@ -100,6 +100,10 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 
 ## Delivery discipline
 
+- Canonical names in all communication: 开发/测试：`ALSVID Development`; 正式/生产：`ALSVID Production`.
+- Feature PRs target `develop`. Only an accepted `develop` release is promoted to `main`.
+- `develop` must contain the released `main` history. Resolve drift into Development first; never skip Development to publish a feature.
+- Production release gates require identical source content to a successful Development deployment with passing CI/container checks. Explicit rollback may select a previously successful Production release.
 - Every meaningful change maps to an issue or coherent PR.
 - Update `docs/CURRENT_STATE.md` only when behavior or architecture becomes real.
 - Add tests for changed invariants.
