@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { RefreshButton } from './_components/refresh-button';
 import './globals.css';
 import './admin-shell-v2.css';
+import './theme.css';
 
 function runtimeEnvironment() {
   return process.env.ALSVID_ENV === 'production' ? 'production' : 'development';
@@ -16,12 +17,26 @@ export function generateMetadata(): Metadata {
   };
 }
 
+const themeBootstrap = `
+try {
+  const saved = localStorage.getItem('alsvid-theme');
+  const theme = saved === 'light' || saved === 'dark'
+    ? saved
+    : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+} catch (_) {}
+`;
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const environment = runtimeEnvironment();
   const isDevelopment = environment !== 'production';
 
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+      </head>
       <body data-alsvid-environment={environment}>
         {isDevelopment ? (
           <div className="environmentBanner" role="status">
