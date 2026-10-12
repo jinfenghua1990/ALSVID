@@ -71,9 +71,7 @@ export function AppShell({
 }>) {
   const activeItem = navigation.find((item) => item.active);
   const activeArea = activeItem?.area ?? activeItem?.section ?? '首页';
-  const contextualNavigation = activeArea === '首页'
-    ? navigation.filter((item) => item.label !== '业务概览')
-    : navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
+  const contextualNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
   const areas = Array.from(new Set(navigation.map((item) => item.area ?? item.section ?? '首页'))).map((label) => {
     const items = navigation.filter((item) => (item.area ?? item.section ?? '首页') === label);
     const enabled = items.find((item) => !item.disabled);
@@ -102,6 +100,21 @@ export function AppShell({
           </a>
         </div>
       </header>
+
+      <nav className="contextNavigation" aria-label={`${activeArea} 快捷导航`}>
+        <div className="contextNavigationInner">
+          <strong className="contextNavigationTitle">{activeArea}</strong>
+          {contextualNavigation.map((item) => item.disabled ? (
+            <span className="contextNavItem contextNavItemDisabled" key={`${item.href}-${item.label}`} aria-disabled="true">
+              {item.label}{item.status ? <small>{item.status}</small> : null}
+            </span>
+          ) : (
+            <a className={`contextNavItem${item.active ? ' contextNavItemActive' : ''}`} href={item.href} key={`${item.href}-${item.label}`} aria-current={item.active ? 'page' : undefined}>
+              {item.label}{item.status ? <small>{item.status}</small> : null}
+            </a>
+          ))}
+        </div>
+      </nav>
 
       <details className="mobileNav mobileNavV2">
         <summary><strong>{brand}</strong><span>{activeArea} · 菜单</span></summary>
