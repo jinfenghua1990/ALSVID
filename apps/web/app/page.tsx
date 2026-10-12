@@ -10,6 +10,11 @@ const portals = [
   { title: '我的 ALSVID', english: 'My ALSVID', audience: '已验证车主 / 客户', description: '以我的车辆为中心，查看车辆档案、保修、说明书、维修记录与适配配件。', href: '/my', tag: '车主服务', mark: '03' },
 ] as const;
 
+function releaseLabel() {
+  const sha = process.env.ALSVID_RELEASE_SHA;
+  return sha && /^[0-9a-f]{40}$/i.test(sha) ? sha.slice(0, 8) : '未提供';
+}
+
 export default async function PortalLauncherPage() {
   const session = await readInternalPreviewSession();
   const isProduction = process.env.ALSVID_ENV === 'production';
@@ -48,9 +53,9 @@ export default async function PortalLauncherPage() {
           ))}
         </section>
         <aside className={styles.statusBar}>
-          <span>◉ <b>System</b><strong>Operational</strong></span>
+          <span>◉ <b>System</b><strong>运行状态尚未检测</strong></span>
           <span>▱ <b>Environment</b><strong>{isProduction ? 'Production' : 'Development'}</strong></span>
-          <span>◇ <b>Version</b><strong>{process.env.ALSVID_RELEASE_SHA?.slice(0, 8) ?? 'Local'}</strong></span>
+          <span>◇ <b>Version</b><strong>{releaseLabel()}</strong></span>
           <span>◷ <b>Data</b><strong>Real facts only</strong></span>
         </aside>
         <footer className={styles.footer}><span>ALSVID · RIDE FURTHER · LIVE WIDER</span><Link href="/admin">进入管理后台</Link></footer>

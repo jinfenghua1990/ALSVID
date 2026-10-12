@@ -2,7 +2,7 @@ import type { AppNavItem } from '@alsvid/ui';
 
 export const appNavigation: readonly AppNavItem[] = [
   { label: '管理首页', href: '/admin', area: '首页', section: '概览' },
-  { label: '业务概览', href: '/', area: '首页', section: '概览' },
+  { label: '业务概览', href: '/overview', area: '首页', section: '概览' },
 
   { label: '产品总览', href: '/product', area: '产品中心', section: '产品管理' },
   { label: '产品系列', href: '/product#series', area: '产品中心', section: '产品管理' },
