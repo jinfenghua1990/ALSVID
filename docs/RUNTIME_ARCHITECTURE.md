@@ -96,7 +96,7 @@ A local machine — including the M1 workstation — is a development environmen
 
 ## Provider-neutral external capabilities
 
-Mail and AI remain provider-neutral platform capabilities. No concrete production mail provider or AI model/provider is authoritative yet. Business domains depend on `@alsvid/ports`, not vendor SDKs, so future mail and AI providers can be selected or replaced without rewriting Domain rules.
+Mail remains a provider-neutral platform capability with the current runtime adapter selecting Resend through `MAIL_PROVIDER=resend`; the API key is supplied by Secret Manager and business domains depend on `@alsvid/ports`, not vendor SDKs. AI remains provider-neutral until selected.
 
 Shopify or another external OMS remains external commerce infrastructure. ALSVID does not become an OMS and does not own storefront order, payment or fulfillment orchestration.
 

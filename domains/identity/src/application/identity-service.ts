@@ -8,6 +8,7 @@ import {
   InternalRegistrationDeniedError,
   InvalidCredentialsError,
   InvalidEmailCodeError,
+  InvalidPasswordResetTokenError,
 } from '../core/errors.js';
 import { assertPermission } from '../core/permissions.js';
 import type {
@@ -15,6 +16,7 @@ import type {
   IdentityRegistrationPolicy,
   IdentityRepository,
   IdentityVerificationDelivery,
+  IdentityPasswordResetDelivery,
   OneTimeCodeService,
   PasswordHasher,
   SessionTokenService,
@@ -30,6 +32,7 @@ export class IdentityService {
     private readonly codes: OneTimeCodeService,
     private readonly tokens: SessionTokenService,
     private readonly verificationDelivery: IdentityVerificationDelivery,
+    private readonly passwordResetDelivery: IdentityPasswordResetDelivery,
     private readonly registrationPolicy: IdentityRegistrationPolicy,
     private readonly clock: Clock = systemClock,
   ) {}
@@ -188,6 +191,39 @@ export class IdentityService {
     await this.repository.transaction(async (executor) => {
       await this.repository.setPasswordHash(actor.userId, passwordHash, executor);
       await this.audit.record({ actorUserId: actor.userId, action: 'identity.password_set', targetType: 'user', targetId: actor.userId, metadata: { completedRequiredSetup: Boolean(actor.passwordSetupRequired) } }, executor);
+    });
+  }
+
+  async requestPasswordReset(email: string, resetUrlBase: string): Promise<void> {
+    if (!this.passwordResetDelivery.configured) throw new IdentityMailUnavailableError();
+    const normalizedEmail = normalizeEmail(email);
+    const user = await this.repository.findPasswordResetUser(normalizedEmail);
+    if (!user) return;
+
+    const token = this.tokens.create();
+    const expiresAt = new Date(this.clock.now().getTime() + 30 * 60 * 1000);
+    await this.repository.transaction(async (executor) => {
+      await this.repository.createPasswordResetToken(user.userId, this.tokens.hash(token), expiresAt, executor);
+      await this.audit.record({ action: 'identity.password_reset_requested', targetType: 'user', targetId: user.userId }, executor);
+    });
+
+    const resetUrl = `${resetUrlBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+    try {
+      await this.passwordResetDelivery.sendResetEmail({ email: user.email, displayName: user.displayName, resetUrl, expiresAt });
+    } catch {
+      throw new IdentityMailUnavailableError();
+    }
+  }
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    if (!token.trim()) throw new InvalidPasswordResetTokenError();
+    assertPasswordPolicy(password);
+    const passwordHash = await this.passwords.hash(password);
+    await this.repository.transaction(async (executor) => {
+      const userId = await this.repository.resetPassword(this.tokens.hash(token.trim()), passwordHash, this.clock.now(), executor);
+      if (!userId) throw new InvalidPasswordResetTokenError();
+      await this.repository.revokeUserSessions(userId, executor);
+      await this.audit.record({ action: 'identity.password_reset_completed', targetType: 'user', targetId: userId }, executor);
     });
   }
 

@@ -92,3 +92,11 @@
   letter-spacing: .05em;
   white-space: nowrap;
 }
+
+.resetLink {
+  color: var(--alsvid-accent);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.resetLink:hover { text-decoration: underline; }

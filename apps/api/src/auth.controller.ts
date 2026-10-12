@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Post, Put, Req, UnauthorizedException } from '@nestjs/common';
-import { InvalidCredentialsError } from '@alsvid/identity';
+import { Body, Controller, Get, Param, Post, Put, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { IdentityValidationError, InvalidCredentialsError, InvalidPasswordResetTokenError } from '@alsvid/identity';
 import { bearerToken, requireAuth, type AuthenticatedRequest } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
 import { PasswordSetupAllowed } from './password-setup.decorator.js';
@@ -46,6 +46,32 @@ export class AuthController {
     } catch (error) {
       if (error instanceof InvalidCredentialsError) throw new UnauthorizedException(error.message);
       return throwHttpDomainError(error);
+    }
+  }
+
+  @Public()
+  @Post('password-reset/request')
+  async requestPasswordReset(@Body() body: { email?: string }) {
+    if (!body?.email?.trim()) throw new UnauthorizedException('Email is required');
+    try {
+      await identityService.requestPasswordReset(body.email, process.env.ALSVID_PUBLIC_WEB_URL ?? 'http://localhost:3000');
+    } catch (error) {
+      if (error instanceof IdentityValidationError) throw error;
+      throw new ServiceUnavailableException('Password reset email is temporarily unavailable');
+    }
+    return { data: { ok: true } };
+  }
+
+  @Public()
+  @Post('password-reset/confirm')
+  async confirmPasswordReset(@Body() body: { token?: string; password?: string }) {
+    if (!body?.token || !body.password) throw new UnauthorizedException('Reset token and new password are required');
+    try {
+      await identityService.resetPassword(body.token, body.password);
+      return { data: { ok: true } };
+    } catch (error) {
+      if (error instanceof InvalidPasswordResetTokenError || error instanceof IdentityValidationError) throw error;
+      throwHttpDomainError(error);
     }
   }
 
