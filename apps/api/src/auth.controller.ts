@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, Req, UnauthorizedException } f
 import { InvalidCredentialsError } from '@alsvid/identity';
 import { bearerToken, requireAuth, type AuthenticatedRequest } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
+import { PasswordSetupAllowed } from './password-setup.decorator.js';
 import { Public } from './public.decorator.js';
 import { identityService } from './runtime.js';
 
@@ -48,11 +49,13 @@ export class AuthController {
     }
   }
 
+  @PasswordSetupAllowed()
   @Get('me')
   me(@Req() request: AuthenticatedRequest) {
     return { data: requireAuth(request) };
   }
 
+  @PasswordSetupAllowed()
   @Post('logout')
   async logout(@Req() request: AuthenticatedRequest) {
     const token = bearerToken(request);
@@ -60,12 +63,34 @@ export class AuthController {
     return { data: { ok: true } };
   }
 
+  @PasswordSetupAllowed()
   @Post('password')
   async setPassword(@Req() request: AuthenticatedRequest, @Body() body: { password?: string }) {
     if (!body?.password) throw new UnauthorizedException('Password is required');
     try {
       await identityService.setPassword(requireAuth(request), body.password);
       return { data: { ok: true } };
+    } catch (error) {
+      return throwHttpDomainError(error);
+    }
+  }
+
+  @Get('security-policy')
+  async securityPolicy(@Req() request: AuthenticatedRequest) {
+    try {
+      return { data: await identityService.securityPolicy(requireAuth(request)) };
+    } catch (error) {
+      return throwHttpDomainError(error);
+    }
+  }
+
+  @Put('security-policy')
+  async updateSecurityPolicy(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: { sessionTtlDays?: number; forcePasswordSetup?: boolean; riskStepUpEnabled?: boolean },
+  ) {
+    try {
+      return { data: await identityService.updateSecurityPolicy(requireAuth(request), body ?? {}) };
     } catch (error) {
       return throwHttpDomainError(error);
     }
