@@ -21,7 +21,7 @@ concurrency:
 
 env:
   GCP_PROJECT_ID: alsvid-dev
-  GCP_REGION: europe-west3
+  GCP_REGION: europe-west1
   GAR_REPOSITORY: alsvid-dev
   GCP_WORKLOAD_IDENTITY_PROVIDER: projects/737930071497/locations/global/workloadIdentityPools/github/providers/alsvid-development
   GCP_DEPLOY_SERVICE_ACCOUNT: alsvid-github-deploy@alsvid-dev.iam.gserviceaccount.com
@@ -30,7 +30,6 @@ env:
   R2_BUCKET: alsvid-development
   WEB_SERVICE: alsvid-web
   API_SERVICE: alsvid-api
-  WORKER_POOL: alsvid-worker
   MIGRATION_JOB: alsvid-migrate
 
 jobs:
@@ -75,7 +74,6 @@ jobs:
           set -euo pipefail
           docker build --platform linux/amd64 --build-arg ALSVID_ENV=development -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
           docker build --platform linux/amd64 -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
-          docker build --platform linux/amd64 -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3
@@ -96,7 +94,6 @@ jobs:
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
           docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
           docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
-          docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
 
       - name: Run Development database migrations
         env:
@@ -132,22 +129,6 @@ jobs:
             --port 4000 --cpu 1 --memory 512Mi --min 0 --max 2 \
             --allow-unauthenticated \
             --set-env-vars "NODE_ENV=test,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET}" \
-            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest" \
-            --quiet
-
-      - name: Deploy Development worker pool
-        env:
-          REGISTRY: ${{ steps.release.outputs.registry }}
-          RELEASE_SHA: ${{ steps.release.outputs.sha }}
-        run: |
-          set -euo pipefail
-          gcloud run worker-pools deploy "$WORKER_POOL" \
-            --project "$GCP_PROJECT_ID" \
-            --region "$GCP_REGION" \
-            --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
-            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --instances 1 --cpu 1 --memory 512Mi \
-            --set-env-vars "NODE_ENV=test,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET},WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
             --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest" \
             --quiet
 
