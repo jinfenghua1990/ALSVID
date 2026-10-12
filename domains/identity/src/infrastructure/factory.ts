@@ -1,11 +1,12 @@
 import type { DatabasePort } from '@alsvid/database';
-import type { IdentityAuditPort, IdentityRegistrationPolicy, IdentityVerificationDelivery, InternalRegistrationMode } from '../application/ports.js';
+import type { IdentityAuditPort, IdentityPasswordResetDelivery, IdentityRegistrationPolicy, IdentityVerificationDelivery, InternalRegistrationMode } from '../application/ports.js';
 import { IdentityService } from '../application/identity-service.js';
 import { SecureOneTimeCodeService, SecureSessionTokenService, ScryptPasswordHasher } from './crypto.js';
 import { PostgresIdentityRepository } from './postgres-identity-repository.js';
 
 export interface CreateIdentityServiceOptions {
   verificationDelivery?: IdentityVerificationDelivery;
+  passwordResetDelivery?: IdentityPasswordResetDelivery;
   approvedEmailDomains?: readonly string[];
   registrationMode?: InternalRegistrationMode;
   initialAdminEmail?: string | null;
@@ -23,6 +24,11 @@ function minPasswordLength(): number {
 const unavailableDelivery: IdentityVerificationDelivery = {
   configured: false,
   async sendCode() { throw new Error('Email verification delivery is not configured'); },
+};
+
+const unavailablePasswordResetDelivery: IdentityPasswordResetDelivery = {
+  configured: false,
+  async sendResetEmail() { throw new Error('Password reset email delivery is not configured'); },
 };
 
 export function createIdentityService(database: DatabasePort, audit: IdentityAuditPort, options: CreateIdentityServiceOptions = {}): IdentityService {
