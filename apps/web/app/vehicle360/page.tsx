@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AppShell } from '@alsvid/ui';
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { navigationFor } from '../app-navigation';
 import styles from './vehicle360.module.css';
 
@@ -13,7 +14,8 @@ const steps = [
   { name: '售后', detail: '按反馈形成维修记录' },
 ] as const;
 
-export default function Vehicle360Page() {
+export default async function Vehicle360Page() {
+  await requireInternalPreviewSession();
   return (
     <AppShell navigation={navigationFor('/vehicle360')} footer="ALSVID · Vehicle 360">
       <section className={styles.hero}>
