@@ -5,8 +5,7 @@ import styles from './portal-shell.module.css';
 
 export type PortalKind = 'admin' | 'dealer' | 'my';
 
-type PortalLink = { label: string; href: string; status?: string };
-
+type PortalLink = { label: string; href?: string; status?: string };
 type PrimaryLink = { label: string; href?: string; status?: string };
 
 const primaryNavigation: PrimaryLink[] = [
@@ -29,8 +28,8 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
       { label: '产品型号', href: '/product#models' },
       { label: '配置管理', href: '/product#configuration' },
       { label: 'BOM 结构', href: '/product#engineering' },
-      { label: '图片 / 视频素材', href: '/product#media', status: '规划中' },
-      { label: '技术资料', href: '/product#documents', status: '规划中' },
+      { label: '图片 / 视频素材', status: '规划中' },
+      { label: '技术资料', status: '规划中' },
       { label: '供应商管理', href: '/partners' },
     ],
   },
@@ -39,10 +38,10 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     subtitle: '经销商门户',
     links: [
       { label: '工作台', href: '/dealer' },
-      { label: '我的公司', href: '/dealer/company', status: '待开发' },
-      { label: '订单与物流', href: '/dealer/orders', status: '待开发' },
-      { label: '车辆交付', href: '/dealer/vehicles', status: '待开发' },
-      { label: '售后服务', href: '/dealer/service', status: '待开发' },
+      { label: '我的公司', status: '待开发' },
+      { label: '订单与物流', status: '待开发' },
+      { label: '车辆交付', status: '待开发' },
+      { label: '售后服务', status: '待开发' },
     ],
   },
   my: {
@@ -50,10 +49,10 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     subtitle: '车主服务',
     links: [
       { label: '我的车辆', href: '/my' },
-      { label: '车辆档案', href: '/my/vehicles', status: '待开发' },
-      { label: '保修与服务', href: '/my/service', status: '待开发' },
-      { label: '说明书与配件', href: '/my/library', status: '待开发' },
-      { label: '账户与偏好', href: '/my/account', status: '待开发' },
+      { label: '车辆档案', status: '待开发' },
+      { label: '保修与服务', status: '待开发' },
+      { label: '说明书与配件', status: '待开发' },
+      { label: '账户与偏好', status: '待开发' },
     ],
   },
 };
@@ -82,11 +81,16 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
         <aside className={styles.sidebar} aria-label={config.subtitle + '导航'}>
           <div className={styles.sidebarLabel}>{config.subtitle}</div>
           <nav>
-            {config.links.map((item) => (
-              <Link className={styles.navLink} href={item.href} key={item.href}>
+            {config.links.map((item) => item.href ? (
+              <Link className={styles.navLink} href={item.href} key={`${item.label}-${item.href}`}>
                 <span>{item.label}</span>
                 {item.status ? <small>{item.status}</small> : null}
               </Link>
+            ) : (
+              <span className={`${styles.navLink} ${styles.navLinkDisabled}`} aria-disabled="true" key={item.label}>
+                <span>{item.label}</span>
+                {item.status ? <small>{item.status}</small> : null}
+              </span>
             ))}
           </nav>
         </aside>
