@@ -14,6 +14,14 @@ type PartnerDetail = Partner & {
   addresses: Array<{ id: string; purpose: string; recipient: string | null; line1: string; line2: string | null; city: string; region: string | null; postalCode: string | null; countryCode: string }>;
 };
 const allRoles: Role[] = ['SUPPLIER', 'FACTORY', 'DEALER', 'CUSTOMER', 'SERVICE_PARTNER', 'LOGISTICS_PROVIDER'];
+const roleLabels: Record<Role, string> = {
+  SUPPLIER: '供应商',
+  FACTORY: '工厂',
+  DEALER: '经销商',
+  CUSTOMER: '客户',
+  SERVICE_PARTNER: '服务伙伴',
+  LOGISTICS_PROVIDER: '物流服务商',
+};
 
 export default function PartnersClient() {
   const router = useRouter();
@@ -29,10 +37,10 @@ export default function PartnersClient() {
     const response = await fetch(path, { ...init, headers });
     if (response.status === 401) {
       router.push('/login');
-      throw new Error('Session expired');
+      throw new Error('登录状态已失效');
     }
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload?.message ?? 'Request failed');
+    if (!response.ok) throw new Error(payload?.message ?? '请求失败');
     return payload.data;
   }
 
@@ -40,7 +48,7 @@ export default function PartnersClient() {
     try {
       setPartners(await api(`/api/partners?q=${encodeURIComponent(search)}`));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to load Partners');
+      setMessage(error instanceof Error ? error.message : '无法加载合作伙伴');
     }
   }
 
@@ -49,7 +57,7 @@ export default function PartnersClient() {
 
   async function openPartner(id: string) {
     setMessage('');
-    try { setSelected(await api(`/api/partners/${id}`)); } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to load Partner'); }
+    try { setSelected(await api(`/api/partners/${id}`)); } catch (error) { setMessage(error instanceof Error ? error.message : '无法加载合作伙伴详情'); }
   }
 
   async function createPartner(event: FormEvent<HTMLFormElement>) {
@@ -79,7 +87,7 @@ export default function PartnersClient() {
       setCreateOpen(false);
       await load(query);
       setSelected(created);
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to create Partner'); }
+    } catch (error) { setMessage(error instanceof Error ? error.message : '无法创建合作伙伴'); }
   }
 
   async function savePartner(event: FormEvent<HTMLFormElement>) {
@@ -101,56 +109,55 @@ export default function PartnersClient() {
       });
       setSelected(updated);
       await load(query);
-      setMessage('Partner saved.');
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'Unable to save Partner'); }
+      setMessage('合作伙伴资料已保存。');
+    } catch (error) { setMessage(error instanceof Error ? error.message : '无法保存合作伙伴'); }
   }
 
   return (
     <AppShell navigation={navigationFor('/partners')} footer="ALSVID · 内部管理">
-      
       <section className="partnerWorkspace">
         <header className="partnerHeader">
-          <div><div className="eyebrow">PARTNER MASTER</div><h1 className="sectionTitle">One identity. Many roles.</h1><p className="sectionLead">Suppliers, factories, dealers, customers and service partners share one durable business identity.</p></div>
-          <button className="primaryButton" onClick={() => setCreateOpen(true)}>New Partner</button>
+          <div><div className="eyebrow">合作伙伴 / PARTNER MASTER</div><h1 className="sectionTitle">一个主体，多种业务角色。</h1><p className="sectionLead">供应商、工厂、经销商、客户与服务伙伴共享同一个稳定的业务身份，避免重复建档。</p></div>
+          <button className="primaryButton" onClick={() => setCreateOpen(true)}>新建合作伙伴</button>
         </header>
 
-        <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{role.replaceAll('_', ' ')}</span><b>{count}</b></div>)}</div>
-        <div className="toolbar"><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void load(query); }} placeholder="Search name or Partner code" /><button onClick={() => void load(query)}>Search</button></div>
+        <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{roleLabels[role]}</span><b>{count}</b></div>)}</div>
+        <div className="toolbar"><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void load(query); }} placeholder="搜索名称或合作伙伴编号" /><button onClick={() => void load(query)}>搜索</button></div>
         {message ? <div className="notice">{message}</div> : null}
 
         <div className="partnerGrid">
           <div className="tableCard">
-            <div className="tableHead"><span>Partner</span><span>Roles</span><span>Status</span></div>
-            {partners.map((partner) => <button className="tableRow" key={partner.id} onClick={() => void openPartner(partner.id)}><span><b>{partner.displayName}</b><small>{partner.partnerCode} · {partner.countryCode ?? '—'}</small></span><span className="roleList">{partner.roles.length ? partner.roles.map((role) => <i key={role}>{role.replaceAll('_', ' ')}</i>) : <small>No role</small>}</span><span>{partner.status}</span></button>)}
-            {!partners.length ? <div className="emptyState">No Partners yet. Create the first business identity.</div> : null}
+            <div className="tableHead"><span>合作伙伴</span><span>业务角色</span><span>状态</span></div>
+            {partners.map((partner) => <button className="tableRow" key={partner.id} onClick={() => void openPartner(partner.id)}><span><b>{partner.displayName}</b><small>{partner.partnerCode} · {partner.countryCode ?? '—'}</small></span><span className="roleList">{partner.roles.length ? partner.roles.map((role) => <i key={role}>{roleLabels[role]}</i>) : <small>未分配角色</small>}</span><span>{partner.status === 'ACTIVE' ? '启用' : partner.status === 'INACTIVE' ? '停用' : partner.status}</span></button>)}
+            {!partners.length ? <div className="emptyState">暂无合作伙伴。录入后将在这里显示。</div> : null}
           </div>
 
           <aside className="detailCard">
             {selected ? <form className="stack" onSubmit={savePartner}>
               <div><div className="eyebrow">{selected.partnerCode}</div><h2>{selected.displayName}</h2></div>
-              <label>Display name<input name="displayName" defaultValue={selected.displayName} required /></label>
-              <label>Legal name<input name="legalName" defaultValue={selected.legalName ?? ''} /></label>
-              <div className="split"><label>Country<input name="countryCode" maxLength={2} defaultValue={selected.countryCode ?? ''} /></label><label>Status<select name="status" defaultValue={selected.status}><option>ACTIVE</option><option>INACTIVE</option></select></label></div>
-              <fieldset><legend>Roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} defaultChecked={selected.roles.includes(role)} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset>
-              <section className="factBlock"><span>Identifiers</span>{selected.identifiers.length ? selected.identifiers.map((item) => <p key={item.id}><b>{item.scheme}</b>{item.value}</p>) : <small>None recorded</small>}</section>
-              <section className="factBlock"><span>Contacts</span>{selected.contacts.length ? selected.contacts.map((item) => <p key={item.id}><b>{item.purpose} · {item.type}</b>{item.value}</p>) : <small>None recorded</small>}</section>
-              <section className="factBlock"><span>Addresses</span>{selected.addresses.length ? selected.addresses.map((item) => <p key={item.id}><b>{item.purpose}</b>{[item.line1, item.city, item.postalCode, item.countryCode].filter(Boolean).join(', ')}</p>) : <small>None recorded</small>}</section>
-              <button className="primaryButton">Save changes</button>
-            </form> : <div className="emptyState">Select a Partner to inspect and edit its master identity.</div>}
+              <label>显示名称<input name="displayName" defaultValue={selected.displayName} required /></label>
+              <label>法定名称<input name="legalName" defaultValue={selected.legalName ?? ''} /></label>
+              <div className="split"><label>国家 / 地区<input name="countryCode" maxLength={2} defaultValue={selected.countryCode ?? ''} /></label><label>状态<select name="status" defaultValue={selected.status}><option value="ACTIVE">启用</option><option value="INACTIVE">停用</option></select></label></div>
+              <fieldset><legend>业务角色</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} defaultChecked={selected.roles.includes(role)} />{roleLabels[role]}</label>)}</div></fieldset>
+              <section className="factBlock"><span>业务标识</span>{selected.identifiers.length ? selected.identifiers.map((item) => <p key={item.id}><b>{item.scheme}</b>{item.value}</p>) : <small>暂无记录</small>}</section>
+              <section className="factBlock"><span>联系方式</span>{selected.contacts.length ? selected.contacts.map((item) => <p key={item.id}><b>{item.purpose} · {item.type}</b>{item.value}</p>) : <small>暂无记录</small>}</section>
+              <section className="factBlock"><span>地址</span>{selected.addresses.length ? selected.addresses.map((item) => <p key={item.id}><b>{item.purpose}</b>{[item.line1, item.city, item.postalCode, item.countryCode].filter(Boolean).join(', ')}</p>) : <small>暂无记录</small>}</section>
+              <button className="primaryButton">保存修改</button>
+            </form> : <div className="emptyState">选择一个合作伙伴后查看和编辑主数据。</div>}
           </aside>
         </div>
       </section>
 
       {createOpen ? <div className="modalBackdrop" onMouseDown={() => setCreateOpen(false)}><form className="modalCard stack" onSubmit={createPartner} onMouseDown={(event) => event.stopPropagation()}>
-        <div className="modalHead"><div><div className="eyebrow">NEW MASTER IDENTITY</div><h2>Create Partner</h2></div><button type="button" onClick={() => setCreateOpen(false)}>×</button></div>
-        <label>Type<select name="kind"><option value="ORGANIZATION">Organization</option><option value="PERSON">Person</option></select></label>
-        <label>Display name<input name="displayName" required /></label>
-        <label>Legal name<input name="legalName" /></label>
-        <div className="split"><label>Country code<input name="countryCode" maxLength={2} placeholder="DE" /></label><label>Primary email<input name="primaryEmail" type="email" /></label></div>
-        <div className="split"><label>Identifier scheme<input name="identifierScheme" placeholder="VAT / EORI / REGISTRATION" /></label><label>Identifier value<input name="identifierValue" /></label></div>
-        <fieldset><legend>Registered address</legend><div className="stack"><label>Address line<input name="addressLine1" /></label><div className="split"><label>City<input name="addressCity" /></label><label>Postal code<input name="addressPostalCode" /></label></div><label>Country code<input name="addressCountry" maxLength={2} placeholder="DE" /></label></div></fieldset>
-        <fieldset><legend>Business roles</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{role.replaceAll('_', ' ')}</label>)}</div></fieldset>
-        <button className="primaryButton">Create Partner</button>
+        <div className="modalHead"><div><div className="eyebrow">新建业务主体</div><h2>新建合作伙伴</h2></div><button type="button" aria-label="关闭" onClick={() => setCreateOpen(false)}>×</button></div>
+        <label>主体类型<select name="kind"><option value="ORGANIZATION">组织 / 企业</option><option value="PERSON">个人</option></select></label>
+        <label>显示名称<input name="displayName" required /></label>
+        <label>法定名称<input name="legalName" /></label>
+        <div className="split"><label>国家 / 地区代码<input name="countryCode" maxLength={2} placeholder="DE" /></label><label>主要邮箱<input name="primaryEmail" type="email" /></label></div>
+        <div className="split"><label>标识类型<input name="identifierScheme" placeholder="VAT / EORI / REGISTRATION" /></label><label>标识值<input name="identifierValue" /></label></div>
+        <fieldset><legend>注册地址</legend><div className="stack"><label>详细地址<input name="addressLine1" /></label><div className="split"><label>城市<input name="addressCity" /></label><label>邮编<input name="addressPostalCode" /></label></div><label>国家 / 地区代码<input name="addressCountry" maxLength={2} placeholder="DE" /></label></div></fieldset>
+        <fieldset><legend>业务角色</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{roleLabels[role]}</label>)}</div></fieldset>
+        <button className="primaryButton">创建合作伙伴</button>
       </form></div> : null}
     </AppShell>
   );
