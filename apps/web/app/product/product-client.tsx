@@ -126,30 +126,46 @@ export default function ProductClient() {
     <AppShell navigation={navigationFor('/product')} footer="产品 / 工程 / 资产">
       <header className={styles.header}>
         <div>
-          <div className={styles.eyebrow}>产品与工程</div>
-          <h1>定义什么可以被制造。</h1>
-          <p>商业产品层级与已发布的工程事实保持独立；每一台实体车辆随后根据受控的 SKU、BOM 与生产规格出生。</p>
+          <div className={styles.eyebrow}>ALSVID PRODUCT CENTER</div>
+          <h1>ALSVID 产品中心</h1>
+          <p>从产品系列、车型配置到 SKU、BOM 与生产规格，统一管理 ALSVID 的核心产品资产。商业产品身份与工程发布事实保持清晰分层。</p>
         </div>
-        <div className={styles.releaseBadge}>V1 工程控制</div>
+        <div className={styles.releaseBadge}>产品主数据 · 工程控制</div>
       </header>
 
       {message ? <div className={styles.notice}>{message}</div> : null}
 
-      <div className={styles.platforms}>
-        {catalog.platforms.map((platform) => (
-          <article key={platform.id}>
-            <span>{platform.code}</span>
-            <h2>{platform.name}</h2>
-            <p>{platform.description}</p>
-            <small>{catalog.models.filter((model) => model.platform_id === platform.id).length} 个车型</small>
-          </article>
-        ))}
+      <div className={styles.metrics} aria-label="产品数据概览">
+        <div><span>产品系列</span><strong>{catalog.platforms.length}</strong></div>
+        <div><span>车型</span><strong>{catalog.models.length}</strong></div>
+        <div><span>Variant</span><strong>{catalog.variants.length}</strong></div>
+        <div><span>SKU</span><strong>{catalog.skus.length}</strong></div>
+        <div><span>BOM</span><strong>{engineering.boms.length}</strong></div>
+        <div><span>零部件</span><strong>{engineering.parts.length}</strong></div>
       </div>
 
-      <section className={styles.section}>
+      <section className={styles.seriesSection} id="series">
         <div className={styles.sectionHead}>
-          <div><span>产品层级</span><h2>车型 → 版本 → SKU</h2></div>
-          <p>平台和车型是 ALSVID 的产品主数据。Shopify 等外部销售渠道只能映射 SKU，不能定义这里的产品真相。</p>
+          <div><span>PRODUCT SERIES</span><h2>产品系列</h2></div>
+          <p>界面使用“产品系列”作为业务语言；底层仍保留受控 Platform → Model → Variant → SKU 产品层级。</p>
+        </div>
+        <div className={styles.platforms}>
+          {catalog.platforms.map((platform) => (
+            <article key={platform.id}>
+              <span>{platform.code}</span>
+              <h2>{platform.name}</h2>
+              <p>{platform.description}</p>
+              <small>{catalog.models.filter((model) => model.platform_id === platform.id).length} 个车型</small>
+            </article>
+          ))}
+          {!catalog.platforms.length ? <div className={styles.emptySeries}>暂无产品系列数据</div> : null}
+        </div>
+      </section>
+
+      <section className={styles.section} id="models">
+        <div className={styles.sectionHead}>
+          <div><span>产品层级</span><h2>车型 → Variant → SKU</h2></div>
+          <p>产品系列和车型是 ALSVID 的产品主数据。Shopify 等外部销售渠道只能映射 SKU，不能定义这里的产品真相。</p>
         </div>
         <div className={styles.hierarchy}>
           {hierarchyRows.map(({ model, platform, variants }) => (
@@ -183,10 +199,10 @@ export default function ProductClient() {
         </div>
       </section>
 
-      <section className={styles.formsGrid}>
+      <section className={styles.formsGrid} id="configuration">
         <form onSubmit={(e) => void submitForm(e, '/v1/product/models', (f) => ({ platformId: f.get('platformId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
           <span>新建车型</span><h3>创建车型</h3>
-          <select name="platformId" required defaultValue=""><option value="" disabled>选择产品平台</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}</select>
+          <select name="platformId" required defaultValue=""><option value="" disabled>选择产品系列</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}</select>
           <input name="code" placeholder="例如：FC1" required />
           <input name="name" placeholder="车型名称" required />
           <input name="description" placeholder="车型说明" />
@@ -204,7 +220,7 @@ export default function ProductClient() {
 
         <form onSubmit={(e) => void submitForm(e, '/v1/product/skus', (f) => ({ variantId: f.get('variantId'), sku: f.get('sku'), name: f.get('name'), marketCode: f.get('marketCode') || undefined, colorCode: f.get('colorCode') || undefined, sizeCode: f.get('sizeCode') || undefined }))}>
           <span>新建 SKU</span><h3>创建可销售身份</h3>
-          <select name="variantId" required defaultValue=""><option value="" disabled>选择版本</option>{catalog.variants.map((v) => <option key={v.id} value={v.id}>{catalog.models.find((m) => m.id === v.model_id)?.code} · {v.code}</option>)}</select>
+          <select name="variantId" required defaultValue=""><option value="" disabled>选择 Variant</option>{catalog.variants.map((v) => <option key={v.id} value={v.id}>{catalog.models.find((m) => m.id === v.model_id)?.code} · {v.code}</option>)}</select>
           <input name="sku" placeholder="例如：FC1-PRO-DE-BLK" required />
           <input name="name" placeholder="SKU 名称" required />
           <div className={styles.inline}><input name="marketCode" maxLength={2} placeholder="市场 DE" /><input name="colorCode" placeholder="颜色 BLACK" /><input name="sizeCode" placeholder="尺寸 20" /></div>
@@ -212,13 +228,13 @@ export default function ProductClient() {
         </form>
       </section>
 
-      <section className={styles.section}>
+      <section className={styles.section} id="engineering">
         <div className={styles.sectionHead}>
           <div><span>工程发布</span><h2>零部件、BOM 与生产规格</h2></div>
           <p>发布是受控状态转换。BOM Revision 和 Build Specification 一旦发布，就不能被静默修改；后续变更必须形成新的受控版本。</p>
         </div>
         <div className={styles.engineeringGrid}>
-          <div className={styles.listCard}>
+          <div className={styles.listCard} id="parts">
             <h3>零部件</h3>
             {engineering.parts.map((part) => <div className={styles.listRow} key={part.id}><b>{part.part_number}</b><span>{part.name}</span><small>{part.category} · {part.default_unit} · {statusLabel(part.status)}</small></div>)}
             {!engineering.parts.length ? <small>暂无零部件</small> : null}
