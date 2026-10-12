@@ -207,7 +207,7 @@ export class IdentityService {
       await this.audit.record({ action: 'identity.password_reset_requested', targetType: 'user', targetId: user.userId }, executor);
     });
 
-    const resetUrl = `${resetUrlBase.replace(/\\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+    const resetUrl = `${resetUrlBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
     try {
       await this.passwordResetDelivery.sendResetEmail({ email: user.email, displayName: user.displayName, resetUrl, expiresAt });
     } catch {
