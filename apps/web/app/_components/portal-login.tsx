@@ -76,7 +76,7 @@ export function PortalLoginGate({ authenticated, children }: { authenticated: bo
         <p className={styles.dialogLead}>内部员工优先使用已获准的公司邮箱验证登录。首次验证会创建 ALSVID 账号；权限仍由 ALSVID 角色控制。</p>
         <div className={loginStyles.tabs}>
           <button className={method === 'email' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('email')}>邮箱验证码</button>
-          <button className={method === 'password' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('password')}>密码备用</button>
+          <button className={method === 'password' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('password')}>账户密码</button>
         </div>
         {method === 'email' ? <form className={styles.dialogForm} onSubmit={submitEmail}>
           {!codeRequested ? <><label>公司邮箱<input name="email" type="email" autoComplete="email" required /></label><label>姓名（首次注册可选）<input name="displayName" type="text" autoComplete="name" /></label></> : <><label>公司邮箱<input value={email} readOnly /></label><label>6 位验证码<input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus /></label></>}
