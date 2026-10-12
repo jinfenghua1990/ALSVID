@@ -13,8 +13,8 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '供应商关联', href: '#', area: '产品中心', section: '产品资料', status: '预留', disabled: true },
   { label: '图片 / 视频素材', href: '#', area: '产品中心', section: '产品资料', status: '规划中', disabled: true },
 
-  { label: 'Vehicle 360 总览', href: '/vehicle360', area: 'Vehicle 360', section: '车辆档案' },
-  { label: '生产 / 质检追踪', href: '/production', area: 'Vehicle 360', section: '车辆档案', status: '基础' },
+  { label: '车辆全生命周期', href: '/vehicle360', area: 'Vehicle 360', section: '车辆档案', status: '骨架' },
+  { label: '生产 / 质检 / 车辆出生', href: '/production', area: 'Vehicle 360', section: '车辆档案', status: '基础' },
   { label: '车辆档案', href: '#', area: 'Vehicle 360', section: '车辆档案', status: '建设中', disabled: true },
   { label: 'VIN / 车架号查询', href: '#', area: 'Vehicle 360', section: '车辆档案', status: '建设中', disabled: true },
   { label: '交付 / 所有权', href: '#', area: 'Vehicle 360', section: '生命周期', status: '规划中', disabled: true },
