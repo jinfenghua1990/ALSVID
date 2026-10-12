@@ -91,7 +91,7 @@ export function AppShell({
             <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined}>{area.label}</a>
           ))}
         </nav>
-        <div className="primaryUtilities" aria-label="快捷工具">
+        <div className="primaryUtilities" aria-label="快捷工具">\n          <a className="portalTopLink" href="/portal-launcher">Portal <span aria-hidden="true">↗</span></a>
           <button className="utilityButton" type="button" aria-label="搜索">⌕</button>
           <ThemeToggle />
           <button className="utilityButton utilityNotify" type="button" aria-label="通知">♢<span>•</span></button>
