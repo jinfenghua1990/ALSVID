@@ -6,7 +6,6 @@ import styles from './portal-shell.module.css';
 export type PortalKind = 'admin' | 'dealer' | 'my';
 
 type PortalLink = { label: string; href: string; status?: string };
-
 type PrimaryLink = { label: string; href?: string; status?: string };
 
 const primaryNavigation: PrimaryLink[] = [
@@ -22,7 +21,7 @@ const primaryNavigation: PrimaryLink[] = [
 
 const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: PortalLink[] }> = {
   admin: {
-    name: 'ALSVID Admin',
+    name: 'ALSVID 内部管理',
     subtitle: '产品中心',
     links: [
       { label: '产品系列', href: '/product#series' },
@@ -35,7 +34,7 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     ],
   },
   dealer: {
-    name: 'Dealer Portal',
+    name: 'ALSVID 经销商门户',
     subtitle: '经销商门户',
     links: [
       { label: '工作台', href: '/dealer' },
@@ -46,7 +45,7 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     ],
   },
   my: {
-    name: 'My ALSVID',
+    name: '我的 ALSVID',
     subtitle: '车主服务',
     links: [
       { label: '我的车辆', href: '/my' },
@@ -74,14 +73,14 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
         </nav>
         <div className={styles.headerTools}>
           <ThemeToggle />
-          <Link className={styles.launcherLink} href="/portal-launcher">Portal ↗</Link>
+          <Link className={styles.launcherLink} href="/portal-launcher">工作入口 ↗</Link>
         </div>
       </header>
 
-      <div className={styles.frame}>
-        <aside className={styles.sidebar} aria-label={config.subtitle + '导航'}>
-          <div className={styles.sidebarLabel}>{config.subtitle}</div>
-          <nav>
+      <div className={styles.secondaryNav}>
+        <div className={styles.secondaryNavInner}>
+          <strong>{config.subtitle}</strong>
+          <nav aria-label={`${config.subtitle}导航`}>
             {config.links.map((item) => (
               <Link className={styles.navLink} href={item.href} key={item.href}>
                 <span>{item.label}</span>
@@ -89,12 +88,13 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
               </Link>
             ))}
           </nav>
-        </aside>
-        <main className={styles.main}>
-          <div className={styles.portalTitle}><span>{config.name}</span><small>{config.subtitle}</small></div>
-          {children}
-        </main>
+        </div>
       </div>
+
+      <main className={styles.main}>
+        <div className={styles.portalTitle}><span>{config.name}</span><small>{config.subtitle}</small></div>
+        {children}
+      </main>
     </div>
   );
 }
