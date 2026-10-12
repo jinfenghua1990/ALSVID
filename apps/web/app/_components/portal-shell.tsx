@@ -109,7 +109,7 @@ export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; 
         </nav>
         <div className={styles.headerTools}>
           <ThemeToggle />
-          <Link className={styles.launcherLink} href="/">管理首页 ↗</Link>
+          <Link className={styles.launcherLink} href="/admin">管理首页 ↗</Link>
         </div>
       </header>
 
