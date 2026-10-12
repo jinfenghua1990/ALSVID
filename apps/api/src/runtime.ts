@@ -25,6 +25,7 @@ export const auditService = new ContextualAuditService(persistedAuditService);
 export const identityService = createIdentityService(database, auditService, {
   ...identityRegistrationConfigFromEnv(),
   verificationDelivery: createIdentityVerificationDelivery(),
+  passwordResetDelivery: createIdentityPasswordResetDelivery(),
 });
 export const partnerService = createPartnerService(database, auditService);
 export const productService = createProductService(database, auditService);
