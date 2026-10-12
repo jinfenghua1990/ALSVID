@@ -68,12 +68,12 @@ export default function InventoryClient() {
   async function reload() {
     try {
       const [inv, wh, engineering, product, vehicleRows] = await Promise.all([
-        api('/v1/inventory'), api('/v1/warehouse'), api('/v1/engineering'), api('/v1/product'), api('/v1/vehicles'),
+        api('/v1/inventory'), api('/v1/warehouse'), api('/v1/engineering'), api('/v1/product/catalog'), api('/v1/vehicles'),
       ]);
       setInventory(inv);
       setWarehouse(wh);
       setParts(engineering.parts);
-      setSkus(product.skus);
+      setSkus(product.skus ?? []);
       setVehicles(vehicleRows);
       if (!selectedStocktakeId) {
         const open = wh.stocktakes.find((item: Stocktake) => item.status === 'OPEN');
