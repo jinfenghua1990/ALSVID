@@ -165,8 +165,9 @@ export class IdentityService {
     return { token, expiresAt: expiresAt.toISOString(), user: result.user, firstAdminActivated: result.firstAdminActivated };
   }
 
-  async login(email: string, password: string): Promise<{ token: string; expiresAt: string; user: AuthContext }> {
-    const row = await this.repository.findLoginContext(normalizeEmail(email));
+  async login(identifier: string, password: string): Promise<{ token: string; expiresAt: string; user: AuthContext }> {
+    const normalizedIdentifier = normalizeLoginIdentifier(identifier);
+    const row = await this.repository.findLoginContext(normalizedIdentifier);
     if (!row?.passwordHash || !(await this.passwords.verify(password, row.passwordHash))) throw new InvalidCredentialsError();
     const token = this.tokens.create();
     const expiresAt = new Date(this.clock.now().getTime() + SESSION_TTL_MS);
@@ -230,9 +231,21 @@ export class IdentityService {
   }
 }
 
+export function normalizeLoginIdentifier(identifier: string): string {
+  const value = identifier.trim();
+  if (value.includes('@')) return normalizeEmail(value);
+  return normalizePhoneE164(value);
+}
+
 function normalizeEmail(email: string): string {
   const value = email.trim().toLowerCase();
   if (!value || !/^\S+@\S+\.\S+$/.test(value)) throw new IdentityValidationError('A valid email address is required');
+  return value;
+}
+
+function normalizePhoneE164(phone: string): string {
+  const value = phone.trim().replace(/[\s().-]/g, '');
+  if (!/^\+[1-9]\d{7,14}$/.test(value)) throw new IdentityValidationError('A valid email address or E.164 phone number is required');
   return value;
 }
 
