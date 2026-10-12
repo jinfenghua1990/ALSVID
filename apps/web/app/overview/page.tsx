@@ -1,4 +1,5 @@
 import { AppShell } from '@alsvid/ui';
+import { requireInternalPreviewSession } from '../_lib/portal-access';
 import { navigationFor } from '../app-navigation';
 import styles from './overview.module.css';
 
@@ -20,7 +21,8 @@ function domainStatus(name: string) {
   return '已规划 · 暂无业务数据';
 }
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  await requireInternalPreviewSession();
   return (
     <AppShell navigation={navigationFor('/overview')} footer="ALSVID 内部管理后台" workspaceId="overview">
       <main className={styles.page}>
