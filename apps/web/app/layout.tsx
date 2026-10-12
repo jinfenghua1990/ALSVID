@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { RefreshButton } from './_components/refresh-button';
 import './globals.css';
+import './admin-shell-v2.css';
 
 function runtimeEnvironment() {
   return process.env.ALSVID_ENV === 'production' ? 'production' : 'test';
