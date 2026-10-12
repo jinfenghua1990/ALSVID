@@ -44,7 +44,7 @@ export default function EnvironmentPage() {
           <h2>Web 配置可见性</h2>
           <p>API / Worker 可独立注入密钥。Web 未注入不等于后端未配置；真实连接需通过后端运维验收核实。</p>
           <div className="infoRows">
-            <div className="infoRow"><span>密钥权威</span><strong>Google Secret Manager</strong><span>{isProduction ? 'Production' : 'Development'} only</span></div>
+            <div className="infoRow"><span>密钥权威</span><strong>Google Secret Manager</strong><span>{isProduction ? '仅 Production' : '仅 Development'}</span></div>
             <div className="infoRow"><span>数据库密钥</span><strong>{databaseReady ? '已配置' : 'Web 未注入'}</strong><span className={`statusPill ${databaseReady ? 'ready' : 'pending'}`}>{databaseReady ? '已注入' : '待核实'}</span></div>
             <div className="infoRow"><span>对象存储密钥</span><strong>{storageReady ? '已配置' : 'Web 未注入'}</strong><span className={`statusPill ${storageReady ? 'ready' : 'pending'}`}>{storageReady ? '已注入' : '待核实'}</span></div>
           </div>

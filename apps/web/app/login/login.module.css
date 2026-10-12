@@ -43,6 +43,8 @@
 .form label { display: grid; gap: 7px; color: var(--alsvid-text-2); font-size: 10px; font-weight: 700; }
 .form input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--alsvid-line); border-radius: 11px; outline: 0; background: var(--alsvid-input); color: var(--alsvid-text); font: inherit; }
 .form input:focus { border-color: var(--alsvid-accent); box-shadow: 0 0 0 3px var(--alsvid-accent-soft); }
+.pendingCapability { min-height: 40px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 11px; border: 1px dashed var(--alsvid-line); border-radius: 10px; background: var(--alsvid-bg-soft); color: var(--alsvid-muted); font-size: 10px; }
+.pendingCapability span:last-child { padding: 3px 7px; border: 1px solid var(--alsvid-line); border-radius: 999px; background: var(--alsvid-panel); font-size: 9px; }
 .error { margin: 0; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--alsvid-danger) 34%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--alsvid-danger) 10%, transparent); color: var(--alsvid-danger); font-size: 10px; line-height: 1.5; }
 .submit { min-height: 45px; margin-top: 4px; border: 0; border-radius: 11px; background: var(--alsvid-accent); color: #fff; font-weight: 780; }
 .submit:disabled { opacity: .55; }

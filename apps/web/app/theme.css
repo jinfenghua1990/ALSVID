@@ -25,6 +25,10 @@ html[data-theme="light"] {
   --ink: var(--alsvid-text);
   --muted: var(--alsvid-muted);
   --line: var(--alsvid-line);
+  --accent: var(--alsvid-accent);
+  --success: var(--alsvid-success);
+  --warning: var(--alsvid-warning);
+  --danger: var(--alsvid-danger);
 }
 
 html[data-theme="dark"] {
@@ -53,6 +57,10 @@ html[data-theme="dark"] {
   --ink: var(--alsvid-text);
   --muted: var(--alsvid-muted);
   --line: var(--alsvid-line);
+  --accent: var(--alsvid-accent);
+  --success: var(--alsvid-success);
+  --warning: var(--alsvid-warning);
+  --danger: var(--alsvid-danger);
 }
 
 html,
@@ -67,6 +75,11 @@ input,
 select,
 textarea {
   transition: background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--alsvid-accent) 26%, transparent);
+  color: var(--alsvid-text);
 }
 
 .shellV2,
@@ -102,17 +115,12 @@ textarea {
   background: var(--alsvid-bg-soft) !important;
 }
 
+.shellV2 .primaryNavItemActive {
+  color: var(--alsvid-accent) !important;
+}
+
 .shellV2 .primaryNavItemActive::after {
   background: var(--alsvid-accent) !important;
-}
-
-.shellV2 .rail {
-  border-color: var(--alsvid-line) !important;
-  background: var(--alsvid-rail) !important;
-}
-
-.shellV2 .contextRailTitle {
-  border-color: var(--alsvid-line) !important;
 }
 
 .shellV2 .navItem.active {
@@ -124,6 +132,82 @@ textarea {
   border-color: var(--alsvid-line) !important;
   background: var(--alsvid-panel-2) !important;
   color: var(--alsvid-muted) !important;
+}
+
+.contextNavigation {
+  position: sticky;
+  top: 68px;
+  z-index: 44;
+  min-height: 44px;
+  border-bottom: 1px solid var(--alsvid-line);
+  background: color-mix(in srgb, var(--alsvid-header) 96%, transparent);
+  backdrop-filter: blur(20px);
+}
+
+body[data-alsvid-environment="development"] .contextNavigation {
+  top: 102px;
+}
+
+.contextNavigationInner {
+  width: 100%;
+  max-width: 1620px;
+  margin: 0 auto;
+  padding: 0 clamp(18px, 2.2vw, 32px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.contextNavigationInner::-webkit-scrollbar {
+  display: none;
+}
+
+.contextNavigationTitle {
+  flex: none;
+  margin-right: 8px;
+  color: var(--alsvid-text);
+  font-size: 11px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.contextNavItem {
+  flex: none;
+  min-height: 43px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-bottom: 2px solid transparent;
+  color: var(--alsvid-muted);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.contextNavItem:hover {
+  color: var(--alsvid-text);
+}
+
+.contextNavItemActive {
+  border-bottom-color: var(--alsvid-accent);
+  color: var(--alsvid-accent);
+}
+
+.contextNavItem small {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--alsvid-bg-soft);
+  color: var(--alsvid-muted);
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.contextNavItemDisabled {
+  opacity: .55;
+  cursor: default;
 }
 
 .primaryUtilities {
@@ -148,11 +232,16 @@ textarea {
   color: var(--alsvid-text-2);
 }
 
-.utilityButton:hover,
+.utilityButton:hover:not(:disabled),
 .themeToggle:hover {
   border-color: var(--alsvid-line);
   background: var(--alsvid-bg-soft);
   color: var(--alsvid-text);
+}
+
+.utilityButton:disabled {
+  color: var(--alsvid-muted);
+  opacity: .34;
 }
 
 .themeToggleIcon {
@@ -164,17 +253,6 @@ textarea {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .03em;
-}
-
-.utilityNotify {
-  position: relative;
-}
-
-.utilityNotify > span {
-  position: absolute;
-  right: 4px;
-  top: 3px;
-  color: var(--alsvid-danger);
 }
 
 .primaryProfile {
@@ -217,6 +295,16 @@ textarea {
   font-size: 8px;
 }
 
+[data-alsvid-surface="true"],
+[data-alsvid-notice="true"],
+[data-alsvid-empty-state="true"] {
+  color: var(--alsvid-text);
+}
+
+[data-alsvid-empty-state="true"] {
+  color: var(--alsvid-muted);
+}
+
 html[data-theme="dark"] .environmentBanner {
   border-color: #6e5720;
   background: #2d260f;
@@ -246,6 +334,7 @@ html[data-theme="dark"] .shellV2 :is(
 
 html[data-theme="dark"] .shellV2 :is(
   [class*="metricCard"],
+  [class*="providerCard"],
   [class*="panel"],
   [class*="listCard"],
   [class*="modelBlock"],
@@ -254,7 +343,10 @@ html[data-theme="dark"] .shellV2 :is(
   [class*="formCard"],
   [class*="tableCard"],
   [class*="detailCard"],
-  [class*="infoCard"]
+  [class*="infoCard"],
+  [class*="card"],
+  [class*="rule"],
+  [class*="detail"]
 ) {
   background: var(--alsvid-panel) !important;
   color: var(--alsvid-text) !important;
@@ -320,6 +412,12 @@ html[data-theme="dark"] .tableRow:hover {
   background: var(--alsvid-panel-2);
 }
 
+html[data-theme="dark"] .mobileNav {
+  border-color: var(--alsvid-line);
+  background: var(--alsvid-header);
+  color: var(--alsvid-text);
+}
+
 @media (max-width: 1180px) {
   .themeToggleLabel,
   .profileCopy {
@@ -332,6 +430,10 @@ html[data-theme="dark"] .tableRow:hover {
 }
 
 @media (max-width: 850px) {
+  .contextNavigation {
+    display: none;
+  }
+
   .primaryUtilities {
     gap: 2px;
   }
