@@ -37,10 +37,10 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     subtitle: '经销商门户',
     links: [
       { label: '工作台', href: '/dealer' },
-      { label: '我的公司', href: '#', status: '待开发', disabled: true },
-      { label: '订单与物流', href: '#', status: '待开发', disabled: true },
-      { label: '车辆交付', href: '#', status: '待开发', disabled: true },
-      { label: '售后服务', href: '#', status: '待开发', disabled: true },
+      { label: '我的公司', href: '/dealer/company' },
+      { label: '订单与物流', href: '/dealer/orders' },
+      { label: '车辆交付', href: '/dealer/vehicles' },
+      { label: '售后服务', href: '/dealer/service' },
     ],
   },
   my: {
@@ -48,17 +48,18 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
     subtitle: '车主服务',
     links: [
       { label: '我的车辆', href: '/my' },
-      { label: '车辆档案', href: '#', status: '待开发', disabled: true },
-      { label: '保修与服务', href: '#', status: '待开发', disabled: true },
-      { label: '说明书与配件', href: '#', status: '待开发', disabled: true },
-      { label: '账户与偏好', href: '#', status: '待开发', disabled: true },
+      { label: '车辆档案', href: '/my/vehicles' },
+      { label: '保修与服务', href: '/my/service' },
+      { label: '说明书与配件', href: '/my/library' },
+      { label: '账户与偏好', href: '/my/account' },
     ],
   },
 };
 
-function NavEntry({ item, primary = false }: { item: PortalLink; primary?: boolean }) {
+function NavEntry({ item, primary = false, active = false }: { item: PortalLink; primary?: boolean; active?: boolean }) {
   const baseClass = primary ? styles.primaryNavItem : styles.navLink;
   const disabledClass = primary ? styles.primaryNavDisabled : styles.navDisabled;
+  const activeClass = primary ? styles.primaryNavActive : styles.navActive;
 
   if (item.disabled) {
     return (
@@ -70,22 +71,29 @@ function NavEntry({ item, primary = false }: { item: PortalLink; primary?: boole
   }
 
   return (
-    <Link className={baseClass} href={item.href}>
+    <Link className={`${baseClass}${active ? ` ${activeClass}` : ''}`} href={item.href} aria-current={active ? 'page' : undefined}>
       <span>{item.label}</span>
       {!primary && item.status ? <small>{item.status}</small> : null}
     </Link>
   );
 }
 
-export function PortalShell({ kind, children }: { kind: PortalKind; children: ReactNode }) {
+function defaultActiveHref(kind: PortalKind) {
+  if (kind === 'dealer') return '/dealer';
+  if (kind === 'my') return '/my';
+  return '/product';
+}
+
+export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; activeHref?: string; children: ReactNode }) {
   const config = portalConfig[kind];
+  const currentHref = activeHref ?? defaultActiveHref(kind);
 
   return (
     <div className={styles.portal} data-portal={kind}>
       <header className={styles.header}>
         <Link className={styles.brand} href="/">ALSVID</Link>
         <nav className={styles.primaryNavigation} aria-label="主导航">
-          {primaryNavigation.map((item) => <NavEntry item={item} primary key={item.label} />)}
+          {primaryNavigation.map((item) => <NavEntry item={item} primary active={item.href === currentHref} key={item.label} />)}
         </nav>
         <div className={styles.headerTools}>
           <ThemeToggle />
@@ -97,7 +105,7 @@ export function PortalShell({ kind, children }: { kind: PortalKind; children: Re
         <div className={styles.secondaryNavInner}>
           <strong>{config.subtitle}</strong>
           <nav aria-label={`${config.subtitle}导航`}>
-            {config.links.map((item) => <NavEntry item={item} key={`${item.label}-${item.href}`} />)}
+            {config.links.map((item) => <NavEntry item={item} active={item.href === currentHref} key={`${item.label}-${item.href}`} />)}
           </nav>
         </div>
       </div>
