@@ -150,7 +150,7 @@ jobs:
             --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
             --port 4000 --cpu 1 --memory 512Mi --min 0 --max 2 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=test,ALSVID_ENV=development,ALSVID_INTERNAL_EMAIL_DOMAINS=development.alsvid.invalid,ALSVID_INTERNAL_REGISTRATION_MODE=company_domain,ALSVID_INITIAL_ADMIN_EMAIL=jinfenghua1990@gmail.com,ALSVID_EMAIL_TEST_MODE=true,MAIL_PROVIDER=resend,MAIL_FROM_ADDRESS=noreply@chaibenn.com,MAIL_FROM_NAME=ALSVID,ALSVID_PUBLIC_WEB_URL=${web_url},OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET}" \
+            --set-env-vars "NODE_ENV=test,ALSVID_ENV=development,ALSVID_INTERNAL_EMAIL_DOMAINS=development.alsvid.invalid,ALSVID_INTERNAL_REGISTRATION_MODE=company_domain,ALSVID_INITIAL_ADMIN_EMAIL=jinfenghua1990@gmail.com,ALSVID_EMAIL_TEST_MODE=false,MAIL_PROVIDER=resend,MAIL_FROM_ADDRESS=noreply@chaibenn.com,MAIL_FROM_NAME=ALSVID,ALSVID_PUBLIC_WEB_URL=${web_url},OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET}" \
             --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest,MAIL_API_KEY=alsvid-mail-api-key:latest" \
             --quiet
 
@@ -172,8 +172,7 @@ jobs:
             --set-env-vars "NODE_ENV=test,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
             --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-development-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-development-r2-secret-key:latest" \
             --quiet
-
-      - name: Smoke Development email registration, password setup and persistent session
+      - name: Smoke Development email delivery request
         if: ${{ !inputs.publish_only }}
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
@@ -182,22 +181,8 @@ jobs:
           api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
           short_sha="${RELEASE_SHA:0:12}"
           email="auth-smoke-${short_sha}@development.alsvid.invalid"
-          password="DevSmoke-$(openssl rand -hex 18)-Aa1!"
           start="$(curl --fail --silent --show-error --retry 6 --retry-delay 5 -X POST "$api_url/api/v1/auth/email/start" -H 'content-type: application/json' --data "{\"email\":\"$email\"}")"
-          code="$(printf '%s' "$start" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).data?.testCode||''))")"
-          [[ "$code" =~ ^[0-9]{6}$ ]]
-          complete="$(curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/email/complete" -H 'content-type: application/json' --data "{\"email\":\"$email\",\"displayName\":\"Development Auth Smoke\",\"code\":\"$code\"}")"
-          token="$(printf '%s' "$complete" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data; if(!d?.user?.roles?.includes('internal_user')||d?.user?.passwordSetupRequired!==true) process.exit(2); process.stdout.write(d.token||'')})")"
-          [[ -n "$token" ]]
-          me_before="$(curl --fail --silent --show-error "$api_url/api/v1/auth/me" -H "authorization: Bearer $token")"
-          printf '%s' "$me_before" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{if(JSON.parse(s).data?.passwordSetupRequired!==true)process.exit(2)})"
-          blocked_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$api_url/api/v1/auth/users" -H "authorization: Bearer $token")"
-          [[ "$blocked_status" == '403' ]]
-          curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/password" -H 'content-type: application/json' -H "authorization: Bearer $token" --data "{\"password\":\"$password\"}" >/dev/null
-          me_after="$(curl --fail --silent --show-error "$api_url/api/v1/auth/me" -H "authorization: Bearer $token")"
-          printf '%s' "$me_after" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data;if(d?.passwordSetupRequired!==false||d?.passwordState!=='ACTIVE')process.exit(2)})"
-          relogin="$(curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/login" -H 'content-type: application/json' --data "{\"email\":\"$email\",\"password\":\"$password\"}")"
-          printf '%s' "$relogin" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data;if(!d?.token||d?.user?.passwordSetupRequired!==false)process.exit(2)})"
+          printf '%s' "$start" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data;if(!d?.expiresAt||d?.testCode)process.exit(2)})"
 
       - name: Deploy Development web
         if: ${{ !inputs.publish_only }}
