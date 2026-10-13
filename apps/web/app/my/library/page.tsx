@@ -1,24 +1,47 @@
+import Link from 'next/link';
 import { requirePortalSession } from '../../_lib/portal-access';
-import { PortalShell } from '../../_components/portal-shell';
-import { PortalSectionPage } from '../../_components/portal-section-page';
-
-const cards = [
-  { title: '说明书', description: '按当前车辆实际车型与配置版本提供匹配的使用和维护资料。' },
-  { title: '技术资料', description: '展示对车主公开且与当前车辆版本兼容的技术文档。' },
-  { title: '适配配件', description: '只推荐与车辆平台、车型和配置确认兼容的配件。' },
-] as const;
+import { OwnerShell } from '../../_components/owner-shell';
+import styles from '../owner-portal.module.css';
 
 export default async function MyLibraryPage() {
   await requirePortalSession('my', '/my/library');
+
   return (
-    <PortalShell kind="my" activeHref="/my/library">
-      <PortalSectionPage
-        eyebrow="MY ALSVID / LIBRARY"
-        title="说明书与配件"
-        description="资料和配件必须从 ALSVID 产品主数据与车辆实际配置派生，避免向车主展示不匹配的版本。"
-        cards={cards}
-        notice="产品资料与配件目录接入前保持空状态，不使用示例文档或虚构配件。"
-      />
-    </PortalShell>
+    <OwnerShell activeHref="/my/library">
+      <div className={styles.page}>
+        <header className={styles.pageHeader}>
+          <p className={styles.eyebrow}>MY ALSVID / LIBRARY</p>
+          <h1>资料与配件</h1>
+          <p>这里不做普通商城列表。说明书和配件都应从车辆真实型号、版本和 Build Specification 派生。</p>
+        </header>
+
+        <section className={styles.contentGrid}>
+          <div>
+            <article className={styles.card} id="help">
+              <h2>车辆资料</h2>
+              <p>绑定车辆后，只展示与你车辆版本匹配的资料。</p>
+              <div className={styles.libraryGroup}>
+                <div className={styles.libraryItem}><strong>用户手册</strong><span>等待车辆版本</span></div>
+                <div className={styles.libraryItem}><strong>快速开始</strong><span>等待车辆版本</span></div>
+                <div className={styles.libraryItem}><strong>电池安全指南</strong><span>等待车辆版本</span></div>
+                <div className={styles.libraryItem}><strong>维护与故障排查</strong><span>等待车辆版本</span></div>
+              </div>
+            </article>
+
+            <article className={styles.card} id="accessories">
+              <h2>适配配件</h2>
+              <p>只推荐确认兼容当前车辆版本的 ALSVID 配件，购买动作继续由 Shopify 负责。</p>
+              <div className={styles.emptyList}>绑定车辆后显示兼容配件，不在这里复制 Shopify 商品目录。</div>
+            </article>
+          </div>
+
+          <aside className={styles.card}>
+            <h2>先建立车辆档案</h2>
+            <p>车型相同也可能因为版本、配置或生产批次不同而使用不同资料和配件。</p>
+            <div style={{ marginTop: 20 }}><Link className={styles.primaryAction} href="/my/vehicles/register">添加车辆</Link></div>
+          </aside>
+        </section>
+      </div>
+    </OwnerShell>
   );
 }
