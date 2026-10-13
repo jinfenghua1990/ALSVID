@@ -62,7 +62,6 @@ export default async function HomePage() {
         </nav>
         <div className={styles.actions}>
           <a className={styles.buyButton} href="#bikes">购买</a>
-          <Link className={styles.loginText} href={myUrl}>登录</Link>
           <a className={styles.searchIcon} href="#bikes" aria-label="搜索">⌕</a>
         </div>
       </header>
