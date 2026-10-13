@@ -25,6 +25,7 @@ env:
   WEB_SERVICE: alsvid-web
   API_SERVICE: alsvid-api
   WORKER_POOL: alsvid-worker
+  WORKER_INSTANCES: ${{ vars.WORKER_INSTANCES || '0' }}
   MIGRATION_JOB: alsvid-migrate
 
 jobs:
@@ -103,8 +104,8 @@ jobs:
         run: |
           set -euo pipefail
           docker build --platform linux/amd64 --build-arg ALSVID_ENV=production -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
-          docker build -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
-          docker build -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
+          docker build --platform linux/amd64 -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
+          docker build --platform linux/amd64 -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3
@@ -204,7 +205,7 @@ jobs:
             --set-secrets "$secret_bindings" \
             --quiet
 
-      - name: Deploy continuous worker pool
+      - name: Deploy worker pool with zero idle instances by default
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION }}
@@ -220,7 +221,7 @@ jobs:
             --region "$GCP_REGION" \
             --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
-            --instances 1 \
+            --instances "$WORKER_INSTANCES" \
             --cpu 1 \
             --memory 512Mi \
             --set-env-vars "NODE_ENV=production,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
@@ -276,6 +277,6 @@ jobs:
             echo "- Release: $RELEASE_SHA"
             echo "- Web: $web_url"
             echo "- API: ${{ steps.api.outputs.url }}"
-            echo "- Worker pool: $WORKER_POOL"
+            echo "- Worker pool: $WORKER_POOL (instances: $WORKER_INSTANCES)"
             echo "- Email verification: resend"
           } >> "$GITHUB_STEP_SUMMARY"
