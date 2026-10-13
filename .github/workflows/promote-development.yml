@@ -86,7 +86,9 @@ jobs:
           echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
           if [[ "$release_tree" == "$main_tree" ]]; then
             echo "needs_promotion=false" >> "$GITHUB_OUTPUT"
-            echo "Production already has the tested source tree."
+            main_sha="$(git rev-parse origin/main)"
+            echo "main_sha=$main_sha" >> "$GITHUB_OUTPUT"
+            echo "Production main already has the tested source tree; it will still be redeployed from this accepted release."
           else
             echo "needs_promotion=true" >> "$GITHUB_OUTPUT"
           fi
