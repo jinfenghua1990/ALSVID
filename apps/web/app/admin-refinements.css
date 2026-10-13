@@ -1,0 +1,181 @@
+/* ALSVID Admin-only visual refinements. Keep Dealer / Owner portals untouched. */
+
+.shellV2 .primaryHeader {
+  min-height: 64px;
+  grid-template-columns: 156px minmax(0, 1fr) auto;
+  padding: 0 22px 0 28px;
+  box-shadow: 0 1px 0 var(--alsvid-line), 0 8px 30px color-mix(in srgb, #111827 4%, transparent);
+}
+
+.shellV2 .primaryBrand {
+  font-size: 23px;
+  letter-spacing: -.045em;
+}
+
+.shellV2 .primaryNavigation {
+  gap: 1px;
+}
+
+.shellV2 .primaryNavItem {
+  min-height: 63px;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 650;
+  border-radius: 8px 8px 0 0;
+}
+
+.shellV2 .primaryNavItemActive {
+  background: color-mix(in srgb, var(--alsvid-accent) 4%, transparent);
+}
+
+.shellV2 .primaryNavItemActive::after {
+  left: 10px;
+  right: 10px;
+  height: 2px;
+}
+
+.shellV2 .shellFrameWithRail {
+  grid-template-columns: 232px minmax(0, 1fr);
+}
+
+.shellV2 .contextRail {
+  background: color-mix(in srgb, var(--alsvid-rail) 96%, var(--alsvid-bg));
+}
+
+.shellV2 .contextRailSticky {
+  padding: 20px 12px 18px;
+}
+
+.shellV2 .contextRailTitle {
+  gap: 5px;
+  padding: 0 12px 17px;
+}
+
+.shellV2 .contextRailTitle strong {
+  font-size: 17px;
+  letter-spacing: -.025em;
+}
+
+.shellV2 .contextRailTitle span {
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+.shellV2 .contextRailNav {
+  padding-top: 12px;
+}
+
+.shellV2 .contextRail .navGroup {
+  margin-bottom: 16px;
+}
+
+.shellV2 .contextRail .navSection {
+  min-height: 28px;
+  padding: 0 10px;
+  color: color-mix(in srgb, var(--alsvid-muted) 88%, transparent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.shellV2 .contextRail .navEntry {
+  margin: 3px 0;
+}
+
+.shellV2 .contextRail .navItem {
+  position: relative;
+  min-height: 40px;
+  padding: 0 11px 0 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 630;
+}
+
+.shellV2 .contextRail .navItem:hover {
+  border-color: var(--alsvid-line);
+  background: var(--alsvid-panel);
+}
+
+.shellV2 .contextRail .navItem.active {
+  border-color: color-mix(in srgb, var(--alsvid-accent) 16%, var(--alsvid-line));
+  background: color-mix(in srgb, var(--alsvid-accent) 8%, var(--alsvid-panel));
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--alsvid-accent) 7%, transparent);
+}
+
+.shellV2 .contextRail .navItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--alsvid-accent);
+}
+
+.shellV2 .contextRail .navStatus {
+  padding: 2px 5px;
+  font-size: 7px;
+}
+
+.shellV2 .contextRail .railFoot {
+  margin-top: 10px;
+  padding: 15px 10px 0;
+  font-size: 8px;
+  letter-spacing: .04em;
+}
+
+.shellV2 .workspace {
+  padding-top: 24px;
+}
+
+.shellV2 .shellFrameWithRail .workspace {
+  padding-left: clamp(24px, 2.4vw, 38px);
+  padding-right: clamp(24px, 2.4vw, 38px);
+}
+
+.shellV2 :is(.pageHeader, [class*="heading"], [class*="Header"]) h1 {
+  letter-spacing: -.04em;
+}
+
+.shellV2 :is([class*="Card"], [class*="card"], [class*="Panel"], [class*="panel"]) {
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.shellV2 :is(table, [class*="table"]) {
+  font-variant-numeric: tabular-nums;
+}
+
+.shellV2 :is(input, select, textarea) {
+  border-radius: 10px;
+}
+
+@media (max-width: 1180px) {
+  .shellV2 .primaryHeader {
+    grid-template-columns: 132px minmax(0, 1fr) auto;
+    padding-left: 18px;
+    padding-right: 14px;
+  }
+
+  .shellV2 .primaryNavItem {
+    padding: 0 7px;
+    font-size: 11px;
+  }
+
+  .shellV2 .shellFrameWithRail {
+    grid-template-columns: 204px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 850px) {
+  .shellV2 .primaryHeader {
+    min-height: 58px;
+  }
+
+  .shellV2 .workspace,
+  .shellV2 .shellFrameWithRail .workspace {
+    padding: 14px 12px 36px;
+  }
+}
