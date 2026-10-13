@@ -4,7 +4,7 @@
 
 ## 0. 不能重新讨论的已确认边界
 - **四个独立开发工作流/门户**：ALSVID WWW、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
-- **www.alsvid.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.alsvid.com 作为独立公开商城入口**。
+- **www.chaibenn.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.chaibenn.com 作为独立公开商城入口**。
 - Admin 是员工内部运营系统；Dealer 是经销商 B2B 门户；My 是车主会员/车辆生命周期门户。官网的会员、经销商入口可以导航至对应门户，但不复制其后台业务逻辑。
 - Portal Launcher 仅用于内部身份/角色切换，不作为公开官网首页，也不在用户访问首页时增加无意义中间跳转。
 - 当前网站域名及 Dev 子域名均为**目标命名**，DNS、证书、发布状态必须分别验收，不可假称已上线。
@@ -13,10 +13,10 @@
 ## 1. 门户及域名矩阵
 | 工作流 | Production 目标 | Development/Test 目标 | 核心受众 |
 | --- | --- | --- | --- |
-| ALSVID WWW / Official | www.alsvid.com | www.dev.alsvid.com | 全球访客、潜在消费者、购车客户 |
-| ALSVID Admin / Internal Admin | admin.alsvid.com | admin.dev.alsvid.com | 员工、管理层 |
-| ALSVID Dealer Portal | dealer.alsvid.com | dealer.dev.alsvid.com | 授权经销商 |
-| My ALSVID | my.alsvid.com | my.dev.alsvid.com | 车主、会员 |
+| ALSVID WWW / Official | www.chaibenn.com | www.dev.chaibenn.com | 全球访客、潜在消费者、购车客户 |
+| ALSVID Admin / Internal Admin | admin.chaibenn.com | admin.dev.chaibenn.com | 员工、管理层 |
+| ALSVID Dealer Portal | dealer.chaibenn.com | dealer.dev.chaibenn.com | 授权经销商 |
+| My ALSVID | my.chaibenn.com | my.dev.chaibenn.com | 车主、会员 |
 
 “Dev”是环境标识，不是第五个产品。正式和测试环境隔离数据库、R2 资源、凭据、Shopify 测试配置；不能把 Test 数据迁到 Production。测试通过后以同一 Git commit 发布，按现有 CI/PR 流程执行。
 
@@ -93,3 +93,6 @@ UI：中文优先，**左侧一级导航**，顶部搜索/快捷操作/通知/�
 5. 功能开发遵守 Issue → branch → PR → CI → merge → deploy，除非仓库流程另有正式变更。
 6. 发生历史文档冲突时：此文件为 **2026-10-13 四门户/官网商城整合的最新业务决策**；底层代码与真实上线状态仍以实际仓库和部署证据为准。
 7. 未明确决定的事项（Shopify Headless/主题、实际 DNS、账号联登细节、B2B 定价等）保留为待验证，不得臆造。
+
+
+> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
