@@ -149,12 +149,40 @@ jobs:
             echo "- Production deployment: dispatched"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Record no-op promotion
+      - name: Deploy an already-merged tested tree if Production has not deployed it
         if: ${{ steps.release.outputs.needs_promotion == 'false' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TREE: ${{ steps.release.outputs.tree }}
         run: |
+          set -euo pipefail
+          git fetch origin main
+          main_sha="$(git rev-parse origin/main)"
+          main_tree="$(git rev-parse 'origin/main^{tree}')"
+          if [[ "$main_tree" != "$RELEASE_TREE" ]]; then
+            echo "Refusing Production dispatch: main no longer matches the tested Development tree" >&2
+            exit 1
+          fi
+
+          # A matching Git tree proves identical source, not that Cloud Run
+          # deployed it. This can happen when an emergency main change is later
+          # merged back into develop and accepted there.
+          successful_push="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/production-deploy.yml/runs?head_sha=${main_sha}&event=push&status=success&per_page=1" --jq '.total_count')"
+          if [[ "$successful_push" -gt 0 ]]; then
+            echo "Production already has a successful main-push deployment for $main_sha"
+          else
+            gh workflow run production-deploy.yml \\
+              --repo "$GITHUB_REPOSITORY" \\
+              --ref main \\
+              -f release_sha="$main_sha" \\
+              -f confirm=deploy
+            echo "Dispatched Production for already-merged tested main $main_sha"
+          fi
+
           {
             echo "### ALSVID automatic release promotion"
             echo "- Development release: ${{ steps.release.outputs.sha }}"
-            echo "- Production already contains the identical tested source tree"
-            echo "- No Production deployment was started"
+            echo "- Production main release: $main_sha"
+            echo "- Production deployment: verified prior main-push success or dispatched"
           } >> "$GITHUB_STEP_SUMMARY"
