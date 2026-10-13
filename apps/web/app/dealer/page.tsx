@@ -1,12 +1,19 @@
+import Link from 'next/link';
 import { requirePortalSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
 import styles from '../admin/portal-page.module.css';
 
 const sections = [
-  ['公司资料', '经审核的公司信息、联系人与服务地址', '页面已就位'],
-  ['订单与物流', '外部 Commerce 渠道返回的本经销商订单状态', '页面已就位'],
-  ['车辆与交付', '已授权范围内的车辆分配与交付记录', '页面已就位'],
-  ['售后与保修', '经销商范围内的服务申请、保修与配件信息', '页面已就位'],
+  ['产品目录', '查看面向当前经销商开放的车型、规格与 B2B 产品信息。', '/dealer/catalog'],
+  ['采购', '从可采购产品进入询价、采购与补货流程。', '/dealer/purchase'],
+  ['B2B 订单', '查看当前经销商提交和可见的 B2B 订单。', '/dealer/orders'],
+  ['订单状态', '集中查看订单确认、备货、运输与完成状态。', '/dealer/order-status'],
+  ['交付车辆', '查看已分配或已交付给当前经销商的车辆与 VIN。', '/dealer/vehicles'],
+  ['库存 / 可供货', '查看 ALSVID 对当前经销商开放的可供货与库存信息。', '/dealer/availability'],
+  ['售后申请', '提交并跟踪经销商范围内的售后与保修申请。', '/dealer/service'],
+  ['配件申请', '提交维修、售后或经营所需的配件申请。', '/dealer/parts'],
+  ['文件资料', '获取产品资料、技术文档、销售素材与经销商文件。', '/dealer/documents'],
+  ['经销商账户', '管理经销商公司资料、联系人、地址与成员信息。', '/dealer/account'],
 ] as const;
 
 export default async function DealerPortalPage() {
@@ -14,18 +21,38 @@ export default async function DealerPortalPage() {
   return (
     <PortalShell kind="dealer" activeHref="/dealer">
       <header className={styles.heading}>
-        <div><p className={styles.eyebrow}>ALSVID / DEALER PORTAL</p><h1>经销商工作台</h1><p>为已启用的经销商成员提供公司范围内的订单、车辆与售后信息。没有真实记录时保持空置。</p></div>
-        <span className={styles.badge}>门户骨架 · 权限待接入</span>
+        <div>
+          <p className={styles.eyebrow}>ALSVID / DEALER PORTAL</p>
+          <h1>经销商工作台</h1>
+          <p>这里是经销商自己操作业务的入口。只展示当前经销商有权查看的产品、采购、订单、车辆、库存、售后与资料。</p>
+        </div>
+        <span className={styles.badge}>B2B SELF-SERVICE</span>
       </header>
-      <div className={styles.callout}><strong>数据范围</strong><span>真实页面必须由服务端校验用户与 Dealer / Partner 成员关系。当前没有连接经销商账户或业务记录，因此不会展示演示数据。</span></div>
-      <section className={styles.moduleGrid} aria-label="经销商门户功能" style={{ marginTop: 13 }}>
-        {sections.map(([name, detail, status]) => (
-          <article className={styles.moduleCard} key={name}>
-            <span className={styles.moduleStatus}>{status}</span><h2>{name}</h2><p>{detail}</p>
-          </article>
-        ))}
+
+      <div className={styles.callout}>
+        <strong>系统边界</strong>
+        <span>Dealer Portal 面向经销商自助使用；公司员工管理经销商、生产、库存调度和内部审批仍在 ALSVID Admin。</span>
+      </div>
+
+      <section className={styles.section} aria-labelledby="dealer-workspace-title">
+        <div className={styles.sectionHeadCompact}>
+          <h2 id="dealer-workspace-title">业务入口</h2>
+        </div>
+        <div className={styles.moduleGrid}>
+          {sections.map(([name, detail, href]) => (
+            <Link className={styles.moduleCard} href={href} key={name}>
+              <span className={styles.moduleStatus}>进入</span>
+              <h2>{name}</h2>
+              <p>{detail}</p>
+            </Link>
+          ))}
+        </div>
       </section>
-      <div className={styles.callout} style={{ marginTop: 13 }}><strong>B2B 下单</strong><span>下单和支付仍由 Shopify 或获批外部 B2B 渠道处理；ALSVID 不建立第二套购物车或结账系统。</span></div>
+
+      <div className={styles.callout} style={{ marginTop: 13 }}>
+        <strong>数据原则</strong>
+        <span>没有真实业务记录时保持空状态，不生成示例订单、车辆、库存或售后数据；后续直接接入同一套 ALSVID 后端数据中心。</span>
+      </div>
     </PortalShell>
   );
 }
