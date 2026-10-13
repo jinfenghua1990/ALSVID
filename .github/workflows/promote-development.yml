@@ -1,0 +1,152 @@
+name: ALSVID Promote Development to Production
+
+on:
+  workflow_run:
+    workflows: ["ALSVID Development Deploy"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Optional tested develop commit SHA to promote"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: alsvid-development-production-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'develop' &&
+          github.event.workflow_run.event == 'push'
+        )
+      }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release controller
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve tested Development release
+        id: release
+        shell: bash
+        env:
+          WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_RELEASE_SHA: ${{ inputs.release_sha }}
+        run: |
+          set -euo pipefail
+          release_sha="${INPUT_RELEASE_SHA:-${WORKFLOW_RUN_SHA:-}}"
+          if [[ -z "$release_sha" ]]; then
+            echo "No tested Development release SHA was supplied" >&2
+            exit 1
+          fi
+
+          git fetch origin main develop
+          if ! git cat-file -e "${release_sha}^{commit}" 2>/dev/null; then
+            echo "Unknown release commit: $release_sha" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$release_sha" origin/develop; then
+            echo "Refusing promotion: $release_sha is not part of develop" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor origin/main "$release_sha"; then
+            echo "Refusing promotion: develop must first contain the latest main history" >&2
+            exit 1
+          fi
+
+          release_tree="$(git rev-parse "${release_sha}^{tree}")"
+          main_tree="$(git rev-parse 'origin/main^{tree}')"
+          short_sha="${release_sha:0:12}"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+          echo "tree=$release_tree" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          if [[ "$release_tree" == "$main_tree" ]]; then
+            echo "needs_promotion=false" >> "$GITHUB_OUTPUT"
+            echo "Production already has the tested source tree."
+          else
+            echo "needs_promotion=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Promote the exact tested tree into main
+        id: promote
+        if: ${{ steps.release.outputs.needs_promotion == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          RELEASE_TREE: ${{ steps.release.outputs.tree }}
+          SHORT_SHA: ${{ steps.release.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          release_branch="release/development-${GITHUB_RUN_ID}-${SHORT_SHA}"
+
+          git push origin "${RELEASE_SHA}:refs/heads/${release_branch}"
+
+          pr_url="$(gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head "$release_branch" \
+            --title "release: promote tested Development ${SHORT_SHA}" \
+            --body "Automated promotion of the exact source tree that passed CI, container acceptance, Development deployment, email/auth smoke checks, API health and web smoke checks. Tested commit: ${RELEASE_SHA}." )"
+
+          gh pr merge "$pr_url" \
+            --repo "$GITHUB_REPOSITORY" \
+            --squash \
+            --delete-branch
+
+          git fetch origin main
+          main_sha="$(git rev-parse origin/main)"
+          main_tree="$(git rev-parse 'origin/main^{tree}')"
+          if [[ "$main_tree" != "$RELEASE_TREE" ]]; then
+            echo "Refusing Production dispatch: promoted main tree differs from tested Development tree" >&2
+            exit 1
+          fi
+
+          echo "main_sha=$main_sha" >> "$GITHUB_OUTPUT"
+          echo "Promoted tested Development $RELEASE_SHA to main $main_sha"
+
+      - name: Dispatch Production deployment
+        if: ${{ steps.release.outputs.needs_promotion == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN_SHA: ${{ steps.promote.outputs.main_sha }}
+        run: |
+          set -euo pipefail
+          gh workflow run production-deploy.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f release_sha="$MAIN_SHA" \
+            -f confirm=deploy
+
+          {
+            echo "### ALSVID automatic release promotion"
+            echo "- Development release: ${{ steps.release.outputs.sha }}"
+            echo "- Production main release: $MAIN_SHA"
+            echo "- Production deployment: dispatched"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record no-op promotion
+        if: ${{ steps.release.outputs.needs_promotion == 'false' }}
+        run: |
+          {
+            echo "### ALSVID automatic release promotion"
+            echo "- Development release: ${{ steps.release.outputs.sha }}"
+            echo "- Production already contains the identical tested source tree"
+            echo "- No Production deployment was started"
+          } >> "$GITHUB_STEP_SUMMARY"
