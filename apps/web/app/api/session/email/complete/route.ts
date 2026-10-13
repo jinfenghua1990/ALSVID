@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sessionCookieOptions } from '../../../_lib/session-cookie';
+import { sessionCookieOptions } from '../../../../_lib/session-cookie';
 
 const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 
