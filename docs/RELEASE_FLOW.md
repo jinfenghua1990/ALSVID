@@ -33,8 +33,9 @@ The automated promotion workflow only promotes a Development release when:
 5. the Development Web smoke check passed;
 6. the Development email registration / password setup / persistent-session smoke flow passed;
 7. the tested commit belongs to `develop`;
-8. the tested commit contains the latest `main` history;
-9. the promoted `main` source tree is byte-for-byte the same Git tree that passed Development.
+8. the current Production source tree is already present at the common ancestor of `main` and the tested Development release, so an independent source change on `main` cannot be overwritten silently;
+9. the promoted `main` source tree is byte-for-byte the same Git tree that passed Development;
+10. the tested Development commit is preserved in the promoted `main` merge history.
 
 If any of these conditions fail, Production is not dispatched.
 
@@ -49,7 +50,7 @@ Development and Production run the same application source code but use separate
 - Cloud Run services: Development Web / API
 - Development database credentials
 - Development R2 bucket
-- Development/test mail settings
+- Resend delivery path and mail secret, with a Development-only verification-code echo used by automated smoke tests
 
 ### Production
 
@@ -58,6 +59,7 @@ Development and Production run the same application source code but use separate
 - Production database credentials
 - Production R2 bucket
 - Production Resend secret and sender configuration
+- Verification-code echo disabled
 
 The code version is promoted; databases, object-storage buckets, secrets and environment-specific configuration are not copied between environments.
 
@@ -67,15 +69,17 @@ The code version is promoted; databases, object-storage buckets, secrets and env
 - `.github/workflows/test-build.yml` — container-level Development acceptance
 - `.github/workflows/development-deploy.yml` — deploy and smoke-test Development
 - `.github/workflows/promote-development.yml` — automatically promote the completed tested Development release
-- `.github/workflows/production-deploy.yml` — deploy Production and verify health
+- `.github/workflows/production-deploy.yml` — explicit Production deployment and health verification
 - `scripts/release-gate.mjs` — enforce Development acceptance before Production
 
 ## Safety behavior
 
 - Promotion is serialized; two releases are not promoted concurrently.
-- A Development release that is behind `main` is rejected instead of silently overwriting Production history.
-- Promotion uses a pull request into protected `main` rather than force-updating the branch.
-- Production is explicitly dispatched only after the merge result has the same Git tree as the tested Development release.
+- Promotion compares Git source trees, not only commit IDs, so repeated PR merge commits do not incorrectly block later releases.
+- If `main` contains an independent source change that is not already represented in Development history, automatic promotion is rejected.
+- Promotion uses a pull request and a merge commit into protected `main`; the tested Development commit stays in Production history.
+- Production is explicitly dispatched only after the merge result has exactly the same Git tree as the tested Development release.
+- Ordinary `main` pushes do not independently start a Production deployment; Production is dispatched by the promotion workflow or by an explicit rollback action.
 - Production database migrations remain an explicit release step before API/Web rollout.
 - Rollback remains possible by manually dispatching the Production workflow with a previously released `main` commit.
 
