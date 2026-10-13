@@ -1,44 +1,41 @@
 name: ALSVID Promote Development to Production
-
-# Solo developer release flow:
-# develop -> development environment -> manual confirmation -> main -> production
-# Automatic promotion is intentionally disabled.
-
 on:
+  workflow_run:
+    workflows: ["ALSVID Development Deploy"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       release_sha:
-        description: "Optional tested develop commit SHA to release"
+        description: "Develop commit to promote after successful Development deployment"
         required: true
         type: string
-
 permissions:
   contents: write
-
+  actions: read
+  actions: write
+concurrency:
+  group: alsvid-promotion
+  cancel-in-progress: false
 jobs:
   promote:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.event == 'push') }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
-
-      - name: Promote tested develop commit to main
-        shell: bash
+      - name: Promote only the successful development revision
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha || github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          git fetch origin develop main
-          release_sha="${{ inputs.release_sha }}"
-
-          if ! git merge-base --is-ancestor "$release_sha" origin/develop; then
-            echo "Release commit must come from develop"
-            exit 1
-          fi
-
-          git checkout main
-          git merge --no-ff "$release_sha" -m "release: promote tested development ${release_sha}"
-          git push origin main
-
-          echo "Released $release_sha to main"
+          git fetch origin main develop
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/develop
+          test "$(git rev-parse origin/develop)" = "$RELEASE_SHA" || { echo "Newer develop revision exists; wait for its deployment"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B main origin/main
+          git merge --no-ff --no-edit "$RELEASE_SHA"
+          test "$(git rev-parse HEAD^{tree})" = "$(git rev-parse "$RELEASE_SHA^{tree}")" || { echo "Production tree differs from development; refusing"; exit 1; }
+          git push origin HEAD:main
