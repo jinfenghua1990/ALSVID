@@ -64,13 +64,22 @@ jobs:
             echo "Refusing promotion: $release_sha is not part of develop" >&2
             exit 1
           fi
-          if ! git merge-base --is-ancestor origin/main "$release_sha"; then
-            echo "Refusing promotion: develop must first contain the latest main history" >&2
+
+          # Production promotion uses merge commits so the tested Development commit
+          # remains in main's ancestry. On later releases, main itself is not
+          # necessarily an ancestor of develop, even though its source tree is.
+          # Accept that topology only when the current production tree is exactly the
+          # tree at the common ancestor. Any independent content change on main makes
+          # these trees differ and blocks promotion until develop incorporates it.
+          merge_base="$(git merge-base origin/main "$release_sha")"
+          merge_base_tree="$(git rev-parse "${merge_base}^{tree}")"
+          main_tree="$(git rev-parse 'origin/main^{tree}')"
+          if [[ "$merge_base_tree" != "$main_tree" ]]; then
+            echo "Refusing promotion: main contains source changes not present in the tested Development history" >&2
             exit 1
           fi
 
           release_tree="$(git rev-parse "${release_sha}^{tree}")"
-          main_tree="$(git rev-parse 'origin/main^{tree}')"
           short_sha="${release_sha:0:12}"
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "tree=$release_tree" >> "$GITHUB_OUTPUT"
@@ -104,9 +113,11 @@ jobs:
             --title "release: promote tested Development ${SHORT_SHA}" \
             --body "Automated promotion of the exact source tree that passed CI, container acceptance, Development deployment, email/auth smoke checks, API health and web smoke checks. Tested commit: ${RELEASE_SHA}." )"
 
+          # A merge commit intentionally preserves RELEASE_SHA as a parent of main.
+          # This keeps future content-history validation safe across repeated releases.
           gh pr merge "$pr_url" \
             --repo "$GITHUB_REPOSITORY" \
-            --squash \
+            --merge \
             --delete-branch
 
           git fetch origin main
@@ -114,6 +125,11 @@ jobs:
           main_tree="$(git rev-parse 'origin/main^{tree}')"
           if [[ "$main_tree" != "$RELEASE_TREE" ]]; then
             echo "Refusing Production dispatch: promoted main tree differs from tested Development tree" >&2
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$RELEASE_SHA" "$main_sha"; then
+            echo "Refusing Production dispatch: tested Development commit is not preserved in promoted main history" >&2
             exit 1
           fi
 
