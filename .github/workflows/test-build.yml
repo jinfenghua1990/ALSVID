@@ -88,8 +88,26 @@ jobs:
 
           for route in /admin /dealer /my; do
             response="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:8080$route")"
-            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:8080$route" | tr -d '\r' | sed -E 's#^(location:) https?://[^/]+(/login)$#\1 \2#I')"
+            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:8080$route" | tr -d '\r' | sed -E 's#^(location:) https?://[^/]+(/login(?:\?.*)?)$#\1 /login#I')"
             if [[ "$response" != "307" ]] || ! grep -Eiq '^location: /login$' <<< "$headers"; then
+              echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
+              echo "$headers" >&2
+              exit 1
+            fi
+          done
+
+      - name: Show Development container state
+        if: always()
+        run: docker compose -f infra/docker-compose.test.yml ps
+
+      - name: Show Development logs on failure
+        if: failure()
+        run: docker compose -f infra/docker-compose.test.yml logs --no-color
+
+      - name: Tear down Development containers
+        if: always()
+        run: docker compose -f infra/docker-compose.test.yml down -v --remove-orphans
+ <<< "$headers"; then
               echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
               echo "$headers" >&2
               exit 1
