@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { RefreshButton } from './_components/refresh-button';
 import './globals.css';
 import './admin-shell-v2.css';
+import './admin-refinements.css';
 import './theme.css';
 import './theme-legacy.css';
 

@@ -2,6 +2,8 @@
 
 ## Current release mode
 
+Daily operations use ALSVID Production. ALSVID Development is retained for isolated pre-release verification and is not a routine user entrypoint. Closing a test page does not delete Development resources or remove release gates.
+
 ALSVID currently uses a rapid Development → Production promotion flow.
 
 ```text
@@ -33,7 +35,7 @@ The automated promotion workflow only promotes a Development release when:
 5. the Development Web smoke check passed;
 6. the Development email registration / password setup / persistent-session smoke flow passed;
 7. the tested commit belongs to `develop`;
-8. the current Production source tree is already present at the common ancestor of `main` and the tested Development release, so an independent source change on `main` cannot be overwritten silently;
+8. the current Production source tree is already present at the common ancestor of `main` and the tested Development release; if main contains independent changes, merge its history and changes back into develop through a reviewed PR and rerun Development acceptance first;
 9. the promoted `main` source tree is byte-for-byte the same Git tree that passed Development;
 10. the tested Development commit is preserved in the promoted `main` merge history.
 
