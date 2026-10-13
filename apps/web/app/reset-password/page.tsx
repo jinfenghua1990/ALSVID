@@ -51,7 +51,7 @@ function ResetPasswordForm() {
         <h1>{token ? '设置新密码' : '忘记密码'}</h1>
         <p>{token ? '设置成功后，之前的登录会话会失效。' : '输入注册邮箱，我们会发送一次性重置链接。'}</p>
         <form onSubmit={submit}>
-          {token ? <label>新密码<input name="password" type="password" autoComplete="new-password" minLength={10} maxLength={128} required /></label> : <label>注册邮箱<input name="email" type="email" autoComplete="email" required /></label>}
+          {token ? <label>新密码<input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></label> : <label>注册邮箱<input name="email" type="email" autoComplete="email" required /></label>}
           {error ? <div className={styles.error}>{error}</div> : null}
           {message ? <div className={styles.success}>{message}</div> : null}
           <button disabled={busy}>{busy ? '处理中…' : token ? '保存新密码' : '发送重置链接'}</button>
