@@ -3,9 +3,9 @@ import { PortalShell } from '../../_components/portal-shell';
 import { PortalSectionPage } from '../../_components/portal-section-page';
 
 const cards = [
-  { title: '待交付车辆', description: '展示已经与当前经销商及订单建立可信关系、尚未完成交付的车辆。' },
-  { title: '交付记录', description: '记录车辆交付时间、交付凭据与后续所有权关系建立状态。' },
-  { title: '车辆查询', description: '按 ALSVID 车辆身份与车架号查看当前经销商有权限访问的车辆。' },
+  { title: '待交付车辆', description: '查看已经与当前经销商订单建立关系、等待到店或等待交付的车辆。' },
+  { title: '已交付车辆', description: '查看已交付给当前经销商的车辆、VIN / 车架号与对应订单关系。' },
+  { title: '交付记录', description: '查看车辆到店、交接、最终交付与后续车主绑定相关的业务记录。' },
 ] as const;
 
 export default async function DealerVehiclesPage() {
@@ -13,11 +13,11 @@ export default async function DealerVehiclesPage() {
   return (
     <PortalShell kind="dealer" activeHref="/dealer/vehicles">
       <PortalSectionPage
-        eyebrow="DEALER PORTAL / VEHICLES"
-        title="车辆交付"
-        description="车辆必须先由生产与质检产生可信身份，再通过订单和交付关系进入经销商可见范围。知道车架号本身不会获得车辆权限。"
+        eyebrow="DEALER PORTAL / DELIVERED VEHICLES"
+        title="交付车辆"
+        description="这里从经销商视角查看与其订单和交付关系关联的车辆。车辆身份、VIN 和生命周期事实仍来自 ALSVID 的统一车辆数据。"
         cards={cards}
-        notice="当前仅完成经销商车辆交付入口，不生成模拟车辆或模拟所有权。"
+        notice="知道 VIN 本身不会获得车辆权限；只有与当前经销商建立可信业务关系的车辆才可见。"
       />
     </PortalShell>
   );
