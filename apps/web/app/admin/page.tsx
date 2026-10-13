@@ -16,15 +16,15 @@ const metrics = [
 type MetricTone = (typeof metrics)[number]['tone'];
 
 const metricToneClass: Record<MetricTone, string> = {
-  blue: styles.blue,
-  green: styles.green,
-  orange: styles.orange,
-  purple: styles.purple,
-  red: styles.red,
-  cyan: styles.cyan,
+  blue: styles.blue ?? '',
+  green: styles.green ?? '',
+  orange: styles.orange ?? '',
+  purple: styles.purple ?? '',
+  red: styles.red ?? '',
+  cyan: styles.cyan ?? '',
 };
 
-const panels = [
+const panels: [string, string, string][] = [
   ['产品中心', 'Product Platform', '/product'],
   ['Vehicle 360', '车辆全生命周期管理', '/vehicle360'],
   ['订单与供应链', 'Commerce & Supply', '/commerce'],
