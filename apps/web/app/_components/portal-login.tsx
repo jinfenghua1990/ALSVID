@@ -18,6 +18,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
   const [setupRequired, setSetupRequired] = useState(passwordSetupRequired);
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [codeRequested, setCodeRequested] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -58,7 +59,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
         const response = await fetch('/api/session/email/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: nextEmail }) });
         const payload = await response.json().catch(() => null) as AuthResponse | null;
         if (!response.ok) { setError(payload?.message ?? '无法发送验证码，请确认使用已获准的公司邮箱。'); return; }
-        setEmail(nextEmail); setDisplayName(nextName); setCodeRequested(true);
+        setEmail(nextEmail); setDisplayName(nextName); setVerificationCode(''); setCodeRequested(true);
         setNotice(payload?.data?.testCode ? `开发/测试验证码：${payload.data.testCode}` : '验证码已发送到你的公司邮箱，请在 10 分钟内完成验证。');
         return;
       }
@@ -101,7 +102,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
     finally { setBusy(false); }
   }
 
-  function switchMethod(next: 'email' | 'password') { if (setupRequired) return; setMethod(next); setError(''); setNotice(''); setCodeRequested(false); }
+  function switchMethod(next: 'email' | 'password') { if (setupRequired) return; setMethod(next); setError(''); setNotice(''); setCodeRequested(false); setVerificationCode(''); }
   function handleClickCapture(event: MouseEvent) {
     if (authenticated && !setupRequired) return;
     const anchor = (event.target as HTMLElement).closest('a');
@@ -124,10 +125,10 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
           <button className={method === 'password' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('password')}>账户密码</button>
         </div> : null}
         {method === 'email' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitEmail}>
-          {!codeRequested ? <><label>公司邮箱<input name="email" type="email" autoComplete="email" required /></label><label>姓名（首次注册可选）<input name="displayName" type="text" autoComplete="name" /></label></> : <><label>公司邮箱<input value={email} readOnly /></label><label>6 位验证码<input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus /></label></>}
+          {!codeRequested ? <><label>公司邮箱<input key="email-input" name="email" type="email" autoComplete="email" required /></label><label>姓名（首次注册可选）<input key="display-name-input" name="displayName" type="text" autoComplete="name" /></label></> : <><label>公司邮箱<input key="verified-email-input" value={email} readOnly /></label><label>6 位验证码><input key="verification-code-input" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6))} /></label></>}
           {notice ? <p className={loginStyles.notice}>{notice}</p> : null}{error ? <p className={styles.dialogError}>{error}</p> : null}
           <button className={styles.dialogSubmit} disabled={busy}>{busy ? '处理中…' : codeRequested ? '验证并登录' : '发送验证码'}</button>
-          {codeRequested ? <button className={loginStyles.secondary} type="button" disabled={busy} onClick={() => { setCodeRequested(false); setNotice(''); setError(''); }}>更换邮箱 / 重新获取</button> : null}
+          {codeRequested ? <button className={loginStyles.secondary} type="button" disabled={busy} onClick={() => { setCodeRequested(false); setVerificationCode(''); setNotice(''); setError(''); }}>更换邮箱 / 重新获取</button> : null}
         </form> : null}
         {method === 'password' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitPassword}>
           <label>邮箱<input name="email" type="email" autoComplete="username" placeholder="name@company.com" required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
