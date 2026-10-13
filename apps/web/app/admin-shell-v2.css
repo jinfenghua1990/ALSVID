@@ -149,11 +149,38 @@ body[data-alsvid-environment="development"] .primaryHeader {
 .profileCopy small { color: var(--alsvid-muted); font-size: 9px; }
 
 .shellFrame {
-  min-height: calc(100vh - 112px);
-  display: block;
+  min-height: calc(100vh - 68px);
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
 }
 
-.shellV2 .rail { display: none !important; }
+.shellV2 .contextRail {
+  position: sticky;
+  top: 68px;
+  height: calc(100dvh - 68px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 16px 18px;
+  border-right: 1px solid var(--alsvid-line);
+  background: var(--alsvid-rail);
+}
+
+body[data-alsvid-environment="development"] .shellV2 .contextRail {
+  top: 102px;
+  height: calc(100dvh - 102px);
+}
+
+.contextRailTitle { display: grid; gap: 5px; padding: 0 10px 18px; }
+.contextRailTitle strong { font-size: 18px; }
+.contextRailTitle span { font-size: 12px; }
+.contextRail .navGroup { border-color: var(--alsvid-line); }
+.contextRail .navItem { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border-radius: 8px; }
+.contextRail .navLabel { min-width: 0; overflow-wrap: anywhere; }
+.contextRail .navStatus { flex: none; }
+.contextRail .railFoot { margin-top: auto; padding: 24px 10px 0; }
 
 .shellV2 .adminBody {
   min-width: 0;
@@ -220,6 +247,7 @@ body[data-alsvid-environment="development"] .primaryHeader {
   .primaryNavigation { display: none; }
   .primaryUtilities .utilityButton { display: none; }
   .shellFrame { min-height: 0; display: block; }
+  .shellV2 .contextRail { display: none; }
   .shellV2 .mobileNav {
     display: block;
     top: 92px;
