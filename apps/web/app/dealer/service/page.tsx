@@ -3,9 +3,9 @@ import { PortalShell } from '../../_components/portal-shell';
 import { PortalSectionPage } from '../../_components/portal-section-page';
 
 const cards = [
-  { title: '售后工单', description: '查看当前经销商参与处理的真实售后申请、状态与责任关系。' },
-  { title: '保修处理', description: '围绕具体车辆、故障证据和保修规则记录审核与处理结果。' },
-  { title: '维修与配件', description: '关联维修记录、替换配件及车辆生命周期历史。' },
+  { title: '新建售后申请', description: '围绕具体车辆、订单或产品提交售后问题、故障信息与必要证据。' },
+  { title: '申请处理中', description: '查看当前经销商已提交售后申请的审核、处理与责任状态。' },
+  { title: '已完成记录', description: '查看已完成的售后、保修、维修与关联配件处理结果。' },
 ] as const;
 
 export default async function DealerServicePage() {
@@ -13,11 +13,11 @@ export default async function DealerServicePage() {
   return (
     <PortalShell kind="dealer" activeHref="/dealer/service">
       <PortalSectionPage
-        eyebrow="DEALER PORTAL / SERVICE"
-        title="售后服务"
-        description="售后必须回到具体车辆和可信服务事实，不把经销商门户做成脱离 Vehicle 360 的独立售后数据库。"
+        eyebrow="DEALER PORTAL / AFTER SALES"
+        title="售后申请"
+        description="经销商在这里提交并跟踪自己的售后业务。后台审核、责任判定和内部处理流程仍由 ALSVID Admin 完成。"
         cards={cards}
-        notice="售后领域尚未完成正式接入，因此页面保持真实空状态。"
+        notice="售后申请必须关联真实业务事实；未接入真实记录前页面保持空状态。"
       />
     </PortalShell>
   );

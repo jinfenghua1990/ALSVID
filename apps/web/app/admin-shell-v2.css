@@ -160,23 +160,25 @@ body[data-alsvid-environment="development"] .primaryHeader {
 }
 
 .contextRail {
-  min-height: calc(100vh - 68px);
+  position: sticky;
+  top: var(--alsvid-admin-header-height, 68px);
+  height: calc(100dvh - var(--alsvid-admin-header-height, 68px));
+  min-width: 0;
+  overflow-y: auto;
   border-right: 1px solid var(--alsvid-line);
   background: var(--alsvid-rail);
 }
 
 .contextRailSticky {
-  position: sticky;
-  top: 68px;
-  min-height: calc(100vh - 68px);
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   padding: 22px 14px 18px;
 }
 
-body[data-alsvid-environment="development"] .contextRailSticky {
-  top: 102px;
-  min-height: calc(100vh - 102px);
+body[data-alsvid-environment="development"] .contextRail {
+  top: calc(var(--alsvid-admin-header-height, 68px) + 34px);
+  height: calc(100dvh - var(--alsvid-admin-header-height, 68px) - 34px);
 }
 
 .contextRailTitle {

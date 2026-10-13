@@ -3,7 +3,7 @@
 > **状态：业务规划已确认；不代表功能已开发或域名已部署。** 本文件是后续 AI / 开发人员的跨会话交接基准。不得把 Shopify Shop 误拆成独立公开站点。代码现状以 CURRENT_STATE.md 和实际代码为准。
 
 ## 0. 不能重新讨论的已确认边界
-- **四个独立开发工作流/门户**：ALSVID WWW、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
+- **四个独立开发工作流/门户**：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
 - **www.chaibenn.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.chaibenn.com 作为独立公开商城入口**。
 - Admin 是员工内部运营系统；Dealer 是经销商 B2B 门户；My 是车主会员/车辆生命周期门户。官网的会员、经销商入口可以导航至对应门户，但不复制其后台业务逻辑。
 - Portal Launcher 仅用于内部身份/角色切换，不作为公开官网首页，也不在用户访问首页时增加无意义中间跳转。
@@ -13,14 +13,14 @@
 ## 1. 门户及域名矩阵
 | 工作流 | Production 目标 | Development/Test 目标 | 核心受众 |
 | --- | --- | --- | --- |
-| ALSVID WWW / Official | www.chaibenn.com | www.dev.chaibenn.com | 全球访客、潜在消费者、购车客户 |
-| ALSVID Admin / Internal Admin | admin.chaibenn.com | admin.dev.chaibenn.com | 员工、管理层 |
+| ALSVID Official / ALSVID 官网 | www.chaibenn.com | www.dev.chaibenn.com | 全球访客、潜在消费者、购车客户 |
+| ALSVID Admin / 内部运营中心 | admin.chaibenn.com | admin.dev.chaibenn.com | 员工、管理层 |
 | ALSVID Dealer Portal | dealer.chaibenn.com | dealer.dev.chaibenn.com | 授权经销商 |
 | My ALSVID | my.chaibenn.com | my.dev.chaibenn.com | 车主、会员 |
 
 “Dev”是环境标识，不是第五个产品。正式和测试环境隔离数据库、R2 资源、凭据、Shopify 测试配置；不能把 Test 数据迁到 Production。测试通过后以同一 Git commit 发布，按现有 CI/PR 流程执行。
 
-## 2. ALSVID WWW — 官网与 Shopify 商城一体化
+## 2. ALSVID Official — 官网与 Shopify 商城一体化
 ### 公开信息架构
 - 首页：品牌主视觉、核心产品、品牌价值、场景化故事、精选型号、行动入口；高品质自行车实物图片与品牌一致。
 - 产品：FC Folding Carbon、CT City Touring、FT Fat Tire、GT Grand Touring 四大技术平台；型号 FC1/CT1/FT1/GT1；Standard/PRO/Limited 等版本、规格、颜色、配件及对比。
@@ -57,7 +57,7 @@
 10. 数据：销售、产品、生产、库存、经销商、客户、售后、供应链分析。
 11. 设置：员工、角色、权限、审计、集成、系统配置与环境状态。
 
-UI：中文优先，**左侧一级导航**，顶部搜索/快捷操作/通知/人员与角色切换，亮暗主题；每个一级栏目都有实质二级工作页，避免多层大卡片套娃；统一字体、克制圆角、现代 SaaS 视觉；未完成的功能明确标注规划中/预留/待配置。以上为目标 IA，现有路由与 UI 是否已全部收敛须以代码核验，不可宣称已完成。
+UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单、右侧工作区**，顶部搜索/快捷操作/通知/人员与角色切换，亮暗主题；每个一级栏目都有实质二级工作页，避免多层大卡片套娃；统一字体、克制圆角、现代 SaaS 视觉；未完成的功能明确标注规划中/预留/待配置。Admin 导航位置以 docs/ALSVID_ADMIN_IA.md 为准；现有路由与 UI 是否已全部收敛须以代码核验，不可宣称已完成。
 
 ## 4. ALSVID Dealer Portal — 经销商 B2B
 - 登录与授权：仅授权经销商访问，经销商组织、成员、角色、地区及价格权限隔离。
@@ -87,12 +87,18 @@ UI：中文优先，**左侧一级导航**，顶部搜索/快捷操作/通知/�
 
 ## 7. AI / 新会话交接规则
 1. 开始任务先阅读 README.md、本文件、docs/CURRENT_STATE.md、docs/BUSINESS_BOUNDARY.md、docs/ALSVID-ADMIN-ARCHITECTURE-V1.md 与 AGENTS.md。
-2. 不得将 WWW 和 Shop 分成两个项目或两个公开站点；四项目指 WWW、Admin、Dealer、My。
+2. 不得将 WWW 和 Shop 分成两个项目或两个公开站点；四项目指 Official、Admin、Dealer、My。
 3. 不得把 Dev 误当第五个业务门户；不得把 Portal Launcher 放在官网首页。
 4. 不得把规划说成已经开发、发布、同步、可登录；每个结论应区分“已确认设计 / 已写代码 / CI 通过 / 已上线验收”。
 5. 功能开发遵守 Issue → branch → PR → CI → merge → deploy，除非仓库流程另有正式变更。
-6. 发生历史文档冲突时：此文件为 **2026-10-13 四门户/官网商城整合的最新业务决策**；底层代码与真实上线状态仍以实际仓库和部署证据为准。
+6. 发生历史文档冲突时：此文件记录 **2026-10-13 四门户/官网商城整合业务决策**；正式名称与独立项目入口关系以 2026-10-14 更新的 SYSTEM_NAMING.md 和 APP_ENTRY_ARCHITECTURE.md 为准；底层代码与真实上线状态仍以实际仓库和部署证据为准。
 7. 未明确决定的事项（Shopify Headless/主题、实际 DNS、账号联登细节、B2B 定价等）保留为待验证，不得臆造。
 
 
 > 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
+
+## 8. 独立项目入口确认 — 2026-10-14
+
+四者是独立前端项目，不是同一系统页面；通过统一身份认证及部分业务数据联动，大部分入口关系是跨应用跳转。正式项目名称为 ALSVID Official（ALSVID 官网）、My ALSVID（车主中心；消费者车辆区域可用“我的车库”）、ALSVID Dealer Portal（经销商平台）、ALSVID Admin（内部运营中心）。
+
+Admin 顶部右侧增加 App Switcher 概念，建议按钮 `ALSVID Apps`，入口文案“官网、车主中心、经销商平台”，新标签打开目标项目并保留 Admin 状态。完整规范见 [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md)。此处是文档确认，不代表 UI 或联登已完成。

@@ -14,6 +14,12 @@ ALSVID starts as a **modular monolith** with three deployable processes in one m
 
 They share contracts and libraries but do not share arbitrary mutable state.
 
+## Independent frontend project boundaries
+
+The confirmed frontend projects are ALSVID Official (ALSVID 官网), My ALSVID (车主中心 / 我的车库), ALSVID Dealer Portal (经销商平台), and ALSVID Admin (内部运营中心). They are independent frontend applications, not four pages inside one system. Most entry relationships are cross-application links; unified identity and selected authorized business facts connect the projects. This frontend boundary remains compatible with the modular-monolith API and shared monorepo. The existing `apps/web` packaging is not proof that all four independent frontends have been implemented.
+
+Admin defines a top-right App Switcher with 官网, 车主中心, and 经销商平台 links that open the corresponding application in a new tab and preserve Admin state. See [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md) for naming, authorization, environment and implementation-status rules.
+
 ## Why modular monolith first
 
 ALSVID has strongly connected workflows: procurement creates production demand, production creates inventory/vehicles, logistics moves stock, commerce creates receivables, payments settle obligations, and after-sales depends on the exact vehicle/build history. Splitting these into network services before the domain model stabilizes would increase operational cost and make consistency harder.

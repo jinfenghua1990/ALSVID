@@ -1,6 +1,7 @@
 /* ALSVID Admin-only visual refinements. Keep Dealer / Owner portals untouched. */
 
 .shellV2 {
+  --alsvid-admin-header-height: 64px;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
 }
 
@@ -125,7 +126,7 @@
 }
 
 .shellV2 .contextRail .railFoot {
-  margin-top: 10px;
+  margin-top: auto;
   padding: 15px 10px 0;
   font-size: 8px;
   letter-spacing: .04em;

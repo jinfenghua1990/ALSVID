@@ -1,5 +1,8 @@
-import type { PropsWithChildren, ReactNode } from 'react';
+'use client';
+
+import { useEffect, useState, type PropsWithChildren, type ReactNode } from 'react';
 import { ThemeToggle } from './theme-toggle';
+import { contextualHref, navigationArea, resolveNavigation } from './navigation-context';
 
 export { ThemeToggle } from './theme-toggle';
 
@@ -43,7 +46,7 @@ function NavigationItems({ navigation, activeClassName }: { navigation: readonly
       {Array.from(new Set(navigation.map((item) => item.section ?? '导航'))).map((section) => {
         const items = navigation.filter((item) => (item.section ?? '导航') === section);
         return (
-          <details className="navGroup" key={section} open={items.some((item) => item.active) || navigation.length <= 8}>
+          <details className="navGroup" key={section} open>
             <summary className="navSection">{section}<span aria-hidden="true">⌄</span></summary>
             {items.map((item) => {
               const itemTitle = `${section} · ${item.label}${item.status ? `（${item.status}）` : ''}`;
@@ -55,7 +58,7 @@ function NavigationItems({ navigation, activeClassName }: { navigation: readonly
                       {item.status ? <span className="navStatus">{item.status}</span> : null}
                     </span>
                   ) : (
-                    <a className={`navItem${item.active ? ` ${activeClassName ?? 'active'}` : ''}`} href={item.href} aria-current={item.active ? 'page' : undefined} title={itemTitle}>
+                    <a className={`navItem${item.active ? ` ${activeClassName ?? 'active'}` : ''}`} href={contextualHref(item.href, navigationArea(item))} aria-current={item.active ? 'page' : undefined} title={itemTitle}>
                       <span className="navLabel">{item.label}</span>
                       {item.status ? <span className="navStatus">{item.status}</span> : null}
                     </a>
@@ -86,23 +89,20 @@ export function AppShell({
   workspaceId?: string;
   classNames?: AppShellClassNames;
 }>) {
-  const activeItem = navigation.find((item) => item.active);
-  const activeArea = activeItem?.area ?? activeItem?.section ?? '首页';
-  const areaNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
-  const contextualNavigation = areaNavigation.filter((item, index) => !(index === 0 && item.label === activeArea && areaNavigation.length > 1));
-  const showContextRail = activeArea !== '工作台' && contextualNavigation.length > 0;
-
-  const areas = Array.from(new Set(navigation.map((item) => item.area ?? item.section ?? '首页'))).map((label) => {
-    const items = navigation.filter((item) => (item.area ?? item.section ?? '首页') === label);
-    const enabled = items.find((item) => !item.disabled);
-    return {
-      label,
-      href: enabled?.href ?? '#',
-      disabled: !enabled,
-      active: label === activeArea,
-      description: areaDescriptions[label] ?? `${label}模块`,
+  const [location, setLocation] = useState<string>();
+  useEffect(() => {
+    const updateLocation = () => setLocation(window.location.href);
+    updateLocation();
+    window.addEventListener('hashchange', updateLocation);
+    window.addEventListener('popstate', updateLocation);
+    return () => {
+      window.removeEventListener('hashchange', updateLocation);
+      window.removeEventListener('popstate', updateLocation);
     };
-  });
+  }, [navigation]);
+  const { activeArea, contextualNavigation, areas: resolvedAreas } = resolveNavigation(navigation, location);
+  const showContextRail = activeArea !== '工作台' && contextualNavigation.length > 0;
+  const areas = resolvedAreas.map((area) => ({ ...area, description: areaDescriptions[area.label] ?? `${area.label}模块` }));
 
   return (
     <main className={`shellV2 ${classNames.shell ?? ''}`.trim()} data-alsvid-app-shell="true">
@@ -144,13 +144,13 @@ export function AppShell({
 
       <div className={`shellFrame${showContextRail ? ' shellFrameWithRail' : ''}`}>
         {showContextRail ? (
-          <aside className={`contextRail ${classNames.rail ?? ''}`.trim()} aria-label={`${activeArea} 二级导航`}>
+          <aside className={`contextRail ${classNames.rail ?? ''}`.trim()} aria-label={`${activeArea} 模块菜单`}>
             <div className="contextRailSticky">
               <div className="contextRailTitle">
                 <strong>{activeArea}</strong>
                 <span>模块导航</span>
               </div>
-              <nav className={`contextRailNav ${classNames.nav ?? ''}`.trim()}>
+              <nav className={`contextRailNav ${classNames.nav ?? ''}`.trim()} aria-label={`${activeArea} 二级导航`}>
                 <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />
               </nav>
               <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
