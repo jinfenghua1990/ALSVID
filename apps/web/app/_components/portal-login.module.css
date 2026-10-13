@@ -100,3 +100,11 @@
 }
 
 .resetLink:hover { text-decoration: underline; }
+
+.fieldHelp {
+  display: block;
+  margin: -4px 0 6px;
+  color: var(--alsvid-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}

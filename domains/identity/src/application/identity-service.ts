@@ -23,6 +23,7 @@ import type {
 } from './ports.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+export type PortalAudience = 'admin' | 'dealer' | 'my';
 
 export class IdentityService {
   constructor(
@@ -61,18 +62,19 @@ export class IdentityService {
     };
   }
 
-  async startEmailVerification(email: string): Promise<{ expiresAt: string; testCode?: string }> {
+  async startEmailVerification(email: string, portal: PortalAudience = 'admin'): Promise<{ expiresAt: string; testCode?: string }> {
     if (!this.verificationDelivery.configured) throw new IdentityMailUnavailableError();
     const normalizedEmail = normalizeEmail(email);
+    const audience = normalizePortalAudience(portal);
 
     // Existing users may prove control of the exact email already stored on their
     // ALSVID account even when it predates the current company-domain policy.
     // Domain/invite policy applies only to creation of new Internal identities.
     const existingUserId = await this.repository.findUserIdByEmail(normalizedEmail);
-    if (!existingUserId) assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+    if (!existingUserId && audience !== 'my') assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
 
-    const firstAdminCandidate = await this.isFirstAdminCandidate(normalizedEmail);
-    if (!existingUserId && this.registrationPolicy.registrationMode === 'invite_only' && !firstAdminCandidate) {
+    const firstAdminCandidate = audience === 'admin' && await this.isFirstAdminCandidate(normalizedEmail);
+    if (!existingUserId && audience !== 'my' && this.registrationPolicy.registrationMode === 'invite_only' && !firstAdminCandidate) {
       if (!(await this.repository.hasValidRegistrationInvite(normalizedEmail))) throw new InternalRegistrationDeniedError();
     }
 
@@ -108,8 +110,9 @@ export class IdentityService {
     };
   }
 
-  async completeEmailVerification(email: string, code: string, displayName?: string): Promise<{ token: string; expiresAt: string; user: AuthContext; firstAdminActivated: boolean }> {
+  async completeEmailVerification(email: string, code: string, displayName?: string, portal: PortalAudience = 'admin'): Promise<{ token: string; expiresAt: string; user: AuthContext; firstAdminActivated: boolean }> {
     const normalizedEmail = normalizeEmail(email);
+    const audience = normalizePortalAudience(portal);
     if (!/^\d{6}$/.test(code.trim())) throw new InvalidEmailCodeError();
 
     const securityPolicy = await this.repository.getSecurityPolicy();
@@ -133,23 +136,28 @@ export class IdentityService {
       }
 
       let userId = await this.repository.findUserIdByEmail(normalizedEmail, executor);
-      const firstAdminCandidate = !(await this.repository.hasActiveSystemAdmin(executor)) && this.registrationPolicy.initialAdminEmail === normalizedEmail;
+      const firstAdminCandidate = audience === 'admin' && !(await this.repository.hasActiveSystemAdmin(executor)) && this.registrationPolicy.initialAdminEmail === normalizedEmail;
       if (!userId) {
-        assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
-        const invited = await this.repository.hasValidRegistrationInvite(normalizedEmail, executor);
-        if (this.registrationPolicy.registrationMode === 'invite_only' && !invited && !firstAdminCandidate) {
-          await this.repository.consumeEmailChallenge(challenge.id, executor);
-          await this.audit.record({ action: 'identity.internal_registration_denied', targetType: 'email_verification', targetId: challenge.id, metadata: { email: normalizedEmail } }, executor);
-          return { kind: 'denied' as const };
+        let invited = false;
+        if (audience !== 'my') {
+          assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+          invited = await this.repository.hasValidRegistrationInvite(normalizedEmail, executor);
+          if (this.registrationPolicy.registrationMode === 'invite_only' && !invited && !firstAdminCandidate) {
+            await this.repository.consumeEmailChallenge(challenge.id, executor);
+            await this.audit.record({ action: 'identity.internal_registration_denied', targetType: 'email_verification', targetId: challenge.id, metadata: { email: normalizedEmail, portal: audience } }, executor);
+            return { kind: 'denied' as const };
+          }
         }
         userId = await this.repository.createUser(normalizedEmail, cleanDisplayName(displayName, normalizedEmail), null, now, executor);
         if (invited) await this.repository.consumeRegistrationInvite(normalizedEmail, executor);
-        await this.audit.record({ actorUserId: userId, action: 'identity.internal_user_registered', targetType: 'user', targetId: userId }, executor);
+        await this.audit.record({ actorUserId: userId, action: audience === 'my' ? 'identity.customer_registered' : audience === 'dealer' ? 'identity.dealer_registered' : 'identity.internal_user_registered', targetType: 'user', targetId: userId }, executor);
       } else {
         await this.repository.markEmailVerified(userId, now, executor);
       }
 
-      await this.repository.ensureUserRole(userId, 'internal_user', executor);
+      if (audience === 'my') await this.repository.ensureUserRole(userId, 'customer_user', executor);
+      else if (audience === 'dealer') await this.repository.ensureUserRole(userId, 'dealer_user', executor);
+      else await this.repository.ensureUserRole(userId, 'internal_user', executor);
       let firstAdminActivated = false;
       if (firstAdminCandidate) {
         await this.repository.ensureUserRole(userId, 'system_admin', executor);
@@ -298,6 +306,10 @@ export function normalizeLoginIdentifier(identifier: string): string {
   const value = identifier.trim();
   if (value.includes('@')) return normalizeEmail(value);
   return normalizePhoneE164(value);
+}
+
+function normalizePortalAudience(value: PortalAudience): PortalAudience {
+  return value === 'my' || value === 'dealer' ? value : 'admin';
 }
 
 function normalizeEmail(email: string): string {

@@ -1,4 +1,4 @@
-import { requireInternalPreviewSession } from '../_lib/portal-access';
+import { requirePortalSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
 import styles from '../admin/portal-page.module.css';
 
@@ -10,7 +10,7 @@ const sections = [
 ] as const;
 
 export default async function DealerPortalPage() {
-  await requireInternalPreviewSession();
+  await requirePortalSession('dealer', '/dealer');
   return (
     <PortalShell kind="dealer" activeHref="/dealer">
       <header className={styles.heading}>

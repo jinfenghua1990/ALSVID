@@ -1,24 +1,50 @@
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { PortalLoginGate } from '../_components/portal-login';
-import { readInternalPreviewSession } from '../_lib/portal-access';
+import { canAccessPortal, readInternalPreviewSession } from '../_lib/portal-access';
+import { portalDefinitions, portalFromHost, type ProtectedPortalId } from '../_lib/portal-routing';
 import styles from './login.module.css';
 
-export default async function LoginPage() {
-  const session = await readInternalPreviewSession();
-  if (session?.roles.includes('system_admin') && !session.passwordSetupRequired) redirect('/admin');
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
+function firstValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function safeReturnTo(value: string | undefined, portal: ProtectedPortalId): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return portalDefinitions[portal].homePath;
+  return value;
+}
+
+export default async function LoginPage({ searchParams }: { searchParams?: SearchParams }) {
+  const requestHeaders = await headers();
+  const hostPortal = portalFromHost(requestHeaders.get('host') ?? '');
+  const params = searchParams ? await searchParams : {};
+  const requestedPortal = firstValue(params.portal);
+  const portal: ProtectedPortalId = requestedPortal === 'my' || requestedPortal === 'dealer' || requestedPortal === 'admin'
+    ? requestedPortal
+    : hostPortal === 'www' ? 'admin' : hostPortal;
+  if (hostPortal === 'www') redirect('/');
+
+  const redirectTo = safeReturnTo(firstValue(params.returnTo), portal);
+  const session = await readInternalPreviewSession();
+  const portalAuthenticated = Boolean(session && canAccessPortal(portal, session));
+  if (portalAuthenticated && !session?.passwordSetupRequired) redirect(redirectTo);
+
+  const definition = portalDefinitions[portal];
   return (
     <PortalLoginGate
-      authenticated={Boolean(session)}
+      portal={portal}
+      authenticated={portalAuthenticated}
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
-      redirectTo="/admin"
+      redirectTo={redirectTo}
     >
       <main className={styles.page} aria-hidden="true">
         <section className={styles.panel}>
           <div className={styles.brand}>ALSVID</div>
-          <div className={styles.eyebrow}>INTERNAL PLATFORM</div>
-          <h1 className={styles.title}>登录中心</h1>
-          <p className={styles.lead}>使用公司邮箱验证或账户密码登录。成功后直接进入内部管理中心。</p>
+          <div className={styles.eyebrow}>{definition.label.toUpperCase()}</div>
+          <h1 className={styles.title}>登录</h1>
+          <p className={styles.lead}>进入 {definition.label}。登录后会返回你刚才访问的页面。</p>
         </section>
       </main>
     </PortalLoginGate>

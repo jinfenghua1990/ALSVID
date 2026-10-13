@@ -1,4 +1,4 @@
-import { requireInternalPreviewSession } from '../_lib/portal-access';
+import { requirePortalSession } from '../_lib/portal-access';
 import { PortalShell } from '../_components/portal-shell';
 import styles from '../admin/portal-page.module.css';
 
@@ -10,7 +10,7 @@ const features = [
 ] as const;
 
 export default async function MyALSVIDPage() {
-  await requireInternalPreviewSession();
+  await requirePortalSession('my', '/my');
   return (
     <PortalShell kind="my" activeHref="/my">
       <header className={styles.heading}>
