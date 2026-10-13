@@ -2,21 +2,21 @@
 
 > 状态：**已确认 / Frozen**
 >
-> 本文定义 ALSVID WWW 的长期官网与商城边界。系统正式命名以 [`SYSTEM_NAMING.md`](SYSTEM_NAMING.md) 为权威来源。
+> 本文定义 ALSVID Official 的长期官网与商城边界。系统正式命名以 [`SYSTEM_NAMING.md`](SYSTEM_NAMING.md) 为权威来源。
 
 ## 一、正式名称与定位
 
 官网系统正式名称固定为：
 
 ```text
-ALSVID WWW
+ALSVID Official
 ```
 
 中文定义：**ALSVID 官方网站 / 官网商城**。
 
-`ALSVID WWW` 是架构、代码、文档和部署使用的系统名称；消费者访问网站时，品牌展示仍然只显示 `ALSVID`，不会在前台 Logo 或导航中展示 `WWW`。
+`ALSVID Official` 是架构、代码、文档和部署使用的系统名称；消费者访问网站时，品牌展示仍然只显示 `ALSVID`，不会在前台 Logo 或导航中展示 `WWW`。
 
-ALSVID WWW 不是单纯企业展示网站，而是品牌官网 + Shopify 商城融合体系。
+ALSVID Official 不是单纯企业展示网站，而是品牌官网 + Shopify 商城融合体系。
 
 目标：
 
@@ -32,7 +32,7 @@ ALSVID WWW 不是单纯企业展示网站，而是品牌官网 + Shopify 商城�
 ```text
 ALSVID
 │
-├── ALSVID WWW
+├── ALSVID Official
 │   ├── 品牌官网
 │   ├── 产品与配件
 │   ├── 服务入口
@@ -53,7 +53,7 @@ ALSVID
 ## 三、官网整体结构
 
 ```text
-ALSVID WWW
+ALSVID Official
         |
         |-- 消费者浏览与购买
         |
@@ -82,7 +82,7 @@ ALSVID
 搜索
 ```
 
-不在消费者前台显示 `ALSVID WWW` 字样。
+不在消费者前台显示 `ALSVID Official` 字样。
 
 ## 五、菜单说明
 
@@ -151,14 +151,14 @@ ALSVID
 
 ## 六、Shopify 关系
 
-ALSVID WWW 采用 Shopify 作为消费者交易基础。
+ALSVID Official 采用 Shopify 作为消费者交易基础。
 
 流程：
 
 ```text
 用户
  ↓
-ALSVID WWW
+ALSVID Official
  ↓
 产品页面
  ↓
@@ -169,7 +169,7 @@ Shopify 订单 / 支付 / 平台交易能力
 
 ALSVID 不重复实现 Shopify 自己负责的 checkout、支付捕获和平台履约编排。
 
-未来即使 ALSVID WWW 的视觉与内容先在本仓库中完成，也必须保持可迁移到 Shopify Theme / Storefront 结构的页面与数据边界，避免后续重新设计整站。
+未来即使 ALSVID Official 的视觉与内容先在本仓库中完成，也必须保持可迁移到 Shopify Theme / Storefront 结构的页面与数据边界，避免后续重新设计整站。
 
 ## 七、会员体系
 
@@ -202,7 +202,7 @@ My ALSVID 是公开车主入口，不等同于 ALSVID Admin。
 
 | 系统 | 面向谁 | 主要入口 | 权限 |
 | --- | --- | --- | --- |
-| **ALSVID WWW** | 所有人 | 品牌、产品、配件、服务、购买 | 公开 |
+| **ALSVID Official** | 所有人 | 品牌、产品、配件、服务、购买 | 公开 |
 | **My ALSVID** | 消费者 / 车主 | 我的车辆、注册、保修、维修、服务记录、账户 | 登录 |
 | **ALSVID Dealer Portal** | 经销商 / B2B 客户 | 工作台、产品、采购、B2B 订单、交付车辆、售后、账户 | 经销商登录 |
 | **ALSVID Admin** | 内部员工 | 工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 | 内部登录 |
@@ -210,7 +210,7 @@ My ALSVID 是公开车主入口，不等同于 ALSVID Admin。
 官网内部跳转关系固定为：
 
 ```text
-ALSVID WWW
+ALSVID Official
 │
 ├── 自行车
 ├── 配件
@@ -229,7 +229,7 @@ ALSVID WWW
 消费者：
 
 ```text
-ALSVID WWW + Shopify
+ALSVID Official + Shopify
 ```
 
 经销商：
@@ -267,13 +267,13 @@ ALSVID Production
 
 ```text
 ALSVID Development
-├── ALSVID WWW
+├── ALSVID Official
 ├── ALSVID Admin
 ├── ALSVID Dealer Portal
 └── My ALSVID
 
 ALSVID Production
-├── ALSVID WWW
+├── ALSVID Official
 ├── ALSVID Admin
 ├── ALSVID Dealer Portal
 └── My ALSVID
@@ -299,7 +299,7 @@ alsvid-my-prod
 Production 正式域名优先规划为：
 
 ```text
-www.chaibenn.com      → ALSVID WWW
+www.chaibenn.com      → ALSVID Official
 my.chaibenn.com       → My ALSVID
 dealer.chaibenn.com   → ALSVID Dealer Portal
 admin.chaibenn.com    → ALSVID Admin
@@ -308,7 +308,7 @@ admin.chaibenn.com    → ALSVID Admin
 Development 域名优先规划为：
 
 ```text
-www.dev.chaibenn.com      → ALSVID WWW / Development
+www.dev.chaibenn.com      → ALSVID Official / Development
 my.dev.chaibenn.com       → My ALSVID / Development
 dealer.dev.chaibenn.com   → ALSVID Dealer Portal / Development
 admin.dev.chaibenn.com    → ALSVID Admin / Development
@@ -324,7 +324,7 @@ admin.dev.chaibenn.com    → ALSVID Admin / Development
 - 产品体验优先
 - 购买路径清晰
 - 服务体系长期沉淀用户资产
-- ALSVID WWW 与 ALSVID Admin 视觉、权限和信息架构独立
+- ALSVID Official 与 ALSVID Admin 视觉、权限和信息架构独立
 - 页面结构优先考虑未来 Shopify 迁移能力
 - 没有真实数据或未完成能力时明确显示状态，不伪造功能已经上线
 
@@ -333,7 +333,7 @@ admin.dev.chaibenn.com    → ALSVID Admin / Development
 从 Issue #116 起，以下名称作为正式名称固定使用：
 
 ```text
-ALSVID WWW
+ALSVID Official
 ALSVID Admin
 ALSVID Dealer Portal
 My ALSVID
@@ -343,7 +343,7 @@ ALSVID Production
 
 Issue #118 进一步固定四个系统的入口职责、Development / Production 入口矩阵与域名映射目标。
 
-`ALSVID Official`、`Internal Admin` 不再作为正式系统名称。
+`ALSVID WWW`、`Internal Admin` 不再作为正式系统名称。2026-10-14 的明确命名更新将官网正式项目名确定为 `ALSVID Official`（ALSVID 官网）；该确认更新了此前 Issue #116 的官网名称，域名及既有技术资源标识不自动迁移。完整入口规则见 [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md)。
 
 除非后续出现明确的新架构决策，否则官网、后台、部署、README、Issue、PR 与后续 AI/Codex 工作均沿用本规则，不因聊天窗口或开发阶段变化重新命名。
 

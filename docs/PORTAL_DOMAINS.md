@@ -8,7 +8,7 @@
 
 | 门户 | 固定地址 | 业务边界 |
 |---|---|---|
-| ALSVID WWW | https://www.chaibenn.com | 品牌官网与 Shopify 商城前端 |
+| ALSVID Official | https://www.chaibenn.com | 品牌官网与 Shopify 商城前端 |
 | ALSVID Admin | https://admin.chaibenn.com | ALSVID 公司内部运营后台 |
 | ALSVID Dealer Portal | https://dealer.chaibenn.com | 经销商 / B2B 客户自助门户 |
 | My ALSVID | https://my.chaibenn.com | 消费者车主中心、车辆、VIN、保修与售后 |
@@ -17,7 +17,7 @@
 
 | 门户 | 固定地址 |
 |---|---|
-| ALSVID WWW | https://www.dev.chaibenn.com |
+| ALSVID Official | https://www.dev.chaibenn.com |
 | ALSVID Admin | https://admin.dev.chaibenn.com |
 | ALSVID Dealer Portal | https://dealer.dev.chaibenn.com |
 | My ALSVID | https://my.dev.chaibenn.com |
@@ -37,7 +37,7 @@
 当前仓库中：
 
 - ALSVID Admin 已有可运行的 Cloud Run 服务，正式和开发临时地址已验证。
-- ALSVID WWW 的正式入口需要绑定官网 / Shopify。
+- ALSVID Official 的正式入口需要绑定官网 / Shopify。
 - Dealer Portal 和 My ALSVID 需要完成各自门户服务后，再绑定对应域名。
 - 在对应服务和 DNS 完成前，不把规划地址标记为“已上线”。
 
