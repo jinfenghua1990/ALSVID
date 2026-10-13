@@ -101,7 +101,12 @@ test('posted supplier invoice creates immutable AP obligation and allocations de
     assert.ok(posted.obligation);
     assert.equal(posted.obligation.direction, 'AP');
     assert.equal(Number(posted.obligation.original_amount), 1190);
-    assert.equal(new Date(posted.obligation.due_date).toISOString().slice(0, 10), '2026-11-10');
+    assert.equal(posted.obligation.due_date, '2026-11-10');
+    const storedDueDate = await database.query<{ due_date: string | null }>(
+      `SELECT due_date::text AS due_date FROM finance.obligations WHERE id=$1`,
+      [posted.obligation.id],
+    );
+    assert.equal(storedDueDate.rows[0]?.due_date, '2026-11-10');
     await assert.rejects(database.query(`UPDATE finance.documents SET note='mutated' WHERE id=$1`, [document.id]), /immutable/);
 
     const paymentA = await service.createPayment(financeActor, { direction: 'OUTBOUND', partnerId: supplier, currency: 'EUR', amount: '500', valueDate: '2026-10-15', idempotencyKey: `pay-${suffix()}` });
@@ -155,7 +160,7 @@ test('cross-currency allocation requires explicit compatible FX evidence', { ski
     const obligation = await service.createObligation(financeActor, { direction: 'AR', partnerId: customer, currency: 'EUR', amount: '90' });
     const payment = await service.createPayment(financeActor, { direction: 'INBOUND', partnerId: customer, currency: 'USD', amount: '100', valueDate: '2026-10-12', idempotencyKey: `fx-${suffix()}` });
     await assert.rejects(service.allocatePayment(financeActor, { paymentId: payment.id, obligationId: obligation.id, paymentAmount: '100', obligationAmount: '90' }), FinanceConflictError);
-    const rate = await service.createFxRate(financeActor, { baseCurrency: 'USD', quoteCurrency: 'EUR', rate: '0.9', effectiveAt: '2026-10-12T00:00:00Z', source: 'MANUAL_TEST' });
+    const rate = await service.createFxRate(financeActor, { baseCurrency: 'USD', quoteCurrency: 'EUR', rate: '0.9', effectiveAt: '2026-10-12T00:00:00Z', source: `MANUAL_TEST_${suffix()}` });
     await service.allocatePayment(financeActor, { paymentId: payment.id, obligationId: obligation.id, paymentAmount: '100', obligationAmount: '90', fxRateId: rate.id });
     const view = await database.query<any>(`SELECT * FROM finance.v_obligations WHERE id=$1`, [obligation.id]);
     assert.equal(view.rows[0].settlement_status, 'SETTLED');
