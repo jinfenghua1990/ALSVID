@@ -90,16 +90,6 @@ jobs:
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Ensure Development runtime can read mail secret
-        if: ${{ !inputs.publish_only }}
-        run: |
-          set -euo pipefail
-          gcloud secrets add-iam-policy-binding alsvid-mail-api-key \
-            --project "$GCP_PROJECT_ID" \
-            --member "serviceAccount:${GCP_RUNTIME_SERVICE_ACCOUNT}" \
-            --role roles/secretmanager.secretAccessor \
-            --quiet
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -169,24 +159,20 @@ jobs:
           api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
           short_sha="${RELEASE_SHA:0:12}"
           email="auth-smoke-${short_sha}@development.alsvid.invalid"
-          password='Development2026Smoke'
+          password="DevSmoke-${short_sha}-A9!"
           start="$(curl --fail --silent --show-error --retry 6 --retry-delay 5 -X POST "$api_url/api/v1/auth/email/start" -H 'content-type: application/json' --data "{\"email\":\"$email\"}")"
           code="$(printf '%s' "$start" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).data?.testCode||''))")"
           [[ "$code" =~ ^[0-9]{6}$ ]]
           complete="$(curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/email/complete" -H 'content-type: application/json' --data "{\"email\":\"$email\",\"displayName\":\"Development Auth Smoke\",\"code\":\"$code\"}")"
           token="$(printf '%s' "$complete" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data; if(!d?.user?.roles?.includes('internal_user')||d?.user?.passwordSetupRequired!==true) process.exit(2); process.stdout.write(d.token||'')})")"
           [[ -n "$token" ]]
-
           me_before="$(curl --fail --silent --show-error "$api_url/api/v1/auth/me" -H "authorization: Bearer $token")"
           printf '%s' "$me_before" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{if(JSON.parse(s).data?.passwordSetupRequired!==true)process.exit(2)})"
-
           blocked_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$api_url/api/v1/auth/users" -H "authorization: Bearer $token")"
           [[ "$blocked_status" == '403' ]]
-
           curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/password" -H 'content-type: application/json' -H "authorization: Bearer $token" --data "{\"password\":\"$password\"}" >/dev/null
           me_after="$(curl --fail --silent --show-error "$api_url/api/v1/auth/me" -H "authorization: Bearer $token")"
           printf '%s' "$me_after" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data;if(d?.passwordSetupRequired!==false||d?.passwordState!=='ACTIVE')process.exit(2)})"
-
           relogin="$(curl --fail --silent --show-error -X POST "$api_url/api/v1/auth/login" -H 'content-type: application/json' --data "{\"email\":\"$email\",\"password\":\"$password\"}")"
           printf '%s' "$relogin" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const d=JSON.parse(s).data;if(!d?.token||d?.user?.passwordSetupRequired!==false)process.exit(2)})"
 
