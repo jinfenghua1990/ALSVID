@@ -198,7 +198,33 @@ Customer / Vehicle / Warranty / Service
 
 My ALSVID 是公开车主入口，不等同于 ALSVID Admin。
 
-## 八、系统边界
+## 八、系统入口（最终固定）
+
+| 系统 | 面向谁 | 主要入口 | 权限 |
+| --- | --- | --- | --- |
+| **ALSVID WWW** | 所有人 | 品牌、产品、配件、服务、购买 | 公开 |
+| **My ALSVID** | 消费者 / 车主 | 我的车辆、注册、保修、维修、服务记录、账户 | 登录 |
+| **ALSVID Dealer Portal** | 经销商 / B2B 客户 | 工作台、产品、采购、B2B 订单、交付车辆、售后、账户 | 经销商登录 |
+| **ALSVID Admin** | 内部员工 | 工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 | 内部登录 |
+
+官网内部跳转关系固定为：
+
+```text
+ALSVID WWW
+│
+├── 自行车
+├── 配件
+├── 服务
+├── 关于我们
+├── 经销商合作
+├── 购买 → Shopify
+├── 登录 → My ALSVID
+└── 经销商登录 → ALSVID Dealer Portal
+```
+
+`ALSVID Admin` 不放在消费者官网主导航中，仅通过内部安全入口访问。
+
+## 九、系统边界
 
 消费者：
 
@@ -226,7 +252,7 @@ ALSVID Admin
 
 四者独立，通过统一 API / Domain / Integration 连接。
 
-## 九、环境命名
+## 十、环境命名与入口矩阵
 
 环境正式名称固定为：
 
@@ -237,6 +263,22 @@ ALSVID Production
 
 `Development` 同时承担当前开发 / 测试 / 发布前验收职责；不再使用 `Staging` 作为当前固定环境名称。
 
+每个环境都包含同样的四个系统入口：
+
+```text
+ALSVID Development
+├── ALSVID WWW
+├── ALSVID Admin
+├── ALSVID Dealer Portal
+└── My ALSVID
+
+ALSVID Production
+├── ALSVID WWW
+├── ALSVID Admin
+├── ALSVID Dealer Portal
+└── My ALSVID
+```
+
 未来资源名可采用：
 
 ```text
@@ -244,11 +286,37 @@ alsvid-www-dev
 alsvid-www-prod
 alsvid-admin-dev
 alsvid-admin-prod
+alsvid-dealer-dev
+alsvid-dealer-prod
+alsvid-my-dev
+alsvid-my-prod
 ```
 
 资源命名只是约定；只有真实云资源创建并完成验证后，才可以声称已部署。
 
-## 十、设计原则
+## 十一、域名映射（目标约定）
+
+Production 正式域名优先规划为：
+
+```text
+www.alsvid.com      → ALSVID WWW
+my.alsvid.com       → My ALSVID
+dealer.alsvid.com   → ALSVID Dealer Portal
+admin.alsvid.com    → ALSVID Admin
+```
+
+Development 域名优先规划为：
+
+```text
+www.dev.alsvid.com      → ALSVID WWW / Development
+my.dev.alsvid.com       → My ALSVID / Development
+dealer.dev.alsvid.com   → ALSVID Dealer Portal / Development
+admin.dev.alsvid.com    → ALSVID Admin / Development
+```
+
+以上域名是长期目标命名约定，不代表当前 DNS、TLS、Shopify 或 Cloud Run 路由已经配置完成。
+
+## 十二、设计原则
 
 - 官网保持国际品牌简洁风格
 - 消费者页面只展示 `ALSVID` 品牌，不展示内部系统命名
@@ -260,7 +328,7 @@ alsvid-admin-prod
 - 页面结构优先考虑未来 Shopify 迁移能力
 - 没有真实数据或未完成能力时明确显示状态，不伪造功能已经上线
 
-## 十一、命名冻结规则
+## 十三、命名冻结规则
 
 从 Issue #116 起，以下名称作为正式名称固定使用：
 
@@ -272,6 +340,8 @@ My ALSVID
 ALSVID Development
 ALSVID Production
 ```
+
+Issue #118 进一步固定四个系统的入口职责、Development / Production 入口矩阵与域名映射目标。
 
 `ALSVID Official`、`Internal Admin` 不再作为正式系统名称。
 

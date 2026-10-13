@@ -117,13 +117,83 @@ Product / Cart / Purchase
 
 ALSVID 不重复实现 Shopify 自己负责的 checkout、支付捕获和平台履约编排。
 
-## 8. Change control
+## 8. Canonical entrypoints
 
-本命名规则从 Issue #116 起冻结。
+四个系统入口固定如下：
+
+| 系统 | 面向对象 | 主要入口能力 | 访问级别 |
+| --- | --- | --- | --- |
+| **ALSVID WWW** | 所有人 | 品牌、产品、配件、服务、购买、登录入口 | 公开 |
+| **My ALSVID** | 消费者 / 车主 | 我的车辆、车辆注册、保修、维修、服务、账户 | 登录后 |
+| **ALSVID Dealer Portal** | 经销商 / B2B 客户 | 经销商工作台、产品、采购、B2B 订单、交付车辆、售后、账户 | 经销商登录后 |
+| **ALSVID Admin** | 内部员工 | 工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 | 内部登录后 |
+
+官网中的入口关系固定为：
+
+```text
+ALSVID WWW
+├── 自行车
+├── 配件
+├── 服务
+├── 关于我们
+├── 经销商合作
+├── 购买 → Shopify
+├── 登录 → My ALSVID
+└── 经销商登录 → ALSVID Dealer Portal
+```
+
+`ALSVID Admin` 不作为普通消费者导航入口，不在 ALSVID WWW 主导航中公开展示。
+
+## 9. Environment surface matrix
+
+Development 与 Production 都按同样的四个 surface 组织：
+
+```text
+ALSVID Development
+├── ALSVID WWW
+├── ALSVID Admin
+├── ALSVID Dealer Portal
+└── My ALSVID
+
+ALSVID Production
+├── ALSVID WWW
+├── ALSVID Admin
+├── ALSVID Dealer Portal
+└── My ALSVID
+```
+
+开发、测试和验收在 `ALSVID Development` 完成；正式业务运行在 `ALSVID Production`。
+
+## 10. Preferred domain mapping
+
+未来正式域名优先使用：
+
+```text
+www.alsvid.com      → ALSVID WWW
+my.alsvid.com       → My ALSVID
+dealer.alsvid.com   → ALSVID Dealer Portal
+admin.alsvid.com    → ALSVID Admin
+```
+
+Development 域名优先使用：
+
+```text
+www.dev.alsvid.com      → ALSVID WWW / Development
+my.dev.alsvid.com       → My ALSVID / Development
+dealer.dev.alsvid.com   → ALSVID Dealer Portal / Development
+admin.dev.alsvid.com    → ALSVID Admin / Development
+```
+
+这些是**固定的目标命名与路由约定**，不是当前 DNS、证书或云资源已配置完成的声明。真实上线前仍需完成域名所有权、DNS、TLS、Cloud Run / Shopify 路由等实际配置与验证。
+
+## 11. Change control
+
+本命名规则从 Issue #116 起冻结，并由 Issue #118 补充固定系统入口与域名映射。
 
 后续任何新页面、部署、README、架构图、Issue、PR 和 AI/Codex 工作：
 
 1. 优先使用本文正式名称；
 2. 不因聊天窗口变化重新命名；
 3. 不把 ALSVID WWW 与 ALSVID Admin 合并成同一个产品概念；
-4. 如果确实需要改名，必须先更新本文并说明迁移影响。
+4. 四个系统入口与 Development / Production 环境矩阵默认按本文执行；
+5. 如果确实需要改名或改变域名结构，必须先更新本文并说明迁移影响。
