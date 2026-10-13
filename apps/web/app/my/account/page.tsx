@@ -1,24 +1,50 @@
 import { requirePortalSession } from '../../_lib/portal-access';
-import { PortalShell } from '../../_components/portal-shell';
-import { PortalSectionPage } from '../../_components/portal-section-page';
-
-const cards = [
-  { title: '账户身份', description: '查看当前 ALSVID 账户的已验证身份信息与登录方式。' },
-  { title: '联系偏好', description: '后续用于管理服务通知、车辆提醒与品牌通讯偏好。' },
-  { title: '隐私与授权', description: '展示车辆关系、数据访问和已授权服务的可见范围。' },
-] as const;
+import { OwnerShell } from '../../_components/owner-shell';
+import styles from '../owner-portal.module.css';
 
 export default async function MyAccountPage() {
   await requirePortalSession('my', '/my/account');
+
   return (
-    <PortalShell kind="my" activeHref="/my/account">
-      <PortalSectionPage
-        eyebrow="MY ALSVID / ACCOUNT"
-        title="账户与偏好"
-        description="账户身份与车辆所有权是两个独立关系。账户设置不会绕过车辆交付、激活或审核流程取得车辆数据权限。"
-        cards={cards}
-        notice="当前仅建立页面与权限边界；真实客户账户设置将在身份体系完成车主接入后开放。"
-      />
-    </PortalShell>
+    <OwnerShell activeHref="/my/account">
+      <div className={styles.page}>
+        <header className={styles.pageHeader}>
+          <p className={styles.eyebrow}>MY ALSVID / ACCOUNT</p>
+          <h1>账户设置</h1>
+          <p>账户负责身份、联系方式和偏好；车辆所有权仍然由独立的车辆关系决定。</p>
+        </header>
+
+        <section className={styles.contentGrid}>
+          <div>
+            <article className={styles.card}>
+              <h2>个人资料</h2>
+              <p>后续从当前登录账户读取并允许车主维护必要联系信息。</p>
+              <div className={styles.accountRows}>
+                <div className={styles.accountRow}><span>姓名</span><strong>等待账户资料接入</strong></div>
+                <div className={styles.accountRow}><span>邮箱</span><strong>当前登录身份</strong></div>
+                <div className={styles.accountRow}><span>手机号</span><strong>未设置</strong></div>
+                <div className={styles.accountRow}><span>地址</span><strong>未设置</strong></div>
+              </div>
+            </article>
+
+            <article className={styles.card}>
+              <h2>通知</h2>
+              <p>保修提醒、服务进度和与车辆相关的重要通知将在这里统一管理。</p>
+              <div className={styles.accountRows}>
+                <div className={styles.accountRow}><span>保修与保养提醒</span><strong>待接入</strong></div>
+                <div className={styles.accountRow}><span>售后进度</span><strong>待接入</strong></div>
+                <div className={styles.accountRow}><span>配件与产品推荐</span><strong>待接入</strong></div>
+              </div>
+            </article>
+          </div>
+
+          <aside className={styles.card}>
+            <h2>隐私与车辆权限</h2>
+            <p>修改账户资料不会改变车辆所有权。车辆转让、共享或解绑必须走独立的车辆权限流程。</p>
+            <div className={styles.notice} style={{ marginTop: 18 }}>当前仅更新车主中心 UI。账户资料编辑与持久化接口尚未在这里伪造。</div>
+          </aside>
+        </section>
+      </div>
+    </OwnerShell>
   );
 }
