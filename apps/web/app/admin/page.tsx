@@ -87,7 +87,7 @@ export default async function AdminPortalPage() {
         <p className={styles.attentionHint}>业务数据接入后，这里会自动列出需要处理的审批、异常与工单。</p>
       </section>
 
-      <section className={styles.section}>
+      <section className={styles.section} id="overview">
         <div className={styles.sectionHeadCompact}><h2>今日关键指标</h2></div>
         <div className={styles.kpiTrio}>
           {keyMetrics.map((metric) => (
