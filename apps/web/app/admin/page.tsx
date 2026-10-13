@@ -13,6 +13,17 @@ const metrics = [
   { label: '经销商网络', href: '/dealers', icon: '◇', tone: 'cyan' },
 ] as const;
 
+type MetricTone = (typeof metrics)[number]['tone'];
+
+const metricToneClass: Record<MetricTone, string> = {
+  blue: styles.blue,
+  green: styles.green,
+  orange: styles.orange,
+  purple: styles.purple,
+  red: styles.red,
+  cyan: styles.cyan,
+};
+
 const panels = [
   ['产品中心', 'Product Platform', '/product'],
   ['Vehicle 360', '车辆全生命周期管理', '/vehicle360'],
@@ -36,7 +47,6 @@ export default async function AdminPortalPage() {
           <p className={styles.heroMeta}>Product · Vehicle · Commerce · Service</p>
         </div>
       </section>
-
       <section className={styles.section}>
         <div className={styles.sectionHead}><h2>核心业务模块</h2></div>
         <div className={styles.moduleGrid}>
@@ -49,19 +59,17 @@ export default async function AdminPortalPage() {
           ))}
         </div>
       </section>
-
       <section className={styles.metricSection}>
         <div className={styles.sectionHeadCompact}><h2>实时运营状态</h2></div>
         <div className={styles.metrics}>
           {metrics.map((metric) => (
             <Link className={styles.metricCard} href={metric.href} key={metric.label}>
-              <span className={`${styles.metricIcon} ${styles[metric.tone]}`}>{metric.icon}</span>
+              <span className={`${styles.metricIcon} ${metricToneClass[metric.tone]}`}>{metric.icon}</span>
               <div><span className={styles.metricLabel}>{metric.label}</span><strong>&nbsp;</strong><small>暂无数据</small></div>
             </Link>
           ))}
         </div>
       </section>
-
       <section className={styles.dashboardGrid}>
         <article className={styles.panel}>
           <header className={styles.panelHead}><div><span>LIVE</span><h3>业务动态</h3></div></header>
