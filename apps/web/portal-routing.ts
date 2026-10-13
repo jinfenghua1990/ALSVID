@@ -6,6 +6,6 @@ const portalPathsByHost: Record<string, string> = {
 };
 
 export function portalPathForHost(host: string | null): string | null {
-  const hostname = (host ?? '').split(',')[0].trim().split(':')[0].toLowerCase();
+  const hostname = (host ?? '').split(',')[0]?.trim().split(':')[0]?.toLowerCase() ?? '';
   return portalPathsByHost[hostname] ?? null;
 }
