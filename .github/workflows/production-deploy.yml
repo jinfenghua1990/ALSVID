@@ -1,8 +1,6 @@
 name: ALSVID Production Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       release_sha:
@@ -30,42 +28,8 @@ env:
   MIGRATION_JOB: alsvid-migrate
 
 jobs:
-  classify:
-    if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-latest
-    outputs:
-      deployable: ${{ steps.diff.outputs.deployable }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect whether this push contains deployable changes
-        id: diff
-        shell: bash
-        run: |
-          set -euo pipefail
-          before='${{ github.event.before }}'
-          if [[ -z "$before" || "$before" == "0000000000000000000000000000000000000000" ]]; then
-            echo "deployable=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          changed="$(git diff --name-only "$before" "$GITHUB_SHA")"
-          if [[ -z "$changed" ]]; then
-            echo "deployable=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Changed files since $before:"
-          sed 's/^/  /' <<<"$changed"
-          if grep -qvE '^(docs/|.+\.md$)' <<<"$changed"; then
-            echo "deployable=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "deployable=false" >> "$GITHUB_OUTPUT"
-          fi
-
   deploy:
-    needs: classify
-    if: ${{ always() && (inputs.confirm == 'deploy' || (github.event_name == 'push' && needs.classify.outputs.deployable == 'true')) }}
+    if: ${{ inputs.confirm == 'deploy' }}
     runs-on: ubuntu-latest
     environment: production
 
@@ -73,7 +37,7 @@ jobs:
       - name: Checkout release
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_sha || (github.event_name == 'push' && github.sha) || 'main' }}
+          ref: ${{ inputs.release_sha || 'main' }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -84,15 +48,10 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          ALLOW_PREVIOUS_PRODUCTION: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy' }}
-          FAST_TRACK_PRODUCTION: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[fast-track-production]') }}
+          ALLOW_PREVIOUS_PRODUCTION: true
         run: |
           set -euo pipefail
-          if [[ "$FAST_TRACK_PRODUCTION" == "true" ]]; then
-            echo "Temporary fast-track release enabled for this explicitly marked commit."
-          else
-            git show "${{ github.sha }}:scripts/release-gate.mjs" | node --input-type=module - production
-          fi
+          git show HEAD:scripts/release-gate.mjs | node --input-type=module - production
 
       - name: Validate release and deployment variables
         id: release
@@ -320,32 +279,3 @@ jobs:
             echo "- Worker pool: $WORKER_POOL"
             echo "- Email verification: resend"
           } >> "$GITHUB_STEP_SUMMARY"
-
-  sync-development:
-    needs: [classify, deploy]
-    if: ${{ always() && (needs.deploy.result == 'success' || (github.event_name == 'push' && needs.classify.outputs.deployable == 'false')) }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-      - name: Keep Development history ahead of the released main branch
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-
-          if git ls-remote --exit-code --heads origin develop >/dev/null 2>&1; then
-            git fetch origin develop
-            git switch --force-create develop origin/develop
-            git merge --no-edit origin/main
-          else
-            echo "Development branch is missing; recreating it from the released main branch."
-            git switch --force-create develop origin/main
-          fi
-
-          git push origin HEAD:develop
