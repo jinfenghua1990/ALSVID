@@ -7,7 +7,7 @@ async function clearSessionCookie(result: NextResponse, request: Request): Promi
   return result;
 }
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: Request): Promise<NextResponse> {
   await backendFetch('/v1/auth/logout', { method: 'POST' });
   return clearSessionCookie(NextResponse.json({ data: { ok: true } }), request);
 }
