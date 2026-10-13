@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sessionCookieOptions } from '../../../../_lib/session-cookie';
 
 const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 
@@ -18,12 +19,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       firstAdminActivated: Boolean(payload.data.firstAdminActivated),
     },
   });
-  result.cookies.set('alsvid_session', payload.data.token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.ALSVID_COOKIE_SECURE !== 'false',
-    path: '/',
-    expires: new Date(payload.data.expiresAt),
-  });
+  result.cookies.set('alsvid_session', payload.data.token, sessionCookieOptions(request, new Date(payload.data.expiresAt)));
   return result;
 }
