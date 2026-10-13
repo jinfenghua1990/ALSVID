@@ -1,5 +1,11 @@
 # Current State
 
+## Admin contextual sidebar — 2026-10-14
+
+The shared AppShell now places the primary module menu in the header and the selected module's grouped secondary menu in a left sidebar, with the workspace on the right. The former horizontal secondary navigation row is removed. Desktop sidebar scrolling stays independent below the header; mobile keeps the collapsible navigation menu. Context links retain the selected module when different modules share a destination such as `/overview` or `/vehicle360/search`, including after reload and secondary navigation.
+
+Implementation validation covers navigation-context regressions, UI/Web TypeScript checks, the Web production build, and browser layout/interaction checks across all 11 primary modules, sticky positioning, light/dark themes and mobile navigation. This entry records repository implementation; it does not prove the version is deployed to a user's current URL. Deployment and acceptance must be verified separately.
+
 ## Status
 
 ALSVID-Next is a clean-slate implementation created on 2026-10-10. No production business deployment exists yet and no real ALSVID business data needs backward compatibility.
