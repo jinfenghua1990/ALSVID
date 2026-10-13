@@ -6,7 +6,7 @@ export function sessionCookieOptions(request: Request, expiresAt?: Date): {
   domain?: string;
   expires?: Date;
 } {
-  const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase();
+  const host = ((request.headers.get('host') ?? '').split(':')[0] ?? '').toLowerCase();
   const domain = host.endsWith('.dev.alsvid.com')
     ? '.dev.alsvid.com'
     : host.endsWith('.alsvid.com') && host !== 'alsvid.com'
