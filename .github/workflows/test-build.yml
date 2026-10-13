@@ -88,7 +88,7 @@ jobs:
 
           for route in /admin /dealer /my; do
             response="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:8080$route")"
-            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:8080$route" | tr -d '\r' | sed -E 's#^(location:) https?://[^/]+(/login(?:\?.*)?)$#\1 /login#I')"
+            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:8080$route" | tr -d '\r' | sed -E 's#^(location:) https?://[^/]+(/login(\?.*)?)$#\1 /login#I')"
             if [[ "$response" != "307" ]] || ! grep -Eiq '^location: /login$' <<< "$headers"; then
               echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
               echo "$headers" >&2
