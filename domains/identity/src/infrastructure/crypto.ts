@@ -9,7 +9,7 @@ function scryptAsync(password: string, salt: Buffer): Promise<Buffer> {
 }
 
 export class ScryptPasswordHasher implements PasswordHasher {
-  constructor(private readonly minLength = 12) {}
+  constructor(private readonly minLength = 8) {}
   async hash(password: string): Promise<string> {
     if (password.length < this.minLength) throw new IdentityValidationError(`Password must be at least ${this.minLength} characters`);
     const salt = randomBytes(16);
