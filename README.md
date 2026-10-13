@@ -1086,7 +1086,7 @@ ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 
 **请所有 AI / 开发人员在设计官网、商城、后台、经销商或会员功能前，先阅读 [`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md)。**
 
-四个独立开发工作流：**ALSVID WWW**（www.chaibenn.com，品牌官网与 Shopify 商城同一站点）、**ALSVID Admin**（admin.chaibenn.com，内部运营）、**ALSVID Dealer Portal**（dealer.chaibenn.com，经销商 B2B）、**My ALSVID**（my.chaibenn.com，车主会员与售后）。Dev 对应为 www.dev / admin.dev / dealer.dev / my.dev.chaibenn.com（均为目标命名，非上线证明）。**不要再把 ALSVID Shop 拆成第五个站点，也不要把内部 Portal Launcher 当成公开首页。**
+四个独立开发工作流：**ALSVID Official**（www.chaibenn.com，品牌官网与 Shopify 商城同一站点）、**ALSVID Admin**（admin.chaibenn.com，内部运营）、**ALSVID Dealer Portal**（dealer.chaibenn.com，经销商 B2B）、**My ALSVID**（my.chaibenn.com，车主会员与售后）。Dev 对应为 www.dev / admin.dev / dealer.dev / my.dev.chaibenn.com（均为目标命名，非上线证明）。**不要再把 ALSVID Shop 拆成第五个站点，也不要把内部 Portal Launcher 当成公开首页。**
 
 此文档逐项规定四门户页面结构、导航、角色、Shopify 边界、产品视觉、VIN/售后集成、测试与上线状态判断；与旧架构描述有冲突时，门户与官网商城的业务规划以该最新决策为准，实际代码与部署状态以 CURRENT_STATE 和验收证据为准。
 
@@ -1096,3 +1096,9 @@ ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 ## 当前临时域名
 
 当前已申请并实际使用的临时域名为 `chaibenn.com`。四大门户当前地址以 `chaibenn.com` 为准；未来取得 `alsvid.com` 后，再按同一门户结构切换，不改变系统架构。
+
+## 独立项目入口与命名（2026-10-14）
+
+正式项目名称为 **ALSVID Official（ALSVID 官网）**、**My ALSVID（车主中心 / 我的车库）**、**ALSVID Dealer Portal（经销商平台）**、**ALSVID Admin（内部运营中心）**。四者是独立前端项目，通过统一身份认证及部分数据联动协作，大部分关系是跨应用跳转，不是同一系统页面。
+
+Admin 顶部右侧应用切换器建议显示 `ALSVID Apps`，入口为 **官网、车主中心、经销商平台**。详细规范见 [docs/APP_ENTRY_ARCHITECTURE.md](docs/APP_ENTRY_ARCHITECTURE.md)；正式命名见 [docs/SYSTEM_NAMING.md](docs/SYSTEM_NAMING.md)。本次为文档规范更新，不代表四前端拆分、切换器 UI、SSO 或域名已全部上线。

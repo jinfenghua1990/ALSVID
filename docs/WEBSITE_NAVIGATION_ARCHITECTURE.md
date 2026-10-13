@@ -192,16 +192,20 @@ Dealer Portal functions:
 
 # System Separation
 
-## Public Website
+## ALSVID Official（ALSVID 官网）
 
 Brand / Product / Customer / Partner entry
 
-## Dealer Portal
+## ALSVID Dealer Portal（经销商平台）
 
 B2B sales operation
 
-## Internal System
+## My ALSVID（车主中心 / 我的车库）
+
+Owner vehicles / ownership / warranty / service lifecycle
+
+## ALSVID Admin（内部运营中心）
 
 ERP / CRM / MES / Supply Chain / Production Management
 
-The three systems must remain separated while keeping API integration capability.
+The four projects are independent frontend applications rather than pages in one system. Most entry relationships are cross-application links, with unified identity and selected authorized data integration. Admin provides a top-right App Switcher labelled 官网, 车主中心, 经销商平台; see [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md).
