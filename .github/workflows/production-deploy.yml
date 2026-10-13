@@ -220,7 +220,7 @@ jobs:
             --region "$GCP_REGION" \
             --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
-            --instances 1 \
+            --instances 0 \
             --cpu 1 \
             --memory 512Mi \
             --set-env-vars "NODE_ENV=production,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
