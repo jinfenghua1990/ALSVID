@@ -230,3 +230,54 @@ a.metricCard:hover { border-color: var(--alsvid-line-strong); background: var(--
   .sectionHeadCompact { align-items: flex-start; }
   .periodTabs { display: none; }
 }
+
+/* ===== V3 工作台：快捷入口 ===== */
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quickLink {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 34px; padding: 0 14px;
+  border: 1px solid var(--alsvid-line); border-radius: 999px;
+  background: var(--alsvid-panel); color: var(--alsvid-text-2);
+  font-size: 12px; font-weight: 650; white-space: nowrap;
+  transition: border-color .15s ease, color .15s ease, transform .15s ease;
+}
+.quickLink:hover { border-color: var(--alsvid-accent); color: var(--alsvid-accent); transform: translateY(-1px); }
+.quickIcon { font-size: 10px; color: var(--alsvid-muted); }
+
+/* ===== V3 工作台：待办与异常 ===== */
+.attention {
+  border: 1px solid var(--alsvid-line); border-radius: 14px;
+  background: var(--alsvid-panel); padding: 4px 18px;
+}
+.attentionRow {
+  display: grid; grid-template-columns: 36px minmax(0,1fr) auto;
+  align-items: center; gap: 13px; padding: 13px 0;
+}
+.attentionRow + .attentionRow { border-top: 1px solid var(--alsvid-line); }
+.attentionIcon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 15px;
+}
+.attentionBody { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.attentionBody strong { color: var(--alsvid-text); font-size: 13px; font-weight: 680; }
+.attentionBody span { color: var(--alsvid-muted); font-size: 10.5px; line-height: 1.5; }
+.attentionCount { min-width: 30px; text-align: right; color: var(--alsvid-muted); font-size: 15px; font-weight: 750; }
+.attentionHint { margin: 10px 2px 0; color: var(--alsvid-muted); font-size: 10.5px; }
+
+/* ===== V3 工作台：关键指标三卡 ===== */
+.kpiTrio { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.kpiCard {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 15px 17px; min-height: 108px;
+  border: 1px dashed var(--alsvid-line-strong); border-radius: 13px;
+  background: var(--alsvid-panel-2);
+}
+.kpiHead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.kpiHead span { color: var(--alsvid-text-2); font-size: 12px; font-weight: 680; }
+.kpiHead em { color: var(--alsvid-muted); font-size: 10px; font-style: normal; }
+.kpiCard strong { color: var(--alsvid-muted); font-size: 22px; font-weight: 780; letter-spacing: .04em; }
+.kpiCard small { color: var(--alsvid-muted); font-size: 10px; }
+
+@media (max-width: 680px) {
+  .kpiTrio { grid-template-columns: 1fr; }
+}
