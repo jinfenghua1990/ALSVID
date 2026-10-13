@@ -25,6 +25,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://alsvid:alsvid@localhost:5432/alsvid
       NODE_ENV: test
+      TZ: Asia/Shanghai
     steps:
       - uses: actions/checkout@v4
       - name: Validate Google Cloud bootstrap shell syntax
@@ -37,7 +38,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: node --test scripts/macos-test-auto-update.test.mjs
       - run: node --test scripts/release-gate.test.mjs
       - run: pnpm db:migrate
