@@ -6,18 +6,20 @@ import { useRouter } from 'next/navigation';
 import { navigationFor } from '../app-navigation';
 import styles from './finance.module.css';
 
+type FinanceRow = Record<string, unknown>;
+
 type FinanceSummary = {
-  documents: any[];
-  lines: any[];
-  obligations: any[];
-  payments: any[];
-  allocations: any[];
-  fxRates: any[];
-  landedBatches: any[];
-  landedComponents: any[];
-  landedAllocations: any[];
-  partnerBalances: any[];
-  references: { partners: any[]; purchaseOrders: any[]; commerceOrders: any[]; shipments: any[]; cargo: any[]; customsLines: any[] };
+  documents: FinanceRow[];
+  lines: FinanceRow[];
+  obligations: FinanceRow[];
+  payments: FinanceRow[];
+  allocations: FinanceRow[];
+  fxRates: FinanceRow[];
+  landedBatches: FinanceRow[];
+  landedComponents: FinanceRow[];
+  landedAllocations: FinanceRow[];
+  partnerBalances: FinanceRow[];
+  references: { partners: FinanceRow[]; purchaseOrders: FinanceRow[]; commerceOrders: FinanceRow[]; shipments: FinanceRow[]; cargo: FinanceRow[]; customsLines: FinanceRow[] };
 };
 
 const emptySummary: FinanceSummary = {

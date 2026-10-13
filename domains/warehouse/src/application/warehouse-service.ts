@@ -88,7 +88,7 @@ export class WarehouseService {
       if (session.status !== 'OPEN') throw new WarehouseConflictError('Stocktake session is no longer open');
       const latest = await this.repository.latestCounts(sessionId, executor);
       if (!latest.length) throw new WarehouseConflictError('At least one stocktake count is required before close');
-      const corrections: { row: any; delta: string }[] = [];
+      const corrections: { row: Record<string, unknown>; delta: string }[] = [];
       for (const row of latest) {
         const itemId = row.part_id ?? row.sku_id ?? row.vehicle_id;
         const balance = await this.inventory.balanceAt({ itemKind: row.item_kind, itemId, unit: row.unit, locationId: row.location_id }, executor);
