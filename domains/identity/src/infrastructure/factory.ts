@@ -18,7 +18,7 @@ export interface CreateIdentityServiceOptions {
 
 function minPasswordLength(): number {
   const value = Number.parseInt(process.env.ALSVID_MIN_PASSWORD_LENGTH ?? '', 10);
-  return Number.isInteger(value) && value > 0 ? value : 12;
+  return Number.isInteger(value) && value > 0 ? value : 8;
 }
 
 const unavailableDelivery: IdentityVerificationDelivery = {
