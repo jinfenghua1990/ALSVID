@@ -21,11 +21,13 @@ import type {
   ShopifyNormalizerPort,
 } from './ports.js';
 
+type IdentifiedRow = Record<string, unknown> & { id: string };
+
 export interface IngestionResult {
-  receipt: Record<string, unknown>;
+  receipt: IdentifiedRow;
   attempt: Record<string, unknown>;
   duplicate: boolean;
-  entity?: Record<string, unknown>;
+  entity?: IdentifiedRow;
 }
 
 export class IntegrationService {
@@ -117,7 +119,7 @@ export class IntegrationService {
       throw new IntegrationConflictError('Shopify shop domain does not match channel external account');
     }
 
-    let receipt: Record<string, unknown>;
+    let receipt: IdentifiedRow;
     let duplicate = false;
     try {
       receipt = await this.repository.insertReceipt({
@@ -186,14 +188,14 @@ export class IntegrationService {
     actor: IntegrationActor,
     channelId: string,
     input: ShopifyDeliveryInput,
-    receipt: Record<string, unknown>,
+    receipt: IdentifiedRow,
     webhookId: string,
     topic: string,
     shopDomain: string,
     replay: boolean,
     duplicate: boolean,
     executor: QueryExecutor,
-  ): Promise<{ attempt: Record<string, unknown>; duplicate: boolean; entity?: Record<string, unknown> }> {
+  ): Promise<{ attempt: Record<string, unknown>; duplicate: boolean; entity?: IdentifiedRow }> {
     await this.repository.lockReceipt(receipt.id, executor);
     const lastAttempt = await this.repository.latestAttempt(receipt.id, executor);
     if (lastAttempt?.outcome === 'PROCESSED' || lastAttempt?.outcome === 'NOOP') {
@@ -211,7 +213,7 @@ export class IntegrationService {
       return { attempt, duplicate: true };
     }
 
-    let entity: Record<string, unknown>;
+    let entity: IdentifiedRow;
     let normalizedEntityType: string;
     if (topic.startsWith('orders/')) {
       const applied = await this.commerce.ingestOrder(
