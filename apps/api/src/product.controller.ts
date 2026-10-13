@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import type { ProductStatus } from '@alsvid/product';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
@@ -7,7 +8,7 @@ import { productService } from './runtime.js';
 interface CreateModelBody { platformId: string; code: string; name: string; description?: string }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
 interface CreateSkuBody { variantId: string; sku: string; name: string; marketCode?: string; colorCode?: string; sizeCode?: string; attributes?: Record<string, unknown> }
-interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: string; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }
+interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }
 
 @Controller('v1/product')
 export class ProductController {
