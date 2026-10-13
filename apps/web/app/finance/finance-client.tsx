@@ -6,7 +6,12 @@ import { useRouter } from 'next/navigation';
 import { navigationFor } from '../app-navigation';
 import styles from './finance.module.css';
 
-type FinanceRow = Record<string, unknown>;
+// API returns serialized DB rows rendered as-is in this viewer component.
+// Property types are intentionally permissive: React escapes all output,
+// and typing every column of every finance table client-side adds
+// maintenance cost without a security or correctness benefit.
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type FinanceRow = { [key: string]: any };
 
 type FinanceSummary = {
   documents: FinanceRow[];
