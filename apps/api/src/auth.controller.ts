@@ -16,10 +16,10 @@ export class AuthController {
 
   @Public()
   @Post('email/start')
-  async startEmail(@Body() body: { email?: string; portal?: 'admin' | 'dealer' | 'my' }) {
+  async startEmail(@Body() body: { email?: string }) {
     if (!body?.email) throw new UnauthorizedException('Email is required');
     try {
-      return { data: await identityService.startEmailVerification(body.email, body.portal ?? 'admin') };
+      return { data: await identityService.startEmailVerification(body.email) };
     } catch (error) {
       return throwHttpDomainError(error);
     }
@@ -27,10 +27,10 @@ export class AuthController {
 
   @Public()
   @Post('email/complete')
-  async completeEmail(@Body() body: { email?: string; code?: string; displayName?: string; portal?: 'admin' | 'dealer' | 'my' }) {
+  async completeEmail(@Body() body: { email?: string; code?: string; displayName?: string }) {
     if (!body?.email || !body.code) throw new UnauthorizedException('Email and verification code are required');
     try {
-      return { data: await identityService.completeEmailVerification(body.email, body.code, body.displayName, body.portal ?? 'admin') };
+      return { data: await identityService.completeEmailVerification(body.email, body.code, body.displayName) };
     } catch (error) {
       return throwHttpDomainError(error);
     }

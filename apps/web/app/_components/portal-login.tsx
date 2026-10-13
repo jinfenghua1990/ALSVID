@@ -16,10 +16,10 @@ type LoginPortal = 'admin' | 'dealer' | 'my';
 const portalCopy: Record<LoginPortal, { emailLabel: string; emailHelp: string; codeNotice: string; lead: string; passwordPlaceholder: string }> = {
   admin: { emailLabel: '公司邮箱', emailHelp: '使用已获准的公司邮箱完成身份验证。', codeNotice: '验证码已发送到你的公司邮箱，请在 10 分钟内完成验证。', lead: '使用公司邮箱完成身份验证。正常登录成功后，系统会保持会话；仅账号安全或高风险操作需要额外验证。', passwordPlaceholder: 'name@company.com' },
   dealer: { emailLabel: '经销商工作邮箱', emailHelp: '使用经销商邀请的业务邮箱完成身份验证。', codeNotice: '验证码已发送到你的经销商工作邮箱，请在 10 分钟内完成验证。', lead: '使用经销商工作邮箱登录。系统只会展示该经销商被授权的公司、订单、车辆和售后数据。', passwordPlaceholder: 'name@dealer.com' },
-  my: { emailLabel: '个人邮箱', emailHelp: '使用你本人常用的个人邮箱完成身份验证。', codeNotice: '验证码已发送到你的个人邮箱，请在 10 分钟内完成验证。', lead: '使用个人邮箱登录 My ALSVID。登录成功后，只能查看与你本人建立了真实关系的车辆和服务记录。', passwordPlaceholder: 'name@example.com' },
+  my: { emailLabel: 'Shopify 客户账户', emailHelp: '客户身份由 Shopify 客户账户验证，ALSVID 不直接创建客户邮箱账号。', codeNotice: '将跳转到 Shopify 完成客户身份验证。', lead: '使用 Shopify 客户账户登录 My ALSVID。验证成功后，ALSVID 只同步与你本人建立了真实关系的客户和车辆数据。', passwordPlaceholder: 'name@example.com' },
 };
 
-export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetupRequired = false, redirectTo = '/admin', children }: { portal?: LoginPortal; authenticated: boolean; passwordSetupRequired?: boolean; redirectTo?: string; children: ReactNode }) {
+export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetupRequired = false, redirectTo = '/admin', shopifyLoginUrl = '', children }: { portal?: LoginPortal; authenticated: boolean; passwordSetupRequired?: boolean; redirectTo?: string; shopifyLoginUrl?: string; children: ReactNode }) {
   const copy = portalCopy[portal];
   const [open, setOpen] = useState(!authenticated || passwordSetupRequired);
   const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : 'email');
@@ -132,13 +132,14 @@ export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetup
           <button className={method === 'email' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('email')}>邮箱验证码</button>
           <button className={method === 'password' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('password')}>账户密码</button>
         </div> : null}
-        {method === 'email' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitEmail}>
+        {portal === 'my' && !setupRequired ? <div className={styles.dialogForm}><p className={loginStyles.notice}>{copy.emailHelp}</p>{shopifyLoginUrl ? <a className={styles.dialogSubmit} href={shopifyLoginUrl}>使用 Shopify 客户账户登录</a> : <button className={styles.dialogSubmit} type="button" disabled>Shopify 客户登录待配置</button>}<p className={loginStyles.notice}>登录完成后会返回 My ALSVID，并在 ALSVID 内建立最小客户映射。</p></div> : null}
+        {portal !== 'my' && method === 'email' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitEmail}>
           {!codeRequested ? <><label>{copy.emailLabel}<span className={loginStyles.fieldHelp}>{copy.emailHelp}</span><input key="email-input" name="email" type="email" autoComplete="email" required /></label><label>姓名（首次注册可选）<input key="display-name-input" name="displayName" type="text" autoComplete="name" /></label></> : <><label>{copy.emailLabel}<input key="verified-email-input" value={email} readOnly /></label><label>6 位验证码<input key="verification-code-input" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6))} /></label></>}
           {notice ? <p className={loginStyles.notice}>{notice}</p> : null}{error ? <p className={styles.dialogError}>{error}</p> : null}
           <button className={styles.dialogSubmit} disabled={busy}>{busy ? '处理中…' : codeRequested ? '验证并登录' : '发送验证码'}</button>
           {codeRequested ? <button className={loginStyles.secondary} type="button" disabled={busy} onClick={() => { setCodeRequested(false); setVerificationCode(''); setNotice(''); setError(''); }}>更换邮箱 / 重新获取</button> : null}
         </form> : null}
-        {method === 'password' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitPassword}>
+        {portal !== 'my' && method === 'password' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitPassword}>
           <label>{copy.emailLabel}<input name="email" type="email" autoComplete="username" placeholder={copy.passwordPlaceholder} required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
           <div className={loginStyles.pendingCapability} aria-disabled="true"><span>手机号登录</span><span className={loginStyles.pendingBadge}>待启用</span></div>
           <a className={loginStyles.resetLink} href="/reset-password">忘记密码？通过邮箱重置</a>

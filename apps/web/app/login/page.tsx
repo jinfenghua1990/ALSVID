@@ -38,6 +38,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
       authenticated={portalAuthenticated}
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
       redirectTo={redirectTo}
+      shopifyLoginUrl={process.env.ALSVID_SHOPIFY_CUSTOMER_LOGIN_URL?.trim() ?? ''}
     >
       <main className={styles.page} aria-hidden="true">
         <section className={styles.panel}>
