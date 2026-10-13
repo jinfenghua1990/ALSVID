@@ -172,10 +172,10 @@ jobs:
           if [[ "$successful_push" -gt 0 ]]; then
             echo "Production already has a successful main-push deployment for $main_sha"
           else
-            gh workflow run production-deploy.yml \\
-              --repo "$GITHUB_REPOSITORY" \\
-              --ref main \\
-              -f release_sha="$main_sha" \\
+            gh workflow run production-deploy.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref main \
+              -f release_sha="$main_sha" \
               -f confirm=deploy
             echo "Dispatched Production for already-merged tested main $main_sha"
           fi
