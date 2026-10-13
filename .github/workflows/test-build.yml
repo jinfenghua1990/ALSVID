@@ -107,21 +107,3 @@ jobs:
       - name: Tear down Development containers
         if: always()
         run: docker compose -f infra/docker-compose.test.yml down -v --remove-orphans
- <<< "$headers"; then
-              echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
-              echo "$headers" >&2
-              exit 1
-            fi
-          done
-
-      - name: Show Development container state
-        if: always()
-        run: docker compose -f infra/docker-compose.test.yml ps
-
-      - name: Show Development logs on failure
-        if: failure()
-        run: docker compose -f infra/docker-compose.test.yml logs --no-color
-
-      - name: Tear down Development containers
-        if: always()
-        run: docker compose -f infra/docker-compose.test.yml down -v --remove-orphans
