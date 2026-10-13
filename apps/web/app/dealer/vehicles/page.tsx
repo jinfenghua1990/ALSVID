@@ -1,4 +1,4 @@
-import { requireInternalPreviewSession } from '../../_lib/portal-access';
+import { requirePortalSession } from '../../_lib/portal-access';
 import { PortalShell } from '../../_components/portal-shell';
 import { PortalSectionPage } from '../../_components/portal-section-page';
 
@@ -9,7 +9,7 @@ const cards = [
 ] as const;
 
 export default async function DealerVehiclesPage() {
-  await requireInternalPreviewSession();
+  await requirePortalSession('dealer', '/dealer/vehicles');
   return (
     <PortalShell kind="dealer" activeHref="/dealer/vehicles">
       <PortalSectionPage

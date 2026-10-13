@@ -65,6 +65,12 @@ jobs:
             exit 1
           fi
 
+          # Production promotion uses merge commits so the tested Development commit
+          # remains in main's ancestry. On later releases, main itself is not
+          # necessarily an ancestor of develop, even though its source tree is.
+          # Accept that topology only when the current production tree is exactly the
+          # tree at the common ancestor. Any independent content change on main makes
+          # these trees differ and blocks promotion until develop incorporates it.
           merge_base="$(git merge-base origin/main "$release_sha")"
           merge_base_tree="$(git rev-parse "${merge_base}^{tree}")"
           main_tree="$(git rev-parse 'origin/main^{tree}')"
@@ -107,6 +113,8 @@ jobs:
             --title "release: promote tested Development ${SHORT_SHA}" \
             --body "Automated promotion of the exact source tree that passed CI, container acceptance, Development deployment, email/auth smoke checks, API health and web smoke checks. Tested commit: ${RELEASE_SHA}." )"
 
+          # A merge commit intentionally preserves RELEASE_SHA as a parent of main.
+          # This keeps future content-history validation safe across repeated releases.
           gh pr merge "$pr_url" \
             --repo "$GITHUB_REPOSITORY" \
             --merge \

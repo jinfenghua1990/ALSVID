@@ -299,19 +299,19 @@ alsvid-my-prod
 Production 正式域名优先规划为：
 
 ```text
-www.alsvid.com      → ALSVID WWW
-my.alsvid.com       → My ALSVID
-dealer.alsvid.com   → ALSVID Dealer Portal
-admin.alsvid.com    → ALSVID Admin
+www.chaibenn.com      → ALSVID WWW
+my.chaibenn.com       → My ALSVID
+dealer.chaibenn.com   → ALSVID Dealer Portal
+admin.chaibenn.com    → ALSVID Admin
 ```
 
 Development 域名优先规划为：
 
 ```text
-www.dev.alsvid.com      → ALSVID WWW / Development
-my.dev.alsvid.com       → My ALSVID / Development
-dealer.dev.alsvid.com   → ALSVID Dealer Portal / Development
-admin.dev.alsvid.com    → ALSVID Admin / Development
+www.dev.chaibenn.com      → ALSVID WWW / Development
+my.dev.chaibenn.com       → My ALSVID / Development
+dealer.dev.chaibenn.com   → ALSVID Dealer Portal / Development
+admin.dev.chaibenn.com    → ALSVID Admin / Development
 ```
 
 以上域名是长期目标命名约定，不代表当前 DNS、TLS、Shopify 或 Cloud Run 路由已经配置完成。
@@ -346,3 +346,6 @@ Issue #118 进一步固定四个系统的入口职责、Development / Production
 `ALSVID Official`、`Internal Admin` 不再作为正式系统名称。
 
 除非后续出现明确的新架构决策，否则官网、后台、部署、README、Issue、PR 与后续 AI/Codex 工作均沿用本规则，不因聊天窗口或开发阶段变化重新命名。
+
+
+> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。

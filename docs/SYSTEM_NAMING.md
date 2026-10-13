@@ -38,7 +38,7 @@ ALSVID
 未来正式域名优先对应：
 
 ```text
-www.alsvid.com
+www.chaibenn.com
 ```
 
 最终域名是否启用以真实域名配置为准；文档中的域名示例不代表已经完成 DNS 或生产部署。
@@ -169,19 +169,19 @@ ALSVID Production
 未来正式域名优先使用：
 
 ```text
-www.alsvid.com      → ALSVID WWW
-my.alsvid.com       → My ALSVID
-dealer.alsvid.com   → ALSVID Dealer Portal
-admin.alsvid.com    → ALSVID Admin
+www.chaibenn.com      → ALSVID WWW
+my.chaibenn.com       → My ALSVID
+dealer.chaibenn.com   → ALSVID Dealer Portal
+admin.chaibenn.com    → ALSVID Admin
 ```
 
 Development 域名优先使用：
 
 ```text
-www.dev.alsvid.com      → ALSVID WWW / Development
-my.dev.alsvid.com       → My ALSVID / Development
-dealer.dev.alsvid.com   → ALSVID Dealer Portal / Development
-admin.dev.alsvid.com    → ALSVID Admin / Development
+www.dev.chaibenn.com      → ALSVID WWW / Development
+my.dev.chaibenn.com       → My ALSVID / Development
+dealer.dev.chaibenn.com   → ALSVID Dealer Portal / Development
+admin.dev.chaibenn.com    → ALSVID Admin / Development
 ```
 
 这些是**固定的目标命名与路由约定**，不是当前 DNS、证书或云资源已配置完成的声明。真实上线前仍需完成域名所有权、DNS、TLS、Cloud Run / Shopify 路由等实际配置与验证。
@@ -197,3 +197,6 @@ admin.dev.alsvid.com    → ALSVID Admin / Development
 3. 不把 ALSVID WWW 与 ALSVID Admin 合并成同一个产品概念；
 4. 四个系统入口与 Development / Production 环境矩阵默认按本文执行；
 5. 如果确实需要改名或改变域名结构，必须先更新本文并说明迁移影响。
+
+
+> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
