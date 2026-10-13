@@ -11,6 +11,7 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '型号 / Variant / SKU', href: '/product#models', area: '产品', section: '产品中心' },
   { label: 'BOM 与零件库', href: '/product#engineering', area: '产品', section: '工程资料' },
   { label: '工程文件与版本', href: '/product/documents', area: '产品', section: '工程资料', status: '骨架' },
+  { label: '产品生命周期', href: '/product#lifecycle', area: '产品', section: '工程资料', status: '骨架' },
 
   { label: '订单', href: '/commerce', area: '订单', section: '订单中心' },
   { label: '外部订单事实', href: '/commerce', area: '订单', section: '订单中心' },
@@ -60,10 +61,16 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '设置', href: '/settings', area: '设置', section: '系统设置' },
   { label: '用户与访问权限', href: '/settings/access', area: '设置', section: '系统设置', status: '骨架' },
   { label: '角色 / 权限', href: '/settings/roles', area: '设置', section: '系统设置', status: '骨架' },
+  { label: '员工管理', href: '/people/employees', area: '设置', section: '系统设置' },
   { label: '审计日志', href: '/settings/audit', area: '设置', section: '系统设置', status: '骨架' },
   { label: '集成与环境', href: '/settings/integrations', area: '设置', section: '系统设置', status: '骨架' },
 ] as const;
 
 export function navigationFor(activeHref: string): readonly AppNavItem[] {
-  return appNavigation.map((item) => ({ ...item, active: !item.disabled && item.href === activeHref }));
+  let matched = false;
+  return appNavigation.map((item) => {
+    const isMatch = !matched && !item.disabled && item.href === activeHref;
+    if (isMatch) matched = true;
+    return { ...item, active: isMatch };
+  });
 }
