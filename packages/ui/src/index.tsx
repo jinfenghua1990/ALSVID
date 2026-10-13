@@ -71,7 +71,10 @@ export function AppShell({
 }>) {
   const activeItem = navigation.find((item) => item.active);
   const activeArea = activeItem?.area ?? activeItem?.section ?? '首页';
-  const contextualNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
+  const areaNavigation = navigation.filter((item) => (item.area ?? item.section ?? '首页') === activeArea);
+  const contextualNavigation = areaNavigation.filter((item, index) => !(index === 0 && item.label === activeArea && areaNavigation.length > 1));
+  const showContextRail = activeArea !== '工作台' && contextualNavigation.length > 0;
+
   const areas = Array.from(new Set(navigation.map((item) => item.area ?? item.section ?? '首页'))).map((label) => {
     const items = navigation.filter((item) => (item.area ?? item.section ?? '首页') === label);
     const enabled = items.find((item) => !item.disabled);
@@ -101,21 +104,6 @@ export function AppShell({
         </div>
       </header>
 
-      <nav className="contextNavigation" aria-label={`${activeArea} 快捷导航`}>
-        <div className="contextNavigationInner">
-          <strong className="contextNavigationTitle">{activeArea}</strong>
-          {contextualNavigation.map((item) => item.disabled ? (
-            <span className="contextNavItem contextNavItemDisabled" key={`${item.href}-${item.label}`} aria-disabled="true">
-              {item.label}{item.status ? <small>{item.status}</small> : null}
-            </span>
-          ) : (
-            <a className={`contextNavItem${item.active ? ' contextNavItemActive' : ''}`} href={item.href} key={`${item.href}-${item.label}`} aria-current={item.active ? 'page' : undefined}>
-              {item.label}{item.status ? <small>{item.status}</small> : null}
-            </a>
-          ))}
-        </div>
-      </nav>
-
       <details className="mobileNav mobileNavV2">
         <summary><strong>{brand}</strong><span>{activeArea} · 菜单</span></summary>
         <div className="mobilePrimaryNavigation" aria-label="一级导航">
@@ -125,11 +113,27 @@ export function AppShell({
             <a className={`mobilePrimaryItem${area.active ? ' mobilePrimaryItemActive' : ''}`} href={area.href} key={area.label}>{area.label}</a>
           ))}
         </div>
-        <nav className="mobileNavPanel"><NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} /></nav>
+        {contextualNavigation.length > 0 ? (
+          <nav className="mobileNavPanel" aria-label={`${activeArea} 二级导航`}><NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} /></nav>
+        ) : null}
         <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
       </details>
 
-      <div className="shellFrame">
+      <div className={`shellFrame${showContextRail ? ' shellFrameWithRail' : ''}`}>
+        {showContextRail ? (
+          <aside className={`contextRail ${classNames.rail ?? ''}`.trim()} aria-label={`${activeArea} 二级导航`}>
+            <div className="contextRailSticky">
+              <div className="contextRailTitle">
+                <strong>{activeArea}</strong>
+                <span>模块导航</span>
+              </div>
+              <nav className={`contextRailNav ${classNames.nav ?? ''}`.trim()}>
+                <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />
+              </nav>
+              <div className={classNames.footer ?? 'railFoot'}>{footer}</div>
+            </div>
+          </aside>
+        ) : null}
         <div className="adminBody">
           <section className={`workspace ${classNames.workspace ?? ''}`.trim()} id={workspaceId} data-alsvid-workspace="true">{children}</section>
         </div>
