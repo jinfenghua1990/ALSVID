@@ -1,5 +1,7 @@
 # ALSVID 统一后端与四门户登录架构
 
+> 当前使用 `chaibenn.com` 临时域名；未来切换到 `alsvid.com` 时，SSO 结构不变。
+
 ## 固定架构
 
 ALSVID 使用：
@@ -41,8 +43,8 @@ ALSVID 使用：
 
 同一环境下，四个门户共享 ALSVID 会话：
 
-- 生产门户 Cookie 作用域：.alsvid.com
-- 开发门户 Cookie 作用域：.dev.alsvid.com
+- 生产门户 Cookie 作用域：.chaibenn.com
+- 开发门户 Cookie 作用域：.dev.chaibenn.com
 - 临时 Cloud Run 地址使用当前域名 Cookie，不影响开发验收
 - Cookie 只保存短期会话令牌，不保存业务数据
 - 每个门户进入页面时都通过统一 API 的 /v1/auth/me 验证会话
