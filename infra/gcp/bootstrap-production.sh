@@ -175,6 +175,7 @@ ensure_secret() {
 ensure_secret alsvid-database-url
 ensure_secret alsvid-r2-access-key
 ensure_secret alsvid-r2-secret-key
+ensure_secret alsvid-mail-api-key
 
 provider_name="$(gcloud iam workload-identity-pools providers describe "$WIF_PROVIDER_ID" \
   --project "$GCP_PROJECT_ID" \
@@ -202,6 +203,7 @@ Secret resource shells now exist, but no secret VALUES were written:
   alsvid-database-url
   alsvid-r2-access-key
   alsvid-r2-secret-key
+  alsvid-mail-api-key
 
 Add secret versions only from trusted local/account tooling. Never paste them into Git or workflow YAML.
 EOF
