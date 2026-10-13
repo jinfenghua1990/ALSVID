@@ -1,4 +1,9 @@
-import { Pool, type QueryResult, type QueryResultRow } from 'pg';
+import { Pool, types, type QueryResult, type QueryResultRow } from 'pg';
+
+// PostgreSQL DATE represents a calendar date, not an instant in time. Returning it
+// as a string prevents node-postgres from applying the host timezone and shifting
+// the date when code serializes a JavaScript Date back to ISO.
+types.setTypeParser(1082, (value: string) => value);
 
 export interface QueryExecutor {
   query<R extends QueryResultRow = QueryResultRow>(text: string, values?: unknown[]): Promise<QueryResult<R>>;
