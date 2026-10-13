@@ -325,6 +325,6 @@ function assertApprovedCompanyEmail(email: string, domains: readonly string[]): 
 }
 
 function assertPasswordPolicy(password: string): void {
-  if (password.length < 10 || password.length > 128) throw new IdentityValidationError('Password must be between 10 and 128 characters');
+  if (password.length < 8 || password.length > 128) throw new IdentityValidationError('Password must be between 8 and 128 characters');
   if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) throw new IdentityValidationError('Password must include at least one letter and one number');
 }
