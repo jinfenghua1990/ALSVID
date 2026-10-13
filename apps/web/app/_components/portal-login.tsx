@@ -137,7 +137,7 @@ export function PortalLoginGate({ authenticated, passwordSetupRequired = false, 
         </form> : null}
         {setupRequired ? <form className={styles.dialogForm} onSubmit={submitPasswordSetup}>
           <label>新密码<input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required autoFocus /></label>
-          <label>确认新密码<input name="confirmPassword" type="password" autoComplete="new-password" minLength={10} maxLength={128} required /></label>
+          <label>确认新密码<input name="confirmPassword" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></label>
           <p className={loginStyles.notice}>至少 8 位，并同时包含字母和数字。设置成功后，正常浏览 ALSVID 不再重复要求验证。</p>
           {notice ? <p className={loginStyles.notice}>{notice}</p> : null}{error ? <p className={styles.dialogError}>{error}</p> : null}
           <button className={styles.dialogSubmit} disabled={busy}>{busy ? '正在保存…' : '保存密码并进入 ALSVID'}</button>
