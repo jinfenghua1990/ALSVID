@@ -1,24 +1,42 @@
+import Link from 'next/link';
 import { requirePortalSession } from '../../_lib/portal-access';
-import { PortalShell } from '../../_components/portal-shell';
-import { PortalSectionPage } from '../../_components/portal-section-page';
-
-const cards = [
-  { title: '车辆身份', description: '展示已与当前车主建立可信所有权关系的 ALSVID 车辆、车型与车架号。' },
-  { title: '车辆历史', description: '汇总生产、质检、交付、所有权和后续服务生命周期记录。' },
-  { title: '资料与配置', description: '按车辆实际 Build Specification 展示适配的配置和资料。' },
-] as const;
+import { OwnerShell } from '../../_components/owner-shell';
+import styles from '../owner-portal.module.css';
 
 export default async function MyVehiclesPage() {
   await requirePortalSession('my', '/my/vehicles');
+
   return (
-    <PortalShell kind="my" activeHref="/my/vehicles">
-      <PortalSectionPage
-        eyebrow="MY ALSVID / VEHICLES"
-        title="车辆档案"
-        description="车辆档案以可信车辆身份和所有权关系为前提。账号注册或输入车架号都不会自动取得车辆访问权限。"
-        cards={cards}
-        notice="当前为内部预览骨架；车主身份和所有权关系正式接入前不显示模拟车辆。"
-      />
-    </PortalShell>
+    <OwnerShell activeHref="/my/vehicles">
+      <div className={styles.page}>
+        <header className={styles.pageHeader}>
+          <p className={styles.eyebrow}>MY ALSVID / VEHICLES</p>
+          <h1>我的车辆</h1>
+          <p>一台车对应一个长期数字档案。VIN、所有权、保修、维修、售后和资料都从这里关联。</p>
+        </header>
+
+        <section className={styles.contentGrid}>
+          <div>
+            <article className={styles.card}>
+              <div className={styles.sectionHeader}>
+                <div><h2>你的车库</h2><p>当前没有已确认的 ALSVID 车辆。</p></div>
+                <Link className={styles.primaryAction} href="/my/vehicles/register">+ 添加车辆</Link>
+              </div>
+              <div className={styles.emptyList}>车辆绑定并通过所有权核验后，会在这里显示车型、VIN、保修和服务入口。</div>
+            </article>
+          </div>
+
+          <aside className={styles.card}>
+            <h2>车辆如何进入车库</h2>
+            <p>绑定动作不会绕过所有权校验。</p>
+            <div className={styles.steps}>
+              <div className={styles.step}><span className={styles.stepIndex}>1</span><div><strong>识别车辆</strong><p>输入 VIN / 车架号，匹配 ALSVID 车辆身份。</p></div></div>
+              <div className={styles.step}><span className={styles.stepIndex}>2</span><div><strong>核验关系</strong><p>结合交付、购买或审核事实确认车辆与你的关系。</p></div></div>
+              <div className={styles.step}><span className={styles.stepIndex}>3</span><div><strong>建立档案</strong><p>确认后开放保修、历史、售后、资料与配件。</p></div></div>
+            </div>
+          </aside>
+        </section>
+      </div>
+    </OwnerShell>
   );
 }
