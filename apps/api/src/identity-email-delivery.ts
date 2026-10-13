@@ -124,6 +124,9 @@ export function identityRegistrationConfigFromEnv() {
     approvedEmailDomains,
     registrationMode: process.env.ALSVID_INTERNAL_REGISTRATION_MODE === 'invite_only' ? 'invite_only' as const : 'company_domain' as const,
     initialAdminEmail: process.env.ALSVID_INITIAL_ADMIN_EMAIL?.trim().toLowerCase() || null,
-    exposeTestCode: process.env.ALSVID_EMAIL_TEST_MODE === 'true' && process.env.NODE_ENV !== 'production',
+    exposeTestCode:
+      process.env.MAIL_PROVIDER?.trim().toLowerCase() === 'console'
+      && process.env.ALSVID_EMAIL_TEST_MODE === 'true'
+      && process.env.NODE_ENV !== 'production',
   };
 }
