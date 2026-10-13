@@ -2,22 +2,23 @@ import type { AppNavItem } from '@alsvid/ui';
 
 export const appNavigation: readonly AppNavItem[] = [
   { label: '工作台', href: '/admin', area: '工作台', section: '运营概览' },
-  { label: '今日概览', href: '/overview', area: '工作台', section: '运营概览' },
+  { label: '今日概览', href: '/admin#overview', area: '工作台', section: '运营概览' },
   { label: '待办与异常', href: '/admin#attention', area: '工作台', section: '运营概览' },
 
   { label: '产品', href: '/product', area: '产品', section: '产品中心' },
   { label: '产品列表', href: '/product', area: '产品', section: '产品中心' },
   { label: '产品平台', href: '/product#series', area: '产品', section: '产品中心' },
-  { label: '型号 / Variant / SKU', href: '/product#models', area: '产品', section: '产品中心' },
+  { label: '型号 / 配置 / SKU', href: '/product#models', area: '产品', section: '产品中心' },
   { label: 'BOM 与零件库', href: '/product#engineering', area: '产品', section: '工程资料' },
   { label: '工程文件与版本', href: '/product/documents', area: '产品', section: '工程资料', status: '骨架' },
   { label: '产品生命周期', href: '/product#lifecycle', area: '产品', section: '工程资料', status: '骨架' },
 
   { label: '订单', href: '/commerce', area: '订单', section: '订单中心' },
-  { label: '外部订单事实', href: '/commerce', area: '订单', section: '订单中心' },
-  { label: '销售 / B2B 订单', href: '/commerce#sales', area: '订单', section: '订单中心', status: '骨架' },
-  { label: '配件与售后订单', href: '/commerce#parts', area: '订单', section: '订单中心', status: '骨架' },
-  { label: '订单履约状态', href: '/logistics', area: '订单', section: '履约' },
+  { label: '订单总览', href: '/commerce', area: '订单', section: '订单中心' },
+  { label: 'B2C 商城订单', href: '/commerce#b2c', area: '订单', section: '订单中心', status: '骨架' },
+  { label: 'B2B 经销商订单', href: '/commerce#b2b', area: '订单', section: '订单中心', status: '骨架' },
+  { label: '售后 / 配件订单', href: '/commerce#parts', area: '订单', section: '订单中心', status: '骨架' },
+  { label: '物流与交付', href: '/logistics', area: '订单', section: '履约' },
 
   { label: '生产', href: '/production', area: '生产', section: '生产中心' },
   { label: '生产计划', href: '/production', area: '生产', section: '生产中心' },
@@ -54,23 +55,26 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '成本分析', href: '/supply#cost', area: '供应链', section: '质量与成本', status: '骨架' },
 
   { label: '数据', href: '/overview', area: '数据', section: '数据分析' },
+  { label: '数据总览', href: '/overview', area: '数据', section: '数据分析' },
   { label: '销售分析', href: '/overview#sales', area: '数据', section: '数据分析', status: '骨架' },
   { label: '生产与库存分析', href: '/overview#operations', area: '数据', section: '数据分析', status: '骨架' },
   { label: '售后与经销商分析', href: '/overview#service', area: '数据', section: '数据分析', status: '骨架' },
 
-  { label: '设置', href: '/settings', area: '设置', section: '系统设置' },
-  { label: '用户与访问权限', href: '/settings/access', area: '设置', section: '系统设置', status: '骨架' },
-  { label: '角色 / 权限', href: '/settings/roles', area: '设置', section: '系统设置', status: '骨架' },
-  { label: '员工管理', href: '/people/employees', area: '设置', section: '系统设置' },
-  { label: '审计日志', href: '/settings/audit', area: '设置', section: '系统设置', status: '骨架' },
-  { label: '集成与环境', href: '/settings/integrations', area: '设置', section: '系统设置', status: '骨架' },
+  { label: '设置', href: '/settings/environment', area: '设置', section: '系统设置' },
+  { label: '员工管理', href: '/people/employees', area: '设置', section: '人员与权限' },
+  { label: '用户与访问权限', href: '/settings/access', area: '设置', section: '人员与权限', status: '骨架' },
+  { label: '角色与权限', href: '/settings/roles', area: '设置', section: '人员与权限', status: '骨架' },
+  { label: '安全与登录', href: '/settings/security', area: '设置', section: '安全与审计', status: '骨架' },
+  { label: '审计日志', href: '/settings/audit', area: '设置', section: '安全与审计', status: '骨架' },
+  { label: '通信与邮件', href: '/settings/communications', area: '设置', section: '系统与集成', status: '骨架' },
+  { label: '系统集成', href: '/settings/integrations', area: '设置', section: '系统与集成', status: '骨架' },
+  { label: '环境与基础设施', href: '/settings/environment', area: '设置', section: '系统与集成' },
 ] as const;
 
 export function navigationFor(activeHref: string): readonly AppNavItem[] {
-  let matched = false;
-  return appNavigation.map((item) => {
-    const isMatch = !matched && !item.disabled && item.href === activeHref;
-    if (isMatch) matched = true;
-    return { ...item, active: isMatch };
+  let activeIndex = -1;
+  appNavigation.forEach((item, index) => {
+    if (!item.disabled && item.href === activeHref) activeIndex = index;
   });
+  return appNavigation.map((item, index) => ({ ...item, active: index === activeIndex }));
 }
