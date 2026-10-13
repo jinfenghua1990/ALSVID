@@ -7,11 +7,15 @@ export function sessionCookieOptions(request: Request, expiresAt?: Date): {
   expires?: Date;
 } {
   const host = ((request.headers.get('host') ?? '').split(':')[0] ?? '').toLowerCase();
-  const domain = host.endsWith('.dev.alsvid.com')
-    ? '.dev.alsvid.com'
-    : host.endsWith('.alsvid.com') && host !== 'alsvid.com'
-      ? '.alsvid.com'
-      : undefined;
+  const domain = host.endsWith('.dev.chaibenn.com')
+    ? '.dev.chaibenn.com'
+    : host.endsWith('.chaibenn.com') && host !== 'chaibenn.com'
+      ? '.chaibenn.com'
+      : host.endsWith('.dev.alsvid.com')
+        ? '.dev.alsvid.com'
+        : host.endsWith('.alsvid.com') && host !== 'alsvid.com'
+          ? '.alsvid.com'
+          : undefined;
 
   return {
     httpOnly: true,
