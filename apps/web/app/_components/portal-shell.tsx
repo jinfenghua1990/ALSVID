@@ -7,7 +7,16 @@ export type PortalKind = 'admin' | 'dealer' | 'my';
 
 type PortalLink = { label: string; href: string; status?: string; disabled?: boolean };
 
-const primaryNavigation: readonly PortalLink[] = [
+type PortalConfig = {
+  name: string;
+  subtitle: string;
+  brandHref: string;
+  launcher: PortalLink;
+  primaryLinks: PortalLink[];
+  secondaryLinks: PortalLink[];
+};
+
+const adminPrimaryNavigation: readonly PortalLink[] = [
   { label: '首页', href: '/admin' },
   { label: '产品中心', href: '/product' },
   { label: 'Vehicle 360', href: '/vehicle360' },
@@ -18,11 +27,14 @@ const primaryNavigation: readonly PortalLink[] = [
   { label: '客户中心', href: '/customers' },
 ];
 
-const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: PortalLink[] }> = {
+const portalConfig: Record<PortalKind, PortalConfig> = {
   admin: {
     name: 'ALSVID 内部管理',
     subtitle: '产品中心',
-    links: [
+    brandHref: '/admin',
+    launcher: { label: '管理首页 ↗', href: '/admin' },
+    primaryLinks: [...adminPrimaryNavigation],
+    secondaryLinks: [
       { label: '产品系列', href: '/product#series' },
       { label: '车型 / Variant / SKU', href: '/product#models' },
       { label: '配置管理', href: '/product#configuration' },
@@ -35,25 +47,38 @@ const portalConfig: Record<PortalKind, { name: string; subtitle: string; links: 
   },
   dealer: {
     name: 'ALSVID 经销商门户',
-    subtitle: '经销商门户',
-    links: [
+    subtitle: '经销商业务',
+    brandHref: '/dealer',
+    launcher: { label: '经销商账户 ↗', href: '/dealer/account' },
+    primaryLinks: [
       { label: '工作台', href: '/dealer' },
-      { label: '我的公司', href: '/dealer/company' },
-      { label: '订单与物流', href: '/dealer/orders' },
-      { label: '车辆交付', href: '/dealer/vehicles' },
-      { label: '售后服务', href: '/dealer/service' },
+      { label: '产品目录', href: '/dealer/catalog' },
+      { label: '采购', href: '/dealer/purchase' },
+      { label: 'B2B 订单', href: '/dealer/orders' },
+      { label: '交付车辆', href: '/dealer/vehicles' },
+    ],
+    secondaryLinks: [
+      { label: '订单状态', href: '/dealer/order-status' },
+      { label: '库存 / 可供货', href: '/dealer/availability' },
+      { label: '售后申请', href: '/dealer/service' },
+      { label: '配件申请', href: '/dealer/parts' },
+      { label: '文件资料', href: '/dealer/documents' },
+      { label: '经销商账户', href: '/dealer/account' },
     ],
   },
   my: {
     name: '我的 ALSVID',
     subtitle: '车主服务',
-    links: [
+    brandHref: '/my',
+    launcher: { label: '我的账户 ↗', href: '/my/account' },
+    primaryLinks: [
       { label: '我的车辆', href: '/my' },
       { label: '车辆档案', href: '/my/vehicles' },
       { label: '保修与服务', href: '/my/service' },
       { label: '说明书与配件', href: '/my/library' },
       { label: '账户与偏好', href: '/my/account' },
     ],
+    secondaryLinks: [],
   },
 };
 
@@ -85,15 +110,21 @@ function defaultActiveHref(kind: PortalKind) {
   return '/product';
 }
 
-function isPrimaryActive(href: string, currentHref: string) {
+function isAdminPrimaryActive(href: string, currentHref: string) {
   if (href.includes('#')) return currentHref.startsWith('/product');
   if (href === '/product') return currentHref.startsWith('/product');
   if (href === '/vehicle360') return currentHref.startsWith('/vehicle360') || currentHref === '/production';
   if (href === '/commerce') return ['/commerce', '/supply', '/inventory', '/logistics', '/finance'].some((prefix) => currentHref.startsWith(prefix));
   if (href === '/dealers') return currentHref.startsWith('/dealers') || currentHref.startsWith('/partners');
   if (href === '/after-sales') return currentHref.startsWith('/after-sales');
-  if (href === '/customers') return currentHref.startsWith('/customers') || currentHref.startsWith('/my');
+  if (href === '/customers') return currentHref.startsWith('/customers');
   return href === currentHref;
+}
+
+function isPortalLinkActive(kind: PortalKind, href: string, currentHref: string) {
+  if (kind === 'admin') return isAdminPrimaryActive(href, currentHref);
+  if (href === '/dealer' || href === '/my') return href === currentHref;
+  return currentHref === href || currentHref.startsWith(`${href}/`);
 }
 
 export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; activeHref?: string; children: ReactNode }) {
@@ -103,24 +134,30 @@ export function PortalShell({ kind, activeHref, children }: { kind: PortalKind; 
   return (
     <div className={styles.portal} data-portal={kind}>
       <header className={styles.header}>
-        <Link className={styles.brand} href="/admin">ALSVID</Link>
-        <nav className={styles.primaryNavigation} aria-label="主导航">
-          {primaryNavigation.map((item) => <NavEntry item={item} primary active={isPrimaryActive(item.href, currentHref)} key={item.label} />)}
+        <Link className={styles.brand} href={config.brandHref}>ALSVID</Link>
+        <nav className={styles.primaryNavigation} aria-label={`${config.name}主导航`}>
+          {config.primaryLinks.map((item) => (
+            <NavEntry item={item} primary active={isPortalLinkActive(kind, item.href, currentHref)} key={`${kind}-${item.label}`} />
+          ))}
         </nav>
         <div className={styles.headerTools}>
           <ThemeToggle />
-          <Link className={styles.launcherLink} href="/admin">管理首页 ↗</Link>
+          <Link className={styles.launcherLink} href={config.launcher.href}>{config.launcher.label}</Link>
         </div>
       </header>
 
-      <div className={styles.secondaryNav}>
-        <div className={styles.secondaryNavInner}>
-          <strong>{config.subtitle}</strong>
-          <nav aria-label={`${config.subtitle}导航`}>
-            {config.links.map((item) => <NavEntry item={item} active={item.href === currentHref} key={`${item.label}-${item.href}`} />)}
-          </nav>
+      {config.secondaryLinks.length > 0 ? (
+        <div className={styles.secondaryNav}>
+          <div className={styles.secondaryNavInner}>
+            <strong>{config.subtitle}</strong>
+            <nav aria-label={`${config.subtitle}导航`}>
+              {config.secondaryLinks.map((item) => (
+                <NavEntry item={item} active={isPortalLinkActive(kind, item.href, currentHref)} key={`${item.label}-${item.href}`} />
+              ))}
+            </nav>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <main className={styles.main}>
         <div className={styles.portalTitle}><span>{config.name}</span><small>{config.subtitle}</small></div>
