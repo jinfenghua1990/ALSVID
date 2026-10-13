@@ -27,3 +27,7 @@ export class IdentityMailUnavailableError extends IntegrationError {
 export class IdentityValidationError extends ValidationError {
   constructor(message: string) { super('IDENTITY_VALIDATION', message); }
 }
+
+export class InvalidPasswordResetTokenError extends UnauthorizedError {
+  constructor() { super('IDENTITY_INVALID_PASSWORD_RESET_TOKEN', 'This password reset link is invalid or expired'); }
+}

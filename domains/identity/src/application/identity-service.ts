@@ -8,6 +8,7 @@ import {
   InternalRegistrationDeniedError,
   InvalidCredentialsError,
   InvalidEmailCodeError,
+  InvalidPasswordResetTokenError,
 } from '../core/errors.js';
 import { assertPermission } from '../core/permissions.js';
 import type {
@@ -15,6 +16,7 @@ import type {
   IdentityRegistrationPolicy,
   IdentityRepository,
   IdentityVerificationDelivery,
+  IdentityPasswordResetDelivery,
   OneTimeCodeService,
   PasswordHasher,
   SessionTokenService,
@@ -30,6 +32,7 @@ export class IdentityService {
     private readonly codes: OneTimeCodeService,
     private readonly tokens: SessionTokenService,
     private readonly verificationDelivery: IdentityVerificationDelivery,
+    private readonly passwordResetDelivery: IdentityPasswordResetDelivery,
     private readonly registrationPolicy: IdentityRegistrationPolicy,
     private readonly clock: Clock = systemClock,
   ) {}
@@ -191,6 +194,39 @@ export class IdentityService {
     });
   }
 
+  async requestPasswordReset(email: string, resetUrlBase: string): Promise<void> {
+    if (!this.passwordResetDelivery.configured) throw new IdentityMailUnavailableError();
+    const normalizedEmail = normalizeEmail(email);
+    const user = await this.repository.findPasswordResetUser(normalizedEmail);
+    if (!user) return;
+
+    const token = this.tokens.create();
+    const expiresAt = new Date(this.clock.now().getTime() + 30 * 60 * 1000);
+    await this.repository.transaction(async (executor) => {
+      await this.repository.createPasswordResetToken(user.userId, this.tokens.hash(token), expiresAt, executor);
+      await this.audit.record({ action: 'identity.password_reset_requested', targetType: 'user', targetId: user.userId }, executor);
+    });
+
+    const resetUrl = `${resetUrlBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+    try {
+      await this.passwordResetDelivery.sendResetEmail({ email: user.email, displayName: user.displayName, resetUrl, expiresAt });
+    } catch {
+      throw new IdentityMailUnavailableError();
+    }
+  }
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    if (!token.trim()) throw new InvalidPasswordResetTokenError();
+    assertPasswordPolicy(password);
+    const passwordHash = await this.passwords.hash(password);
+    await this.repository.transaction(async (executor) => {
+      const userId = await this.repository.resetPassword(this.tokens.hash(token.trim()), passwordHash, this.clock.now(), executor);
+      if (!userId) throw new InvalidPasswordResetTokenError();
+      await this.repository.revokeUserSessions(userId, executor);
+      await this.audit.record({ action: 'identity.password_reset_completed', targetType: 'user', targetId: userId }, executor);
+    });
+  }
+
   async securityPolicy(actor: AuthContext): Promise<{ sessionTtlDays: number; forcePasswordSetup: boolean; riskStepUpEnabled: boolean; updatedAt: string }> {
     assertPermission(actor, Permission.IdentityRoleManage);
     const policy = await this.repository.getSecurityPolicy();
@@ -289,6 +325,6 @@ function assertApprovedCompanyEmail(email: string, domains: readonly string[]): 
 }
 
 function assertPasswordPolicy(password: string): void {
-  if (password.length < 10 || password.length > 128) throw new IdentityValidationError('Password must be between 10 and 128 characters');
+  if (password.length < 8 || password.length > 128) throw new IdentityValidationError('Password must be between 8 and 128 characters');
   if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) throw new IdentityValidationError('Password must include at least one letter and one number');
 }

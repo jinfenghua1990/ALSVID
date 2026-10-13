@@ -523,7 +523,476 @@ The system begins as a modular monolith with explicit domain boundaries and cont
 
 ---
 
-## 13. Technical baseline
+## 13. ALSVID 官网商城架构（已确认）
+
+ALSVID 官网采用：
+
+> 品牌官网 = Shopify 商城
+
+不是：
+
+```text
+品牌官网
++
+独立商城
+```
+
+而是：
+
+```text
+ALSVID 官网
+
+        |
+        |
+        +---- Shopify Commerce
+        |        商品
+        |        B2C订单
+        |        支付
+        |        退款
+        |
+        +---- My ALSVID
+        |        会员体系
+        |        车辆管理
+        |        售后服务
+        |
+        +---- Dealer Portal
+                 经销商体系
+                 B2B采购
+```
+
+---
+
+### 13.1 官网定位
+
+ALSVID 官网同时承担：
+
+- 品牌展示
+- 产品展示
+- 产品购买
+- 配件销售
+- 用户登录
+- 车主服务入口
+- 经销商合作入口
+
+用户访问：
+
+```text
+www.alsvid.com
+```
+
+即可完成：
+
+```text
+了解品牌
+
+↓
+
+查看产品
+
+↓
+
+购买自行车
+
+↓
+
+注册车辆
+
+↓
+
+享受售后服务
+```
+
+---
+
+### 13.2 官网顶部导航结构（已确认）
+
+```text
+ALSVID
+
+
+自行车
+
+配件
+
+服务
+
+关于我们
+
+经销商合作
+
+
+购买
+
+登录
+
+搜索
+```
+
+---
+
+### 13.3 自行车产品体系
+
+自行车作为官网核心入口。
+
+产品按照平台体系管理：
+
+```text
+自行车
+
+├── FC Series
+│       Folding Carbon
+│       碳纤维折叠平台
+│
+├── CT Series
+│       City Touring
+│       城市通勤平台
+│
+├── FT Series
+│       Fat Tire
+│       胖胎探索平台
+│
+└── GT Series
+        Grand Touring
+        长途旅行平台
+```
+
+产品页面包含：
+
+- 产品介绍
+- 技术参数
+- 图片/视频
+- 工程设计
+- 配件推荐
+- Shopify购买入口
+
+---
+
+### 13.4 配件体系
+
+配件作为独立商业生态。
+
+包括：
+
+```text
+配件
+
+├── 车身配件
+│
+├── 骑行装备
+│
+├── 升级套件
+│
+└── 维修零件
+```
+
+配件通过 Shopify 销售。
+
+未来支持：
+
+- 产品关联推荐
+- 车型匹配
+- 升级方案
+
+---
+
+### 13.5 My ALSVID 会员体系
+
+My ALSVID 是公开给车主使用的会员系统。
+
+不是后台系统。
+
+用户登录后可以：
+
+```text
+My ALSVID
+
+├── 我的车辆
+│
+├── 车辆注册
+│
+├── VIN / 车架号绑定
+│
+├── 保修查询
+│
+├── 维修服务
+│
+├── 服务记录
+│
+├── 用户手册
+│
+└── 服务网点
+```
+
+---
+
+#### My ALSVID 与后台关系
+
+用户看到：
+
+```text
+我的车辆
+
+FC1
+
+保修有效
+```
+
+后台管理：
+
+```text
+Vehicle 360
+
+VIN
+
+生产批次
+
+销售渠道
+
+购买记录
+
+质保状态
+
+维修历史
+
+配件记录
+```
+
+---
+
+My ALSVID 数据进入 ALSVID 后台运营系统。
+
+---
+
+### 13.6 经销商体系（Dealer）
+
+经销商不是普通消费者。
+
+对象：
+
+- 自行车店
+- 区域代理商
+- 国家总代理
+- 户外运动零售商
+
+入口：
+
+```text
+经销商合作
+```
+
+包含：
+
+```text
+Dealer Portal
+
+├── 经销商申请
+│
+├── 经销商登录
+│
+├── 产品目录
+│
+├── B2B采购
+│
+├── 订单管理
+│
+└── 市场支持资料
+```
+
+---
+
+### 13.7 供应商体系说明
+
+供应商不作为官网公开入口。
+
+原因：
+
+供应商属于内部供应链管理。
+
+不进入：
+
+```text
+官网导航
+```
+
+未来如果需要：
+
+通过：
+
+```text
+联系我们
+
+↓
+
+供应链合作
+```
+
+处理。
+
+供应商管理属于内部：
+
+```text
+ALSVID Admin
+
+供应链
+
+采购
+
+生产
+
+质量管理
+```
+
+---
+
+### 13.8 官网与后台系统边界
+
+#### Shopify
+
+负责：
+
+```text
+商品
+
+购物车
+
+订单
+
+支付
+
+退款
+
+物流状态
+```
+
+---
+
+#### ALSVID 后台
+
+负责：
+
+```text
+Vehicle
+
+VIN
+
+客户
+
+经销商
+
+保修
+
+维修
+
+售后
+
+车辆生命周期管理
+```
+
+---
+
+#### 数据关系
+
+```text
+消费者
+
+   |
+
+ALSVID 官网
+
+   |
+
+Shopify订单
+
+   |
+
+ALSVID后台
+
+   |
+
+Vehicle / VIN / 售后生命周期
+```
+
+---
+
+### 13.9 官网首页规划方向
+
+首页不是传统电商页面。
+
+定位：
+
+```text
+品牌体验
++
+产品体验
++
+购买入口
++
+车主生态
+```
+
+首页结构：
+
+```text
+第一屏
+
+旗舰产品 FC1
+
+
+↓
+
+产品平台
+
+FC / CT / FT / GT
+
+
+↓
+
+工程设计
+
+
+↓
+
+配件生态
+
+
+↓
+
+My ALSVID 服务体系
+
+
+↓
+
+经销商合作
+
+
+↓
+
+品牌故事
+```
+
+---
+
+### 13.10 设计原则
+
+ALSVID 官网参考方向：
+
+- Apple 产品体验
+- DJI 科技展示
+- Tesla 用户生态
+- 国际自行车品牌专业感
+
+原则：
+
+- 简洁
+- 高端
+- 产品优先
+- 少菜单
+- 强视觉
+- 强品牌体验
+
+---
+
+## 14. Technical baseline
 
 - TypeScript end-to-end
 - Next.js + React for web applications
@@ -536,7 +1005,7 @@ The system begins as a modular monolith with explicit domain boundaries and cont
 
 ---
 
-## 14. Repository layout
+## 15. Repository layout
 
 ```text
 apps/
@@ -562,7 +1031,7 @@ docs/          # architecture, boundaries, decisions, ownership and operations
 
 ---
 
-## 15. AI / 新开发者必须先读
+## 16. AI / 新开发者必须先读
 
 在修改 ALSVID 架构或业务边界前，至少先读：
 
@@ -591,7 +1060,7 @@ docs/          # architecture, boundaries, decisions, ownership and operations
 
 ---
 
-## 16. Local bootstrap
+## 17. Local bootstrap
 
 Repository tooling may still provide local bootstrap helpers for development. Production-bound acceptance follows [`docs/ENVIRONMENT_STRATEGY.md`](docs/ENVIRONMENT_STRATEGY.md): Docker + isolated managed Test data resources.
 
@@ -606,7 +1075,7 @@ Use repository scripts/infra definitions documented in the current branch rather
 
 ---
 
-## 17. 最后一句
+## 18. 最后一句
 
 ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 
