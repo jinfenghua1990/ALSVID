@@ -1,8 +1,19 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import type {
+  AllocateCargoInput,
+  CustomsDeclarationInput,
+  CustomsDraftUpdateInput,
+  CustomsEventInput,
+  CustomsLineInput,
+  CreateShipmentInput,
+  MilestoneInput,
+} from '@alsvid/logistics';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
 import { logisticsService } from './runtime.js';
+
+interface ReasonBody { reason?: string }
 
 @Controller('v1/logistics')
 export class LogisticsController {
@@ -13,13 +24,13 @@ export class LogisticsController {
   }
 
   @Post('shipments')
-  async createShipment(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async createShipment(@Req() request: AuthenticatedRequest, @Body() input: CreateShipmentInput) {
     try { return { data: await logisticsService.createShipment(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('shipments/:id/cargo')
-  async allocateCargo(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async allocateCargo(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: AllocateCargoInput) {
     try { return { data: await logisticsService.allocateCargo(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
@@ -43,13 +54,13 @@ export class LogisticsController {
   }
 
   @Post('shipments/:id/milestones')
-  async milestone(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async milestone(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: MilestoneInput) {
     try { return { data: await logisticsService.addMilestone(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('shipments/:id/cancel')
-  async cancel(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async cancel(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: ReasonBody) {
     try { return { data: await logisticsService.cancelShipment(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
@@ -61,25 +72,25 @@ export class LogisticsController {
   }
 
   @Post('shipments/:id/customs')
-  async createCustoms(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async createCustoms(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: CustomsDeclarationInput) {
     try { return { data: await logisticsService.createCustomsDeclaration(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('customs/:id/update')
-  async updateCustoms(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async updateCustoms(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: CustomsDraftUpdateInput) {
     try { return { data: await logisticsService.updateCustomsDraft(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('customs/:id/lines')
-  async customsLine(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async customsLine(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: CustomsLineInput) {
     try { return { data: await logisticsService.addCustomsLine(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('customs/:id/events')
-  async customsEvent(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async customsEvent(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: CustomsEventInput) {
     try { return { data: await logisticsService.addCustomsEvent(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }

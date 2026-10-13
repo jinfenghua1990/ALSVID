@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import type { CreateProductionOrderInput, ProductionDeviationInput, QcInspectionInput } from '@alsvid/production';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
@@ -13,7 +14,7 @@ export class ProductionController {
   }
 
   @Post('orders')
-  async create(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async create(@Req() request: AuthenticatedRequest, @Body() input: CreateProductionOrderInput) {
     try { return { data: await productionService.createOrder(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
@@ -49,13 +50,13 @@ export class ProductionController {
   }
 
   @Post('units/:id/inspect')
-  async inspect(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async inspect(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: QcInspectionInput) {
     try { return { data: await productionService.inspectUnit(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('units/:id/deviations')
-  async deviation(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async deviation(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: ProductionDeviationInput) {
     try { return { data: await productionService.recordDeviation(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }

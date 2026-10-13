@@ -1,19 +1,22 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import type { RegisterAssetInput } from '@alsvid/assets';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
 import { assetService } from './runtime.js';
 
+interface AssetLinkBody { entityType: string; entityId: string; purpose?: string; sortOrder?: number }
+
 @Controller('v1/assets')
 export class AssetsController {
   @Post()
-  async register(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async register(@Req() request: AuthenticatedRequest, @Body() input: RegisterAssetInput) {
     try { return { data: await assetService.register(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post(':id/links')
-  async link(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async link(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: AssetLinkBody) {
     try { return { data: await assetService.link(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
