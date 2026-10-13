@@ -7,6 +7,9 @@ on:
 
 jobs:
   verify:
+    # The release PR already carries a tested develop tree; avoid duplicate checks
+    # on its short-lived bot-created branch (which is deleted immediately on merge).
+    if: ${{ github.event_name != 'pull_request' || !startsWith(github.head_ref, 'release/development-') }}
     runs-on: ubuntu-latest
     services:
       postgres:
