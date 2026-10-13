@@ -225,13 +225,20 @@ export class FinanceService {
 }
 
 function dateOnly(value: unknown): string {
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  const text = String(value);
+  if (value instanceof Date) return localDate(value);
+  const text = String(value).trim();
   const iso = /^\d{4}-\d{2}-\d{2}/.exec(text)?.[0];
   if (iso) return iso;
   const parsed = new Date(text);
-  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  if (!Number.isNaN(parsed.getTime())) return localDate(parsed);
   throw new FinanceValidationError('Invalid Finance due date');
+}
+
+function localDate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function requirePermission(actor: FinanceActor, permission: string): void {
