@@ -4,6 +4,11 @@ import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
 import { engineeringService } from './runtime.js';
 
+interface CreatePartBody { partNumber: string; name: string; category?: string; defaultUnit?: string; description?: string }
+interface CreateBomBody { modelId: string; code: string; name: string; revisionCode?: string; description?: string }
+interface AddBomLineBody { lineNo: number; partId: string; quantity: number; unit?: string; reference?: string }
+interface CreateBuildSpecBody { code: string; skuId: string; bomRevisionId: string; notes?: string; attributes?: Record<string, unknown> }
+
 @Controller('v1/engineering')
 export class EngineeringController {
   @Get()
@@ -13,19 +18,19 @@ export class EngineeringController {
   }
 
   @Post('parts')
-  async createPart(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async createPart(@Req() request: AuthenticatedRequest, @Body() input: CreatePartBody) {
     try { return { data: await engineeringService.createPart(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('boms')
-  async createBom(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async createBom(@Req() request: AuthenticatedRequest, @Body() input: CreateBomBody) {
     try { return { data: await engineeringService.createBom(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('bom-revisions/:id/lines')
-  async addLine(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async addLine(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: AddBomLineBody) {
     try { return { data: await engineeringService.addBomLine(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
@@ -37,7 +42,7 @@ export class EngineeringController {
   }
 
   @Post('build-specs')
-  async createBuildSpec(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async createBuildSpec(@Req() request: AuthenticatedRequest, @Body() input: CreateBuildSpecBody) {
     try { return { data: await engineeringService.createBuildSpec(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }

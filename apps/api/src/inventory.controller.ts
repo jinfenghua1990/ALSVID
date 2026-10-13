@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import type { MovementInput, ReservationInput, ReservationIssueInput } from '@alsvid/inventory';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
@@ -13,13 +14,13 @@ export class InventoryController {
   }
 
   @Post('movements')
-  async movement(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async movement(@Req() request: AuthenticatedRequest, @Body() input: MovementInput) {
     try { return { data: await inventoryService.postMovement(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
   @Post('reservations')
-  async reservation(@Req() request: AuthenticatedRequest, @Body() input: any) {
+  async reservation(@Req() request: AuthenticatedRequest, @Body() input: ReservationInput) {
     try { return { data: await inventoryService.createReservation(requireAuth(request), input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
@@ -31,7 +32,7 @@ export class InventoryController {
   }
 
   @Post('reservations/:id/issue')
-  async issue(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: any) {
+  async issue(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: ReservationIssueInput) {
     try { return { data: await inventoryService.issueReservation(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }

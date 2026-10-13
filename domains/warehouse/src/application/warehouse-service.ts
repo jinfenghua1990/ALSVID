@@ -5,6 +5,17 @@ import { WarehouseConflictError, WarehouseNotFoundError, WarehouseValidationErro
 import { normalizeLocationType, normalizeWarehouseCode, normalizeWarehouseCountry, warehouseCount, warehouseItemIds } from '../core/validation.js';
 import type { WarehouseActor, WarehouseAuditPort, WarehouseInventoryPort, WarehouseRepository } from './ports.js';
 
+interface StocktakeCountRow {
+  id: string;
+  item_kind: WarehouseItemKind;
+  part_id: string | null;
+  sku_id: string | null;
+  vehicle_id: string | null;
+  counted_quantity: string;
+  unit: string;
+  location_id: string;
+}
+
 export class WarehouseService {
   constructor(
     private readonly repository: WarehouseRepository,
@@ -86,13 +97,14 @@ export class WarehouseService {
       const session = await this.repository.lockStocktake(sessionId, executor);
       if (!session) throw new WarehouseNotFoundError('Stocktake session not found');
       if (session.status !== 'OPEN') throw new WarehouseConflictError('Stocktake session is no longer open');
-      const latest = await this.repository.latestCounts(sessionId, executor);
+      const latest: StocktakeCountRow[] = await this.repository.latestCounts(sessionId, executor);
       if (!latest.length) throw new WarehouseConflictError('At least one stocktake count is required before close');
-      const corrections: { row: any; delta: string }[] = [];
+      const corrections: { row: StocktakeCountRow; itemId: string; delta: string }[] = [];
       for (const row of latest) {
         const itemId = row.part_id ?? row.sku_id ?? row.vehicle_id;
+        if (!itemId) throw new WarehouseConflictError('Stocktake count is missing its item reference');
         const balance = await this.inventory.balanceAt({ itemKind: row.item_kind, itemId, unit: row.unit, locationId: row.location_id }, executor);
-        corrections.push({ row, delta: await this.repository.numericDelta(row.counted_quantity, balance, executor) });
+        corrections.push({ row, itemId, delta: await this.repository.numericDelta(row.counted_quantity, balance, executor) });
       }
       corrections.sort((a, b) => compareDecimalStrings(a.delta, b.delta));
       for (const correction of corrections) {
@@ -100,7 +112,7 @@ export class WarehouseService {
         const row = correction.row;
         await this.inventory.postStocktakeCorrection(actor, {
           itemKind: row.item_kind,
-          itemId: row.part_id ?? row.sku_id ?? row.vehicle_id,
+          itemId: correction.itemId,
           unit: row.unit,
           locationId: row.location_id,
           delta: correction.delta,

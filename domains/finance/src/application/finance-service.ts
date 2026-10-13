@@ -15,6 +15,8 @@ import { FinanceConflictError, FinanceNotFoundError, FinanceValidationError } fr
 import { financeCurrency, financeNonNegative, financePositive, financeRequired, financeSource, financeVersion } from '../core/validation.js';
 import type { FinanceActor, FinanceAuditPort, FinanceRepository } from './ports.js';
 
+type PostedFinanceObligation = Record<string, unknown> & { id: string };
+
 export class FinanceService {
   constructor(private readonly repository: FinanceRepository, private readonly audit: FinanceAuditPort) {}
 
@@ -72,7 +74,7 @@ export class FinanceService {
     } catch (error) { this.rethrow(error); }
   }
 
-  async postDocument(actor: FinanceActor, id: string, expectedVersion: number): Promise<{ document: any; obligation: any | null }> {
+  async postDocument(actor: FinanceActor, id: string, expectedVersion: number): Promise<{ document: Record<string, unknown>; obligation: PostedFinanceObligation | null }> {
     requirePermission(actor, FinanceCapability.DocumentPost);
     financeVersion(expectedVersion);
     try {
@@ -82,7 +84,7 @@ export class FinanceService {
         if (current.version !== expectedVersion || current.status !== 'VERIFIED') throw new FinanceConflictError('Finance document changed or is not verified');
         const document = await this.repository.postDocument(id, expectedVersion, actor.userId, executor);
         if (!document) throw new FinanceConflictError('Finance document changed while posting');
-        let obligation: any = null;
+        let obligation: PostedFinanceObligation | null = null;
         if (current.document_type === 'SUPPLIER_INVOICE' || current.document_type === 'CUSTOMER_INVOICE') {
           obligation = await this.repository.createObligation({
             direction: current.document_type === 'SUPPLIER_INVOICE' ? 'AP' : 'AR',
