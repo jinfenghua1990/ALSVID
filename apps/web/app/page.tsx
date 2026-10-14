@@ -69,7 +69,7 @@ export default async function HomePage() {
       <section id="top" className={styles.hero}>
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>FC1 · 碳纤维折叠旗舰</p>
-          <h1>ALSVID</h1>
+          <h1>ENGINEERED<br />FOR FREEDOM.</h1>
           <h2>为自由而工程</h2>
           <p className={styles.heroLead}>
             以工程创新，重新定义折叠自行车。更轻、更强、更自由，陪伴你探索更大的世界。
@@ -129,6 +129,31 @@ export default async function HomePage() {
             <div className={styles.featureItem}><div className={styles.featureIcon}>✦</div><strong>精密结构</strong><span>围绕可靠性与长期使用设计</span></div>
             <div className={styles.featureItem}><div className={styles.featureIcon}>⌁</div><strong>城市与旅行兼顾</strong><span>从日常出行到更远的旅程</span></div>
           </div>
+        </div>
+      </section>
+
+      <section id="folding" className={styles.foldingSection}>
+        <div className={styles.foldingInner}>
+          <div className={styles.foldingIntro}>
+            <p className={styles.foldingEyebrow}>FC1 · FOLDING EXPERIENCE</p>
+            <h2>FOLD. GO. EXPLORE.</h2>
+            <p>从骑行到收纳，自由切换。FC1 的折叠设计，让日常通勤与旅途转换更加从容。</p>
+          </div>
+          <div className={styles.foldingSteps}>
+            {[
+              ['01', '准备折叠', '停稳车辆，按照产品手册确认折叠步骤。'],
+              ['02', '折叠收纳', '通过专门设计的折叠结构，减少车辆占用空间。'],
+              ['03', '再次出发', '到达目的地后展开车辆，检查锁止状态再骑行。'],
+            ].map(([number, title, description]) => (
+              <article className={styles.foldingStep} key={number}>
+                <span className={styles.foldingNumber}>{number}</span>
+                <div className={styles.foldingStepVisual} aria-hidden="true"><span>FC1</span></div>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </article>
+            ))}
+          </div>
+          <p className={styles.foldingDisclaimer}>折叠动作示意位置待真实 FC1 连续摄影或视频素材替换；实际操作请以产品手册为准。</p>
         </div>
       </section>
 
