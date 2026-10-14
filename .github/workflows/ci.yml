@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [main]
   push:
-    branches: [main, develop]
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -37,38 +37,108 @@ jobs:
       TZ: Asia/Shanghai
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify changed paths
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          docs_only=true
+          while IFS= read -r file; do
+            case "$file" in
+              docs/*|*.md|AGENTS.md|.github/ISSUE_TEMPLATE/*) ;;
+              *) docs_only=false; break ;;
+            esac
+          done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+      - name: Skip code checks for documentation-only changes
+        if: steps.scope.outputs.docs_only == 'true'
+        run: echo "Documentation-only change; required CI jobs remain successful without rebuilding the application."
+
       - name: Validate workflow configuration
+        if: steps.scope.outputs.docs_only != 'true'
         run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 -color -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/production-deploy.yml
       - name: Validate Google Cloud bootstrap shell syntax
+        if: steps.scope.outputs.docs_only != 'true'
         run: |
           bash -n infra/gcp/bootstrap-development.sh
           bash -n infra/gcp/bootstrap-production.sh
       - uses: pnpm/action-setup@v4
+        if: steps.scope.outputs.docs_only != 'true'
         with:
           version: 10.34.6
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.docs_only != 'true'
         with:
           node-version: 22
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+        if: steps.scope.outputs.docs_only != 'true'
       - run: node --test scripts/macos-test-auto-update.test.mjs
+        if: steps.scope.outputs.docs_only != 'true'
       - run: node --test scripts/release-gate.test.mjs
+        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm db:migrate
+        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm db:migrate
+        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm arch:check
+        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm typecheck
+        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm test
+        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm build
+        if: steps.scope.outputs.docs_only != 'true'
+
 
   containers:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify changed paths
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          docs_only=true
+          while IFS= read -r file; do
+            case "$file" in
+              docs/*|*.md|AGENTS.md|.github/ISSUE_TEMPLATE/*) ;;
+              *) docs_only=false; break ;;
+            esac
+          done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+      - name: Skip code checks for documentation-only changes
+        if: steps.scope.outputs.docs_only == 'true'
+        run: echo "Documentation-only change; required CI jobs remain successful without rebuilding the application."
+
       - name: Set up Docker Buildx
+        if: steps.scope.outputs.docs_only != 'true'
         uses: docker/setup-buildx-action@v3
       - name: Build web image with cache
+        if: steps.scope.outputs.docs_only != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -81,6 +151,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
 
       - name: Build api image with cache
+        if: steps.scope.outputs.docs_only != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -92,6 +163,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
 
       - name: Build worker image with cache
+        if: steps.scope.outputs.docs_only != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -103,12 +175,16 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-worker,ignore-error=true
 
       - name: Start isolated CI database
+        if: steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml up -d --wait postgres
       - name: Run migrations from the API image
+        if: steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml run --rm --no-deps api pnpm db:migrate
       - name: Start the tested images
+        if: steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml up -d --no-build web api worker gateway
       - name: Smoke check API, Web and authentication redirects
+        if: steps.scope.outputs.docs_only != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -159,6 +235,7 @@ jobs:
           done
 
       - name: Verify API and worker remain running
+        if: steps.scope.outputs.docs_only != 'true'
         run: |
           set -euo pipefail
           for service in api worker; do
@@ -167,8 +244,8 @@ jobs:
             [[ "$(docker inspect --format '{{.State.Running}}' "$container_id")" == "true" ]]
           done
       - name: Show container logs on failure
-        if: failure()
+        if: failure() && steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml logs --no-color
       - name: Tear down isolated CI containers
-        if: always()
+        if: always() && steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml down -v --remove-orphans
