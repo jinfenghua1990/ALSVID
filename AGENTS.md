@@ -103,7 +103,7 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 - Canonical names in all communication: 开发/测试：`ALSVID Development`; 正式/生产：`ALSVID Production`.
 - Following the owner-approved 2026-10-14 Production-only decision, reviewed PRs target `main`; `develop` is optional and does not deploy a separate cloud runtime.
 - `CI` contains code verification and isolated Docker acceptance. Keep the `verify` and `containers` checks; they use disposable GitHub runners and no Production credentials.
-- Production starts only after successful main-push CI for the exact commit. The release gate verifies both jobs and rejects obsolete automatic releases. Explicit rollback may select a previously successful Production release.
+- Production starts only after successful main CI (push or explicit workflow dispatch after a bot merge) for the exact commit. The release gate verifies both jobs and rejects obsolete automatic releases. Explicit rollback may select a previously successful Production release.
 - Do not restore the retired Development Build, Development Deploy or promotion workflows without a new owner decision.
 - Every meaningful change maps to an issue or coherent PR.
 - Update `docs/CURRENT_STATE.md` only when behavior or architecture becomes real.

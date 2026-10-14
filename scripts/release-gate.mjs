@@ -14,6 +14,11 @@ export function acceptedJobs(jobs) {
     job.name === name && job.status === 'completed' && job.conclusion === 'success'));
 }
 
+export function mainReleaseRuns(runs) {
+  return runs.filter(run => run.head_branch === 'main' &&
+    ['push', 'workflow_dispatch'].includes(run.event));
+}
+
 export async function acceptedRollback(runs, sha, allowed) {
   return allowed && successfulRuns(runs, sha);
 }
@@ -41,7 +46,8 @@ async function main() {
       return;
     }
   }
-  const result = await api(`actions/workflows/ci.yml/runs?head_sha=${sha}&branch=main&event=push&per_page=100`);
+  const result = await api(`actions/workflows/ci.yml/runs?head_sha=${sha}&branch=main&per_page=100`);
+  result.workflow_runs = mainReleaseRuns(result.workflow_runs);
   if (acceptedChecks({ 'ci.yml': result.workflow_runs }, sha)) {
     for (const run of result.workflow_runs.filter(run => successfulRuns([run], sha))) {
       const { jobs } = await api(`actions/runs/${run.id}/jobs?per_page=100`);

@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [develop, main]
   push:
@@ -38,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate workflow configuration
-        run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 -color -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/production-deploy.yml
+        run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 -color -shellcheck= -pyflakes= .github/workflows/*.yml
       - name: Validate Google Cloud bootstrap shell syntax
         run: |
           bash -n infra/gcp/bootstrap-development.sh

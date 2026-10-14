@@ -1,0 +1,67 @@
+name: PR Auto Merge
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: auto-merge-main
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.path == '.github/workflows/ci.yml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # No checkout: this privileged controller never executes PR code.
+      - name: Merge a ready same-repository PR after required CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
+          CI_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jobs="$(gh api "repos/$GH_REPO/actions/runs/$CI_RUN_ID/jobs?per_page=100")"
+          if ! jq -e '[.jobs[] | select((.name == "verify" or .name == "containers") and .status == "completed" and .conclusion == "success") | .name] | unique | sort == ["containers", "verify"]' <<< "$jobs" >/dev/null; then
+            echo 'Both required CI jobs must succeed.' >&2
+            exit 1
+          fi
+          prs="$(gh api "repos/$GH_REPO/pulls?state=open&base=main&per_page=100")"
+          number="$(jq -r --arg sha "$CI_HEAD_SHA" --arg repo "$GH_REPO" '.[] | select(.head.sha == $sha and .head.repo.full_name == $repo and .draft == false) | select(.author_association == "OWNER" or .author_association == "MEMBER" or .author_association == "COLLABORATOR") | .number' <<< "$prs" | head -n 1)"
+          if [[ -z "$number" ]]; then
+            echo 'No ready trusted PR matches this CI commit.'
+            exit 0
+          fi
+          gh pr merge "$number" --squash --auto --match-head-commit "$CI_HEAD_SHA"
+          merged_sha=''
+          for attempt in {1..12}; do
+            merged_sha="$(gh api "repos/$GH_REPO/pulls/$number" --jq 'if .merged then .merge_commit_sha else "" end')"
+            [[ -n "$merged_sha" ]] && break
+            sleep 5
+          done
+          if [[ -z "$merged_sha" ]]; then
+            echo 'Auto-merge enabled; another branch requirement is still blocking the PR.' >&2
+            exit 1
+          fi
+          main_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq .object.sha)"
+          if [[ "$main_sha" != "$merged_sha" ]]; then
+            echo 'A newer main commit exists; do not dispatch CI for an obsolete release.'
+            exit 0
+          fi
+          # GITHUB_TOKEN merges do not trigger push workflows. Explicit dispatch
+          # runs the same CI on main before the existing Production release gate.
+          gh workflow run ci.yml --ref main
+          echo "PR #$number merged; main CI dispatched for $merged_sha." >> "$GITHUB_STEP_SUMMARY"
