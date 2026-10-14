@@ -116,22 +116,14 @@ Large files should not be stored inside the database.
 
 ## 7. Environment Strategy
 
-Current stage:
+Current environment model:
 
-Development/Test:
+- Local workstation/Docker for development.
+- Disposable GitHub CI runners for automated validation.
+- Production on Cloud Run in `alsvid-prod`.
+- The former cloud Development/Test runtime is retired from the release flow.
 
-- M1 Mac
-- Docker application runtime
-- Managed cloud test database
-- Managed cloud test object storage
-
-Production:
-
-- Cloud Run
-- Neon Production database
-- R2 Production storage
-
----
+Production uses Neon and R2 Production resources. Local/CI resources are isolated and must not receive Production credentials.
 
 ## 8. Q4 Position
 

@@ -52,9 +52,9 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - Production database primary: Neon PostgreSQL.
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
-- Local Development compute: M1 Mac + Docker. Shared Development/Test compute: Google Cloud Run when a commit must be tested outside the workstation.
-- Current Development database/object storage: isolated managed cloud Development resources (Neon Development + R2 Development), not Production resources.
-- The shared Cloud Run Development/Test environment is maintained separately from Production and uses only Development/Test resources.
+- Local development compute: developer workstation with Docker; CI uses disposable GitHub-hosted runners.
+- The only active cloud runtime is Production in `alsvid-prod`; the former shared Cloud Run Development/Test runtime in `alsvid-dev` is retired from the release architecture.
+- Local/CI databases and storage are isolated and temporary. Do not assume Neon/R2 Test resources exist, and never use Production credentials for validation.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
 ## Architecture rules
@@ -100,7 +100,7 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 
 ## Delivery discipline
 
-- Canonical names in all communication: 开发/测试：`ALSVID Development`; 正式/生产：`ALSVID Production`.
+- Current environment names: local development, ephemeral CI, and Production. `ALSVID Development` refers only to the retired historical cloud runtime; `ALSVID Production` is the active cloud runtime.
 - Following the owner-approved 2026-10-14 Production-only decision, reviewed PRs target `main`; `develop` is optional and does not deploy a separate cloud runtime.
 - `CI` contains code verification and isolated Docker acceptance. Keep the `verify` and `containers` checks; they use disposable GitHub runners and no Production credentials.
 - Production starts only after successful main-push CI for the exact commit. The release gate verifies both jobs and rejects obsolete automatic releases. Explicit rollback may select a previously successful Production release.
@@ -110,5 +110,5 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 - Add tests for changed invariants.
 - Do not add secrets, credentials or real customer data.
 - Prefer one clean implementation over compatibility shims for code that has never been deployed.
-- Test approval promotes a software version/commit, not Test data.
+- CI validates a software version/commit; it never promotes test data into Production.
 - Production changes must remain reproducible from GitHub source and documented configuration.

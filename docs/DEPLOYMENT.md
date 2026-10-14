@@ -19,7 +19,7 @@ The repository-side Test gate builds the real Web/API/Worker images, starts Post
 
 The release rule is **Test the candidate first, then deploy the same version to Production**. A successful local Test does not turn the Test database or Test files into Production data; it approves the software version for production deployment.
 
-A separate cloud Test environment may be added later when one of these conditions becomes real:
+A separate cloud Test environment is not part of the current architecture. Reconsider it only after a new reviewed owner decision and a concrete need, such as:
 
 1. multiple developers or employees need a shared isolated integration environment;
 2. repeated defects appear only in Cloud Run or other cloud-specific services and cannot be reproduced locally;

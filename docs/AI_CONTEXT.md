@@ -75,17 +75,17 @@ Storage:
 
 - Cloudflare R2
 
-Development/Test:
+Development and CI:
 
-- M1 Mac provides local compute and Docker execution.
-- Google Cloud Run provides the shared Development/Test runtime when multiple developers or robots need the same deployed commit.
-- Managed cloud test database and object storage are used for production similarity.
+- Local workstation and Docker for development.
+- Disposable GitHub-hosted runners for automated checks, with temporary PostgreSQL and no Production secrets.
+- The former shared cloud Development/Test runtime is retired.
 
 Production:
 
-- Cloud Run
-- Neon PostgreSQL
-- Cloudflare R2
+- Google Cloud Run in `alsvid-prod`.
+- Neon PostgreSQL.
+- Cloudflare R2.
 
 ## Future AI Rule
 

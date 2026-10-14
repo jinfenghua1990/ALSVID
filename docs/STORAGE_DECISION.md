@@ -41,33 +41,15 @@ R2 is currently preferred because:
 - it is globally reachable and can later integrate with Cloudflare's broader delivery/security ecosystem;
 - the S3-compatible approach preserves migration options.
 
-## Why not local MinIO as the normal Development target
+## Development and CI storage
 
-MinIO is useful for offline development, but it is not the default ALSVID Development storage because local object storage introduces behavior that differs from Production:
+Unit tests and ordinary CI do not require persistent object storage. Use mocks for routine tests. When a workflow specifically needs to validate external R2 behavior, provision a clearly isolated test bucket and credentials for that purpose only; verify the live binding before use. Local S3-compatible storage may be used for offline development.
 
-- localhost/port-based URLs;
-- different HTTPS behavior;
-- CORS differences;
-- presigned URL differences;
-- external Shopify/WMS/customer devices cannot reach localhost;
-- local credentials/policies can hide Production permission mistakes.
+## Production isolation
 
-For ALSVID's normal connected development workflow, using a dedicated R2 Development bucket gives higher confidence that upload/download, CORS, object keys, permissions and presigned URLs behave like Production.
+Production object storage uses its approved R2 bucket and scoped credentials. Local development and CI must not receive Production write credentials. Do not assume a separate R2 Development/Test bucket currently exists, and do not treat historical names as live resources.
 
-Local S3-compatible storage remains optional only for true offline development or isolated unit/integration testing.
-
-## Development and Production isolation
-
-Development and Production must never share the same object-storage namespace for business files.
-
-Conceptually:
-
-- `ALSVID Development` -> dedicated R2 Development bucket/resources
-- `ALSVID Production` -> dedicated R2 Production bucket/resources
-
-The exact bucket names may change, but the isolation rule must not.
-
-Test code may create, overwrite or delete Test objects without any possibility of affecting real customer/vehicle files.
+Test code may create, overwrite or delete objects only in explicitly isolated disposable storage.
 
 ## Access rule
 
