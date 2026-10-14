@@ -2,6 +2,14 @@
 
 > **Current runtime correction (2026-10-14):** Production is the only live cloud target. Cloud Development/Test and its promotion workflow are retired; local Docker and ephemeral GitHub CI are validation environments. Pull requests target `main` and production releases require exact-commit CI. Older entries below are dated historical snapshots and do not describe current runtime state. This repository note does not prove that any cloud resource was deleted.
 
+## Workbench visual redesign — 2026-10-14
+
+The authenticated `/admin` workbench now implements the supplied reference as native Next.js components: a generated scenic bicycle hero, ten module entry cards, four attention cards, four KPI cards, and activity/trend/task panels. Styling is scoped to the workbench and retains the shared navigation, theme switch and internal-session checks. Activity and trend filters respond locally. Unconnected metrics remain explicitly unavailable; no sample counts, timestamps, trend points or tasks are represented as live business facts.
+
+Local validation covers the Web production build, TypeScript, architecture checks, navigation-context tests, unauthenticated redirect, desktop/mobile layout (1680/1280/768/390), both themes and panel filtering. This is an implementation record; cloud deployment requires separate workflow evidence. The retired Development environment is not recreated by this UI change.
+
+
+
 ## Admin contextual sidebar — 2026-10-14
 
 历史记录：当时的代码整合目标为 Development，后来已决定退役共享云端 Development/Test。当前发布目标只有 Production；生产部署状态仍以对应 commit 的 GitHub workflow 结果为准。
