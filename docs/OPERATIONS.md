@@ -30,17 +30,16 @@ GitHub is the software source of truth.
 
 ## Release flow
 
-1. Develop on M1.
-2. Run automated tests and architecture checks.
-3. Build/run the production-oriented Docker containers.
-4. Test against isolated Neon Test and R2 Test resources.
-5. Validate Shopify/WMS connector behavior required by the change.
-6. Approve a specific commit/version.
-7. Deploy that version to Google Cloud Run Production.
-8. Run explicit migrations through the approved deployment path.
-9. Verify Web/API/Worker health and key business flows.
+1. Submit a reviewed pull request into `main`.
+2. `CI` runs architecture checks, type checks, tests and builds, alongside cached Docker builds and startup/migration/authentication smoke checks on disposable GitHub runners.
+3. After merge, the same checks run against the exact `main` commit.
+4. A successful main-push `CI` run triggers `ALSVID Production Deploy`; failed or cancelled CI does not deploy.
+5. Production verifies both `verify` and `containers` jobs for that commit, builds with the same cache scopes, then runs the existing explicit migrations, deployment and live health checks.
+6. Automatic releases reject an obsolete commit if a newer `main` exists. Manual release still requires `confirm=deploy` and accepted CI or historical release evidence.
 
-After the first accepted Production environment, merging a reviewed commit into `main` starts the same release workflow automatically through GitHub Actions. The workflow is also available through `Run workflow` when an operator needs to release a specific merged commit or roll back to a previous compatible commit.
+The separate cloud Development runtime and its promotion workflow have been retired by owner decision. CI databases and containers are temporary validation tools, not another cloud business environment. They use no Production secrets.
+
+`Run workflow` remains available for a specific merged release or rollback. The current trusted workflow's release gate is used even when checking out an older source commit, so rollback does not restore retired gate dependencies.
 
 Application rollback is performed by entering the previous known-good `main` commit SHA as `release_sha` in `ALSVID Production Deploy`. This rebuilds and deploys the same Web/API/Worker source version. It does not restore or downgrade the live database; schema rollback requires a separate reviewed recovery or forward-fix plan.
 

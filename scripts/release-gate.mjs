@@ -6,7 +6,12 @@ export function successfulRuns(runs, sha) {
 }
 
 export function acceptedChecks(runsByWorkflow, sha) {
-  return ['ci.yml', 'test-build.yml'].every(file => successfulRuns(runsByWorkflow[file] ?? [], sha));
+  return successfulRuns(runsByWorkflow['ci.yml'] ?? [], sha);
+}
+
+export function acceptedJobs(jobs) {
+  return ['verify', 'containers'].every(name => jobs.some(job =>
+    job.name === name && job.status === 'completed' && job.conclusion === 'success'));
 }
 
 export async function acceptedRollback(runs, sha, allowed) {
@@ -15,11 +20,11 @@ export async function acceptedRollback(runs, sha, allowed) {
 
 async function main() {
   const mode = process.argv[2];
+  if (mode !== 'production') throw new Error('Expected production mode');
   const repository = process.env.GITHUB_REPOSITORY;
   const token = process.env.GH_TOKEN;
   if (!repository || !token) throw new Error('GITHUB_REPOSITORY and GH_TOKEN are required');
   const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  const tree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim();
   async function api(path) {
     const response = await fetch(`https://api.github.com/repos/${repository}/${path}`, {
       headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' },
@@ -28,44 +33,25 @@ async function main() {
     if (!response.ok) throw new Error(`Release evidence request failed: HTTP ${response.status}`);
     return response.json();
   }
-  async function checksFor(candidate, branch) {
-    const runsByWorkflow = {};
-    for (const file of ['ci.yml', 'test-build.yml']) {
-      const result = await api(`actions/workflows/${file}/runs?head_sha=${candidate}&branch=${branch}&event=push&per_page=100`);
-      runsByWorkflow[file] = result.workflow_runs;
-    }
-    return acceptedChecks(runsByWorkflow, candidate);
-  }
-  if (mode === 'checks') {
-    const deadline = Date.now() + 15 * 60 * 1000;
-    do {
-      if (await checksFor(sha, 'develop')) {
-        console.log(`开发/测试：ALSVID Development — CI and container acceptance passed for ${sha}`);
-        return;
-      }
-      await new Promise(resolve => setTimeout(resolve, 15000));
-    } while (Date.now() < deadline);
-    throw new Error('Development deployment blocked: CI/container acceptance has not passed within 15 minutes');
-  }
-  if (mode !== 'production') throw new Error('Expected checks or production mode');
   if (process.env.ALLOW_PREVIOUS_PRODUCTION === 'true') {
     const previous = await api(`actions/workflows/production-deploy.yml/runs?head_sha=${sha}&status=success&per_page=100`);
-    // Dispatch run metadata identifies the workflow ref, not necessarily its selected release_sha.
-    // Only prior main-push runs are evidence of this exact production release.
+    // Historical main-push runs identify the exact release; manual run metadata may not.
     if (await acceptedRollback(previous.workflow_runs.filter(run => run.event === 'push' && run.head_branch === 'main'), sha, true)) {
-      console.log(`正式/生产：ALSVID Production — previously released rollback ${sha}`);
+      console.log(`ALSVID Production — previously released rollback ${sha}`);
       return;
     }
   }
-  const deadline = Date.now() + 15 * 60 * 1000;
-  do {
-    if (await checksFor(sha, 'main')) {
-      console.log(`正式/生产：ALSVID Production — CI and container acceptance passed for ${sha}`);
-      return;
+  const result = await api(`actions/workflows/ci.yml/runs?head_sha=${sha}&branch=main&event=push&per_page=100`);
+  if (acceptedChecks({ 'ci.yml': result.workflow_runs }, sha)) {
+    for (const run of result.workflow_runs.filter(run => successfulRuns([run], sha))) {
+      const { jobs } = await api(`actions/runs/${run.id}/jobs?per_page=100`);
+      if (acceptedJobs(jobs)) {
+        console.log(`ALSVID Production — CI and container acceptance passed for ${sha}`);
+        return;
+      }
     }
-    await new Promise(resolve => setTimeout(resolve, 15000));
-  } while (Date.now() < deadline);
-  throw new Error('Production deployment blocked: CI/container acceptance has not passed within 15 minutes');
+  }
+  throw new Error('Production deployment blocked: this main commit needs a successful CI run with verify and containers jobs');
 }
 
 if (process.argv[1] === '-' || (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)) {

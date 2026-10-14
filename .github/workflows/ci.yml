@@ -10,12 +10,13 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   verify:
-    # The release PR already carries a tested develop tree; avoid duplicate checks
-    # on its short-lived bot-created branch (which is deleted immediately on merge).
-    if: ${{ github.event_name != 'pull_request' || !startsWith(github.head_ref, 'release/development-') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:18
@@ -36,6 +37,8 @@ jobs:
       TZ: Asia/Shanghai
     steps:
       - uses: actions/checkout@v4
+      - name: Validate workflow configuration
+        run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 -color -shellcheck= -pyflakes= .github/workflows/ci.yml .github/workflows/production-deploy.yml
       - name: Validate Google Cloud bootstrap shell syntax
         run: |
           bash -n infra/gcp/bootstrap-development.sh
@@ -57,3 +60,115 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build web image with cache
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.web
+          platforms: linux/amd64
+          load: true
+          tags: alsvid-ci-web:latest
+          build-args: ALSVID_ENV=production
+          cache-from: type=gha,scope=alsvid-production-web
+          cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
+
+      - name: Build api image with cache
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.api
+          platforms: linux/amd64
+          load: true
+          tags: alsvid-ci-api:latest
+          cache-from: type=gha,scope=alsvid-production-api
+          cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
+
+      - name: Build worker image with cache
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.worker
+          platforms: linux/amd64
+          load: true
+          tags: alsvid-ci-worker:latest
+          cache-from: type=gha,scope=alsvid-production-worker
+          cache-to: type=gha,mode=max,scope=alsvid-production-worker,ignore-error=true
+
+      - name: Start isolated CI database
+        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml up -d --wait postgres
+      - name: Run migrations from the API image
+        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml run --rm --no-deps api pnpm db:migrate
+      - name: Start the tested images
+        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml up -d --no-build web api worker gateway
+      - name: Smoke check API, Web and authentication redirects
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/api/health >/dev/null; then
+              break
+            fi
+            if [[ "$attempt" == "30" ]]; then
+              echo "API health check did not become ready" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/ >/dev/null; then
+              break
+            fi
+            if [[ "$attempt" == "30" ]]; then
+              echo "Web smoke check did not become ready" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          if ! curl --fail --silent http://127.0.0.1:8080/login >/dev/null; then
+            echo "Login page failed smoke check" >&2
+            exit 1
+          fi
+
+          portal_response="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/portal-launcher)"
+          portal_headers="$(curl --silent --show-error --dump-header - --output /dev/null http://127.0.0.1:8080/portal-launcher | tr -d '\r' | sed -E 's#^(location:) https?://[^/]+(/)$#\1 \2#I')"
+          if [[ "$portal_response" != "307" ]] || ! grep -Eiq '^location: /$' <<< "$portal_headers"; then
+            echo "Expected /portal-launcher compatibility redirect to /, got HTTP $portal_response" >&2
+            echo "$portal_headers" >&2
+            exit 1
+          fi
+
+          for route in /admin /dealer /my; do
+            response="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:8080$route")"
+            headers="$(curl --silent --show-error --dump-header - --output /dev/null "http://127.0.0.1:8080$route" | tr -d '\r')"
+            if [[ "$response" != "307" ]] || ! grep -Eiq '^location: /login(\?.*)?$' <<< "$headers"; then
+              echo "Expected unauthenticated $route to redirect to /login, got HTTP $response" >&2
+              echo "$headers" >&2
+              exit 1
+            fi
+          done
+
+      - name: Verify API and worker remain running
+        run: |
+          set -euo pipefail
+          for service in api worker; do
+            container_id="$(docker compose -p alsvid-ci -f infra/docker-compose.test.yml ps -q "$service")"
+            [[ -n "$container_id" ]]
+            [[ "$(docker inspect --format '{{.State.Running}}' "$container_id")" == "true" ]]
+          done
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml logs --no-color
+      - name: Tear down isolated CI containers
+        if: always()
+        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml down -v --remove-orphans

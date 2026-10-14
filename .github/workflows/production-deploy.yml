@@ -1,8 +1,10 @@
 name: ALSVID Production Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
     branches: [main]
+    types: [completed]
   workflow_dispatch:
     inputs:
       release_sha:
@@ -32,29 +34,39 @@ env:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'push' || inputs.confirm == 'deploy' }}
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy') ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event == 'push' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.head_repository.full_name == github.repository)
+      }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment: production
 
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_sha || 'main' }}
+          ref: ${{ github.event.workflow_run.head_sha || inputs.release_sha || github.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Require CI and container acceptance or a previously released rollback
+      - name: Require verified CI or a previously released rollback
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           ALLOW_PREVIOUS_PRODUCTION: true
+          RELEASE_CONTROLLER_SHA: ${{ github.workflow_sha }}
         run: |
           set -euo pipefail
-          git show HEAD:scripts/release-gate.mjs | node --input-type=module - production
+          git show "$RELEASE_CONTROLLER_SHA:scripts/release-gate.mjs" | node --input-type=module - production
 
       - name: Validate release and deployment variables
         id: release
@@ -70,6 +82,7 @@ jobs:
           R2_BUCKET: ${{ vars.R2_BUCKET }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          RELEASE_EVENT: ${{ github.event_name }}
         run: |
           set -euo pipefail
           for name in \
@@ -95,6 +108,11 @@ jobs:
             exit 1
           fi
 
+          if [[ "$RELEASE_EVENT" == "workflow_run" && "$release_sha" != "$(git rev-parse origin/main)" ]]; then
+            echo "A newer main commit exists; refusing an outdated automatic release" >&2
+            exit 1
+          fi
+
           registry="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "registry=$registry" >> "$GITHUB_OUTPUT"
@@ -102,34 +120,39 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build immutable release images before cloud authentication
-        env:
-          REGISTRY: ${{ steps.release.outputs.registry }}
-          RELEASE_SHA: ${{ steps.release.outputs.sha }}
-        run: |
-          set -euo pipefail
-          docker buildx build \
-            --platform linux/amd64 \
-            --cache-from type=gha,scope=alsvid-production-web \
-            --cache-to type=gha,mode=max,scope=alsvid-production-web \
-            --build-arg ALSVID_ENV=production \
-            -f infra/docker/Dockerfile.web \
-            -t "$REGISTRY/alsvid-web:$RELEASE_SHA" \
-            --load .
-          docker buildx build \
-            --platform linux/amd64 \
-            --cache-from type=gha,scope=alsvid-production-api \
-            --cache-to type=gha,mode=max,scope=alsvid-production-api \
-            -f infra/docker/Dockerfile.api \
-            -t "$REGISTRY/alsvid-api:$RELEASE_SHA" \
-            --load .
-          docker buildx build \
-            --platform linux/amd64 \
-            --cache-from type=gha,scope=alsvid-production-worker \
-            --cache-to type=gha,mode=max,scope=alsvid-production-worker \
-            -f infra/docker/Dockerfile.worker \
-            -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
-            --load .
+      - name: Build web image with cache
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.web
+          platforms: linux/amd64
+          load: true
+          tags: ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.release.outputs.sha }}
+          build-args: ALSVID_ENV=production
+          cache-from: type=gha,scope=alsvid-production-web
+          cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
+
+      - name: Build api image with cache
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.api
+          platforms: linux/amd64
+          load: true
+          tags: ${{ steps.release.outputs.registry }}/alsvid-api:${{ steps.release.outputs.sha }}
+          cache-from: type=gha,scope=alsvid-production-api
+          cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
+
+      - name: Build worker image with cache
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.worker
+          platforms: linux/amd64
+          load: true
+          tags: ${{ steps.release.outputs.registry }}/alsvid-worker:${{ steps.release.outputs.sha }}
+          cache-from: type=gha,scope=alsvid-production-worker
+          cache-to: type=gha,mode=max,scope=alsvid-production-worker,ignore-error=true
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3
