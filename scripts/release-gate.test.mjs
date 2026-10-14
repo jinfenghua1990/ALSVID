@@ -1,34 +1,40 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { acceptedDevelopment, acceptedRollback, successfulRuns } from './release-gate.mjs';
+import { acceptedChecks, acceptedRollback, successfulRuns } from './release-gate.mjs';
 
-const successful = { id: 1, head_sha: 'development-sha', head_branch: 'develop', event: 'push', status: 'completed', conclusion: 'success' };
+const passed = (head_sha, conclusion = 'success') => ({
+  head_sha, status: 'completed', conclusion,
+});
 
 test('a failed or unrelated CI run is not acceptance', () => {
-  assert.equal(successfulRuns([{ ...successful, conclusion: 'failure' }], successful.head_sha), false);
-  assert.equal(successfulRuns([successful], 'other-sha'), false);
+  assert.equal(successfulRuns([passed('same-sha', 'failure')], 'same-sha'), false);
+  assert.equal(successfulRuns([passed('other-sha')], 'same-sha'), false);
 });
 
-test('a production merge with a different commit SHA can promote the same tested tree', async () => {
-  assert.equal(await acceptedDevelopment([successful], 'same-tree', async () => 'same-tree', async () => true), successful);
+test('production accepts the same main commit after CI and container checks pass', () => {
+  assert.equal(acceptedChecks({
+    'ci.yml': [passed('main-sha')],
+    'test-build.yml': [passed('main-sha')],
+  }, 'main-sha'), true);
 });
 
-test('untested source changes are refused even if Development deployment passed', async () => {
-  assert.equal(await acceptedDevelopment([successful], 'new-tree', async () => 'old-tree', async () => true), null);
-});
-
-test('a Development deployment without successful CI is refused', async () => {
-  assert.equal(await acceptedDevelopment([successful], 'same-tree', async () => 'same-tree', async () => false), null);
-});
-
-test('a deployment from another branch or a failed deployment is refused', async () => {
-  for (const run of [{ ...successful, head_branch: 'feature' }, { ...successful, conclusion: 'failure' }, { ...successful, event: 'workflow_dispatch' }]) {
-    assert.equal(await acceptedDevelopment([run], 'same-tree', async () => 'same-tree', async () => true), null);
-  }
+test('production waits when either required check is missing, failed, or for another commit', () => {
+  assert.equal(acceptedChecks({
+    'ci.yml': [passed('main-sha')],
+    'test-build.yml': [],
+  }, 'main-sha'), false);
+  assert.equal(acceptedChecks({
+    'ci.yml': [passed('main-sha')],
+    'test-build.yml': [passed('main-sha', 'failure')],
+  }, 'main-sha'), false);
+  assert.equal(acceptedChecks({
+    'ci.yml': [passed('main-sha')],
+    'test-build.yml': [passed('other-sha')],
+  }, 'main-sha'), false);
 });
 
 test('previous production releases can be rolled back only when explicitly enabled', async () => {
-  assert.equal(await acceptedRollback([successful], successful.head_sha, true), true);
-  assert.equal(await acceptedRollback([successful], successful.head_sha, false), false);
-  assert.equal(await acceptedRollback([successful], 'never-released', true), false);
+  assert.equal(await acceptedRollback([passed('released-sha')], 'released-sha', true), true);
+  assert.equal(await acceptedRollback([passed('released-sha')], 'released-sha', false), false);
+  assert.equal(await acceptedRollback([passed('released-sha')], 'never-released', true), false);
 });

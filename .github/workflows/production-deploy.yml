@@ -47,7 +47,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Require prior Development acceptance or a previously released rollback
+      - name: Require CI and container acceptance or a previously released rollback
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
