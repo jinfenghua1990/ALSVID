@@ -63,28 +63,24 @@ It is not primary because it is a smaller platform and ALSVID prefers a larger p
 
 Cloudflare remains strategically important for R2 object storage. Cloudflare Workers are useful for lightweight edge functions but are not the selected runtime for the full ALSVID application. Cloudflare Containers may be reconsidered later if its pricing and product maturity become a better fit.
 
-## Development/Test versus Production
+## Development and Production
 
-Current stage:
+Production in `alsvid-prod` is the only active cloud runtime. Development is local (M1/Docker); CI runs on disposable GitHub-hosted runners using temporary test resources. The former `alsvid-dev` Cloud Run environment and its Development/Test resources are retired from the release architecture.
 
-- **M1 + Docker:** fast local Development/Test feedback
-- **Google Cloud Run in `alsvid-dev`:** shared Development/Test runtime for GitHub commits
-- **Google Cloud Run in `alsvid-prod`:** Production runtime
+Current release path:
 
-The shared Cloud Run Development/Test runtime exists because multiple developers and coding agents need a reproducible deployed target. It uses separate Neon Test and R2 Test resources and must never receive Production secrets.
+1. create a branch and pull request to `main`;
+2. run exact-source CI, including PostgreSQL migrations, tests and container smoke checks;
+3. review and merge;
+4. deploy the verified main commit to Production.
 
-## Promotion rule
-
-Test approval promotes a software version, not Test data.
-
-The intended flow is:
-
-1. build/run the production-oriented container definition on M1;
-2. test against isolated Test database/storage resources;
-3. approve a specific Git commit/version;
-4. deploy that same approved version to Cloud Run Production;
-5. Production connects only to Production database/storage/secrets.
+Do not require cloud Development acceptance or synchronize `main` back to `develop`. Restore a shared cloud Development runtime only through a new reviewed architecture decision. This record does not prove live cloud resources have been deleted.
 
 ## Change rule
 
 Do not replace Cloud Run merely because another platform is fashionable or temporarily cheaper. A runtime migration must identify a concrete problem, demonstrate that ALSVID remains portable, and document the decision before changing Production.
+
+
+## Current environment scope (2026-10-14)
+
+Google Cloud Run remains the Production runtime, but ALSVID no longer maintains a cloud Development runtime. Development is local and CI is ephemeral. The old `alsvid-dev` runtime is retired from the release flow; this repository note is not proof of live resource deletion. See `docs/ENVIRONMENT_ARCHITECTURE.md` and `docs/RELEASE_FLOW.md` for the current model.

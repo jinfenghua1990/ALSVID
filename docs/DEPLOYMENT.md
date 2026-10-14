@@ -19,7 +19,7 @@ The repository-side Test gate builds the real Web/API/Worker images, starts Post
 
 The release rule is **Test the candidate first, then deploy the same version to Production**. A successful local Test does not turn the Test database or Test files into Production data; it approves the software version for production deployment.
 
-A separate cloud Test environment may be added later when one of these conditions becomes real:
+A separate cloud Test environment is not part of the current architecture. Reconsider it only after a new reviewed owner decision and a concrete need, such as:
 
 1. multiple developers or employees need a shared isolated integration environment;
 2. repeated defects appear only in Cloud Run or other cloud-specific services and cannot be reproduced locally;
@@ -94,7 +94,7 @@ Non-secret GitHub `production` Environment variables are documented in `docs/PRO
 
 ## Release
 
-Production releases are reproducible from a Git commit SHA. After a change is merged into `main`, `.github/workflows/production-deploy.yml` automatically builds and deploys that exact commit. The same workflow remains manually dispatchable so an operator can deploy a specific merged commit, including a previous compatible commit for application rollback. It builds immutable images, authenticates to Google Cloud through Workload Identity Federation, pushes images, runs migrations explicitly, deploys API/Worker/Web and verifies health.
+Production releases are reproducible from a Git commit SHA. After a change is merged into `main`, `.github/workflows/production-deploy.yml` automatically builds and deploys that exact commit. The same workflow remains manually dispatchable so an operator can deploy a specific merged commit, including a previous compatible commit for application rollback. It builds and publishes images tagged by source SHA only when that release has no prior images, resolves and deploys exact Artifact Registry digests, authenticates through Workload Identity Federation, runs migrations explicitly, deploys API/Worker/Web and verifies health.
 
 No production fix is made by editing a running container.
 

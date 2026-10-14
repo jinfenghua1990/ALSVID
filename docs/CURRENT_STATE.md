@@ -1,5 +1,7 @@
 # Current State
 
+> **Current runtime correction (2026-10-14):** Production is the only live cloud target. Cloud Development/Test and its promotion workflow are retired; local Docker and ephemeral GitHub CI are validation environments. Pull requests target `main` and production releases require exact-commit CI. Older entries below are dated historical snapshots and do not describe current runtime state. This repository note does not prove that any cloud resource was deleted.
+
 ## Workbench visual redesign — 2026-10-14
 
 The authenticated `/admin` workbench now implements the supplied reference as native Next.js components: a generated scenic bicycle hero, ten module entry cards, four attention cards, four KPI cards, and activity/trend/task panels. Styling is scoped to the workbench and retains the shared navigation, theme switch and internal-session checks. Activity and trend filters respond locally. Unconnected metrics remain explicitly unavailable; no sample counts, timestamps, trend points or tasks are represented as live business facts.
@@ -10,7 +12,7 @@ Local validation covers the Web production build, TypeScript, architecture check
 
 ## Admin contextual sidebar — 2026-10-14
 
-Release reconciliation now incorporates the independent main homepage, Admin menu/detail and compact-workspace updates into Development while retaining the selected-module navigation fix. Daily usage targets Production; Development remains for release verification. Production deployment completion is a separate claim and must be supported by the workflow result for the reconciled source tree.
+历史记录：当时的代码整合目标为 Development，后来已决定退役共享云端 Development/Test。当前发布目标只有 Production；生产部署状态仍以对应 commit 的 GitHub workflow 结果为准。
 
 The shared AppShell now places the primary module menu in the header and the selected module's grouped secondary menu in a left sidebar, with the workspace on the right. The former horizontal secondary navigation row is removed. Desktop sidebar scrolling stays independent below the header; mobile keeps the collapsible navigation menu. Context links retain the selected module when different modules share a destination such as `/overview` or `/vehicle360/search`, including after reload and secondary navigation.
 
@@ -186,9 +188,8 @@ The macOS per-user updater in `scripts/macos-test-auto-update.mjs` can discover 
 - Every Internal Admin surface that renders the AppShell requires a validated internal session, including `/overview`.
 - Portal and Internal Admin navigation never link to routes this application does not implement; planned areas render as labelled, non-clickable entries.
 - Commerce and Inventory request the existing `/v1/product/catalog` endpoint instead of a non-existent `/v1/product` collection.
-- The M1 Test updater waits for the workflow name that actually exists (`ALSVID Development Build`), and the Development bootstrap script creates the R2 secret names that the Development deployment workflow reads.
+- 历史记录（已失效）：当时的 M1 updater 和 Development bootstrap 依赖云端 Development Build；现已改为只依赖主分支 CI，本地更新不创建或访问云端 Development。
 
-Delivery state: the shared Development environment deploys successfully, and Production stays blocked until the same source has been accepted in Development. At the time of writing, Production runs fail the release gate because `main` carried commits that had never been on `develop`; restoring that history is the prerequisite for the next Production release.
+历史状态（已失效）：当时以共享 Development 作为生产前置门禁，并要求 main 与 develop 同步。当前该门禁已由 exact-commit CI 和 Production 发布检查替代。
 
-Cloud acceptance remains separate: Google Secret Manager is still the secret authority, with separate resources in `alsvid-dev` and `alsvid-prod`. The Development workflow currently deploys Web and API with migration job and health verification; the Production workflow additionally builds and deploys the continuous worker pool. This follow-up does not provision cloud resources and does not claim a new successful Production deployment.
-
+历史状态（已失效）：旧流程使用 `alsvid-dev` 与 `alsvid-prod` 两套云资源。当前仓库不再包含 Development 部署链；只在 Production 工作流中部署。此说明不证明旧云资源已删除。

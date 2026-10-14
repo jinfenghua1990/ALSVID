@@ -16,7 +16,7 @@ const self = fileURLToPath(import.meta.url);
 const cliEnv = { ...process.env, PATH: `${path.dirname(process.execPath)}:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`, GIT_TERMINAL_PROMPT: '0' };
 
 export function acceptedRelease(runs, sha) {
-  return ['CI', 'ALSVID Development Build'].every(name => {
+  return ['CI'].every(name => {
     const latest = runs.filter(r => r.name === name && r.head_sha === sha && r.event === 'push' && r.head_branch === 'main')
       .sort((a, b) => b.id - a.id)[0];
     return latest?.status === 'completed' && latest.conclusion === 'success';

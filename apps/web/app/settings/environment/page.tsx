@@ -8,14 +8,14 @@ function configured(value: string | undefined) {
 }
 
 export default function EnvironmentPage() {
-  const environment = process.env.ALSVID_ENV === 'production' ? 'production' : 'development';
-  const isProduction = environment === 'production';
+  const isProduction = process.env.ALSVID_ENV === 'production';
+  const environment = isProduction ? 'production' : 'local / CI';
   const databaseReady = configured(process.env.DATABASE_URL);
   const storageReady = configured(process.env.OBJECT_STORAGE_BUCKET)
     && configured(process.env.OBJECT_STORAGE_ACCESS_KEY)
     && configured(process.env.OBJECT_STORAGE_SECRET_KEY);
   const releaseSha = process.env.ALSVID_RELEASE_SHA ?? process.env.K_REVISION ?? process.env.GITHUB_SHA ?? '未注入';
-  const bucket = process.env.OBJECT_STORAGE_BUCKET ?? (isProduction ? 'alsvid-production（预期）' : 'R2 Development（待注入）');
+  const bucket = process.env.OBJECT_STORAGE_BUCKET ?? (isProduction ? '未注入' : '本地/CI 未配置');
 
   return (
     <AppShell navigation={navigationFor('/settings/environment')} footer="系统 / 环境与基础设施">
@@ -23,55 +23,53 @@ export default function EnvironmentPage() {
         <div>
           <div className="eyebrow">系统 / 环境与基础设施</div>
           <h1>环境与基础设施</h1>
-          <p className="pageIntro">查看运行环境、发布版本与资源配置。此页仅反映 Web 服务可见的配置，不代表 API / Worker 的连接健康状态。</p>
+          <p className="pageIntro">此页展示 Web 进程可见的配置，不代表 API、Worker 或云端资源的实际健康状态。</p>
         </div>
-        <span className={`statusPill ${isProduction ? 'ready' : 'pending'}`}>{isProduction ? '正式环境' : '开发环境'}</span>
+        <span className={`statusPill ${isProduction ? 'ready' : 'pending'}`}>{isProduction ? '正式环境' : '本地 / CI'}</span>
       </header>
 
       <div className="infoGrid">
         <section className="infoCard">
-          <h2>当前环境</h2>
-          <p>ALSVID 只有 Development 与 Production 两个云端业务环境；本地 M1 仅作为开发辅助，不是第三个云环境。</p>
+          <h2>当前运行环境</h2>
+          <p>云端仅保留 Production。开发和自动化验证运行在本地或临时 CI 环境。</p>
           <div className="infoRows">
-            <div className="infoRow"><span>ALSVID 环境</span><strong>{isProduction ? 'Production / 正式' : 'Development / 开发'}</strong><span>{environment}</span></div>
-            <div className="infoRow"><span>Google Cloud 项目</span><strong>{isProduction ? 'alsvid-prod' : 'alsvid-dev'}</strong><span>独立项目</span></div>
-            <div className="infoRow"><span>运行平台</span><strong>Google Cloud Run</strong><span>云端运行</span></div>
+            <div className="infoRow"><span>ALSVID 环境</span><strong>{isProduction ? 'Production / 正式' : 'Local / CI'}</strong><span>{environment}</span></div>
+            <div className="infoRow"><span>Google Cloud 项目</span><strong>{isProduction ? 'alsvid-prod' : '不适用'}</strong><span>{isProduction ? '生产项目' : '无云端项目'}</span></div>
+            <div className="infoRow"><span>运行平台</span><strong>{isProduction ? 'Google Cloud Run' : '本地容器 / CI runner'}</strong><span>{isProduction ? '云端运行' : '临时验证环境'}</span></div>
             <div className="infoRow"><span>发布版本</span><strong>{releaseSha}</strong><span>只读</span></div>
           </div>
         </section>
 
         <section className="infoCard">
           <h2>Web 配置可见性</h2>
-          <p>API / Worker 可独立注入密钥。Web 未注入不等于后端未配置；真实连接需通过后端运维验收核实。</p>
+          <p>这里只显示 Web 进程是否收到配置，不读取或展示敏感值，也不验证真实连接。</p>
           <div className="infoRows">
-            <div className="infoRow"><span>密钥权威</span><strong>Google Secret Manager</strong><span>{isProduction ? '仅 Production' : '仅 Development'}</span></div>
-            <div className="infoRow"><span>数据库密钥</span><strong>{databaseReady ? '已配置' : 'Web 未注入'}</strong><span className={`statusPill ${databaseReady ? 'ready' : 'pending'}`}>{databaseReady ? '已注入' : '待核实'}</span></div>
-            <div className="infoRow"><span>对象存储密钥</span><strong>{storageReady ? '已配置' : 'Web 未注入'}</strong><span className={`statusPill ${storageReady ? 'ready' : 'pending'}`}>{storageReady ? '已注入' : '待核实'}</span></div>
+            <div className="infoRow"><span>配置来源</span><strong>{isProduction ? 'Production Secret Manager' : '本地 / CI 配置'}</strong><span>仅显示来源类别</span></div>
+            <div className="infoRow"><span>数据库连接配置</span><strong>{databaseReady ? '已注入（未验证连接）' : '未注入'}</strong><span className={`statusPill ${databaseReady ? 'ready' : 'pending'}`}>{databaseReady ? '已注入' : '未注入'}</span></div>
+            <div className="infoRow"><span>对象存储配置</span><strong>{storageReady ? '已注入（未验证连接）' : '未注入'}</strong><span className={`statusPill ${storageReady ? 'ready' : 'pending'}`}>{storageReady ? '已注入' : '未注入'}</span></div>
           </div>
         </section>
 
         <section className="infoCard">
-          <h2>数据库 / Neon</h2>
-          <p>{isProduction ? '正式业务数据库必须使用 Neon Production 资源。' : 'Development 只能连接隔离的 Neon Development 资源。'}</p>
+          <h2>数据库 / PostgreSQL</h2>
+          <p>{isProduction ? '生产服务应连接已批准的 Production 数据库。' : '本地或 CI 使用隔离的临时数据库；配置存在不代表连接成功。'}</p>
           <div className="infoRows">
-            <div className="infoRow"><span>资源</span><strong>{isProduction ? 'Neon Production' : 'Neon Development'}</strong><span className={`statusPill ${databaseReady ? 'ready' : 'pending'}`}>{databaseReady ? '已配置' : 'Web 未注入'}</span></div>
+            <div className="infoRow"><span>资源类别</span><strong>{isProduction ? 'Production Neon' : '本地 / 临时 PostgreSQL'}</strong><span>不显示连接串</span></div>
             <div className="infoRow"><span>连接串</span><strong>敏感值已隐藏</strong><span>不会展示</span></div>
-            <div className="infoRow"><span>控制台入口</span><strong>待登记具体项目链接</strong><span>安全元数据</span></div>
           </div>
         </section>
 
         <section className="infoCard">
           <h2>对象存储 / Cloudflare R2</h2>
-          <p>Development 与 Production Bucket 和凭证必须物理隔离，不能共用写权限。</p>
+          <p>只在功能需要时配置隔离的测试存储；本页面不会判断 Bucket 是否可写。</p>
           <div className="infoRows">
-            <div className="infoRow"><span>Bucket</span><strong>{bucket}</strong><span className={`statusPill ${storageReady ? 'ready' : 'pending'}`}>{storageReady ? '已配置' : '待核实'}</span></div>
-            <div className="infoRow"><span>Access / Secret Key</span><strong>敏感值已隐藏</strong><span>不会展示</span></div>
-            <div className="infoRow"><span>控制台入口</span><strong>待登记具体账户链接</strong><span>安全元数据</span></div>
+            <div className="infoRow"><span>Bucket</span><strong>{bucket}</strong><span className={`statusPill ${storageReady ? 'ready' : 'pending'}`}>{storageReady ? '已注入' : '未注入'}</span></div>
+            <div className="infoRow"><span>密钥</span><strong>敏感值已隐藏</strong><span>不会展示</span></div>
           </div>
         </section>
       </div>
 
-      <div className="mutedBox">Development：GitHub PR / 分支 → GitHub Environment development → Workload Identity → Google Cloud Run（alsvid-dev）→ Development Secret Manager → Neon Development / R2 Development。Production：main → GitHub Environment production → Google Cloud Run（alsvid-prod）→ Production Secret Manager → Neon Production / R2 Production。</div>
+      <div className="mutedBox">发布链路：GitHub PR → CI → review / merge to main → exact-commit CI → Production（alsvid-prod）。本地和 CI 不使用 Production 凭据。旧的云端 Development / Test 部署链路已退出当前发布流程。</div>
     </AppShell>
   );
 }

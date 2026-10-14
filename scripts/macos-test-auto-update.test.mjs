@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { acceptedRelease, assertTestConfig, agentPlist } from './macos-test-auto-update.mjs';
 const sha = 'a'.repeat(40);
-const passed = ['CI', 'ALSVID Development Build'].map((name, id) => ({ id, name, head_sha: sha, event: 'push', head_branch: 'main', status: 'completed', conclusion: 'success' }));
-test('both exact-main push acceptance workflows must pass', () => {
+const passed = [{ id: 1, name: 'CI', head_sha: sha, event: 'push', head_branch: 'main', status: 'completed', conclusion: 'success' }];
+test('exact-main push CI must pass', () => {
   assert.equal(acceptedRelease(passed, sha), true);
-  assert.equal(acceptedRelease(passed.slice(0, 1), sha), false);
+  assert.equal(acceptedRelease([], sha), false);
   assert.equal(acceptedRelease(passed, 'b'.repeat(40)), false);
   assert.equal(acceptedRelease(passed.map(r => ({ ...r, event: 'pull_request' })), sha), false);
   assert.equal(acceptedRelease(passed.map(r => ({ ...r, head_branch: 'other' })), sha), false);
 });
-test('a newer failed or running retry does not reuse a historical success', () => {
+test('a newer failed or running CI retry does not reuse a historical success', () => {
   for (const state of [{ status: 'in_progress', conclusion: null }, { status: 'completed', conclusion: 'failure' }]) {
     assert.equal(acceptedRelease([...passed, { ...passed[0], id: 9, ...state }], sha), false);
   }

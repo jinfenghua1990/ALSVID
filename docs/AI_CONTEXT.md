@@ -75,17 +75,17 @@ Storage:
 
 - Cloudflare R2
 
-Development/Test:
+Development and CI:
 
-- M1 Mac provides local compute and Docker execution.
-- Google Cloud Run provides the shared Development/Test runtime when multiple developers or robots need the same deployed commit.
-- Managed cloud test database and object storage are used for production similarity.
+- Local workstation and Docker for development.
+- Disposable GitHub-hosted runners for automated checks, with temporary PostgreSQL and no Production secrets.
+- The former shared cloud Development/Test runtime is retired.
 
 Production:
 
-- Cloud Run
-- Neon PostgreSQL
-- Cloudflare R2
+- Google Cloud Run in `alsvid-prod`.
+- Neon PostgreSQL.
+- Cloudflare R2.
 
 ## Future AI Rule
 
@@ -95,3 +95,8 @@ Before changing architecture, check:
 - What problem does the change solve?
 - Does it violate ALSVID boundaries?
 - Is there a simpler solution?
+
+
+## Environment and release model (2026-10-14)
+
+The current cloud runtime is Production only (`alsvid-prod`). Local Docker and ephemeral GitHub CI are the development/validation environments. The former cloud Development/Test runtime and automatic promotion flow are retired. Pull requests target `main`; Production deployment requires successful CI for the exact commit. Treat older Development references elsewhere in the docs as historical unless explicitly updated. Verify live cloud inventory before claiming a resource exists or was deleted.

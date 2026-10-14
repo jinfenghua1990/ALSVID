@@ -1,106 +1,29 @@
 # Environment Strategy
 
-## Purpose
+## Current model
 
-This document defines the ALSVID environment architecture.
+ALSVID has one live cloud business environment: **Production**. Development is performed locally, and automated validation runs in disposable GitHub CI environments. The former shared cloud Development/Test runtime is retired and must not be treated as an active release gate.
 
-ALSVID uses two environments only:
+| Purpose | Runtime | Data |
+| --- | --- | --- |
+| Development | Local workstation / Docker Compose | Local disposable data |
+| Automated validation | GitHub-hosted CI runners | Ephemeral PostgreSQL and containers |
+| Business operations | Google Cloud Run in `alsvid-prod` | Production Neon, R2 and managed secrets |
 
-```text
-ALSVID Development
-=
-Development / Test combined environment
-
-ALSVID Production
-=
-Formal production environment
-```
-
-## ALSVID Development
-
-ALSVID Development combines development and testing responsibilities.
-
-Purpose:
-
-- software development;
-- debugging;
-- Docker runtime validation;
-- integration testing;
-- release acceptance before production.
-
-Resources:
-
-- M1 Mac
-- Docker / Docker Compose
-- Google Cloud Run shared Development/Test services
-- Neon Development
-- Cloudflare R2 Development
-- Development/Test secrets
-
-Docker is the required acceptance path because Production runs with containerized workloads.
-
-## ALSVID Production
-
-Purpose:
-
-- real employee access;
-- dealer access;
-- customer Vehicle/My ALSVID access;
-- production business operations.
-
-Resources:
-
-- Google Cloud Run
-- Neon Production
-- Cloudflare R2 Production
-- Production secrets managed outside source control
+Local and CI environments must not use Production credentials. A local Compose project name does not prove cloud resource isolation.
 
 ## Release flow
 
 ```text
-M1 + Docker
-ALSVID Development
-(Development / Test combined)
-        |
-        | approved Git commit
-        v
-ALSVID Production
-Google Cloud Run
+GitHub branch / pull request → CI → review → main → exact-commit CI → Production
 ```
 
-ALSVID maintains one shared Development/Test cloud runtime in `alsvid-dev`; it is not a third environment and never uses Production resources.
+- Pull requests target `main`; production code is not edited directly.
+- CI checks migrations, architecture boundaries, types, tests, application builds, Docker builds and startup smoke checks.
+- Production deploy accepts only the exact successful main commit and runs explicit migrations and live health checks.
+- Manual rollback selects a previously released main commit. Application rollback does not reverse database migrations.
+- No automatic synchronization to `develop` or cloud Development deployment is part of the current pipeline.
 
-## Data isolation rules
+## Retired environment
 
-- Development/Test resources must never use Production credentials.
-- Production database and storage are isolated.
-- Test data and files are not promoted into Production.
-- Secrets must never be committed to source control.
-
-## Delivery implementation
-
-- 开发/测试：`ALSVID Development`; 正式/生产：`ALSVID Production` are the canonical communication names.
-- Pushes to `develop` deploy to ALSVID Development after CI and container acceptance pass.
-- Merges to `main` deploy to ALSVID Production only if identical source content already passed Development deployment and CI/container acceptance.
-- Successful Production releases synchronize `main` history back into `develop` so Development remains ahead or equal in software content. Explicit rollback is the exception and can select a previously successful Production release.
-- Local M1 development remains available for fast feedback and offline work.
-
-## 2026-10-14 decision: Production-only runtime and future restoration
-
-Owner-approved target: retire the separate cloud Development/Test runtime, after release-chain migration and verification. Preserve this design record, but do not retain a deployed Development application version.
-
-- Production is the sole live cloud runtime; main is the release source of truth.
-- Preserve feature branches, pull requests, CI, tests, builds, and local development. They are not independent deployed cloud environments.
-- Replace Development-dependent promotion with PR checks and a verified Production release pipeline BEFORE disabling old gates.
-- Compare full Git trees of main and develop, reconcile differences into main by reviewed PR, and verify the actual Production deployed image and health.
-- Inventory Development-only Cloud Run, Artifact Registry, Neon, R2, secrets, GitHub environment settings, and other billable resources. Delete only confirmed Development assets, after checking they are not shared with Production.
-- Preserve Production history, rollback capability, and all business/application source code. Do not retain a separate Development release/version just for rollback.
-- Disable obsolete Development workflow triggers only once replacement deployment is verified.
-
-Future restoration plan (documentation only, no live version):
-1. Recreate isolated Development cloud resources from current main and infrastructure guidance in infra/gcp/bootstrap-development.sh and docs/RELEASE_FLOW.md.
-2. Provision fresh Development-only database, R2, IAM and secrets; never reuse Production credentials or customer data.
-3. Restore CI/smoke-test deployment and release gates if staged releases become necessary.
-4. Record endpoints, ownership, cost controls, and teardown procedure.
-
-Status: decision documented; workflow migration, full-tree reconciliation, and cloud resource deletion remain pending verification. Earlier sections describe the historical architecture.
+The former `alsvid-dev` Cloud Run environment and its promotion workflows are retired. Historical audit documents may mention them as prior state. Do not recreate or delete cloud resources based solely on repository documentation; verify the live inventory and ownership first.

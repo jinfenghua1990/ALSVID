@@ -1,5 +1,7 @@
 # ALSVID
 
+> 当前云端运行环境只有 Production；开发在本地进行，CI 使用临时资源。旧的云端 Development/Test 流程仅作为历史记录。
+
 > ALSVID 是自行车品牌的企业数字化平台。这个仓库是 ALSVID 的新实现权威源（implementation authority），不是 ChaiBen-OS 或旧 ALSVID 代码的迁移副本。
 
 这份 README 同时服务于三类读者：
@@ -240,12 +242,12 @@ ALSVID Admin
         结构化业务数据                    图片/PDF/附件/媒体
               ^                                ^
               |                                |
-      Neon Test resources               R2 Test resources
+       Local PostgreSQL                 Optional isolated test storage
               ^                                ^
               +---------------+----------------+
                               |
-                         M1 Mac + Docker
-                       开发 / Test 计算
+                    M1 Mac / GitHub CI
+                    开发 / 验证计算
 
 外部业务系统：
 Shopify  <---- connectors/adapters ---->  ALSVID  <---- connectors/adapters ---->  WMS
@@ -260,9 +262,9 @@ Shopify  <---- connectors/adapters ---->  ALSVID  <---- connectors/adapters ----
 | 数据库技术 | PostgreSQL | PostgreSQL 兼容迁移 | 开源成熟、关系数据适合 ALSVID、避免数据库锁死 |
 | 数据库服务商 | **Neon PostgreSQL** | **Supabase PostgreSQL** | Neon 轻量、PostgreSQL 原生、分支适合 Test；Supabase 保留迁移能力 |
 | 对象存储 | **Cloudflare R2** | 其他 S3-compatible provider | 文件与数据库分离，S3 兼容，便于未来迁移 |
-| Test 计算 | **M1 + Docker** | 未来可增加 Cloud Run Test | 当前单人阶段不需要维护第二套云运行环境 |
-| Test 数据库 | **Neon Test resources** | — | 测试真实 TLS/连接/分支/迁移行为，不用本地 Postgres 作为默认权威 Test |
-| Test 对象存储 | **R2 Test resources** | 本地 MinIO 只做离线/特殊测试 | 避免 localhost、CORS、HTTPS、Presigned URL 与生产行为不一致 |
+| 开发 / Test 计算 | **M1 + Docker / GitHub CI** | 按需扩展隔离的临时环境 | 不维护共享云端 Development/Test |
+| Test 数据库 | **本地 / CI PostgreSQL** | 按需使用独立临时数据库 | 绝不使用 Production 凭据或数据 |
+| Test 对象存储 | **默认不需要** | 需要时使用隔离的临时存储或 mock | 不假设存在共享 R2 Test Bucket |
 | 灾备 | **当前暂不建设完整 DR** | 未来按业务规模规划 | 现阶段避免过早增加复杂度；Q4 暂不承担 Production DR |
 
 ---
@@ -362,76 +364,53 @@ R2
 - 后续可以利用 Cloudflare 全球网络；
 - 如果未来更换对象存储，业务 Domain 不需要推倒重写。
 
-### 为什么 Test 不默认使用本地 MinIO
+### 测试中的对象存储
 
-本地 MinIO 经常会产生与 Production 无关的“伪问题”或掩盖真实问题：
-
-- `localhost` URL；
-- HTTPS 行为不同；
-- CORS 不同；
-- Presigned URL 不同；
-- Shopify/WMS/手机无法访问本地地址；
-- 本地权限配置可能与 R2 不一致。
-
-所以当前正常 Test 使用独立 R2 Test 资源。
+常规单元测试和 CI 不依赖常驻对象存储。确实需要验证签名 URL、CORS 或外部访问行为时，使用明确隔离、按需启用的临时资源；不得把 Production 凭据放入 CI，也不要把历史上的 R2 Test 配置当作仍在运行。
 
 详细原因见：[`docs/STORAGE_DECISION.md`](docs/STORAGE_DECISION.md)
 
 ---
 
-## 7. Test / Production 怎么分
+## 7. 开发 / CI / Production 怎么分
 
-当前阶段**不维护两套 Cloud Run**。
+ALSVID 只有一个 live cloud runtime：Production。开发在本地完成，自动化验证由临时 GitHub Actions runner 执行；已退役的 `alsvid-dev` 不再是发布或验收阶段。
 
-### Development / Test
+### Local development / CI
 
 ```text
-M1 Mac
-  + Docker
-      |
-      +--> Neon Test
-      +--> R2 Test
+GitHub branch / PR
+       ↓
+M1 Docker or ephemeral GitHub CI
+       ↓
+isolated local / temporary test data
 ```
 
 ### Production
 
 ```text
-Google Cloud Run
-      |
-      +--> Neon Production
-      +--> R2 Production
+reviewed main commit
+       ↓
+exact-commit CI
+       ↓
+Google Cloud Run (alsvid-prod)
+       ↓
+Production Neon / R2 / secrets
 ```
 
-### 为什么这样做
+Production credentials and data never enter local development or CI. A test configuration label does not prove a real provider connection.
 
-当前主要是单人开发，直接维护 Cloud Run Test + Cloud Run Prod 会增加：
+### 发布流程
 
-- secrets；
-- 云配置；
-- 部署流程；
-- 账单/资源管理；
-- 排查复杂度。
+1. 在 GitHub 分支上提交 Pull Request 到 `main`；
+2. CI 执行迁移、类型检查、测试、构建及容器启动验收；
+3. 审核通过并合并后，对同一 `main` commit 执行 CI；
+4. 生产工作流通过检查后运行迁移、部署并验证健康状态；
+5. 手动回滚复用已发布镜像 digest，不重新构建旧版本；数据库迁移不会自动回滚。
 
-M1 用 Docker 可以承担当前的软件验收；但数据库和对象存储继续使用云端 Test 资源，保持关键外部行为接近 Production。
+历史的云端 Development/Test 与自动 promotion 工作流已经退出当前流程。当前文档不代表任何云资源已被删除；资源状态必须通过实时云端清单确认。
 
-### 什么叫“Test 通过后上线”
-
-不是把 Test 数据库切成 Production。
-
-正确流程：
-
-1. M1 开发；
-2. Docker 验收；
-3. 连接 Neon Test / R2 Test 测试；
-4. 确认一个具体 Git commit/version；
-5. 将**同一个版本**部署到 Cloud Run Production；
-6. Production 只连接 Neon Prod / R2 Prod / Production secrets。
-
-Test 数据和 Test 文件不会变成 Production 正式数据。
-
-以后出现多人协作、Cloud Run 专属问题或真实负载测试需求，再增加 Cloud Run Test。
-
-详细原因见：[`docs/ENVIRONMENT_STRATEGY.md`](docs/ENVIRONMENT_STRATEGY.md)
+详细说明见：[`docs/ENVIRONMENT_STRATEGY.md`](docs/ENVIRONMENT_STRATEGY.md)。
 
 ---
 
@@ -1062,7 +1041,7 @@ docs/          # architecture, boundaries, decisions, ownership and operations
 
 ## 17. Local bootstrap
 
-Repository tooling may still provide local bootstrap helpers for development. Production-bound acceptance follows [`docs/ENVIRONMENT_STRATEGY.md`](docs/ENVIRONMENT_STRATEGY.md): Docker + isolated managed Test data resources.
+本地开发使用 Docker；CI 使用临时 PostgreSQL 和容器。生产发布遵循 [`docs/ENVIRONMENT_STRATEGY.md`](docs/ENVIRONMENT_STRATEGY.md)，不依赖云端 Development/Test。
 
 Typical local setup starts with:
 

@@ -89,46 +89,17 @@ Supabase PostgreSQL
 
 ---
 
-# 5. Why Not Use Local PostgreSQL as the Normal Test Authority?
+# 5. Development and CI database strategy
 
-ALSVID development uses an M1 computer for compute, but the normal Test database remains managed and cloud-based.
+Local development and automated CI use isolated PostgreSQL databases. CI creates a disposable PostgreSQL 18 service for migration and integration checks. Production uses the managed Neon PostgreSQL database.
 
-Recommended model:
+A separately managed non-production database may be used only for a specific integration test when explicitly provisioned and verified. The former Neon Development/Test resources are not assumed to exist or form a required acceptance gate.
 
-```text
-M1 + Docker
-    |
-    v
-Neon Test resources
-```
+# 6. Production data separation
 
-Reasons:
+Production data must never be used for destructive testing, migration experiments or seed/reset workflows. Local and CI credentials are separate from Production, and CI does not receive Production secrets.
 
-- keeps database behavior closer to Production;
-- validates TLS/managed-service connection behavior;
-- avoids maintaining a local database as the authoritative Test environment;
-- allows Neon branching/reset workflows;
-- reduces differences between Test and Production.
-
-Local PostgreSQL may still be used for true offline work or isolated low-level tests, but it is not the normal Test authority.
-
----
-
-# 6. Test and Production Separation
-
-Test and Production must use separate database resources.
-
-Conceptually:
-
-```text
-Neon Test
-
-Neon Production
-```
-
-Production data must never be used directly for destructive testing, migration experiments or seed/reset workflows.
-
-Test approval promotes a software version/commit, not Test data.
+`main` changes are validated in CI before deployment. Test data is never copied or promoted to Production.
 
 ---
 

@@ -1,98 +1,20 @@
 # ALSVID Environment Naming Standard
 
-## Status
+## Current environment model
 
-This document is the authoritative environment naming rule for ALSVID.
+ALSVID has one active cloud environment: **Production**. Development happens locally; automated checks run in disposable GitHub CI environments. The former shared cloud Development/Test runtime is retired from the current release architecture.
 
-## Final environment model: two environments only
-
-ALSVID uses exactly two environments:
-
-```text
-ALSVID Development
-=
-Development / Test combined environment
-
-ALSVID Production
-=
-Formal production environment
-```
-
-There is no separate Staging environment at the current stage.
-
-## 1. ALSVID Development
-
-ALSVID Development is the combined Development / Test environment.
-
-It covers:
-
-- coding and debugging;
-- Docker-based runtime validation;
-- integration testing;
-- migration testing;
-- release acceptance before production;
-- Admin / Dealer / My ALSVID verification.
-
-Resources:
-
-- M1 Mac + Docker Compose
-- Neon Test
-- Cloudflare R2 Test
-- Development/Test secrets
-
-The purpose is to keep development and testing in one controlled non-production environment.
-
-## 2. ALSVID Production
-
-ALSVID Production is the formal production environment.
-
-Resources:
-
-- Google Cloud Run
-- Neon Production
-- Cloudflare R2 Production
-- Google Secret Manager / Production secrets
-
-Production serves real business workloads.
-
-## Environment separation
-
-```text
-ALSVID Development
-(Development / Test combined)
-        |
-        | approved version
-        v
-ALSVID Production
-```
-
-Test data and Test files are never promoted as Production data.
+| Name | Meaning | Data/resources |
+| --- | --- | --- |
+| Local development | Developer workstation and Docker Compose | Local, disposable resources |
+| CI | GitHub-hosted workflow runner | Temporary PostgreSQL/containers; no Production secrets |
+| ALSVID Production | Active business runtime in `alsvid-prod` | Production Cloud Run, Neon, R2 and managed secrets |
+| ALSVID Development | Historical name only; former `alsvid-dev` cloud runtime | Not an active release or acceptance stage |
 
 ## Naming rules
 
-Use:
+Use **local development**, **CI**, and **Production** when describing current systems. Do not label a local Docker stack as a cloud Development environment. Do not infer that a provider resource exists from an environment label or old configuration.
 
-```text
-ALSVID Development
-ALSVID Production
-```
+The retired Development runtime and automatic promotion flow must not be restored without a new reviewed owner decision. Production resources, data and credentials must remain isolated from local and CI systems.
 
-The meaning of ALSVID Development must always be understood as:
-
-```text
-Development / Test combined environment
-```
-
-Do not introduce:
-
-```text
-ALSVID Test
-ALSVID Staging
-ALSVID Dev + Test + Staging + Production
-```
-
-as separate current environments.
-
-## Future expansion
-
-A separate cloud testing environment may only be introduced when there is a real operational need. Until then ALSVID remains a two-environment architecture.
+Historical documents may use the former Development/Test naming. Treat them as dated records, not current deployment instructions.

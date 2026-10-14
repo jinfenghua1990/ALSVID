@@ -156,11 +156,13 @@ export class JobWorker {
   }
 }
 
-async function sleep(milliseconds: number, signal: AbortSignal): Promise<void> {
+export async function sleep(milliseconds: number, signal: AbortSignal): Promise<void> {
   if (signal.aborted) return;
   await new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, milliseconds);
-    signal.addEventListener('abort', () => { clearTimeout(timer); resolve(); }, { once: true });
+    const cleanup = () => signal.removeEventListener('abort', onAbort);
+    const timer = setTimeout(() => { cleanup(); resolve(); }, milliseconds);
+    const onAbort = () => { clearTimeout(timer); cleanup(); resolve(); };
+    signal.addEventListener('abort', onAbort, { once: true });
   });
 }
 

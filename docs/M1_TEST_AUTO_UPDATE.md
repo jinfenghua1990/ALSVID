@@ -1,6 +1,6 @@
-# M1 Development/Test automatic updates
+# M1 local Docker automatic updates
 
-Related: #68. Production remains on Cloud Run. This installer updates only the M1 Docker Development/Test stack.
+Related: #68. Production remains on Cloud Run. This installer updates only the local Docker stack; it does not deploy to or represent a cloud Test environment.
 
 ## One-time installation from any directory
 
@@ -21,7 +21,7 @@ Do not install a GitHub self-hosted runner on the M1 for this purpose. No inboun
 ## Behavior
 
 - At user login and every five minutes while the Mac is awake, check the latest main SHA.
-- Wait for both exact-SHA, main-push CI and Development Build to succeed.
+- Wait for exact-SHA, main-push CI to succeed.
 - Build in a separate managed checkout under `~/Library/Application Support/ALSVID/test-auto-update/repo`; never switch, reset, stash or overwrite the user's development checkout.
 - Reuse the original `.env` and `infra/.env.test.local` files when present; never copy secret values to GitHub or log rendered Compose configuration.
 - Preserve the existing Test Compose project name and database volumes. Do not run `down -v`, cleanup volumes or operate on Production.
@@ -29,7 +29,7 @@ Do not install a GitHub self-hosted runner on the M1 for this purpose. No inboun
 - Apply Test migrations explicitly, start the stack and verify API health and login page before recording the deployed SHA.
 - Retry network/Docker/acceptance failures next cycle. A failed build leaves running containers unchanged. Failure after migrations or container replacement may require diagnosis; database rollback and automatic software rollback are not promised.
 
-No provider is changed. Tests still use the original configured Test resources. Config presence is not proof of live resource isolation. Keep existing Test/Production resource separation.
+No provider is changed. Local configuration is not proof of cloud resource bindings. The updater rejects Production configuration and never accesses Production credentials.
 
 First installation can take several minutes to clone/build. Updates are not instantaneous. Mac sleep, logout, Docker shutdown and failed acceptance delay updates. Docker Desktop must be running; this LaunchAgent does not change Docker login settings.
 
