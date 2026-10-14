@@ -1,5 +1,13 @@
 # Current State
 
+## Workbench visual redesign — 2026-10-14
+
+The authenticated `/admin` workbench now implements the supplied reference as native Next.js components: a generated scenic bicycle hero, ten module entry cards, four attention cards, four KPI cards, and activity/trend/task panels. Styling is scoped to the workbench and retains the shared navigation, theme switch and internal-session checks. Activity and trend filters respond locally. Unconnected metrics remain explicitly unavailable; no sample counts, timestamps, trend points or tasks are represented as live business facts.
+
+Local validation covers the Web production build, TypeScript, architecture checks, navigation-context tests, unauthenticated redirect, desktop/mobile layout (1680/1280/768/390), both themes and panel filtering. This is an implementation record; cloud deployment requires separate workflow evidence. The retired Development environment is not recreated by this UI change.
+
+
+
 ## Admin contextual sidebar — 2026-10-14
 
 Release reconciliation now incorporates the independent main homepage, Admin menu/detail and compact-workspace updates into Development while retaining the selected-module navigation fix. Daily usage targets Production; Development remains for release verification. Production deployment completion is a separate claim and must be supported by the workflow result for the reconciled source tree.
@@ -183,3 +191,4 @@ The macOS per-user updater in `scripts/macos-test-auto-update.mjs` can discover 
 Delivery state: the shared Development environment deploys successfully, and Production stays blocked until the same source has been accepted in Development. At the time of writing, Production runs fail the release gate because `main` carried commits that had never been on `develop`; restoring that history is the prerequisite for the next Production release.
 
 Cloud acceptance remains separate: Google Secret Manager is still the secret authority, with separate resources in `alsvid-dev` and `alsvid-prod`. The Development workflow currently deploys Web and API with migration job and health verification; the Production workflow additionally builds and deploys the continuous worker pool. This follow-up does not provision cloud resources and does not claim a new successful Production deployment.
+
