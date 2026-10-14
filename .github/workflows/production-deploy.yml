@@ -99,15 +99,37 @@ jobs:
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "registry=$registry" >> "$GITHUB_OUTPUT"
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build immutable release images before cloud authentication
         env:
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          docker build --platform linux/amd64 --build-arg ALSVID_ENV=production -f infra/docker/Dockerfile.web -t "$REGISTRY/alsvid-web:$RELEASE_SHA" .
-          docker build --platform linux/amd64 -f infra/docker/Dockerfile.api -t "$REGISTRY/alsvid-api:$RELEASE_SHA" .
-          docker build --platform linux/amd64 -f infra/docker/Dockerfile.worker -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" .
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=gha,scope=alsvid-production-web \
+            --cache-to type=gha,mode=max,scope=alsvid-production-web \
+            --build-arg ALSVID_ENV=production \
+            -f infra/docker/Dockerfile.web \
+            -t "$REGISTRY/alsvid-web:$RELEASE_SHA" \
+            --load .
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=gha,scope=alsvid-production-api \
+            --cache-to type=gha,mode=max,scope=alsvid-production-api \
+            -f infra/docker/Dockerfile.api \
+            -t "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --load .
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=gha,scope=alsvid-production-worker \
+            --cache-to type=gha,mode=max,scope=alsvid-production-worker \
+            -f infra/docker/Dockerfile.worker \
+            -t "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
+            --load .
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3
