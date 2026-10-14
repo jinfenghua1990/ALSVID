@@ -88,8 +88,6 @@ jobs:
         if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm db:migrate
         if: steps.scope.outputs.docs_only != 'true'
-      - run: pnpm db:migrate
-        if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm arch:check
         if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm typecheck

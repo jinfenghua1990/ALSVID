@@ -49,12 +49,11 @@ ALSVID 环境名称固定为：
 
 | Environment | 中文 | 规则 |
 | --- | --- | --- |
-| **ALSVID Development** | 开发 / 测试环境 | UI、功能、集成和发布前验收 |
-| **ALSVID Production** | 正式 / 生产环境 | 正式业务运行 |
+| **ALSVID Production** | 正式 / 生产环境 | 正式业务运行；唯一的活动环境 |
 
-不使用 `Staging` 替代当前固定环境名称。
+不使用 `Staging`。历史上的 `ALSVID Development`（开发 / 测试环境）已退役；本地开发与 CI 仅用于验证，不构成独立环境。
 
-简写 `dev` / `prod` 只允许用于资源名、脚本、变量或部署标识；面向人员和 UI 的完整名称仍使用 `ALSVID Development` / `ALSVID Production`。
+简写 `dev` / `prod` 只允许用于资源名、脚本、变量或部署标识；面向人员和 UI 的完整名称仍使用 `ALSVID Production`。
 
 ## 5. Deployment/resource naming
 

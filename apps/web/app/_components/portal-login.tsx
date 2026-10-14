@@ -68,7 +68,7 @@ export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetup
         const payload = await response.json().catch(() => null) as AuthResponse | null;
         if (!response.ok) { setError(payload?.message ?? '无法发送验证码，请确认使用已获准的公司邮箱。'); return; }
         setEmail(nextEmail); setDisplayName(nextName); setVerificationCode(''); setCodeRequested(true);
-        setNotice(payload?.data?.testCode ? `开发/测试验证码：${payload.data.testCode}` : copy.codeNotice);
+        setNotice(payload?.data?.testCode ? `本地开发验证码：${payload.data.testCode}` : copy.codeNotice);
         return;
       }
       const response = await fetch('/api/session/email/complete', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, displayName, code: form.get('code'), portal }) });
