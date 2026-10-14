@@ -37,7 +37,7 @@ jobs:
       NODE_ENV: test
       TZ: Asia/Shanghai
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -72,11 +72,11 @@ jobs:
         if: steps.scope.outputs.docs_only != 'true'
         run: |
           bash -n infra/gcp/bootstrap-production.sh
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         if: steps.scope.outputs.docs_only != 'true'
         with:
           version: 10.34.6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.scope.outputs.docs_only != 'true'
         with:
           node-version: 22
@@ -106,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -136,7 +136,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.scope.outputs.docs_only != 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build web image with cache
         if: steps.scope.outputs.docs_only != 'true'
         uses: docker/build-push-action@v7
