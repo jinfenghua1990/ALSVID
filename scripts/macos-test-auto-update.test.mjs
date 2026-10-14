@@ -5,7 +5,7 @@ const sha = 'a'.repeat(40);
 const passed = [{ id: 1, name: 'CI', head_sha: sha, event: 'push', head_branch: 'main', status: 'completed', conclusion: 'success' }];
 test('exact-main push CI must pass', () => {
   assert.equal(acceptedRelease(passed, sha), true);
-  assert.equal(acceptedRelease(passed.slice(0, 1), sha), false);
+  assert.equal(acceptedRelease([], sha), false);
   assert.equal(acceptedRelease(passed, 'b'.repeat(40)), false);
   assert.equal(acceptedRelease(passed.map(r => ({ ...r, event: 'pull_request' })), sha), false);
   assert.equal(acceptedRelease(passed.map(r => ({ ...r, head_branch: 'other' })), sha), false);

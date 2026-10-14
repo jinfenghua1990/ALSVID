@@ -178,7 +178,7 @@ jobs:
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml up -d --wait postgres
       - name: Run migrations from the API image
         if: steps.scope.outputs.docs_only != 'true'
-        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml run --rm --no-deps api pnpm db:migrate
+        run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml run --rm --no-deps api node node_modules/@alsvid/database/dist/migrate.js
       - name: Start the tested images
         if: steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml up -d --no-build web api worker gateway
