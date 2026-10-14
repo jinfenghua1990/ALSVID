@@ -2,41 +2,22 @@
 
 ## Purpose
 
-This runbook turns the repository into a repeatable Test -> Production release path while preserving the authority model in ADR 0003.
+This runbook turns the repository into a repeatable main -> Production release path while preserving the authority model in ADR 0003.
 
 Repository-side packaging and Docker runtime acceptance are complete. Production is **not** considered accepted until the real Neon PostgreSQL project, Cloudflare R2 bucket and Google Cloud resources have been configured, the first Cloud Run deployment has succeeded, and backup/restore evidence exists.
 
-## 1. M1 / local Test acceptance
+## 1. Release acceptance (no Test environment)
 
-The M1 is a development/Test machine only. From a clean checkout of `main`:
+There is no Test environment. Production is the only live target. Release acceptance happens in CI on every exact commit on `main`:
 
-```bash
-git pull origin main
-bash scripts/test-env-acceptance.sh
-```
-
-The core-runtime script:
-
-1. verifies Docker and Docker Compose
+1. arch check, typecheck and unit tests
 2. builds Web/API/Worker images
-3. starts PostgreSQL
-4. applies migrations explicitly
-5. starts Web/API/Worker
-6. checks `http://127.0.0.1:4001/api/health`
-7. checks the Web root on `http://127.0.0.1:3001/`
-8. prints container state
-
-GitHub `ALSVID Test Build` runs the same core acceptance shape and is currently green on `main`.
+3. starts PostgreSQL and applies migrations explicitly
+4. starts Web/API/Worker/Gateway via the CI Compose harness (`infra/docker-compose.test.yml`)
+5. checks API health and the Web root
+6. merges only after all required checks pass (trusted PRs auto-merge)
 
 Real R2 access is intentionally **not** faked as part of the core Docker smoke check. R2 production acceptance requires the real bucket and scoped credentials.
-
-Stop the Test environment with:
-
-```bash
-docker compose -f infra/docker-compose.test.yml down
-```
-
-Use `down -v` only when Test data may be discarded.
 
 ## 2. Production runtime shape
 

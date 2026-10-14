@@ -173,9 +173,9 @@ Existing AppShell workbenches now share a compact internal header with a Portal 
 
 The old portal launcher is now a compatibility redirect. `/` and `/portal-launcher` lead to the authenticated Admin Center, while `/login` is the single email/password login center and successful authentication routes directly to `/admin`. Password reset uses one-time 30-minute tokens, sends through the configured transactional mail provider, and revokes existing sessions after completion. The Environment page is dynamically rendered so runtime metadata is not frozen at build time. M1 Docker images require pulling main and rebuilding Web before these changes appear locally.
 
-## M1 Test update automation — repository support
+## M1 Test update automation — removed (2026-10-14)
 
-The macOS per-user updater in `scripts/macos-test-auto-update.mjs` can discover an existing checkout, register five-minute checks and update a separate managed Test checkout only after current-main CI and Development/Test Build pass. It reuses Test configuration/project identity and checks service health. It does not change Production or developer branches. See `docs/M1_TEST_AUTO_UPDATE.md`. Installation and end-to-end acceptance on the actual M1 are pending; the repository capability does not claim a registered local agent.
+The M1 Test update automation (`scripts/macos-test-auto-update.mjs`, `scripts/test-env-acceptance.sh` and `docs/M1_TEST_AUTO_UPDATE.md`) has been removed. Production is the only live target; there is no Test environment. Release acceptance is handled entirely by exact-commit CI.
 
 ## Portal and transaction reliability follow-up — 2026-10-12
 

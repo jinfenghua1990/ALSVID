@@ -84,8 +84,6 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
         if: steps.scope.outputs.docs_only != 'true'
-      - run: node --test scripts/macos-test-auto-update.test.mjs
-        if: steps.scope.outputs.docs_only != 'true'
       - run: node --test scripts/release-gate.test.mjs
         if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm db:migrate
