@@ -1,36 +1,37 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { acceptedChecks, acceptedRollback, successfulRuns } from './release-gate.mjs';
+import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns } from './release-gate.mjs';
 
 const passed = (head_sha, conclusion = 'success') => ({
   head_sha, status: 'completed', conclusion,
 });
+const job = (name, conclusion = 'success', status = 'completed') => ({
+  name, status, conclusion,
+});
 
-test('a failed or unrelated CI run is not acceptance', () => {
+test('a failed, pending or unrelated CI run is not acceptance', () => {
   assert.equal(successfulRuns([passed('same-sha', 'failure')], 'same-sha'), false);
   assert.equal(successfulRuns([passed('other-sha')], 'same-sha'), false);
+  assert.equal(successfulRuns([{ head_sha: 'same-sha', status: 'in_progress', conclusion: null }], 'same-sha'), false);
 });
 
-test('production accepts the same main commit after CI and container checks pass', () => {
-  assert.equal(acceptedChecks({
-    'ci.yml': [passed('main-sha')],
-    'test-build.yml': [passed('main-sha')],
-  }, 'main-sha'), true);
+test('production accepts CI for the same main commit without the retired workflow', () => {
+  assert.equal(acceptedChecks({ 'ci.yml': [passed('main-sha')] }, 'main-sha'), true);
 });
 
-test('production waits when either required check is missing, failed, or for another commit', () => {
-  assert.equal(acceptedChecks({
-    'ci.yml': [passed('main-sha')],
-    'test-build.yml': [],
-  }, 'main-sha'), false);
-  assert.equal(acceptedChecks({
-    'ci.yml': [passed('main-sha')],
-    'test-build.yml': [passed('main-sha', 'failure')],
-  }, 'main-sha'), false);
-  assert.equal(acceptedChecks({
-    'ci.yml': [passed('main-sha')],
-    'test-build.yml': [passed('other-sha')],
-  }, 'main-sha'), false);
+test('production rejects missing, failed or unrelated CI evidence', () => {
+  assert.equal(acceptedChecks({}, 'main-sha'), false);
+  assert.equal(acceptedChecks({ 'ci.yml': [passed('main-sha', 'failure')] }, 'main-sha'), false);
+  assert.equal(acceptedChecks({ 'ci.yml': [passed('other-sha')] }, 'main-sha'), false);
+});
+
+test('CI acceptance requires both code verification and running-container checks', () => {
+  assert.equal(acceptedJobs([job('verify'), job('containers')]), true);
+  assert.equal(acceptedJobs([job('verify')]), false);
+  assert.equal(acceptedJobs([job('containers')]), false);
+  assert.equal(acceptedJobs([job('verify'), job('containers', 'failure')]), false);
+  assert.equal(acceptedJobs([job('verify'), job('containers', 'skipped')]), false);
+  assert.equal(acceptedJobs([job('verify'), job('containers', null, 'in_progress')]), false);
 });
 
 test('previous production releases can be rolled back only when explicitly enabled', async () => {
