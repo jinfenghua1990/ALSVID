@@ -116,12 +116,10 @@ export function AppShell({
           ))}
         </nav>
         <div className="primaryUtilities" aria-label="快捷工具">
-          <button className="utilityButton" type="button" aria-label="搜索（待接入）" title="搜索（待接入）" disabled>⌕</button>
           <ThemeToggle />
-          <button className="utilityButton utilityNotify" type="button" aria-label="通知（待接入）" title="通知（待接入）" disabled>♢</button>
-          <a className="primaryProfile" href="/portal-launcher" aria-label="工作入口">
+          <a className="primaryProfile" href="/portal-launcher" aria-label="切换 ALSVID 工作入口" title="切换 ALSVID 工作入口">
             <span className="profileAvatar">A</span>
-            <span className="profileCopy"><strong>管理员</strong><small>ALSVID</small></span>
+            <span className="profileCopy"><strong>ALSVID Admin</strong><small>工作入口</small></span>
             <span aria-hidden="true">⌄</span>
           </a>
         </div>
