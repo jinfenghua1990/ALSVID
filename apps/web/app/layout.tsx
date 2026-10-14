@@ -14,7 +14,7 @@ function runtimeEnvironment() {
 export function generateMetadata(): Metadata {
   const environment = runtimeEnvironment();
   return {
-    title: environment === 'production' ? 'ALSVID' : '[开发] ALSVID',
+    title: environment === 'production' ? 'ALSVID' : 'ALSVID（本地开发）',
     description: 'ALSVID 自行车业务与车辆生命周期管理平台',
   };
 }
@@ -42,8 +42,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body data-alsvid-environment={environment}>
         {isDevelopment ? (
           <div className="environmentBanner" role="status">
-            <strong>开发/测试：ALSVID Development</strong>
-            <span>当前数据仅用于开发与验收，不属于正式业务数据。</span>
+            <strong>本地开发环境</strong>
+            <span>非正式环境，当前数据不属于正式业务数据。</span>
             <RefreshButton />
           </div>
         ) : null}

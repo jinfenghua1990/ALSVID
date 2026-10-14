@@ -14,7 +14,7 @@ class ConsoleDelivery implements IdentityVerificationDelivery, IdentityPasswordR
   readonly configured = true;
 
   async sendCode(input: { email: string; code: string; expiresAt: Date }): Promise<void> {
-    console.info('[ALSVID Development email verification]', {
+    console.info('[ALSVID local email verification]', {
       email: input.email,
       code: input.code,
       expiresAt: input.expiresAt.toISOString(),
@@ -22,7 +22,7 @@ class ConsoleDelivery implements IdentityVerificationDelivery, IdentityPasswordR
   }
 
   async sendResetEmail(input: { email: string; displayName: string; resetUrl: string; expiresAt: Date }): Promise<void> {
-    console.info('[ALSVID Development password reset]', {
+    console.info('[ALSVID local password reset]', {
       email: input.email,
       resetUrl: input.resetUrl,
       expiresAt: input.expiresAt.toISOString(),
