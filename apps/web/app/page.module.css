@@ -707,3 +707,25 @@
   .footerGrid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .footerBottom { flex-direction: column; }
 }
+
+/* FC1 folding experience — homepage V3 */
+.foldingSection { background: #e9ece9; color: #121619; padding: 108px 5vw; }
+.foldingInner { max-width: 1400px; margin: 0 auto; }
+.foldingIntro { max-width: 760px; margin-bottom: 46px; }
+.foldingEyebrow { font-size: 12px; letter-spacing: .2em; font-weight: 700; color: #687178; }
+.foldingIntro h2 { font-size: clamp(38px, 5vw, 74px); letter-spacing: -.055em; line-height: 1.05; margin: 12px 0 20px; }
+.foldingIntro > p:last-child { max-width: 560px; color: #5d686d; line-height: 1.8; }
+.foldingSteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.foldingStep { background: #f8f9f7; border-radius: 20px; padding: 24px; }
+.foldingNumber { font-size: 13px; letter-spacing: .15em; color: #667177; }
+.foldingStepVisual { display: grid; place-items: center; min-height: 250px; margin: 18px 0; background: linear-gradient(145deg,#d5dcda,#edf0ed); border-radius: 14px; }
+.foldingStepVisual span { font-size: clamp(60px, 8vw, 110px); font-weight: 800; letter-spacing: -.07em; color: rgba(30,40,45,.12); }
+.foldingStep h3 { font-size: 22px; margin: 0 0 10px; }
+.foldingStep p { color: #667177; line-height: 1.7; margin: 0; font-size: 14px; }
+.foldingDisclaimer { margin: 22px 0 0; color: #788186; font-size: 12px; }
+@media (max-width: 760px) {
+  .foldingSection { padding: 64px 18px; }
+  .foldingSteps { grid-template-columns: 1fr; }
+  .foldingStepVisual { min-height: 190px; }
+  .hero h1 { font-size: clamp(42px, 10vw, 70px); line-height: 1.03; }
+}
