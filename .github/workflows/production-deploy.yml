@@ -116,11 +116,58 @@ jobs:
           registry="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}"
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "registry=$registry" >> "$GITHUB_OUTPUT"
+          if [[ "$RELEASE_EVENT" == "workflow_dispatch" && "$release_sha" != "$(git rev-parse origin/main)" ]]; then
+            echo "rollback=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "rollback=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Authenticate to Google Cloud with Workload Identity Federation
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Configure registry and reuse existing release images when available
+        id: image_lookup
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          IS_ROLLBACK: ${{ steps.release.outputs.rollback }}
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+          images=(alsvid-web alsvid-api alsvid-worker)
+          found=0
+          for image in "${images[@]}"; do
+            if gcloud artifacts docker images describe "$REGISTRY/$image:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+              found=$((found + 1))
+            fi
+          done
+          if [[ "$IS_ROLLBACK" == "true" && "$found" != "${#images[@]}" ]]; then
+            echo "Rollback requires all previously published release images; refusing to rebuild an older commit." >&2
+            exit 1
+          fi
+          if [[ "$found" == "${#images[@]}" ]]; then
+            echo "reused=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$found" == "0" ]]; then
+            echo "reused=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only some release images exist; refusing to mix builds and historical images." >&2
+            exit 1
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build web image with cache
+        if: steps.image_lookup.outputs.reused != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -133,6 +180,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
 
       - name: Build api image with cache
+        if: steps.image_lookup.outputs.reused != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -144,6 +192,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
 
       - name: Build worker image with cache
+        if: steps.image_lookup.outputs.reused != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -153,16 +202,6 @@ jobs:
           tags: ${{ steps.release.outputs.registry }}/alsvid-worker:${{ steps.release.outputs.sha }}
           cache-from: type=gha,scope=alsvid-production-worker
           cache-to: type=gha,mode=max,scope=alsvid-production-worker,ignore-error=true
-
-      - name: Authenticate to Google Cloud with Workload Identity Federation
-        uses: google-github-actions/auth@v3
-        with:
-          project_id: ${{ vars.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
-
-      - name: Set up Google Cloud CLI
-        uses: google-github-actions/setup-gcloud@v3
 
       - name: Validate production mail secret exists
         env:
@@ -174,17 +213,33 @@ jobs:
             exit 1
           fi
 
-      - name: Push immutable release images
+      - name: Push release images
+        if: steps.image_lookup.outputs.reused != 'true'
         env:
-          GCP_REGION: ${{ vars.GCP_REGION }}
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
           docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
           docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
           docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
+
+      - name: Resolve exact release image digests
+        id: images
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          REGISTRY: ${{ steps.release.outputs.registry }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          for image in web api worker; do
+            digest="$(gcloud artifacts docker images describe "$REGISTRY/alsvid-$image:$RELEASE_SHA" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
+            if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "Could not resolve immutable digest for alsvid-$image:$RELEASE_SHA" >&2
+              exit 1
+            fi
+            echo "${image}_image=$REGISTRY/alsvid-$image@$digest" >> "$GITHUB_OUTPUT"
+          done
 
       - name: Run database migrations as an explicit release job
         env:
@@ -198,7 +253,7 @@ jobs:
           gcloud run jobs deploy "$MIGRATION_JOB" \
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
-            --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --image "${{ steps.images.outputs.api_image }}" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
             --command node \
             --args node_modules/@alsvid/database/dist/migrate.js \
@@ -240,7 +295,7 @@ jobs:
           gcloud run deploy "$API_SERVICE" \
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
-            --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
+            --image "${{ steps.images.outputs.api_image }}" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
             --port 4000 \
             --cpu 1 \
@@ -266,7 +321,7 @@ jobs:
           gcloud run worker-pools deploy "$WORKER_POOL" \
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
-            --image "$REGISTRY/alsvid-worker:$RELEASE_SHA" \
+            --image "${{ steps.images.outputs.worker_image }}" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
             --instances "$WORKER_INSTANCES" \
             --cpu 1 \
@@ -299,7 +354,7 @@ jobs:
           gcloud run deploy "$WEB_SERVICE" \
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
-            --image "$REGISTRY/alsvid-web:$RELEASE_SHA" \
+            --image "${{ steps.images.outputs.web_image }}" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
             --port 3000 \
             --cpu 1 \
