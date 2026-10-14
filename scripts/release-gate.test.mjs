@@ -1,12 +1,22 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns } from './release-gate.mjs';
+import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns, mainReleaseRuns } from './release-gate.mjs';
 
 const passed = (head_sha, conclusion = 'success') => ({
   head_sha, status: 'completed', conclusion,
 });
 const job = (name, conclusion = 'success', status = 'completed') => ({
   name, status, conclusion,
+});
+
+test('release CI accepts push or dispatched main runs but never PR or other branches', () => {
+  const runs = [
+    { head_branch: 'main', event: 'push' },
+    { head_branch: 'main', event: 'workflow_dispatch' },
+    { head_branch: 'main', event: 'pull_request' },
+    { head_branch: 'develop', event: 'workflow_dispatch' },
+  ];
+  assert.deepEqual(mainReleaseRuns(runs), runs.slice(0, 2));
 });
 
 test('a failed, pending or unrelated CI run is not acceptance', () => {
