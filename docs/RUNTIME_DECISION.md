@@ -88,3 +88,8 @@ The intended flow is:
 ## Change rule
 
 Do not replace Cloud Run merely because another platform is fashionable or temporarily cheaper. A runtime migration must identify a concrete problem, demonstrate that ALSVID remains portable, and document the decision before changing Production.
+
+
+## Current environment scope (2026-10-14)
+
+Google Cloud Run remains the Production runtime, but ALSVID no longer maintains a cloud Development runtime. Development is local and CI is ephemeral. The old `alsvid-dev` runtime is retired from the release flow; this repository note is not proof of live resource deletion. See `docs/ENVIRONMENT_ARCHITECTURE.md` and `docs/RELEASE_FLOW.md` for the current model.

@@ -1,5 +1,7 @@
 # Current State
 
+> **Current runtime correction (2026-10-14):** Production is the only live cloud target. Cloud Development/Test and its promotion workflow are retired; local Docker and ephemeral GitHub CI are validation environments. Pull requests target `main` and production releases require exact-commit CI. Older entries below are dated historical snapshots and do not describe current runtime state. This repository note does not prove that any cloud resource was deleted.
+
 ## Admin contextual sidebar — 2026-10-14
 
 Release reconciliation now incorporates the independent main homepage, Admin menu/detail and compact-workspace updates into Development while retaining the selected-module navigation fix. Daily usage targets Production; Development remains for release verification. Production deployment completion is a separate claim and must be supported by the workflow result for the reconciled source tree.

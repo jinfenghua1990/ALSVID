@@ -15,3 +15,7 @@ backups
 .env.*
 !.env.example
 gha-creds-*.json
+
+# Documentation is not needed in production image build contexts
+docs
+**/*.md

@@ -172,6 +172,8 @@ export class IdentityService {
 
   async login(identifier: string, password: string): Promise<{ token: string; expiresAt: string; user: AuthContext }> {
     const normalizedIdentifier = normalizeLoginIdentifier(identifier);
+    const allowed = await this.repository.consumeAuthRateLimit(this.tokens.hash(`login:${normalizedIdentifier}`), 15 * 60 * 1000, 5);
+    if (!allowed) throw new InvalidCredentialsError();
     const row = await this.repository.findLoginContext(normalizedIdentifier);
     if (!row?.passwordHash || !(await this.passwords.verify(password, row.passwordHash))) throw new InvalidCredentialsError();
     const securityPolicy = await this.repository.getSecurityPolicy();
@@ -197,6 +199,8 @@ export class IdentityService {
   async requestPasswordReset(email: string, resetUrlBase: string): Promise<void> {
     if (!this.passwordResetDelivery.configured) throw new IdentityMailUnavailableError();
     const normalizedEmail = normalizeEmail(email);
+    const allowed = await this.repository.consumeAuthRateLimit(this.tokens.hash(`password-reset:${normalizedEmail}`), 60 * 60 * 1000, 3);
+    if (!allowed) return;
     const user = await this.repository.findPasswordResetUser(normalizedEmail);
     if (!user) return;
 

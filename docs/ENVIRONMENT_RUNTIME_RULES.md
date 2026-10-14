@@ -1,50 +1,20 @@
 # ALSVID Environment Runtime Rules
 
-## Local M1 Development is not ALSVID Test Environment
+## Environment model
 
-This decision corrects a previous discussion ambiguity.
+- **Production:** Google Cloud Run in `alsvid-prod`; live business environment.
+- **Local development:** developer workstation and Docker Compose.
+- **CI:** temporary GitHub-hosted runners and disposable test services.
+- **Retired:** cloud Development/Test in `alsvid-dev`; not an active deployment target.
 
-## Environment Model
-
-ALSVID currently maintains two cloud environments:
-
-1. Test Environment
-2. Production Environment
-
-The developer M1 machine is only a local development environment.
-
-```
-GitHub Repository
-        |
-        ↓
-M1 Local Development
-(build / debug / local Docker)
-        |
-        ↓
-ALSVID Test Cloud Environment
-(Test Database / Test R2 / Test Secrets)
-        |
-        ↓
-ALSVID Production Cloud Environment
-(Production Database / Production R2 / Production Secrets)
+```text
+GitHub branch / PR → CI checks → review → main → Production deploy
 ```
 
 ## Rules
 
-- Local Docker PostgreSQL, localhost ports, and compose files are developer convenience tools only.
-- Local Docker configuration must not be treated as ALSVID Test Environment.
-- Test and Production are both cloud environments and must remain isolated.
-- Environment verification must check actual cloud bindings:
-  - GitHub Actions
-  - Cloud Run
-  - Secret Manager
-  - Cloud database
-  - Object storage
-
-## Correction
-
-Previous discussion incorrectly mixed Local Docker Test configuration with cloud Test Environment.
-
-Future agents must distinguish:
-
-`Local Development ≠ Test Environment ≠ Production Environment`
+- Local and CI databases, object storage and secrets must be isolated from Production.
+- Never place Production credentials in local development or CI.
+- `ALSVID_ENV` / `NODE_ENV`, Compose names and environment-page labels do not prove actual provider bindings.
+- Verify live cloud resources through the provider before claiming they exist, are disabled or have been deleted.
+- Do not restore a cloud Development runtime or its workflows without a new reviewed architecture decision.

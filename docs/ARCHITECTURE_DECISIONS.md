@@ -144,3 +144,8 @@ Future consideration:
 - Recovery testing
 
 Advanced disaster recovery is postponed until business scale requires it.
+
+
+## 7. Current environment and release boundary (2026-10-14)
+
+Production in `alsvid-prod` is the only live cloud runtime. Local Docker and disposable GitHub CI provide development and validation. The former `alsvid-dev` Cloud Run runtime and Development promotion workflow are retired. Pull requests target `main`, and Production deploy requires successful CI for the exact commit. This supersedes older environment-flow descriptions in historical records; it does not assert the live deletion status of any cloud resource.

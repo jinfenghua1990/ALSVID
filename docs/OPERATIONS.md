@@ -21,9 +21,9 @@ GitHub is the software source of truth.
 | Production runtime | Google Cloud Run | Railway fallback 1; Apply.Build fallback 2 |
 | Relational database | Neon PostgreSQL | Supabase PostgreSQL migration alternative |
 | Binary/object storage | Cloudflare R2 | Keep S3-compatible abstraction |
-| Development/Test compute | M1 Mac + Docker | Add cloud Test later only when justified |
-| Test database | Neon Test resources | Must be isolated from Production |
-| Test object storage | R2 Test resources | Must be isolated from Production |
+| Development / CI compute | Local Docker + ephemeral GitHub runners | No active cloud Development runtime |
+| Test database | Local Docker PostgreSQL / ephemeral CI PostgreSQL | No Production credentials |
+| Test object storage | Local or explicitly isolated test bucket when required | Never assume a live Test bucket exists |
 | Commerce/order authority | Shopify | ALSVID does not become OMS |
 | Warehouse execution | WMS | ALSVID consumes necessary status/facts |
 | Disaster recovery | Deferred | Q4 not currently part of Production DR |
@@ -41,7 +41,7 @@ The separate cloud Development runtime and its promotion workflow have been reti
 
 `Run workflow` remains available for a specific merged release or rollback. The current trusted workflow's release gate is used even when checking out an older source commit, so rollback does not restore retired gate dependencies.
 
-Application rollback is performed by entering the previous known-good `main` commit SHA as `release_sha` in `ALSVID Production Deploy`. This rebuilds and deploys the same Web/API/Worker source version. It does not restore or downgrade the live database; schema rollback requires a separate reviewed recovery or forward-fix plan.
+Application rollback is performed by entering the previous known-good `main` commit SHA as `release_sha` in `ALSVID Production Deploy`. The workflow must reuse the already published image digests for that release; it must not rebuild an older source with mutable base-image tags. It does not restore or downgrade the live database; schema rollback requires a separate reviewed recovery or forward-fix plan.
 
 ## Customer-visible external data freshness
 

@@ -95,3 +95,8 @@ Before changing architecture, check:
 - What problem does the change solve?
 - Does it violate ALSVID boundaries?
 - Is there a simpler solution?
+
+
+## Environment and release model (2026-10-14)
+
+The current cloud runtime is Production only (`alsvid-prod`). Local Docker and ephemeral GitHub CI are the development/validation environments. The former cloud Development/Test runtime and automatic promotion flow are retired. Pull requests target `main`; Production deployment requires successful CI for the exact commit. Treat older Development references elsewhere in the docs as historical unless explicitly updated. Verify live cloud inventory before claiming a resource exists or was deleted.

@@ -67,7 +67,8 @@ export interface IdentityRepository {
   createUser(email: string, displayName: string, passwordHash: string | null, emailVerifiedAt: Date | null, executor?: QueryExecutor): Promise<string>;
   updateBootstrapUser(userId: string, displayName: string, passwordHash: string, executor?: QueryExecutor): Promise<void>;
   ensureUserRole(userId: string, roleId: string, executor?: QueryExecutor): Promise<void>;
-  findLoginContext(email: string): Promise<(AuthContext & { passwordHash: string | null }) | null>;
+  findLoginContext(identifier: string): Promise<(AuthContext & { passwordHash: string | null }) | null>;
+  consumeAuthRateLimit(bucketHash: string, windowMs: number, maximum: number): Promise<boolean>;
   findUserContextById(userId: string, executor?: QueryExecutor): Promise<AuthContext | null>;
   markEmailVerified(userId: string, verifiedAt: Date, executor?: QueryExecutor): Promise<void>;
   setPasswordHash(userId: string, passwordHash: string, executor?: QueryExecutor): Promise<void>;

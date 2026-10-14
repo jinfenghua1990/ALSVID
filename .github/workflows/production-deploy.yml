@@ -200,8 +200,8 @@ jobs:
             --region "$GCP_REGION" \
             --image "$REGISTRY/alsvid-api:$RELEASE_SHA" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
-            --command pnpm \
-            --args db:migrate \
+            --command node \
+            --args node_modules/@alsvid/database/dist/migrate.js \
             --set-env-vars NODE_ENV=production \
             --set-secrets DATABASE_URL=alsvid-database-url:latest \
             --max-retries 1 \
@@ -234,7 +234,7 @@ jobs:
             echo "Production web service URL is unavailable; refusing to deploy reset links without a destination" >&2
             exit 1
           fi
-          env_vars="NODE_ENV=production,ALSVID_ENV=production,ALSVID_EMAIL_TEST_MODE=false,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,ALSVID_INTERNAL_EMAIL_DOMAINS=${ALSVID_INTERNAL_EMAIL_DOMAINS:-},ALSVID_INTERNAL_REGISTRATION_MODE=${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain},ALSVID_INITIAL_ADMIN_EMAIL=${ALSVID_INITIAL_ADMIN_EMAIL:-},MAIL_PROVIDER=${MAIL_PROVIDER:-resend},MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@chaibenn.com},MAIL_FROM_NAME=ALSVID,ALSVID_PUBLIC_WEB_URL=$web_url"
+          env_vars="NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_EMAIL_TEST_MODE=false,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,ALSVID_INTERNAL_EMAIL_DOMAINS=${ALSVID_INTERNAL_EMAIL_DOMAINS:-},ALSVID_INTERNAL_REGISTRATION_MODE=${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain},ALSVID_INITIAL_ADMIN_EMAIL=${ALSVID_INITIAL_ADMIN_EMAIL:-},MAIL_PROVIDER=${MAIL_PROVIDER:-resend},MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@chaibenn.com},MAIL_FROM_NAME=ALSVID,ALSVID_PUBLIC_WEB_URL=$web_url"
           secret_bindings="DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest,MAIL_API_KEY=alsvid-mail-api-key:latest"
 
           gcloud run deploy "$API_SERVICE" \
@@ -318,7 +318,7 @@ jobs:
         run: |
           set -euo pipefail
           web_url="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
-          curl --fail --silent --show-error --retry 6 --retry-delay 5 "$web_url" >/dev/null
+          curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$web_url" >/dev/null
           {
             echo "### ALSVID production deployment"
             echo "- Release: $RELEASE_SHA"
