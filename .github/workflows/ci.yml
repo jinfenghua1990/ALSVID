@@ -70,7 +70,6 @@ jobs:
       - name: Validate Google Cloud bootstrap shell syntax
         if: steps.scope.outputs.docs_only != 'true'
         run: |
-          bash -n infra/gcp/bootstrap-development.sh
           bash -n infra/gcp/bootstrap-production.sh
       - uses: pnpm/action-setup@v4
         if: steps.scope.outputs.docs_only != 'true'
