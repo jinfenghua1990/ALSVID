@@ -6,7 +6,9 @@ This repository is the clean-slate implementation authority for ALSVID.
 
 Before changing application behavior or architecture, read in this order:
 
-1. `docs/AI_CONTEXT.md`
+1. `knowledge/README.md`
+2. `knowledge/00-Company/Architecture.md`
+3. `docs/AI_CONTEXT.md`
 2. `docs/ARCHITECTURE_DECISIONS.md`
 3. `docs/BUSINESS_BOUNDARY.md`
 4. `docs/DATABASE_DECISION.md`
@@ -21,7 +23,9 @@ Before changing application behavior or architecture, read in this order:
 13. `docs/BUSINESS_FLOWS.md`
 14. relevant ADRs under `docs/adr/`
 15. the current issue/PR and affected `domain.json`
-16. `docs/ENVIRONMENT_ARCHITECTURE.md`
+17. `docs/ENVIRONMENT_ARCHITECTURE.md`
+
+For product, brand, website, dealer, customer-support, Shopify or AI work, also read the relevant files under `knowledge/`. The knowledge base is the shared ALSVID business context; this file and the `docs/` files remain authoritative for engineering constraints.
 
 Confirmed architecture decisions are not suggestions. Do not replace providers, redraw system boundaries, or add major infrastructure merely because a different stack appears fashionable. First identify the concrete problem, review the recorded rationale, and document the new decision.
 
