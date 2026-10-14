@@ -5,12 +5,8 @@ export function successfulRuns(runs, sha) {
   return runs.some(run => run.head_sha === sha && run.status === 'completed' && run.conclusion === 'success');
 }
 
-export async function acceptedDevelopment(runs, targetTree, treeFor, checksFor) {
-  for (const run of runs) {
-    if (run.status !== 'completed' || run.conclusion !== 'success' || run.head_branch !== 'develop' || run.event !== 'push') continue;
-    if (await treeFor(run.head_sha) === targetTree && await checksFor(run.head_sha)) return run;
-  }
-  return null;
+export function acceptedChecks(runsByWorkflow, sha) {
+  return ['ci.yml', 'test-build.yml'].every(file => successfulRuns(runsByWorkflow[file] ?? [], sha));
 }
 
 export async function acceptedRollback(runs, sha, allowed) {
@@ -32,17 +28,18 @@ async function main() {
     if (!response.ok) throw new Error(`Release evidence request failed: HTTP ${response.status}`);
     return response.json();
   }
-  async function checksFor(candidate) {
+  async function checksFor(candidate, branch) {
+    const runsByWorkflow = {};
     for (const file of ['ci.yml', 'test-build.yml']) {
-      const result = await api(`actions/workflows/${file}/runs?head_sha=${candidate}&branch=develop&event=push&per_page=100`);
-      if (!successfulRuns(result.workflow_runs, candidate)) return false;
+      const result = await api(`actions/workflows/${file}/runs?head_sha=${candidate}&branch=${branch}&event=push&per_page=100`);
+      runsByWorkflow[file] = result.workflow_runs;
     }
-    return true;
+    return acceptedChecks(runsByWorkflow, candidate);
   }
   if (mode === 'checks') {
     const deadline = Date.now() + 15 * 60 * 1000;
     do {
-      if (await checksFor(sha)) {
+      if (await checksFor(sha, 'develop')) {
         console.log(`开发/测试：ALSVID Development — CI and container acceptance passed for ${sha}`);
         return;
       }
@@ -60,21 +57,15 @@ async function main() {
       return;
     }
   }
-  const trees = new Map();
-  async function treeFor(candidate) {
-    if (!trees.has(candidate)) trees.set(candidate, (await api(`git/commits/${candidate}`)).tree.sha);
-    return trees.get(candidate);
-  }
-  for (let page = 1; page <= 10; page++) {
-    const result = await api(`actions/workflows/development-deploy.yml/runs?branch=develop&status=success&per_page=100&page=${page}`);
-    const accepted = await acceptedDevelopment(result.workflow_runs, tree, treeFor, checksFor);
-    if (accepted) {
-      console.log(`正式/生产：ALSVID Production — source tree accepted in Development by run ${accepted.id} (${accepted.head_sha})`);
+  const deadline = Date.now() + 15 * 60 * 1000;
+  do {
+    if (await checksFor(sha, 'main')) {
+      console.log(`正式/生产：ALSVID Production — CI and container acceptance passed for ${sha}`);
       return;
     }
-    if (result.workflow_runs.length < 100) break;
-  }
-  throw new Error('Production deployment blocked: identical source has not passed CI, container acceptance and Development deployment');
+    await new Promise(resolve => setTimeout(resolve, 15000));
+  } while (Date.now() < deadline);
+  throw new Error('Production deployment blocked: CI/container acceptance has not passed within 15 minutes');
 }
 
 if (process.argv[1] === '-' || (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)) {
