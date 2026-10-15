@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>账户中心 · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+<style>
+  .perm-list { display: grid; gap: 1px; background: var(--c-line); border-radius: var(--r-card); overflow: hidden; border: 1px solid var(--c-line); }
+  .perm-row { background: var(--c-paper); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .perm-row:nth-child(even) { background: var(--c-surface); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <!-- ============ 页内二级导航 ============ -->
+  <div class="subnav">
+    <div class="subnav-inner shell">
+      <span class="subnav-title">账户中心</span>
+      <nav class="subnav-links" aria-label="账户设置">
+        <a class="subnav-link" href="#company">Company Profile</a>
+        <a class="subnav-link" href="#contacts">Contacts</a>
+        <a class="subnav-link" href="#shipping">Shipping Address</a>
+        <a class="subnav-link" href="#team">Team Members</a>
+        <a class="subnav-link" href="#permissions">Permissions</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="page">
+    <div class="shell">
+
+      <div class="page-head">
+        <div class="page-title-group">
+          <nav class="breadcrumb">
+            <a href="index.html">工作台</a><span class="sep">/</span><span>账户中心</span>
+          </nav>
+          <h1 class="t-h1">账户中心</h1>
+          <p class="t-sm">管理贵公司的资料、团队与收货信息。</p>
+        </div>
+        <div class="page-actions">
+          <span class="api-note">GET /api/dealer/account</span>
+        </div>
+      </div>
+
+      <div class="stack-6">
+
+        <!-- Company Profile -->
+        <section id="company" style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Company Profile</h2>
+            <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">编辑</button>
+          </div>
+          <div class="card card-pad">
+            <div class="grid g-3">
+              <div class="field">
+                <span class="label">经销商名称</span>
+                <p class="t-body t-ink" data-bind="dealer.name" data-bind-empty="—">—</p>
+              </div>
+              <div class="field">
+                <span class="label">经销商代码</span>
+                <p class="t-mono t-ink" style="font-size:13px" data-bind="dealer.code" data-bind-empty="—">—</p>
+              </div>
+              <div class="field">
+                <span class="label">地区</span>
+                <p class="t-body t-ink" data-bind="dealer.region" data-bind-empty="—">—</p>
+              </div>
+              <div class="field">
+                <span class="label">合作等级</span>
+                <p class="t-body t-ink" data-bind="dealer.tier" data-bind-empty="—">—</p>
+              </div>
+              <div class="field">
+                <span class="label">账户状态</span>
+                <p><span class="badge badge-accent" data-when="demo"><i class="dot dot-accent"></i><span data-bind="dealer.status" data-bind-empty="Active Dealer">—</span></span></p>
+              </div>
+              <div class="field">
+                <span class="label">Tax ID</span>
+                <p class="t-body t-muted">—</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contacts -->
+        <section id="contacts" style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Contacts</h2>
+            <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">编辑</button>
+          </div>
+          <div class="card card-pad">
+            <div class="grid g-3">
+              <div class="field">
+                <label class="label" for="c-name">主要联系人</label>
+                <input class="input" id="c-name" placeholder="—" disabled>
+              </div>
+              <div class="field">
+                <label class="label" for="c-mail">邮箱</label>
+                <input class="input" id="c-mail" placeholder="—" disabled>
+              </div>
+              <div class="field">
+                <label class="label" for="c-phone">电话</label>
+                <input class="input" id="c-phone" placeholder="—" disabled>
+              </div>
+              <div class="field">
+                <label class="label" for="c-mail2">采购邮箱</label>
+                <input class="input" id="c-mail2" placeholder="—" disabled>
+              </div>
+              <div class="field">
+                <label class="label" for="c-mail3">售后邮箱</label>
+                <input class="input" id="c-mail3" placeholder="—" disabled>
+              </div>
+            </div>
+            <p class="t-xs t-muted" style="margin-top:14px">联系人信息接入 API 后由经销商自行维护。</p>
+          </div>
+        </section>
+
+        <!-- Shipping Address -->
+        <section id="shipping" style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Shipping Address</h2>
+            <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">新增地址</button>
+          </div>
+          <div class="card">
+            <div class="rows">
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-5.6 6.5-10.3A6.5 6.5 0 0 0 5.5 10.7C5.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10.5" r="2.3"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">主收货地址</span>
+                  <span class="row-item-sub" data-bind="dealer.region" data-bind-empty="待填写">—</span>
+                </span>
+                <span class="badge badge-outline">默认</span>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-5.6 6.5-10.3A6.5 6.5 0 0 0 5.5 10.7C5.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10.5" r="2.3"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">售后件寄送地址</span>
+                  <span class="row-item-sub">与主收货地址一致</span>
+                </span>
+                <button class="btn btn-ghost btn-sm" disabled>设置</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Team Members -->
+        <section id="team" style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Team Members</h2>
+            <button class="btn btn-primary btn-sm" disabled title="待接入 ALSVID API">邀请成员</button>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-scroll">
+              <table class="tbl">
+                <thead>
+                  <tr><th>成员</th><th>角色</th><th>状态</th><th></th></tr>
+                </thead>
+                <tbody data-list="team" data-empty="暂无团队成员" data-api="GET /api/dealer/account/members"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Permissions -->
+        <section id="permissions" style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Permissions</h2>
+            <span class="t-xs t-muted">由账户所有者分配</span>
+          </div>
+          <div class="perm-list">
+            <div class="perm-row">
+              <span><span class="row-item-title">Owner</span><span class="row-item-sub">全部模块读写，可邀请成员</span></span>
+              <span class="badge badge-ink">Full access</span>
+            </div>
+            <div class="perm-row">
+              <span><span class="row-item-title">Purchasing Manager</span><span class="row-item-sub">产品目录 / 采购 / 订单</span></span>
+              <span class="badge badge-outline">Scoped</span>
+            </div>
+            <div class="perm-row">
+              <span><span class="row-item-title">Service Lead</span><span class="row-item-sub">车辆 / 售后 / 技术资料</span></span>
+              <span class="badge badge-outline">Scoped</span>
+            </div>
+            <div class="perm-row">
+              <span><span class="row-item-title">Sales</span><span class="row-item-sub">产品目录 / 库存（只读）</span></span>
+              <span class="badge badge-neutral">Read-only</span>
+            </div>
+          </div>
+          <div class="notice" style="margin-top:16px">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+            <span>本页仅管理贵公司成员的访问权限，不包含 ALSVID 内部员工账号管理。</span>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('account');</script>
+</body>
+</html>

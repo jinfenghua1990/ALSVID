@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>库存 / 可购性 · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <main class="page">
+    <div class="shell">
+
+      <div class="page-head">
+        <div class="page-title-group">
+          <nav class="breadcrumb">
+            <a href="index.html">工作台</a><span class="sep">/</span><span>库存</span>
+          </nav>
+          <h1 class="t-h1">库存 / 可购性</h1>
+          <p class="t-sm">回答两个问题：现在能买什么，下一批什么时候到。</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="catalog.html">产品目录</a>
+          <a class="btn btn-primary" href="purchase.html">创建采购需求</a>
+        </div>
+      </div>
+
+      <div class="notice" style="margin-bottom:32px">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+        <span>本页不是仓库管理。仅展示经销商可见的可购状态与交期，内部库存数量、生产计划与供应商信息不在此呈现。</span>
+      </div>
+
+      <div class="filterbar" data-filter-group="#avTable">
+        <button class="chip" data-filter="all" aria-selected="true">全部</button>
+        <button class="chip" data-filter="Available">Available</button>
+        <button class="chip" data-filter="Limited">Limited</button>
+        <button class="chip" data-filter="Pre-order">Pre-order</button>
+        <span class="spacer"></span>
+        <span class="api-note">GET /api/dealer/availability</span>
+      </div>
+
+      <div class="tbl-wrap" id="avTable">
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>车型</th><th>系列</th><th>状态</th>
+                <th>交付周期</th><th>Next Shipment</th><th></th>
+              </tr>
+            </thead>
+            <tbody data-list="availability" data-empty="暂无可购性数据" data-api="GET /api/dealer/availability"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 状态释义（三列合并为一张卡，避免同一信息三次建卡） -->
+      <div class="card card-pad" style="margin-top:40px">
+        <div class="grid g-3" style="gap:28px">
+          <div>
+            <p class="t-eyebrow" style="margin-bottom:6px">Available</p>
+            <p class="t-sm">可直接提交采购申请，按标准交期排产。</p>
+          </div>
+          <div>
+            <p class="t-eyebrow" style="margin-bottom:6px">Limited</p>
+            <p class="t-sm">配额受限，建议尽早锁定批次。</p>
+          </div>
+          <div>
+            <p class="t-eyebrow" style="margin-bottom:6px">Pre-order</p>
+            <p class="t-sm">未开放正式采购，可提交意向等待通知。</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('inventory');</script>
+</body>
+</html>

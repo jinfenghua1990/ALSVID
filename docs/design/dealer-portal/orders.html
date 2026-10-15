@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>订单 · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <main class="page">
+    <div class="shell">
+
+      <div class="page-head">
+        <div class="page-title-group">
+          <nav class="breadcrumb">
+            <a href="index.html">工作台</a><span class="sep">/</span><span>订单</span>
+          </nav>
+          <h1 class="t-h1">Dealer Orders</h1>
+          <p class="t-sm">经销商订单，与零售商城订单彼此独立。</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="purchase.html">查看采购申请</a>
+          <a class="btn btn-primary" href="catalog.html">发起采购</a>
+        </div>
+      </div>
+
+      <!-- ============ 状态图例 ============ -->
+      <section class="card card-pad" style="margin-bottom:40px">
+        <p class="t-eyebrow" style="margin-bottom:14px">订单状态</p>
+        <div class="steps">
+          <span class="step"><i class="step-n">1</i>Draft</span><i class="step-sep"></i>
+          <span class="step"><i class="step-n">2</i>Pending Approval</span><i class="step-sep"></i>
+          <span class="step"><i class="step-n">3</i>Confirmed</span><i class="step-sep"></i>
+          <span class="step"><i class="step-n">4</i>Production</span><i class="step-sep"></i>
+          <span class="step"><i class="step-n">5</i>Shipping</span><i class="step-sep"></i>
+          <span class="step"><i class="step-n">6</i>Delivered</span>
+        </div>
+      </section>
+
+      <!-- ============ 订单列表 ============ -->
+      <section>
+        <div class="section-head">
+          <h2 class="t-h2">订单列表</h2>
+          <span class="t-xs t-muted">订单类型：Vehicle Order / Accessory Order</span>
+        </div>
+
+        <div class="filterbar" data-filter-group="#ordersTable">
+          <button class="chip" data-filter="all" aria-selected="true">全部</button>
+          <button class="chip" data-filter="Pending Approval">Pending Approval</button>
+          <button class="chip" data-filter="Confirmed">Confirmed</button>
+          <button class="chip" data-filter="Production">Production</button>
+          <button class="chip" data-filter="Shipping">Shipping</button>
+          <button class="chip" data-filter="Delivered">Delivered</button>
+          <span class="spacer"></span>
+          <span class="api-note">GET /api/dealer/orders</span>
+        </div>
+
+        <div class="tbl-wrap" id="ordersTable">
+          <div class="tbl-scroll">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>订单号</th><th>产品</th><th>类型</th>
+                  <th class="col-right">数量</th><th class="col-right">金额</th>
+                  <th>状态</th><th>交付周期</th><th></th>
+                </tr>
+              </thead>
+              <tbody data-list="orders" data-empty="暂无订单" data-api="GET /api/dealer/orders"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="notice" style="margin-top:20px">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span>订单金额与结算条款以签署的 Dealer Agreement 为准，本页仅做进度展示。详细对账文件见 <a href="documents.html" class="t-ink" style="text-decoration:underline">资料中心</a>。</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('orders');</script>
+</body>
+</html>

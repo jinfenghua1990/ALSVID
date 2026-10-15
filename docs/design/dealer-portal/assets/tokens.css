@@ -1,0 +1,133 @@
+/* ============================================================
+   ALSVID Dealer Portal — Design Tokens
+   ------------------------------------------------------------
+   品牌色系：黑 / 白 / 灰 + 绿色辅助色
+   状态语义只使用 ink（中性） + amber（进行中） + green（完成）
+   刻意回避蓝色，以免落入传统后台模板观感
+   ============================================================ */
+
+:root {
+  /* ---------- Neutrals ---------- */
+  --c-paper: #ffffff;
+  --c-surface: #fafafa;
+  --c-surface-2: #f4f4f4;
+  --c-surface-3: #eeeeee;
+
+  --c-ink: #0a0a0a;
+  --c-ink-80: #2e2e2e;
+  --c-ink-65: #5c5c5c;
+  --c-ink-50: #808080;
+  --c-ink-35: #a8a8a8;
+  --c-ink-20: #cfcfcf;
+  --c-ink-12: #e0e0e0;
+
+  --c-line: #e6e6e6;
+  --c-line-soft: #f0f0f0;
+  --c-line-strong: #d0d0d0;
+
+  /* ---------- Accent (ALSVID Green) ---------- */
+  --c-accent: #00a15a;
+  --c-accent-hover: #008c4e;
+  --c-accent-ink: #00693b;
+  --c-accent-soft: #e9f6ef;
+  --c-accent-line: #b8e2cd;
+
+  /* ---------- Semantic ---------- */
+  --c-amber: #a86a00;
+  --c-amber-soft: #fbf2e2;
+  --c-amber-line: #e6cd9a;
+
+  --c-danger: #b3261e;
+  --c-danger-soft: #fbeceb;
+
+  /* ---------- Typography ---------- */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "SF Pro Text", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, "Menlo", monospace;
+
+  --fs-display: 40px;
+  --fs-h1: 30px;
+  --fs-h2: 22px;
+  --fs-h3: 17px;
+  --fs-body: 14px;
+  --fs-sm: 13px;
+  --fs-xs: 12px;
+  --fs-eyebrow: 11px;
+
+  --lh-tight: 1.15;
+  --lh-body: 1.55;
+
+  --ls-display: -0.03em;
+  --ls-title: -0.02em;
+  --ls-body: -0.005em;
+  --ls-eyebrow: 0.09em;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* ---------- Space ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+
+  /* ---------- Radius ---------- */
+  --r-card: 16px;
+  --r-panel: 16px;
+  --r-btn: 10px;
+  --r-input: 10px;
+  --r-pill: 999px;
+  --r-sm: 8px;
+  --r-xs: 6px;
+
+  /* ---------- Elevation（轻微） ---------- */
+  --sh-card: 0 1px 2px rgba(10, 10, 10, 0.04), 0 8px 24px rgba(10, 10, 10, 0.035);
+  --sh-card-hover: 0 2px 4px rgba(10, 10, 10, 0.05), 0 14px 36px rgba(10, 10, 10, 0.07);
+  --sh-pop: 0 4px 12px rgba(10, 10, 10, 0.08), 0 20px 48px rgba(10, 10, 10, 0.14);
+  --sh-header: 0 1px 0 rgba(10, 10, 10, 0.06);
+
+  /* ---------- Motion ---------- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+
+  /* ---------- Layout ---------- */
+  --header-h: 64px;
+  --shell-max: 1280px;
+  --shell-pad: 40px;
+  --shell-pad-md: 24px;
+  --shell-pad-sm: 16px;
+  --subnav-h: 56px;
+
+  /* ---------- Z ---------- */
+  --z-header: 100;
+  --z-pop: 200;
+  --z-drawer: 300;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --shell-pad: var(--shell-pad-md);
+    --fs-display: 34px;
+    --fs-h1: 26px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --shell-pad: var(--shell-pad-sm);
+    --fs-display: 28px;
+    --fs-h1: 22px;
+    --header-h: 56px;
+  }
+}

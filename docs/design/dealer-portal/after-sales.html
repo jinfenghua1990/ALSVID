@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>售后服务 · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+<style>
+  .drop {
+    border: 1px dashed var(--c-line-strong);
+    border-radius: var(--r-card);
+    background: var(--c-surface);
+    padding: 28px;
+    text-align: center;
+    color: var(--c-ink-50);
+  }
+  .drop:hover { border-color: var(--c-ink-35); background: var(--c-surface-2); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <main class="page">
+    <div class="shell">
+
+      <div class="page-head">
+        <div class="page-title-group">
+          <nav class="breadcrumb">
+            <a href="index.html">工作台</a><span class="sep">/</span><span>售后</span>
+          </nav>
+          <h1 class="t-h1">售后服务</h1>
+          <p class="t-sm">提交售后申请并跟踪 ALSVID 处理进度。</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="vehicles.html">查看车辆</a>
+          <a class="btn btn-primary" href="#new-claim">提交售后</a>
+        </div>
+      </div>
+
+      <!-- ============ 新建售后申请 ============ -->
+      <section id="new-claim" class="section" style="margin-top:0">
+        <div class="section-head"><h2 class="t-h2">提交售后申请</h2></div>
+        <div class="split">
+          <form class="card card-pad" onsubmit="return false">
+            <p class="t-xs t-muted" style="margin-bottom:20px">
+              选择车辆 → 填写问题 → 上传图片 → 提交 → ALSVID 处理
+            </p>
+            <div class="field">
+              <label class="label" for="a-vin">选择车辆（VIN）</label>
+              <select class="select" id="a-vin" data-fill-vehicles>
+                <option>选择已交付 / 在途车辆</option>
+              </select>
+            </div>
+            <div class="grid g-2" style="margin-top:16px">
+              <div class="field">
+                <label class="label" for="a-cat">问题分类</label>
+                <select class="select" id="a-cat">
+                  <option>动力系统</option>
+                  <option>制动系统</option>
+                  <option>电气 / 显示</option>
+                  <option>车架 / 结构</option>
+                  <option>其他</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="label" for="a-pri">紧急程度</label>
+                <select class="select" id="a-pri">
+                  <option>标准</option>
+                  <option>高</option>
+                  <option>紧急（停售）</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" style="margin-top:16px">
+              <label class="label" for="a-desc">问题描述</label>
+              <textarea class="textarea" id="a-desc" placeholder="请描述故障现象、发生条件与已做的初步检查"></textarea>
+            </div>
+            <div class="field" style="margin-top:16px">
+              <label class="label">上传图片</label>
+              <div class="drop">
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg>
+                <p class="t-sm">拖拽或点击上传故障部位照片</p>
+                <p class="t-xs" style="margin-top:4px">支持 JPG / PNG，单张 ≤ 10 MB</p>
+              </div>
+            </div>
+            <div class="row-between" style="margin-top:20px">
+              <span class="api-note">POST /api/dealer/after-sales</span>
+              <button class="btn btn-primary" disabled title="待接入 ALSVID API">提交申请</button>
+            </div>
+          </form>
+
+          <aside class="stack-3">
+            <!-- 状态释义合并为一行紧凑图例 -->
+            <div class="card card-pad-sm">
+              <p class="t-xs t-muted" style="margin-bottom:10px">受理状态</p>
+              <div class="row wrap" style="gap:6px">
+                <span class="badge badge-outline">Submitted</span>
+                <span class="badge badge-amber">Reviewing</span>
+                <span class="badge badge-ink">Approved</span>
+                <span class="badge badge-outline">Repairing</span>
+                <span class="badge badge-accent">Completed</span>
+              </div>
+            </div>
+            <div class="notice">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+              <span>材料齐全时平均 3 个工作日内受理。保修判定以 Warranty Documents 为准，非保修项将先行报价。</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ 售后列表 ============ -->
+      <section class="section">
+        <div class="section-head">
+          <h2 class="t-h2">售后申请记录</h2>
+          <span class="t-xs t-muted">仅显示当前经销商提交的申请</span>
+        </div>
+
+        <div class="filterbar" data-filter-group="#asTable">
+          <button class="chip" data-filter="all" aria-selected="true">全部</button>
+          <button class="chip" data-filter="Submitted">Submitted</button>
+          <button class="chip" data-filter="Reviewing">Reviewing</button>
+          <button class="chip" data-filter="Approved">Approved</button>
+          <button class="chip" data-filter="Repairing">Repairing</button>
+          <button class="chip" data-filter="Completed">Completed</button>
+          <span class="spacer"></span>
+          <span class="api-note">GET /api/dealer/after-sales</span>
+        </div>
+
+        <div class="tbl-wrap" id="asTable">
+          <div class="tbl-scroll">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>申请编号</th><th>车辆</th><th>问题描述</th>
+                  <th>状态</th><th>提交日期</th><th></th>
+                </tr>
+              </thead>
+              <tbody data-list="afterSales" data-empty="暂无售后申请" data-api="GET /api/dealer/after-sales"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('after-sales');</script>
+</body>
+</html>

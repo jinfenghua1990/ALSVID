@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FC1 Pro · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+<style>
+  .hero-media { aspect-ratio: 4 / 3; }
+  .hero-media svg { width: 78%; max-width: 480px; }
+  .price-block { border: 1px solid var(--c-line); border-radius: var(--r-card); padding: 20px; background: var(--c-surface); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <main class="page">
+    <div class="shell">
+
+      <nav class="breadcrumb">
+        <a href="index.html">工作台</a><span class="sep">/</span>
+        <a href="catalog.html">产品目录</a><span class="sep">/</span>
+        <span>FC1 Pro</span>
+      </nav>
+
+      <!-- ============ Hero ============ -->
+      <section class="hero-split">
+        <div class="media hero-media">
+          <span data-bike></span>
+        </div>
+
+        <div>
+          <p class="t-eyebrow" style="margin-bottom:10px">FC 系列 · Road Performance</p>
+          <h1 class="t-display">FC1 Pro</h1>
+          <p class="t-body" style="margin-top:14px;max-width:44ch">
+            碳纤维公路平台，专为长途巡航与高强度骑行调校。经销商版本含区域合规配置。
+          </p>
+
+          <div class="row wrap" style="margin-top:20px;gap:10px">
+            <span class="badge badge-accent"><i class="dot dot-accent"></i>Available</span>
+            <span class="badge badge-neutral">MY2026</span>
+            <span class="api-note">GET /api/dealer/catalog/fc1-pro</span>
+          </div>
+
+          <!-- 商业信息 -->
+          <div class="price-block" style="margin-top:24px">
+            <div class="row-between">
+              <div>
+                <p class="t-xs t-muted">Dealer Availability</p>
+                <p class="t-h3" style="margin-top:4px">Available</p>
+              </div>
+              <div style="text-align:right">
+                <p class="t-xs t-muted">Estimated Delivery</p>
+                <p class="t-h3" style="margin-top:4px">4–6 weeks</p>
+              </div>
+            </div>
+            <hr class="hr" style="margin:16px 0">
+            <div class="row-between">
+              <div>
+                <p class="t-xs t-muted">Next Shipment</p>
+                <p class="t-h3" style="margin-top:4px">November</p>
+              </div>
+              <a class="btn btn-primary btn-lg" href="purchase.html">Request Purchase</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 技术参数 ============ -->
+      <section class="section">
+        <div class="section-head">
+          <h2 class="t-h2">技术参数</h2>
+          <a class="btn btn-secondary btn-sm" href="documents.html">下载技术资料</a>
+        </div>
+        <div class="spec-grid">
+          <div class="spec-cell">
+            <p class="spec-k">Frame</p>
+            <p class="spec-v">Carbon <span class="unit">T800</span></p>
+          </div>
+          <div class="spec-cell">
+            <p class="spec-k">Motor</p>
+            <p class="spec-v">250 <span class="unit">W</span></p>
+          </div>
+          <div class="spec-cell">
+            <p class="spec-k">Battery</p>
+            <p class="spec-v">540 <span class="unit">Wh</span></p>
+          </div>
+          <div class="spec-cell">
+            <p class="spec-k">Range</p>
+            <p class="spec-v">120 <span class="unit">km</span></p>
+          </div>
+          <div class="spec-cell">
+            <p class="spec-k">Weight</p>
+            <p class="spec-v">14.8 <span class="unit">kg</span></p>
+          </div>
+          <div class="spec-cell">
+            <p class="spec-k">Drivetrain</p>
+            <p class="spec-v">12 <span class="unit">spd</span></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 配置与配色 ============ -->
+      <section class="section">
+        <div class="split">
+          <div>
+            <div class="section-head"><h2 class="t-h2">可选配置</h2></div>
+            <div class="card">
+              <dl class="kv card-pad">
+                <dt>SKU</dt><dd class="t-mono">FC1-PRO-MY26</dd>
+                <dt>车型</dt><dd>FC1 Pro</dd>
+                <dt>车架尺寸</dt><dd>S / M / L</dd>
+                <dt>配色</dt>
+                <dd>
+                  <span class="swatches" style="gap:10px">
+                    <i class="swatch swatch-lg is-active" style="background:#0f0f0f" title="Black"></i>
+                    <i class="swatch swatch-lg" style="background:#f2f2f2" title="White"></i>
+                  </span>
+                </dd>
+                <dt>区域合规</dt><dd>US / EU</dd>
+                <dt>保修</dt><dd>24 个月（整车）</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-head"><h2 class="t-h2">相关资源</h2></div>
+            <div class="card">
+              <div class="rows">
+                <a class="row-item" href="documents.html">
+                  <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M9 13h6M9 17h4"/></svg></span>
+                  <span class="row-item-main">
+                    <span class="row-item-title">产品手册 v1.2</span>
+                    <span class="row-item-sub">PDF · 4.2 MB</span>
+                  </span>
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color:var(--c-ink-35)"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>
+                </a>
+                <a class="row-item" href="documents.html">
+                  <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a3.5 3.5 0 0 0 4.6 4.6l-8.4 8.4a2.6 2.6 0 0 1-3.7-3.7l8.4-8.4Z"/><path d="M14.5 6.5 18 3"/></svg></span>
+                  <span class="row-item-main">
+                    <span class="row-item-title">服务技术文档</span>
+                    <span class="row-item-sub">PDF · 12.8 MB</span>
+                  </span>
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color:var(--c-ink-35)"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>
+                </a>
+                <a class="row-item" href="documents.html">
+                  <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg></span>
+                  <span class="row-item-main">
+                    <span class="row-item-title">市场素材包</span>
+                    <span class="row-item-sub">ZIP · 86 MB</span>
+                  </span>
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color:var(--c-ink-35)"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 明细说明 ============ -->
+      <section class="section">
+        <div class="notice">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><rect x="5" y="10.5" width="14" height="9.5" rx="2"/></svg>
+          <span>经销商视图不呈现 BOM、成本、供应商与生产计划数据。如需采购，请在 <a href="purchase.html" class="t-ink" style="text-decoration:underline">采购中心</a> 提交申请，ALSVID 确认后转为正式订单。</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('catalog');</script>
+</body>
+</html>

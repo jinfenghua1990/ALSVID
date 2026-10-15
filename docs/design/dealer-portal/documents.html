@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>资料中心 · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <!-- ============ 页内二级导航 ============ -->
+  <div class="subnav">
+    <div class="subnav-inner shell">
+      <span class="subnav-title">资料中心</span>
+      <nav class="subnav-links" aria-label="资料分类">
+        <a class="subnav-link" href="#agreement">Dealer Agreement</a>
+        <a class="subnav-link" href="#manual">Product Manual</a>
+        <a class="subnav-link" href="#technical">Technical Documents</a>
+        <a class="subnav-link" href="#marketing">Marketing Assets</a>
+        <a class="subnav-link" href="#warranty">Warranty Documents</a>
+      </nav>
+      <label class="searchbox" style="width:220px">
+        <input class="input" type="search" placeholder="搜索资料" aria-label="搜索资料" data-search="#docBody">
+      </label>
+    </div>
+  </div>
+
+  <main class="page">
+    <div class="shell">
+
+      <div class="page-head">
+        <div class="page-title-group">
+          <nav class="breadcrumb">
+            <a href="index.html">工作台</a><span class="sep">/</span><span>资料中心</span>
+          </nav>
+          <h1 class="t-h1">资料中心</h1>
+          <p class="t-sm">经销协议、产品手册、技术文档、市场素材与保修文件。</p>
+        </div>
+        <div class="page-actions">
+          <span class="api-note">GET /api/dealer/documents</span>
+        </div>
+      </div>
+
+      <div class="stack-6" id="docBody">
+        <p class="t-sm t-muted" data-search-empty hidden>没有匹配的资料，换个关键词试试。</p>
+
+        <!-- Dealer Agreement -->
+        <section id="agreement" data-search-group style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Dealer Agreement</h2>
+            <span class="t-xs t-muted">3 份文件</span>
+          </div>
+          <div class="card">
+            <div class="rows">
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M9 13h6M9 17h4"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">ALSVID Dealer Agreement 2026</span>
+                  <span class="row-item-sub">PDF · 2.4 MB · 更新于 2026-01-08</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M9 13h6M9 17h4"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">年度目标与返利政策</span>
+                  <span class="row-item-sub">PDF · 860 KB · 更新于 2026-01-08</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M19 8v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5Z"/><path d="M9 13h6M9 17h4"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">定价与结算条款附录 A</span>
+                  <span class="row-item-sub">PDF · 1.1 MB · 更新于 2026-03-22</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Product Manual -->
+        <section id="manual" data-search-group style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Product Manual</h2>
+            <span class="t-xs t-muted">按车型归档</span>
+          </div>
+          <div class="card">
+            <div class="rows">
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="14" rx="2"/><path d="M3.5 10h17M8 3.5V7M16 3.5V7"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">FC1 Pro 用户手册 v1.2</span>
+                  <span class="row-item-sub">PDF · 4.2 MB · 多语言</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="14" rx="2"/><path d="M3.5 10h17M8 3.5V7M16 3.5V7"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">CT2 用户手册 v1.0</span>
+                  <span class="row-item-sub">PDF · 3.6 MB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="14" rx="2"/><path d="M3.5 10h17M8 3.5V7M16 3.5V7"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">配件安装指南合集</span>
+                  <span class="row-item-sub">PDF · 9.4 MB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Technical Documents -->
+        <section id="technical" data-search-group style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Technical Documents</h2>
+            <span class="t-xs t-muted">服务与维修</span>
+          </div>
+          <div class="card">
+            <div class="rows">
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a3.5 3.5 0 0 0 4.6 4.6l-8.4 8.4a2.6 2.6 0 0 1-3.7-3.7l8.4-8.4Z"/><path d="M14.5 6.5 18 3"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">动力系统服务手册</span>
+                  <span class="row-item-sub">PDF · 12.8 MB · 授权技师</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a3.5 3.5 0 0 0 4.6 4.6l-8.4 8.4a2.6 2.6 0 0 1-3.7-3.7l8.4-8.4Z"/><path d="M14.5 6.5 18 3"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">诊断码对照表</span>
+                  <span class="row-item-sub">XLSX · 240 KB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a3.5 3.5 0 0 0 4.6 4.6l-8.4 8.4a2.6 2.6 0 0 1-3.7-3.7l8.4-8.4Z"/><path d="M14.5 6.5 18 3"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">电池存储与运输规范</span>
+                  <span class="row-item-sub">PDF · 1.8 MB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Marketing Assets -->
+        <section id="marketing" data-search-group style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Marketing Assets</h2>
+            <span class="t-xs t-muted">品牌使用需遵循规范</span>
+          </div>
+          <div class="card">
+            <div class="rows">
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">FC1 Pro 产品图包</span>
+                  <span class="row-item-sub">ZIP · 86 MB · 含门店物料源文件</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">品牌视觉规范 Brand Kit</span>
+                  <span class="row-item-sub">ZIP · 42 MB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">展陈与陈列指引</span>
+                  <span class="row-item-sub">PDF · 6.2 MB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Warranty Documents -->
+        <section id="warranty" data-search-group style="scroll-margin-top:140px">
+          <div class="section-head">
+            <h2 class="t-h2">Warranty Documents</h2>
+            <span class="t-xs t-muted">保修条款与流程</span>
+          </div>
+          <div class="card">
+            <div class="rows">
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 5 6v6c0 4 3 6.8 7 8.5 4-1.7 7-4.5 7-8.5V6l-7-2.5Z"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">整车保修条款 24 个月</span>
+                  <span class="row-item-sub">PDF · 980 KB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 5 6v6c0 4 3 6.8 7 8.5 4-1.7 7-4.5 7-8.5V6l-7-2.5Z"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">电池保修条款 36 个月</span>
+                  <span class="row-item-sub">PDF · 760 KB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+              <div class="row-item">
+                <span class="row-item-icon"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 5 6v6c0 4 3 6.8 7 8.5 4-1.7 7-4.5 7-8.5V6l-7-2.5Z"/></svg></span>
+                <span class="row-item-main">
+                  <span class="row-item-title">保修索赔流程说明</span>
+                  <span class="row-item-sub">PDF · 540 KB</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" disabled title="待接入 ALSVID API">下载</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('documents');</script>
+</body>
+</html>

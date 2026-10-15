@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>车辆管理 · ALSVID Dealer Portal</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/layout.css">
+</head>
+<body>
+
+<div class="app">
+  <div data-shell-header></div>
+
+  <main class="page">
+    <div class="shell">
+
+      <div class="page-head">
+        <div class="page-title-group">
+          <nav class="breadcrumb">
+            <a href="index.html">工作台</a><span class="sep">/</span><span>车辆管理</span>
+          </nav>
+          <h1 class="t-h1">车辆管理</h1>
+          <p class="t-sm">已分配给当前经销商的车辆及其交付进度。</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" disabled title="待接入 ALSVID API">导出清单</button>
+          <a class="btn btn-primary" href="orders.html">关联订单</a>
+        </div>
+      </div>
+
+      <div class="filterbar" data-filter-group="#vhTable">
+        <button class="chip" data-filter="all" aria-selected="true">全部</button>
+        <button class="chip" data-filter="Allocated">Allocated</button>
+        <button class="chip" data-filter="Shipping">Shipping</button>
+        <button class="chip" data-filter="Received">Received</button>
+        <button class="chip" data-filter="Delivered">Delivered</button>
+        <span class="spacer"></span>
+        <span class="api-note">GET /api/dealer/vehicles</span>
+      </div>
+
+      <div class="tbl-wrap" id="vhTable">
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>VIN</th><th>Model</th><th>Color</th>
+                <th>Status</th><th>Delivery Date</th><th></th>
+              </tr>
+            </thead>
+            <tbody data-list="vehicles" data-empty="暂无车辆记录" data-api="GET /api/dealer/vehicles"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="notice" style="margin-top:20px">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><rect x="5" y="10.5" width="14" height="9.5" rx="2"/></svg>
+        <span>VIN 与生产信息由 ALSVID 统一维护，经销商不可修改。如需更正请通过 <a href="after-sales.html" class="t-ink" style="text-decoration:underline">售后</a> 提交。</span>
+      </div>
+
+    </div>
+  </main>
+
+  <div data-shell-footer></div>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div data-shell-drawer></div>
+
+<script src="assets/demo-data.js"></script>
+<script src="assets/app.js"></script>
+<script>ALSVID.initShell('vehicles');</script>
+</body>
+</html>
