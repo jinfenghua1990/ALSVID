@@ -19,6 +19,7 @@
 04-SOP/           产品、制造、质量、销售、售后流程
 05-AI-Knowledge/  客服、导购、经销商和售后答案
 06-Shopify/       商品、内容、客服和自动化规则
+07-Project-Management/ GitHub + Notion 分工、空间蓝图、会议及同步流程
 99-Templates/     新建知识文件模板
 ```
 
@@ -29,4 +30,8 @@
 - 产品、价格、库存、交付、保修和安全信息必须有来源和更新时间。
 - 不提交密码、API Key、客户隐私、订单数据或未脱敏文件。
 - 代码实现和运行数据不复制进知识库；知识库只保存可复用的业务规则与事实。
+
+## GitHub + Notion 项目管理
+
+继续沿用 GitHub 中的业务和工程真源；Notion 承载项目阅读、草稿和摘要。实施蓝图、模板、接入状态及后续同步流程见 [07-Project-Management/README.md](07-Project-Management/README.md)。Notion 页面与自动同步尚未创建，不以此目录的存在作为接入成功依据。
 

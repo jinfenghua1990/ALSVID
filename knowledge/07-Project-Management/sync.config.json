@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "enabled": false,
+  "status": "planned",
+  "repository": "jinfenghua1990/ALSVID",
+  "sourceBranch": "main",
+  "direction": "github-to-notion",
+  "sourcePaths": ["docs/**/*.md", "knowledge/**/*.md"],
+  "excludedPaths": ["knowledge/99-Templates/**", "knowledge/07-Project-Management/CONNECTION_STATUS.md"],
+  "notion": {
+    "parentPageId": null,
+    "knowledgeDataSourceId": null,
+    "decisionsDataSourceId": null,
+    "meetingsDataSourceId": null,
+    "requirementsDataSourceId": null
+  },
+  "idempotencyKey": "repository:sourcePath",
+  "publishableStatus": "active",
+  "proposedReconciliation": {"enabled": false, "timezone": "Asia/Shanghai", "localTime": "21:00"},
+  "chatInput": {"enabled": false, "source": null},
+  "deletionPolicy": "mark-deprecated-with-review",
+  "verificationRequired": true
+}
