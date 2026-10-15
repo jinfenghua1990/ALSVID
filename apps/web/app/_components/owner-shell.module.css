@@ -59,13 +59,13 @@
 .account:hover, .accountActive { border-color: var(--alsvid-line-strong); color: var(--alsvid-text); }
 
 .main {
-  width: min(1180px, calc(100% - 40px));
+  width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
   padding: 64px 0 92px;
 }
 
 .footer {
-  width: min(1180px, calc(100% - 40px));
+  width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
   padding: 28px 0 38px;
   display: flex;

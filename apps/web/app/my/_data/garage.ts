@@ -46,6 +46,7 @@ export type Accessory = {
 
 export type OwnerVehicle = {
   id: string;
+  image?: string;
   model: string;
   variant: string;
   colorway: string;

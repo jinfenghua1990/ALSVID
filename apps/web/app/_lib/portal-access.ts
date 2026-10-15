@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { ProtectedPortalId } from './portal-routing';
+import { ownerPreviewAllowed } from './owner-preview-policy';
 
 export interface PortalSession {
   userId: string;
@@ -26,7 +27,17 @@ function loginRedirect(portal: ProtectedPortalId, returnTo: string, reason?: str
   redirect(`/login?${params.toString()}`);
 }
 
+const DEV_SESSION: PortalSession = {
+  userId: 'dev-owner',
+  email: 'dev.owner@alsvid.local',
+  displayName: 'Dev Owner',
+  roles: ['customer_user'],
+  permissions: [],
+};
+
 export async function requirePortalSession(portal: ProtectedPortalId, returnTo: string): Promise<PortalSession> {
+  if (ownerPreviewAllowed(portal, process.env.NODE_ENV, process.env.ALSVID_DEV_OPEN_PORTAL)) return DEV_SESSION;
+
   const token = (await cookies()).get('alsvid_session')?.value;
   if (!token) loginRedirect(portal, returnTo);
 

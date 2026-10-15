@@ -2,6 +2,12 @@
 
 > **Current runtime correction (2026-10-14):** Production is the only live cloud target. Cloud Development/Test and its promotion workflow are retired; local Docker and ephemeral GitHub CI are validation environments. Pull requests target `main` and production releases require exact-commit CI. Older entries below are dated historical snapshots and do not describe current runtime state. This repository note does not prove that any cloud resource was deleted.
 
+## Local owner interface consolidation — 2026-10-15
+
+The local My ALSVID homepage, garage, vehicle tabs and service pages now use the same owner navigation and layout vocabulary. The former library URL redirects to the first vehicle's manual, or the garage when empty. Vehicle visuals support optional product images and retain the existing SVG illustration when no image is configured. Garage records remain explicitly labeled UI fixtures, not verified ownership or live warranty/service facts.
+
+The optional `ALSVID_DEV_OPEN_PORTAL=1` fixture session applies only to the My ALSVID portal in `NODE_ENV=development`. Admin and Dealer continue to require their normal sessions, including when that flag is enabled; production and test mode never accept the fixture session. Local architecture checks, Web TypeScript, the owner-preview policy tests and the Web production build pass. HTTP checks confirm owner preview routes render and unauthenticated Admin/Dealer requests redirect to login. GitHub CI and deployment require their own evidence.
+
 ## Workbench visual redesign — 2026-10-14
 
 The authenticated `/admin` workbench now implements the supplied reference as native Next.js components: a generated scenic bicycle hero, ten module entry cards, four attention cards, four KPI cards, and activity/trend/task panels. Styling is scoped to the workbench and retains the shared navigation, theme switch and internal-session checks. Activity and trend filters respond locally. Unconnected metrics remain explicitly unavailable; no sample counts, timestamps, trend points or tasks are represented as live business facts.

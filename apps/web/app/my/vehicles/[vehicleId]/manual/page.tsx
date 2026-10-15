@@ -10,7 +10,7 @@ export default async function VehicleManualPage({ params }: { params: Promise<{ 
   if (!vehicle) notFound();
 
   return (
-    <article className={garage.block}>
+    <article className={garage.panel}>
       <h2>用户手册与文件</h2>
       <p>按 {vehicle.model} 自动匹配版本资料。</p>
 

@@ -53,11 +53,11 @@ export default async function MyServicePage() {
         <section className={styles.contentGrid}>
           <article className={styles.card}>
             <h2>申请类型</h2>
-            <div className={garage.checkboxGrid} style={{ marginTop: '18px' }}>
-              <span className={garage.checkbox}>产品问题</span>
-              <span className={garage.checkbox}>配件问题</span>
-              <span className={garage.checkbox}>维修申请</span>
-              <span className={garage.checkbox}>保修申请</span>
+            <div className={garage.checkGrid} style={{ marginTop: '18px' }}>
+              <span className={garage.check}>产品问题</span>
+              <span className={garage.check}>配件问题</span>
+              <span className={garage.check}>维修申请</span>
+              <span className={garage.check}>保修申请</span>
             </div>
           </article>
 

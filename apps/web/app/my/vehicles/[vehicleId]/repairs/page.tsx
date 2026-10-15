@@ -15,7 +15,7 @@ export default async function VehicleRepairsPage({ params }: { params: Promise<{
   if (!vehicle) notFound();
 
   return (
-    <article className={garage.block}>
+    <article className={garage.panel}>
       <h2>Repair History</h2>
       <p>{vehicle.model} 的维修工单与处理状态。</p>
 

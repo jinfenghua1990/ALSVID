@@ -9,30 +9,30 @@ export default async function VehicleWarrantyPage({ params }: { params: Promise<
   if (!vehicle) notFound();
 
   return (
-    <div className={garage.detailGrid}>
-      <article className={garage.block}>
+    <div className={garage.detailSplit}>
+      <article className={garage.panel}>
         <h2>Warranty</h2>
         <p>{vehicle.model} · {vehicle.warranty.plan}</p>
 
         <div className={garage.warrantyHero}>
-          <strong className={garage.warrantyDays}>{warrantyRemainingDays(vehicle)}</strong>
-          <span className={garage.warrantyDaysLabel}>
+          <strong className={garage.bigNum}>{warrantyRemainingDays(vehicle)}</strong>
+          <span className={garage.numLabel}>
             {vehicle.warranty.active ? '剩余天数' : '保修已结束'} · 结束日期 {vehicle.warranty.end}
           </span>
         </div>
 
-        <div className={garage.warrantyBar}>
-          <div className={garage.warrantyBarFill} style={{ width: `${warrantyProgress(vehicle)}%` }} />
+        <div className={garage.track}>
+          <div className={garage.trackFill} style={{ width: `${warrantyProgress(vehicle)}%` }} />
         </div>
 
-        <div className={garage.specRows} style={{ marginTop: '22px' }}>
-          <div className={garage.specRow}><span>开始日期</span><strong>{vehicle.warranty.start}</strong></div>
-          <div className={garage.specRow}><span>结束日期</span><strong>{vehicle.warranty.end}</strong></div>
-          <div className={garage.specRow}><span>状态</span><strong>{vehicle.warranty.active ? '有效' : '已过期'}</strong></div>
+        <div className={garage.kv} style={{ marginTop: '22px' }}>
+          <div className={garage.kvRow}><span>开始日期</span><strong>{vehicle.warranty.start}</strong></div>
+          <div className={garage.kvRow}><span>结束日期</span><strong>{vehicle.warranty.end}</strong></div>
+          <div className={garage.kvRow}><span>状态</span><strong>{vehicle.warranty.active ? '有效' : '已过期'}</strong></div>
         </div>
       </article>
 
-      <aside className={garage.block}>
+      <aside className={garage.panel}>
         <h2>覆盖范围</h2>
         <p>以交付日期起算，仅覆盖下列项目。</p>
         <div className={garage.timeline}>

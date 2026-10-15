@@ -10,7 +10,7 @@ export default async function VehicleAccessoriesPage({ params }: { params: Promi
   if (!vehicle) notFound();
 
   return (
-    <article className={garage.block}>
+    <article className={garage.panel}>
       <h2>推荐配件</h2>
       <p>只推荐与 {vehicle.model} 兼容的配件。</p>
 
