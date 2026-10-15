@@ -35,26 +35,26 @@ export default async function MyVehiclesPage() {
                 const service = latestService(vehicle);
                 return (
                   <Link className={garage.vehicleCard} href={`/my/vehicles/${vehicle.id}`} key={vehicle.id}>
-                    <div className={garage.vehicleCardVisual}>
-                      <BikeVisual tone={vehicle.tone} label={vehicle.model} />
+                    <div className={garage.cardStage}>
+                      <BikeVisual tone={vehicle.tone} image={vehicle.image} label={vehicle.model} />
                     </div>
                     <div className={garage.vehicleCardBody}>
                       <div>
                         <h3>{vehicle.model}</h3>
                         <p>{vehicle.variant} · {vehicle.colorway}</p>
                       </div>
-                      <div className={garage.specRows}>
-                        <div className={garage.specRow}><span>VIN</span><strong>{vehicle.vin}</strong></div>
-                        <div className={garage.specRow}><span>购买日期</span><strong>{vehicle.purchaseDate}</strong></div>
-                        <div className={garage.specRow}>
+                      <div className={garage.kv}>
+                        <div className={garage.kvRow}><span>VIN</span><strong>{vehicle.vin}</strong></div>
+                        <div className={garage.kvRow}><span>购买日期</span><strong>{vehicle.purchaseDate}</strong></div>
+                        <div className={garage.kvRow}>
                           <span>保修状态</span>
                           <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '已过期'}</strong>
                         </div>
-                        <div className={garage.specRow}>
+                        <div className={garage.kvRow}>
                           <span>服务状态</span>
                           <strong>{service ? `最近 ${service.date}` : '暂无记录'}</strong>
                         </div>
-                        <div className={garage.specRow}><span>车辆状态</span><strong>{vehicle.statusLabel}</strong></div>
+                        <div className={garage.kvRow}><span>车辆状态</span><strong>{vehicle.statusLabel}</strong></div>
                       </div>
                     </div>
                   </Link>

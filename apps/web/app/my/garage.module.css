@@ -57,7 +57,7 @@
   border-radius: 50%;
   background: radial-gradient(ellipse at center, color-mix(in srgb, var(--alsvid-accent) 16%, transparent) 0%, transparent 72%);
 }
-.stage > svg { position: relative; width: min(100%, 720px); height: auto; }
+.stage :is(svg, img) { position: relative; width: min(100%, 720px); height: auto; }
 
 .specBar {
   position: relative;
@@ -126,7 +126,7 @@
   place-items: center;
   background: linear-gradient(170deg, var(--alsvid-bg-soft), var(--alsvid-panel));
 }
-.cardStage > svg { width: min(100%, 300px); height: auto; }
+.cardStage :is(svg, img) { width: min(100%, 300px); height: auto; }
 .cardBody { padding: 22px 26px 26px; display: grid; gap: 16px; }
 .cardBody h3 { margin: 0; font-size: 24px; letter-spacing: -.035em; font-weight: 600; }
 .cardMeta { margin: 6px 0 0; color: var(--alsvid-muted); font-size: 13px; }
@@ -237,6 +237,7 @@
 .tabActive { background: var(--alsvid-text); border-color: var(--alsvid-text); color: var(--alsvid-bg); }
 
 .crumb { display: flex; align-items: center; gap: 10px; color: var(--alsvid-muted); font-size: 13px; }
+.vehicleHeader { display: grid; gap: 18px; }
 
 @media (max-width: 1080px) {
   .tileGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

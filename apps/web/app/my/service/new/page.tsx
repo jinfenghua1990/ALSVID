@@ -43,9 +43,9 @@ export default async function NewServiceRequestPage({
 
               <div className={styles.field}>
                 <label>问题类型</label>
-                <div className={garage.checkboxGrid}>
+                <div className={garage.checkGrid}>
                   {issueTypes.map((type) => (
-                    <label className={garage.checkbox} key={type}>
+                    <label className={garage.check} key={type}>
                       <input type="checkbox" name={type} />
                       {type}
                     </label>

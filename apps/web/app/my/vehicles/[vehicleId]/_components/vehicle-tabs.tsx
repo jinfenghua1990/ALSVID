@@ -18,13 +18,13 @@ export function VehicleTabs({ vehicleId }: { vehicleId: string }) {
   const base = `/my/vehicles/${vehicleId}`;
 
   return (
-    <nav className={garage.vehicleTabs} aria-label="车辆详情导航">
+    <nav className={garage.tabs} aria-label="车辆详情导航">
       {tabs.map((tab) => {
         const href = tab.segment ? `${base}/${tab.segment}` : base;
         const active = pathname === href;
         return (
           <Link
-            className={`${garage.vehicleTab}${active ? ` ${garage.vehicleTabActive}` : ''}`}
+            className={`${garage.tab}${active ? ` ${garage.tabActive}` : ''}`}
             href={href}
             key={tab.label}
           >

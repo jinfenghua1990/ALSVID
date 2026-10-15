@@ -22,38 +22,55 @@ export default async function VehicleLayout({
   const vehicle = await getVehicle(vehicleId);
   if (!vehicle) notFound();
 
+  const statusClass =
+    vehicle.status === 'attention'
+      ? `${garage.statusDot} ${garage.statusDotWarn}`
+      : vehicle.status === 'in_service'
+        ? `${garage.statusDot} ${garage.statusDotBusy}`
+        : garage.statusDot;
+
   return (
     <OwnerShell activeHref={`/my/vehicles/${vehicle.id}`}>
       <div className={styles.page}>
         <header className={garage.vehicleHeader}>
-          <p className={styles.eyebrow}>
-            <Link href="/my/vehicles">我的车辆</Link> · VEHICLE DETAIL
+          <p className={garage.crumb}>
+            <Link href="/my/vehicles">我的车辆</Link> · Vehicle detail
           </p>
 
-          <section className={garage.heroVehicle}>
+          <section className={garage.hero}>
             <div className={garage.heroTop}>
               <div>
+                <p className={styles.eyebrow}>Your vehicle</p>
                 <h1 className={garage.heroTitle}>{vehicle.model}</h1>
                 <p className={garage.heroSub}>{vehicle.variant} · {vehicle.colorway}</p>
               </div>
               <span className={garage.statusPill}>
-                <span
-                  className={`${garage.statusDot}${vehicle.status === 'attention' ? ` ${garage.statusDotWarn}` : ''}${vehicle.status === 'in_service' ? ` ${garage.statusDotBusy}` : ''}`}
-                  aria-hidden="true"
-                />
+                <span className={statusClass} aria-hidden="true" />
                 车辆状态 · {vehicle.statusLabel}
               </span>
             </div>
 
-            <div className={garage.heroVisual}>
-              <BikeVisual tone={vehicle.tone} label={vehicle.model} />
+            <div className={garage.stage}>
+              <BikeVisual tone={vehicle.tone} image={vehicle.image} label={vehicle.model} />
             </div>
 
-            <div className={garage.vinRow}>
-              <div>VIN<strong>{vehicle.vin}</strong></div>
-              <div>车架号<strong>{vehicle.frameNumber}</strong></div>
-              <div>购买日期<strong>{vehicle.purchaseDate}</strong></div>
-              <div>交付方<strong>{vehicle.dealer}</strong></div>
+            <div className={garage.specBar}>
+              <div className={garage.specCell}>
+                <span>Vin</span>
+                <strong>{vehicle.vin}</strong>
+              </div>
+              <div className={garage.specCell}>
+                <span>Frame</span>
+                <strong>{vehicle.frameNumber}</strong>
+              </div>
+              <div className={garage.specCell}>
+                <span>Purchased</span>
+                <strong>{vehicle.purchaseDate}</strong>
+              </div>
+              <div className={garage.specCell}>
+                <span>Delivered by</span>
+                <strong>{vehicle.dealer}</strong>
+              </div>
             </div>
           </section>
 

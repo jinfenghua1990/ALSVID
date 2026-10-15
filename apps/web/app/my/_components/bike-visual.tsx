@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { VehicleTone } from '../_data/garage';
 
 const toneMap: Record<VehicleTone, { frame: string; accent: string; glow: string }> = {
@@ -6,7 +7,28 @@ const toneMap: Record<VehicleTone, { frame: string; accent: string; glow: string
   sand: { frame: '#6b5a3e', accent: '#c49a5b', glow: 'rgba(196, 154, 91, .18)' },
 };
 
-export function BikeVisual({ tone = 'blue', label }: { tone?: VehicleTone; label: string }) {
+export function BikeVisual({
+  tone = 'blue',
+  label,
+  image,
+}: {
+  tone?: VehicleTone;
+  label: string;
+  image?: string | undefined;
+}) {
+  if (image) {
+    return (
+      <Image
+        src={image}
+        alt={`${label} 产品图`}
+        width={1536}
+        height={1024}
+        priority={false}
+        style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+      />
+    );
+  }
+
   const palette = toneMap[tone];
   const gradientId = `alsvid-frame-${tone}`;
 

@@ -7,11 +7,11 @@ import styles from './owner-portal.module.css';
 import garage from './garage.module.css';
 
 const quickLinks = [
-  ['保修', '⛨', 'warranty'],
-  ['服务记录', '≡', 'service'],
-  ['维修', '✦', 'repairs'],
-  ['说明书', '▤', 'manual'],
-  ['配件', '+', 'accessories'],
+  ['保修', '⛨', 'warranty', '查看保修范围与剩余天数'],
+  ['服务记录', '≡', 'service', '保养与检查的完整时间线'],
+  ['维修', '✦', 'repairs', '维修工单与处理状态'],
+  ['说明书', '▤', 'manual', '按车型匹配的手册与文件'],
+  ['配件', '＋', 'accessories', '只推荐兼容这台车的配件'],
 ] as const;
 
 function statusDotClass(status: string) {
@@ -21,7 +21,7 @@ function statusDotClass(status: string) {
 }
 
 export default async function MyALSVIDPage() {
-  await requirePortalSession('my', '/my');
+  const session = await requirePortalSession('my', '/my');
 
   const { ownerName, updatedAt, vehicles } = await getOwnerGarage();
   const primary = vehicles[0] ?? null;
@@ -30,99 +30,130 @@ export default async function MyALSVIDPage() {
   return (
     <OwnerShell activeHref="/my">
       <div className={styles.page}>
-        <header className={styles.pageHeader}>
-          <p className={styles.eyebrow}>MY ALSVID · OWNER CENTER</p>
-          <h1>欢迎回来，{ownerName}。</h1>
-          <p>My ALSVID 围绕 Vehicle / VIN 保存你的车辆身份、保修、服务历史和售后关系。它不是商城账户，而是每一台 ALSVID 的长期数字档案。</p>
+        <header>
+          <p className={styles.eyebrow}>My ALSVID · Owner center</p>
+          <h1 className={styles.display} style={{ marginTop: 18 }}>欢迎回来，{session.displayName}。</h1>
+          <p className={styles.lede}>你的 ALSVID 车辆身份、保修、服务与售后，全部围绕一个 VIN 长期保存。</p>
         </header>
 
         {primary ? (
-          <>
-            <section className={garage.heroVehicle}>
-              <div className={garage.heroTop}>
-                <div>
-                  <p className={styles.eyebrow}>YOUR VEHICLE</p>
-                  <h2 className={garage.heroTitle}>{primary.model}</h2>
-                  <p className={garage.heroSub}>{primary.variant} · {primary.colorway}</p>
-                </div>
-                <span className={garage.statusPill}>
-                  <span className={statusDotClass(primary.status)} aria-hidden="true" />
-                  车辆状态 · {primary.statusLabel}
-                </span>
+          <section className={garage.hero}>
+            <div className={garage.heroTop}>
+              <div>
+                <p className={styles.eyebrow}>Your vehicle</p>
+                <h2 className={garage.heroTitle}>{primary.model}</h2>
+                <p className={garage.heroSub}>{primary.variant} · {primary.colorway}</p>
               </div>
-
-              <div className={garage.heroVisual}>
-                <BikeVisual tone={primary.tone} label={primary.model} />
-              </div>
-
-              <div className={garage.vinRow}>
-                <div>VIN<strong>{primary.vin}</strong></div>
-                <div>车架号<strong>{primary.frameNumber}</strong></div>
-                <div>购买日期<strong>{primary.purchaseDate}</strong></div>
-                <div>保修剩余<strong>{warrantyRemainingDays(primary)} 天</strong></div>
-              </div>
-            </section>
-
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <div><h2>快捷入口</h2><p>所有服务都以具体车辆为入口。</p></div>
-                <Link className={styles.secondaryAction} href={`/my/vehicles/${primary.id}`}>查看车辆详情</Link>
-              </div>
-              <div className={garage.quickRow}>
-                {quickLinks.map(([title, icon, section]) => (
-                  <Link className={garage.quickTile} href={`/my/vehicles/${primary.id}/${section}`} key={title}>
-                    <span aria-hidden="true">{icon}</span>
-                    <strong>{title}</strong>
-                  </Link>
-                ))}
-                <Link className={garage.quickTile} href="/my/service/new">
-                  <span aria-hidden="true">↗</span>
-                  <strong>售后申请</strong>
-                </Link>
-              </div>
-            </section>
-          </>
-        ) : (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div><h2>我的车辆</h2><p>车辆绑定后，保修、服务和资料都会自动围绕这台车展开。</p></div>
-              <Link className={styles.primaryAction} href="/my/vehicles/register">+ 添加车辆</Link>
+              <span className={garage.statusPill}>
+                <span className={statusDotClass(primary.status)} aria-hidden="true" />
+                车辆状态 · {primary.statusLabel}
+              </span>
             </div>
 
-            <article className={styles.garageCard}>
-              <div className={styles.vehicleVisual}>
-                <BikeVisual tone="blue" label="ALSVID bicycle outline" />
+            <div className={garage.stage}>
+              <BikeVisual tone={primary.tone} image={primary.image} label={primary.model} />
+            </div>
+
+            <div className={garage.specBar}>
+              <div className={garage.specCell}>
+                <span>Vin</span>
+                <strong>{primary.vin}</strong>
               </div>
-              <div className={styles.emptyCopy}>
-                <small>YOUR GARAGE</small>
-                <h3>车库还是空的。</h3>
-                <p>绑定你的第一台 ALSVID。我们只会在车辆身份与所有权关系确认后，把车辆加入你的车库。</p>
-                <Link className={styles.secondaryAction} href="/my/vehicles/register">使用 VIN / 车架号绑定</Link>
+              <div className={garage.specCell}>
+                <span>Frame</span>
+                <strong>{primary.frameNumber}</strong>
               </div>
-            </article>
+              <div className={garage.specCell}>
+                <span>Purchased</span>
+                <strong>{primary.purchaseDate}</strong>
+              </div>
+              <div className={garage.specCell}>
+                <span>Warranty</span>
+                <strong>{warrantyRemainingDays(primary)} 天</strong>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className={garage.hero}>
+            <div className={garage.heroTop}>
+              <div>
+                <p className={styles.eyebrow}>Your garage</p>
+                <h2 className={garage.heroTitle}>车库还是空的</h2>
+                <p className={garage.heroSub}>绑定你的第一台 ALSVID。</p>
+              </div>
+            </div>
+            <div className={garage.stage}>
+              <BikeVisual tone="blue" label="ALSVID bicycle outline" />
+            </div>
+            <div className={garage.specBar}>
+              <div className={garage.specCell} style={{ gridColumn: '1 / -1' }}>
+                <span>Notice</span>
+                <strong>我们只会在车辆身份与所有权关系确认后，把车辆加入你的车库。</strong>
+              </div>
+            </div>
           </section>
         )}
 
+        <section>
+          <div className={garage.sectionHead}>
+            <div>
+              <h2 className={garage.sectionTitle}>快捷入口</h2>
+              <p className={garage.sectionSubtle}>所有服务都以具体车辆为入口。</p>
+            </div>
+            <Link className={styles.secondaryAction} href={primary ? `/my/vehicles/${primary.id}` : '/my/vehicles'}>
+              查看车辆详情
+            </Link>
+          </div>
+          <div className={garage.tileGrid}>
+            {quickLinks.map(([title, icon, section, note]) => (
+              <Link
+                className={garage.tile}
+                href={primary ? `/my/vehicles/${primary.id}/${section}` : '/my/vehicles'}
+                key={title}
+              >
+                <span className={garage.tileIcon} aria-hidden="true">{icon}</span>
+                <span>
+                  <strong>{title}</strong>
+                  <small>{note}</small>
+                </span>
+              </Link>
+            ))}
+            <Link className={`${garage.tile} ${garage.tileAccent}`} href="/my/service/new">
+              <span className={garage.tileIcon} aria-hidden="true">↗</span>
+              <span>
+                <strong>售后申请</strong>
+                <small>带上车辆 VIN 提交，无需重复填写。</small>
+              </span>
+            </Link>
+          </div>
+        </section>
+
         {others.length > 0 ? (
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div><h2>车库中的其他车辆</h2><p>共 {vehicles.length} 台已确认的 ALSVID 车辆。</p></div>
+          <section>
+            <div className={garage.sectionHead}>
+              <div>
+                <h2 className={garage.sectionTitle}>车库中的其他车辆</h2>
+                <p className={garage.sectionSubtle}>共 {vehicles.length} 台已确认的 ALSVID 车辆。</p>
+              </div>
               <Link className={styles.secondaryAction} href="/my/vehicles">全部车辆</Link>
             </div>
             <div className={garage.vehicleGrid}>
               {others.map((vehicle) => (
                 <Link className={garage.vehicleCard} href={`/my/vehicles/${vehicle.id}`} key={vehicle.id}>
-                  <div className={garage.vehicleCardVisual}>
-                    <BikeVisual tone={vehicle.tone} label={vehicle.model} />
+                  <div className={garage.cardStage}>
+                    <BikeVisual tone={vehicle.tone} image={vehicle.image} label={vehicle.model} />
                   </div>
-                  <div className={garage.vehicleCardBody}>
+                  <div className={garage.cardBody}>
                     <div>
                       <h3>{vehicle.model}</h3>
-                      <p>{vehicle.variant}</p>
+                      <p className={garage.cardMeta}>{vehicle.variant} · {vehicle.colorway}</p>
                     </div>
-                    <div className={garage.specRows}>
-                      <div className={garage.specRow}><span>VIN</span><strong>{vehicle.vin}</strong></div>
-                      <div className={garage.specRow}><span>保修</span><strong>{vehicle.warranty.active ? '有效' : '已过期'}</strong></div>
+                    <div className={garage.kv}>
+                      <div className={garage.kvRow}><span>VIN</span><strong>{vehicle.vin}</strong></div>
+                      <div className={garage.kvRow}>
+                        <span>保修</span>
+                        <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '已过期'}</strong>
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -147,7 +178,7 @@ export default async function MyALSVIDPage() {
                     </div>
                   </div>
                 ))}
-                {primary.services.length === 0 ? <div className={garage.emptyBlock}>暂无车辆动态。</div> : null}
+                {primary.services.length === 0 ? <div className={garage.empty}>这台车还没有动态。</div> : null}
               </div>
             ) : (
               <div className={styles.emptyList}>绑定车辆后显示真实车辆动态。</div>
@@ -156,15 +187,18 @@ export default async function MyALSVIDPage() {
 
           <article className={styles.panel}>
             <h3>车主状态</h3>
-            <p>账户身份与车辆所有权保持独立，不会因为知道 VIN 自动获得车辆权限。</p>
-            <div className={styles.statusList}>
-              <div className={styles.statusRow}><span>账户</span><strong>已登录</strong></div>
-              <div className={styles.statusRow}><span>车辆</span><strong>{vehicles.length > 0 ? `${vehicles.length} 台` : '尚未绑定'}</strong></div>
-              <div className={styles.statusRow}>
+            <p>账户身份与车辆所有权相互独立。</p>
+            <div className={garage.kv}>
+              <div className={garage.kvRow}><span>账户</span><strong>已登录</strong></div>
+              <div className={garage.kvRow}>
+                <span>车辆</span>
+                <strong>{vehicles.length > 0 ? `${vehicles.length} 台` : '尚未绑定'}</strong>
+              </div>
+              <div className={garage.kvRow}>
                 <span>最近服务</span>
                 <strong>{primary && latestService(primary) ? latestService(primary)!.date : '暂无'}</strong>
               </div>
-              <div className={styles.statusRow}><span>数据更新</span><strong>{updatedAt}</strong></div>
+              <div className={garage.kvRow}><span>数据更新</span><strong>{updatedAt}</strong></div>
             </div>
           </article>
         </section>
