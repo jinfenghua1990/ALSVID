@@ -4,18 +4,18 @@ import { ThemeToggle } from '@alsvid/ui';
 import styles from './owner-shell.module.css';
 
 const ownerNavigation = [
+  { label: '首页', href: '/my' },
   { label: '我的车辆', href: '/my/vehicles' },
   { label: '服务', href: '/my/service' },
-  { label: '配件', href: '/my/library#accessories' },
-  { label: '帮助', href: '/my/library#help' },
+  { label: '我的账户', href: '/my/account' },
 ] as const;
 
 function isActive(href: string, activeHref: string) {
-  const base = href.split('#')[0];
-  if (base === '/my/vehicles') return activeHref.startsWith('/my/vehicles');
-  if (base === '/my/service') return activeHref.startsWith('/my/service');
-  if (base === '/my/library') return activeHref.startsWith('/my/library');
-  return activeHref === base;
+  if (href === '/my') return activeHref === '/my';
+  if (href === '/my/vehicles') return activeHref.startsWith('/my/vehicles');
+  if (href === '/my/service') return activeHref.startsWith('/my/service');
+  if (href === '/my/account') return activeHref.startsWith('/my/account');
+  return activeHref === href;
 }
 
 export function OwnerShell({ activeHref, children }: { activeHref: string; children: ReactNode }) {
