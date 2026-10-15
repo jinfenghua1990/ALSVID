@@ -1,0 +1,369 @@
+/* ============================================================
+   ALSVID 官方首页 — 交互区块样式（CSS Module）
+   配色对齐设计 token：主色 #0b61ff
+   ============================================================ */
+
+:global(.home-reveal) {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity .8s cubic-bezier(.22,.61,.36,1), transform .8s cubic-bezier(.22,.61,.36,1);
+}
+:global(.home-reveal-in) {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* ===== 导航 ===== */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 200;
+  color: #fff;
+  padding: 20px 0;
+  transition: background .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s, color .3s, padding .3s;
+}
+.navScrolled {
+  background: #fff;
+  color: var(--ink, #16181d);
+  box-shadow: 0 2px 20px rgba(0,0,0,.08);
+  padding: 12px 0;
+}
+.navInner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+.logo { font-size: 20px; font-weight: 800; letter-spacing: .32em; }
+.navLinks { display: flex; gap: 30px; margin: 0 auto; font-size: 13px; letter-spacing: .05em; }
+.navLinks a { position: relative; padding: 6px 0; opacity: .85; transition: opacity .3s; }
+.navLinks a::after {
+  content: "";
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+  background: currentColor;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .3s cubic-bezier(.22,.61,.36,1);
+}
+.navLinks a:hover { opacity: 1; }
+.navLinks a:hover::after { transform: scaleX(1); }
+.navRight { display: flex; align-items: center; gap: 12px; }
+.dealerBtn {
+  border: 1px solid currentColor; border-radius: 99px;
+  padding: 8px 20px; font-size: 13px;
+  transition: background .3s, color .3s, transform .3s;
+}
+.dealerBtn:hover { background: #fff; color: #16181d; transform: scale(1.05); }
+
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  overflow: hidden;
+  padding: 120px 0 120px;
+}
+.heroScene {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(.22,.61,.36,1);
+}
+.heroScene.on { opacity: 1; }
+.scene0 { background: linear-gradient(155deg,#2a2235 0%,#50384a 28%,#8a5a4a 55%,#c2855a 78%,#e4a870 100%); }
+.scene1 { background: linear-gradient(150deg,#161c2a 0%,#28324a 38%,#3d5273 68%,#6480a0 100%); }
+.scene2 { background: linear-gradient(148deg,#1a2625 0%,#2e4240 42%,#486862 72%,#6e8775 100%); }
+.scene3 { background: linear-gradient(152deg,#1d211a 0%,#36402c 40%,#5d653d 72%,#8e9162 100%); }
+.heroScene::before {
+  content: "";
+  position: absolute;
+  width: 60vw; height: 56vh;
+  right: -4vw; bottom: 0;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .35;
+  pointer-events: none;
+}
+.scene0::before { background: radial-gradient(circle, rgba(255,170,80,.7), transparent 60%); }
+.scene1::before { background: radial-gradient(circle, rgba(100,160,230,.6), transparent 60%); }
+.scene2::before { background: radial-gradient(circle, rgba(80,180,150,.5), transparent 60%); }
+.scene3::before { background: radial-gradient(circle, rgba(220,190,90,.5), transparent 60%); }
+
+.heroGrid {
+  position: relative; z-index: 5;
+  max-width: 1240px; margin: 0 auto; padding: 0 40px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+.heroTag { font-size: 12px; letter-spacing: .5em; opacity: .82; margin-bottom: 18px; text-transform: uppercase; }
+.heroTitle { font-size: clamp(32px, 4.4vw, 52px); font-weight: 700; letter-spacing: .04em; line-height: 1.22; }
+.heroSub { font-size: 14px; letter-spacing: .42em; opacity: .78; margin: 22px 0 36px; }
+.cta {
+  display: inline-flex; align-items: center; gap: 12px;
+  border: 1px solid rgba(255,255,255,.85); border-radius: 99px;
+  padding: 12px 30px; font-size: 14.5px; letter-spacing: .08em;
+  color: inherit; text-decoration: none;
+  transition: background .3s, color .3s, transform .3s;
+}
+.cta:hover { background: #fff; color: #16181d; transform: scale(1.05); }
+.cta svg { transition: transform .3s; }
+.cta:hover svg { transform: translateX(5px); }
+.heroBikeStage { display: grid; place-items: center; min-height: 260px; }
+.heroBike { width: 100%; max-width: 460px; filter: drop-shadow(0 20px 30px rgba(0,0,0,.3)); }
+
+.heroTabs {
+  position: absolute; left: 40px; bottom: 12%;
+  z-index: 6;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.heroTab {
+  display: flex; align-items: center; gap: 14px;
+  color: rgba(255,255,255,.62);
+  font-size: 12.5px; letter-spacing: .16em;
+  padding: 4px 0;
+  transition: color .3s;
+}
+.heroTab[aria-selected="true"] { color: #fff; }
+.tabBar {
+  width: 20px; height: 2px;
+  background: rgba(255,255,255,.35);
+  position: relative; overflow: hidden;
+  transition: width .3s;
+}
+.heroTab[aria-selected="true"] .tabBar { width: 48px; }
+.tabBar i {
+  position: absolute; inset: 0;
+  background: #fff;
+  transform: scaleX(0); transform-origin: left;
+}
+.heroTab[aria-selected="true"] .tabBar i {
+  animation: homeTabProgress 6s linear forwards;
+}
+@keyframes homeTabProgress { to { transform: scaleX(1); } }
+
+.scrollDown {
+  position: absolute; right: 44px; bottom: 44px; z-index: 6;
+  width: 54px; height: 54px;
+  border: 1px solid rgba(255,255,255,.6); border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff;
+  transition: background .3s, color .3s;
+  animation: homeBob 2.4s ease-in-out infinite;
+}
+.scrollDown:hover { background: #fff; color: #16181d; animation-play-state: paused; }
+@keyframes homeBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+/* ===== 动效层 ===== */
+/* 首屏入场：文案逐行上浮 + 车辆从右滑入（backwards：结束后交还 hover 控制） */
+.heroCopyInner > * {
+  animation: homeRiseIn .8s cubic-bezier(.22,.61,.36,1) backwards;
+}
+.heroCopyInner > *:nth-child(1) { animation-delay: .05s; }
+.heroCopyInner > *:nth-child(2) { animation-delay: .15s; }
+.heroCopyInner > *:nth-child(3) { animation-delay: .25s; }
+.heroCopyInner > *:nth-child(4) { animation-delay: .35s; }
+@keyframes homeRiseIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.heroBike {
+  animation: homeBikeIn 1s cubic-bezier(.22,.61,.36,1) .25s backwards;
+}
+@keyframes homeBikeIn {
+  from { opacity: 0; transform: translateX(48px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 车轮转动：Hero 常速巡航，悬停加速，卡片悬停起步 */
+.heroBike [data-wheel] { animation: homeSpin 16s linear infinite; }
+.hero:hover .heroBike [data-wheel] { animation-duration: 2.4s; }
+.platCard:hover .platSvg [data-wheel] { animation: homeSpin 1.8s linear infinite; }
+@keyframes homeSpin { to { transform: rotate(360deg); } }
+
+/* 统计卡片悬停上浮 */
+.stat { transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+.stat:hover { transform: translateY(-4px); }
+
+/* 技术图标悬停旋转 */
+.techIcon svg { transition: transform .35s cubic-bezier(.22,.61,.36,1); }
+.techItem:hover .techIcon svg, .techItem:focus-visible .techIcon svg { transform: rotate(120deg); }
+
+/* ===== 区块通用 ===== */
+.sectionBlock { padding: 120px 0; }
+.sectionInner { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+.eyebrow { font-size: 11px; letter-spacing: .4em; color: var(--ink3, #8a9099); margin-bottom: 16px; text-transform: uppercase; }
+.h2 { font-size: clamp(24px, 2.8vw, 34px); font-weight: 700; line-height: 1.35; }
+
+/* ===== 平台卡片 ===== */
+.platHead { display: grid; grid-template-columns: 320px 1fr; gap: 64px; margin-bottom: 60px; }
+.platHeadNote { font-size: 13.5px; color: var(--ink2, #4a4f58); max-width: 380px; align-self: end; }
+.linkArrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 24px; font-size: 13px;
+  color: inherit; text-decoration: none;
+  border-bottom: 1px solid currentColor; padding-bottom: 4px;
+  transition: color .3s;
+}
+.linkArrow svg { transition: transform .3s; }
+.linkArrow:hover { color: var(--brand, #0b61ff); }
+.linkArrow:hover svg { transform: translateX(5px); }
+.platCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.platCard {
+  display: block;
+  background: var(--bgSoft, #f5f6f8);
+  border: none; border-radius: 16px; overflow: hidden;
+  text-align: left; cursor: pointer;
+  font: inherit; color: inherit; text-decoration: none;
+  transition: transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s;
+}
+.platCard:hover { transform: translateY(-10px); box-shadow: 0 16px 40px rgba(22,24,29,.1); }
+.platSvg { height: 180px; display: grid; place-items: center; overflow: hidden; }
+.platSvg svg { width: 82%; transition: transform .45s cubic-bezier(.22,.61,.36,1); }
+.platCard:hover .platSvg svg { transform: scale(1.06); }
+.pi1 { background: linear-gradient(135deg,#eaeef5,#cdd6e4); }
+.pi2 { background: linear-gradient(135deg,#dde8f2,#b8cbde); }
+.pi3 { background: linear-gradient(135deg,#e2ecea,#bccfc9); }
+.pi4 { background: linear-gradient(135deg,#eee8da,#d4cbb5); }
+.platBody { display: flex; justify-content: space-between; align-items: center; padding: 20px 22px; }
+.platName { font-weight: 700; font-size: 15px; }
+.platDesc { font-size: 12px; color: var(--ink3, #8a9099); margin-top: 3px; }
+.platGo {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--line, #e6e8ec);
+  display: grid; place-items: center; flex: none;
+  transition: all .3s;
+}
+.platCard:hover .platGo { background: var(--brand, #0b61ff); border-color: var(--brand, #0b61ff); color: #fff; transform: translateX(4px); }
+
+/* ===== FC1 ===== */
+.featured { background: var(--bgSoft, #f5f6f8); }
+.featGrid { display: grid; grid-template-columns: 340px 1fr 240px; gap: 44px; align-items: center; }
+.featTitle { font-size: clamp(42px, 5.5vw, 70px); font-weight: 800; letter-spacing: .02em; }
+.featSlogan { font-size: 18px; font-weight: 600; margin: 14px 0 20px; letter-spacing: .06em; }
+.featDesc { font-size: 13.5px; color: var(--ink2, #4a4f58); max-width: 300px; }
+.featStage { display: grid; place-items: center; }
+.featStats { display: flex; flex-direction: column; }
+.featStage svg { width: 100%; max-width: 580px; filter: drop-shadow(0 22px 28px rgba(0,0,0,.12)); }
+.stat { padding: 22px 0; border-bottom: 1px solid var(--line, #e6e8ec); }
+.stat:last-child { border-bottom: none; }
+.statNum { font-size: 32px; font-weight: 800; display: flex; align-items: baseline; gap: 3px; }
+.statUnit { font-size: 14px; font-weight: 600; color: var(--ink2, #4a4f58); }
+.statLabel { font-size: 12px; color: var(--ink3, #8a9099); letter-spacing: .08em; margin-top: 4px; }
+.btnSolid {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 28px;
+  background: var(--ink, #16181d); color: #fff;
+  border: none; border-radius: 99px;
+  padding: 13px 28px; font-size: 14px; cursor: pointer; font-family: inherit;
+  transition: background .3s, transform .3s;
+}
+.btnSolid:hover { background: var(--brand, #0b61ff); transform: scale(1.05); }
+
+/* ===== 三步折叠 ===== */
+.foldStage { display: grid; grid-template-columns: 1fr 380px; gap: 64px; align-items: center; }
+.foldCanvas {
+  background: var(--bgSoft, #f5f6f8);
+  border-radius: 16px;
+  height: 400px;
+  display: grid; place-items: center;
+  position: relative;
+}
+.foldBike { width: 78%; max-width: 520px; }
+.foldLabel {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  font-size: 13px; letter-spacing: .08em;
+  background: #fff; border: 1px solid var(--line, #e6e8ec);
+  padding: 5px 18px; border-radius: 99px; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
+}
+.foldSteps { display: flex; flex-direction: column; gap: 12px; }
+.foldStep {
+  display: flex; align-items: center; gap: 18px;
+  padding: 20px 22px; border-radius: 12px;
+  text-align: left; cursor: pointer; font-family: inherit;
+  background: none; border: 1px solid transparent; color: inherit;
+  transition: all .3s;
+}
+.foldStep:hover { background: var(--bgSoft, #f5f6f8); }
+.foldStep.on { background: var(--bgSoft, #f5f6f8); border-color: var(--ink, #16181d); }
+.foldNum {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1.5px solid var(--ink3, #8a9099);
+  display: grid; place-items: center;
+  font-size: 13px; font-weight: 700; color: var(--ink2, #4a4f58); flex: none;
+  transition: all .3s;
+}
+.foldStep.on .foldNum { background: var(--ink, #16181d); border-color: var(--ink, #16181d); color: #fff; }
+.foldTitle { font-weight: 700; font-size: 15px; }
+.foldDesc { font-size: 12.5px; color: var(--ink3, #8a9099); margin-top: 3px; }
+
+/* ===== 技术 ===== */
+.tech { background: #0f1216; color: #fff; }
+.tech .h2 { color: #fff; }
+.techDesc { font-size: 13.5px; color: #9aa1ab; max-width: 440px; margin-top: 18px; }
+.techGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 60px; }
+.techItem {
+  border: 1px solid #262b33; border-radius: 12px;
+  padding: 26px 22px;
+  transition: all .3s;
+}
+.techItem:hover, .techItem:focus-visible { border-color: var(--brand, #0b61ff); background: #161a21; transform: translateY(-5px); }
+.techIcon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: #1d222b;
+  display: grid; place-items: center;
+  color: #c8cdd6; margin-bottom: 18px;
+  transition: all .3s;
+}
+.techItem:hover .techIcon { background: var(--brand, #0b61ff); color: #fff; }
+.techT { font-size: 14px; font-weight: 700; }
+.techMore { font-size: 12.5px; color: #8a9099; max-height: 0; overflow: hidden; opacity: 0; transition: all .35s; }
+.techItem:hover .techMore, .techItem:focus-within .techMore { max-height: 90px; opacity: 1; margin-top: 10px; }
+.techCta {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 52px;
+  border: 1px solid #3a414c; border-radius: 99px;
+  padding: 12px 28px; font-size: 14px;
+  color: #dfe3e9; background: none; cursor: pointer; font-family: inherit;
+  transition: all .3s;
+}
+.techCta:hover { border-color: var(--brand, #0b61ff); color: #fff; background: var(--brand, #0b61ff); transform: scale(1.04); }
+
+/* ===== 响应式 ===== */
+@media (max-width: 992px) {
+  .heroGrid { grid-template-columns: 1fr; gap: 36px; }
+  .heroBikeStage { order: -1; }
+  .heroBike { max-width: 340px; }
+  .heroTabs { display: none; }
+  .featGrid { grid-template-columns: 1fr; gap: 28px; }
+  .featStats { display: flex; gap: 36px; }
+  .featStats .stat { border-bottom: none; padding: 0; }
+  .foldStage { grid-template-columns: 1fr; }
+  .platHead { grid-template-columns: 1fr; gap: 20px; }
+  .navInner { padding: 0 20px; }
+  .sectionInner { padding: 0 20px; }
+}
+@media (max-width: 768px) {
+  .navLinks { display: none; }
+  .scrollDown { right: 20px; bottom: 24px; }
+  .foldCanvas { height: 300px; }
+  .foldBike { width: 92%; }
+}
+
+/* ===== 无障碍：减弱动效 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .heroScene, .heroScene::before, .heroBike, .scrollDown,
+  .platCard, .platCard .platSvg svg, .foldStep, .foldNum,
+  .techItem, .cta, .dealerBtn, .btnSolid,
+  .heroBike [data-wheel], .heroCopyInner > * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .heroBike { opacity: 1; transform: none; }
+  :global(.home-reveal) { opacity: 1 !important; transform: none !important; }
+}
