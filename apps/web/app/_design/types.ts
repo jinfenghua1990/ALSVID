@@ -45,6 +45,8 @@ export interface TaskItem {
 }
 
 export type Block =
+  | { kind: 'platforms'; items: { title: string; details: string[] }[] }
+  | { kind: 'form'; title: string; hint?: string; fields: { label: string; value: string }[] }
   | { kind: 'kpis'; items: Kpi[] }
   | {
       kind: 'table';
@@ -84,6 +86,8 @@ export interface SecondaryGroup {
 }
 
 export interface Screen {
+  steps?: { label: string; href: string }[];
+  sourceNode?: string;
   id: string;
   area: string;
   route: string;

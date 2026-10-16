@@ -1,5 +1,8 @@
 import './design-system.css';
-import type { Block, Cell, Screen } from './types';
+import type { Block, Screen } from './types';
+import { screens } from './index';
+import { DesignTable } from './design-table';
+import { DesignForm } from './design-form';
 
 const AREAS: readonly { label: string; href: string }[] = [
   { label: '工作台', href: '/admin' },
@@ -17,8 +20,8 @@ const AREAS: readonly { label: string; href: string }[] = [
 
 const QUICK_LINKS: readonly { label: string; href: string }[] = [
   { label: '官方首页', href: '/home' },
-  { label: '经销商采购', href: '/admin/orders' },
-  { label: '我的车库', href: '/my' },
+  { label: '经销商平台', href: '/dealer' },
+  { label: '车主中心', href: '/my' },
 ];
 
 function isAreaActive(area: string, label: string): boolean {
@@ -26,21 +29,20 @@ function isAreaActive(area: string, label: string): boolean {
   return area === label;
 }
 
-function CellView({ cell, first }: { cell: Cell; first: boolean }) {
-  if (typeof cell === 'string') {
-    return <td className={first ? 'av-strong' : undefined}>{cell}</td>;
-  }
-  return (
-    <td>
-      <span className="av-tag" data-tone={cell.tone ?? 'neutral'}>
-        {cell.text}
-      </span>
-    </td>
-  );
+function menuDestination(screen: Screen, label: string): string | undefined {
+  const clean = (value: string) => value.replace(/[\s·/]/g, '');
+  const term = clean(label);
+  const moduleScreens = screens.filter(item => item.area === screen.area);
+  return moduleScreens.find(item => clean(item.title) === term)?.route
+    ?? moduleScreens.find(item => clean(item.title).startsWith(term) && term.length > 2)?.route;
 }
 
 function BlockView({ block }: { block: Block }) {
   switch (block.kind) {
+    case 'platforms':
+      return <section className="av-platforms" aria-label="产品平台">{block.items.map(item => <article className="av-card" key={item.title}><h2 className="av-cardtitle">{item.title}</h2>{item.details.map((detail,i)=><p key={i} className="av-cardhint">{detail}</p>)}</article>)}</section>;
+    case 'form':
+      return <DesignForm {...block} />;
     case 'kpis':
       return (
         <div className="av-kpis">
@@ -59,55 +61,7 @@ function BlockView({ block }: { block: Block }) {
       );
 
     case 'table':
-      return (
-        <section className="av-card">
-          <div className="av-cardhead">
-            <div>
-              <h2 className="av-cardtitle">{block.title}</h2>
-              {block.hint ? <p className="av-cardhint">{block.hint}</p> : null}
-            </div>
-          </div>
-          {block.search || block.filters ? (
-            <div className="av-toolbar" style={{ marginBottom: 12 }}>
-              {block.search ? (
-                <input
-                  className="av-search"
-                  type="search"
-                  placeholder={block.search}
-                  aria-label={block.search}
-                />
-              ) : null}
-              {(block.filters ?? []).map((filter, index) => (
-                <button className="av-chip" type="button" key={filter} data-active={index === 0}>
-                  {filter}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          <div className="av-tablewrap">
-            <table className="av-table">
-              <thead>
-                <tr>
-                  {block.columns.map((column) => (
-                    <th key={column} scope="col">
-                      {column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {block.rows.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {row.map((cell, cellIndex) => (
-                      <CellView cell={cell} first={cellIndex === 0} key={cellIndex} />
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      );
+      return <DesignTable block={block} />;
 
     case 'bars':
       return (
@@ -370,7 +324,7 @@ function BlockView({ block }: { block: Block }) {
   }
 }
 
-function Blocks({ blocks }: { blocks: readonly Block[] }) {
+function Blocks({ blocks, stacked = false }: { blocks: readonly Block[]; stacked?: boolean }) {
   const nodes: React.ReactNode[] = [];
   let fields: Extract<Block, { kind: 'fields' }>[] = [];
 
@@ -388,6 +342,10 @@ function Blocks({ blocks }: { blocks: readonly Block[] }) {
   };
 
   blocks.forEach((block) => {
+    if (stacked) {
+      nodes.push(<BlockView block={block} key={`${block.kind}-${nodes.length}`} />);
+      return;
+    }
     if (block.kind === 'fields') {
       fields.push(block);
       return;
@@ -402,6 +360,7 @@ function Blocks({ blocks }: { blocks: readonly Block[] }) {
 
 export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string }) {
   const actions = screen.actions ?? [];
+  const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
 
   return (
     <div className="av av-ambient" data-theme={theme}>
@@ -427,7 +386,7 @@ export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string 
             {QUICK_LINKS.map((link, index) => (
               <span key={link.label} style={{ display: 'contents' }}>
                 {index > 0 ? <i /> : null}
-                <a href={link.href}>{link.label}</a>
+                <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
               </span>
             ))}
           </div>
@@ -458,27 +417,30 @@ export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string 
             {screen.secondary.map((group) => (
               <div className="av-railgroup" key={group.group}>
                 <div className="av-railtitle">{group.group}</div>
-                {group.items.map((item, index) => (
+                {group.items.map((item) => (
                   <span key={item} style={{ display: 'contents' }}>
-                    <a
+                    {menuDestination(screen, item) ? <a
                       className="av-railitem"
-                      href={screen.route}
-                      data-active={index === 0}
-                      aria-current={index === 0 ? 'page' : undefined}
+                      href={menuDestination(screen, item)}
                     >
                       {item}
-                    </a>
+                    </a> : <span className="av-railitem" aria-disabled="true" title="该业务入口尚未单独实现">{item}</span>}
                   </span>
                 ))}
                 <div className="av-railspacer" />
               </div>
             ))}
+            <div className="av-railgroup">
+              <div className="av-railtitle">页面与流程 · {moduleScreens.length}</div>
+              {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
+            </div>
           </aside>
         ) : (
           <div />
         )}
 
         <main className="av-workspace">
+          {screen.sourceNode && <p className="av-fixture-note">界面示例 · 业务数据与审批、库存、发货等服务尚未接入</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
@@ -487,21 +449,27 @@ export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string 
             </div>
             {actions.length > 0 ? (
               <div className="av-pageactions">
-                {actions.map((action, index) => (
-                  <button
+                {actions.map((action, index) => {
+                  const targets: Record<string, string> = { '新建型号':'/admin/product/new/platform','新建订单':'/admin/orders/new','新建生产计划':'/admin/production/new/model','新建调拨':'/admin/inventory/transfers/new' };
+                  const href = targets[action.replace(/^[+＋↓\s]+/g,'')];
+                  return href ? <a key={action} className="av-btn" data-variant="primary" href={href}>{action}</a> : <button
                     className="av-btn"
                     type="button"
                     key={action}
                     data-variant={index === actions.length - 1 ? 'primary' : undefined}
+                    disabled
+                    title="此业务操作尚未接入服务"
                   >
                     {action}
-                  </button>
-                ))}
+                  </button>;
+                })}
               </div>
             ) : null}
           </div>
 
-          <Blocks blocks={screen.blocks} />
+          {screen.steps && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
+          <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
+          {moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>
     </div>
