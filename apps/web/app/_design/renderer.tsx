@@ -1,8 +1,10 @@
+import { headers } from 'next/headers';
 import './design-system.css';
 import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
+import { portalUrlFor } from '../_lib/portal-routing';
 
 const AREAS: readonly { label: string; href: string }[] = [
   { label: '工作台', href: '/admin' },
@@ -18,10 +20,10 @@ const AREAS: readonly { label: string; href: string }[] = [
   { label: '设置', href: '/admin/settings' },
 ];
 
-const QUICK_LINKS: readonly { label: string; href: string }[] = [
-  { label: '官方首页', href: '/home' },
-  { label: '经销商平台', href: '/dealer' },
-  { label: '车主中心', href: '/my' },
+const QUICK_LINKS: readonly { label: string; portal: 'www' | 'dealer' | 'my'; localHref: string }[] = [
+  { label: '官方首页', portal: 'www', localHref: '/home' },
+  { label: '经销商平台', portal: 'dealer', localHref: '/dealer' },
+  { label: '车主中心', portal: 'my', localHref: '/my' },
 ];
 
 function isAreaActive(area: string, label: string): boolean {
@@ -41,6 +43,17 @@ function BlockView({ block }: { block: Block }) {
   switch (block.kind) {
     case 'platforms':
       return <section className="av-platforms" aria-label="产品平台">{block.items.map(item => <article className="av-card" key={item.title}><h2 className="av-cardtitle">{item.title}</h2>{item.details.map((detail,i)=><p key={i} className="av-cardhint">{detail}</p>)}</article>)}</section>;
+    case 'shortcuts':
+      return (
+        <section className="av-card">
+          <div className="av-cardhead"><h2 className="av-cardtitle">{block.title}</h2></div>
+          <div className="av-shortcuts">
+            {block.items.map(item => <a className="av-shortcut" href={item.href} key={item.href}>
+              <strong>{item.label}</strong><span>{item.description}</span><i aria-hidden="true">→</i>
+            </a>)}
+          </div>
+        </section>
+      );
     case 'form':
       return <DesignForm {...block} />;
     case 'kpis':
@@ -190,7 +203,7 @@ function BlockView({ block }: { block: Block }) {
               ))}
             </div>
           ) : null}
-          <div className="av-timeline">
+          {block.items.length === 0 ? <p className="av-empty-state" role="status">{block.emptyMessage ?? '暂无动态'}</p> : <div className="av-timeline">
             {block.items.map((item) => (
               <div className="av-tlitem" key={`${item.tag}-${item.text}`}>
                 <span className="av-tag av-tltag" data-tone="brand">
@@ -202,7 +215,7 @@ function BlockView({ block }: { block: Block }) {
                 </span>
               </div>
             ))}
-          </div>
+          </div>}
         </section>
       );
 
@@ -215,7 +228,7 @@ function BlockView({ block }: { block: Block }) {
             </div>
             {block.more ? <span className="av-more">{block.more}</span> : null}
           </div>
-          <div className="av-tasks">
+          {block.items.length === 0 ? <p className="av-empty-state" role="status">{block.emptyMessage ?? '暂无任务'}</p> : <div className="av-tasks">
             {block.items.map((item) => (
               <div className="av-task" key={item.title}>
                 <div className="av-tasktop">
@@ -235,7 +248,7 @@ function BlockView({ block }: { block: Block }) {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </section>
       );
 
@@ -291,13 +304,13 @@ function BlockView({ block }: { block: Block }) {
               ))}
             </div>
           ) : null}
-          <div className="av-trend">
+          {block.bars.length === 0 ? <p className="av-empty-state" role="status">{block.emptyMessage ?? block.note ?? '暂无趋势数据'}</p> : <div className="av-trend">
             {block.bars.map((value, index) => (
               <div className="av-trendcol" key={index}>
                 <div className="av-trendbar" style={{ height: `${(value / max) * 100}%` }} />
               </div>
             ))}
-          </div>
+          </div>}
           {block.axis ? (
             <div className="av-trendaxis">
               {block.axis.map((tick) => (
@@ -358,7 +371,13 @@ function Blocks({ blocks, stacked = false }: { blocks: readonly Block[]; stacked
   return <>{nodes}</>;
 }
 
-export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string }) {
+export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: string }) {
+  const requestHost = (await headers()).get('host') ?? '';
+  const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestHost);
+  const quickLinks = QUICK_LINKS.map(link => ({
+    label: link.label,
+    href: isLocal ? link.localHref : portalUrlFor(requestHost, link.portal),
+  }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
 
@@ -383,7 +402,7 @@ export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string 
         </nav>
         <div className="av-toputils">
           <div className="av-quicklinks">
-            {QUICK_LINKS.map((link, index) => (
+            {quickLinks.map((link, index) => (
               <span key={link.label} style={{ display: 'contents' }}>
                 {index > 0 ? <i /> : null}
                 <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
@@ -440,7 +459,7 @@ export function AdminScreen({ screen, theme }: { screen: Screen; theme?: string 
         )}
 
         <main className="av-workspace">
-          {screen.sourceNode && <p className="av-fixture-note">界面示例 · 业务数据与审批、库存、发货等服务尚未接入</p>}
+          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台结构预览 · 指标与业务动态仅显示已接入数据；当前未接入项以空状态或「—」显示。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>

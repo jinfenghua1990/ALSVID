@@ -362,6 +362,39 @@
   font-size: 12px;
   color: var(--av-muted);
 }
+.av-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.av-shortcut {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  min-height: 76px;
+  padding: 14px 38px 14px 14px;
+  border: 1px solid var(--av-line-soft);
+  border-radius: var(--av-radius-sm);
+  background: var(--av-panel-soft);
+  color: var(--av-text);
+  text-decoration: none;
+  transition: border-color .15s ease, background .15s ease;
+}
+.av-shortcut:hover { border-color: var(--av-brand); background: var(--av-brand-soft); }
+.av-shortcut:focus-visible { outline: 2px solid var(--av-brand); outline-offset: 2px; }
+.av-shortcut strong { font-size: 13px; font-weight: 650; }
+.av-shortcut span { color: var(--av-muted); font-size: 11px; line-height: 1.5; }
+.av-shortcut i { position: absolute; right: 14px; top: 14px; color: var(--av-brand); font-style: normal; }
+.av-empty-state {
+  margin: 0;
+  padding: 24px 16px;
+  border: 1px dashed var(--av-line);
+  border-radius: var(--av-radius-sm);
+  color: var(--av-muted);
+  background: var(--av-panel-soft);
+  font-size: 12px;
+  line-height: 1.7;
+}
 .av-more {
   flex: none;
   font-size: 12px;
@@ -741,7 +774,9 @@
 .av-platforms { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
 .av-btn:disabled { opacity: .5; cursor: not-allowed; }
 @media(max-width:1000px) { .av-platforms { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:1000px) { .av-shortcuts { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width:520px) { .av-platforms { grid-template-columns: minmax(0,1fr); } }
+@media(max-width:520px) { .av-shortcuts { grid-template-columns: minmax(0,1fr); } }
 .av-design-field { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: center; font-size: 13px; }
 .av-design-field textarea { box-sizing: border-box; width: 100%; min-height: 48px; resize: vertical; padding: 12px; border: 1px solid var(--av-line); border-radius: 8px; background: #fff; color: var(--av-text, #12203a); font: inherit; line-height: 1.6; }
 .av-design-field textarea:focus { outline: 2px solid #326bff; outline-offset: 2px; }
