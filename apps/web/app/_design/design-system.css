@@ -736,6 +736,23 @@
 }
 
 /* ---------- 响应式 ---------- */
+.av-fixture-note { margin: 0; padding: 10px 14px; border: 1px solid var(--av-line); border-radius: 8px; color: var(--av-muted); background: var(--av-surface, #fff); font-size: 12px; }
+.av-design-form { display: grid; gap: 16px; }
+.av-platforms { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
+.av-btn:disabled { opacity: .5; cursor: not-allowed; }
+@media(max-width:1000px) { .av-platforms { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px) { .av-platforms { grid-template-columns: minmax(0,1fr); } }
+.av-design-field { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: center; font-size: 13px; }
+.av-design-field textarea { box-sizing: border-box; width: 100%; min-height: 48px; resize: vertical; padding: 12px; border: 1px solid var(--av-line); border-radius: 8px; background: #fff; color: var(--av-text, #12203a); font: inherit; line-height: 1.6; }
+.av-design-field textarea:focus { outline: 2px solid #326bff; outline-offset: 2px; }
+html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-panel); color: var(--av-text); border-color: var(--av-line); }
+.av-workflow-pages { display: flex; flex-wrap: wrap; gap: 10px; }
+@media(max-width:720px) { .av-design-field { grid-template-columns: minmax(0,1fr); gap: 6px; } }
+.av-screen-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.av-screen-links h2 { flex-basis: 100%; }
+.av-railitem[aria-disabled] { opacity: .55; cursor: default; }
+.av-field { white-space: pre-wrap; overflow-wrap: anywhere; }
+.av-table td { white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 1180px) {
   .av-body {
     grid-template-columns: minmax(0, 1fr);

@@ -2,8 +2,14 @@ import { screensA } from './screens-a';
 import { screensB } from './screens-b';
 import { screensC } from './screens-c';
 import type { Screen } from './types';
+import synced from './synced-screens.json';
 
-export const screens: readonly Screen[] = [...screensA, ...screensB, ...screensC];
+const reviewed = synced as Screen[];
+const previous = [...screensA, ...screensB, ...screensC];
+export const screens: readonly Screen[] = [
+  ...previous.filter(screen => !reviewed.some(item => item.route === screen.route)),
+  ...reviewed,
+];
 
 export function screenById(id: string): Screen {
   const screen = screens.find((item) => item.id === id);

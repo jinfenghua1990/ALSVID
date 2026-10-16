@@ -1,5 +1,12 @@
 # Current State
 
+## Reviewed Admin design pages — 2026-10-16
+
+The existing Admin fixture renderer now serves 85 reviewed Ardot module/detail/workflow screens through independent protected routes. Module page links, workflow navigation, local table filtering and editable/resettable example forms are available on localhost:3000. Imported records remain explicitly labeled fixtures; approvals, inventory, shipping and provider changes are not executed. The original server-side administrator guard is unchanged.
+
+Web types, production build, architecture checks and five Web tests pass. Authenticated Chrome navigation checked all 85 expected page titles; search, form reset and workflow links were also checked. See ADMIN_DESIGN_SYNC.md and app/_design/sync-manifest.json for scope and source mapping. Production deployment is a separate release step.
+
+
 > **Current runtime correction (2026-10-14):** Production is the only live cloud target. Cloud Development/Test and its promotion workflow are retired; local Docker and ephemeral GitHub CI are validation environments. Pull requests target `main` and production releases require exact-commit CI. Older entries below are dated historical snapshots and do not describe current runtime state. This repository note does not prove that any cloud resource was deleted.
 
 ## Local owner interface consolidation — 2026-10-15
