@@ -6,6 +6,7 @@
 - **四个独立开发工作流/门户**：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
 - **www.chaibenn.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.chaibenn.com 作为独立公开商城入口**。
 - Admin 是员工内部运营系统；Dealer 是经销商 B2B 门户；My 是车主会员/车辆生命周期门户。官网的会员、经销商入口可以导航至对应门户，但不复制其后台业务逻辑。
+- **2026-10-16 更新：** Supplier Portal 作为未来第五个外部业务门户正式预留。它不改变当前“四个核心项目”的定义；其目标是让 ALSVID 上游供应商自助确认 PO、交期、生产进度、发货和文件，而不是把供应商协同硬塞进 Shopify。
 - Portal Launcher 仅用于内部身份/角色切换，不作为公开官网首页，也不在用户访问首页时增加无意义中间跳转。
 - 当前网站域名及 Dev 子域名均为**目标命名**，DNS、证书、发布状态必须分别验收，不可假称已上线。
 - Shopify 负责 B2C 商城交易、购物车、结账、支付、退款和订单权威事实；ALSVID 负责 Vehicle/VIN、产品工程、客户车辆关系、经销商、生产、保修与售后等长期业务事实。WMS/外部仓储执行不能在 ALSVID 内重新造一套。
@@ -60,6 +61,8 @@
 UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单、右侧工作区**，顶部搜索/快捷操作/通知/人员与角色切换，亮暗主题；每个一级栏目都有实质二级工作页，避免多层大卡片套娃；统一字体、克制圆角、现代 SaaS 视觉；未完成的功能明确标注规划中/预留/待配置。Admin 导航位置以 docs/ALSVID_ADMIN_IA.md 为准；现有路由与 UI 是否已全部收敛须以代码核验，不可宣称已完成。
 
 ## 4. ALSVID Dealer Portal — 经销商 B2B
+
+> **2026-10-16 设计工具更新：** Dealer Portal 的最终 UI 归 Figma；Ardot 可继续用于内部流程/采购原型，但不作为 Dealer Portal 最终视觉设计源。Dealer Portal 与 Official / My / Supplier 共享 ALSVID 对外品牌语言，但按 B2B 工作场景提高信息密度。
 - 登录与授权：仅授权经销商访问，经销商组织、成员、角色、地区及价格权限隔离。
 - 工作台：采购概况、待处理事项、订单状态、交付/售后提醒。
 - 产品采购：经销商可售产品、型号/版本/规格、适用区域、采购价格/报价、下单与订单跟踪。
@@ -84,6 +87,7 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 - 通过 adapters/API、幂等同步、订单外部 ID 映射和受控刷新对接。默认定时校准与按需刷新；必要时再用 Webhook，避免整库复制。
 - 产品 3D、工程爆炸图、说明书、照片/视频等资源存 R2，对象元数据和关联在 PostgreSQL。
 - 统一品牌 UI 语言但各门户根据用户角色设计；权限和数据隔离不得因共享组件而混淆。
+- 2026-10-16 设计归属：Ardot = Admin 内部运营；Figma = Official / Shop、My ALSVID、Dealer Portal、未来 Supplier Portal 的最终 UI。详见 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`。
 
 ## 7. AI / 新会话交接规则
 1. 开始任务先阅读 README.md、本文件、docs/CURRENT_STATE.md、docs/BUSINESS_BOUNDARY.md、docs/ALSVID-ADMIN-ARCHITECTURE-V1.md 与 AGENTS.md。
@@ -93,12 +97,13 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 5. 功能开发遵守 Issue → branch → PR → CI → merge → deploy，除非仓库流程另有正式变更。
 6. 发生历史文档冲突时：此文件记录 **2026-10-13 四门户/官网商城整合业务决策**；正式名称与独立项目入口关系以 2026-10-14 更新的 SYSTEM_NAMING.md 和 APP_ENTRY_ARCHITECTURE.md 为准；底层代码与真实上线状态仍以实际仓库和部署证据为准。
 7. 未明确决定的事项（Shopify Headless/主题、实际 DNS、账号联登细节、B2B 定价等）保留为待验证，不得臆造。
+8. **2026-10-16 最新设计与供应商边界**必须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 只负责 Admin 内部运营设计/原型；Figma 负责所有对外门户最终 UI；Supplier Portal 作为未来第五个外部业务门户预留；Shopify 负责 B2C/B2B 商业交易，不替代上游供应商协同门户。
 
 
 > 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
 
 ## 8. 独立项目入口确认 — 2026-10-14
 
-四者是独立前端项目，不是同一系统页面；通过统一身份认证及部分业务数据联动，大部分入口关系是跨应用跳转。正式项目名称为 ALSVID Official（ALSVID 官网）、My ALSVID（车主中心；消费者车辆区域可用“我的车库”）、ALSVID Dealer Portal（经销商平台）、ALSVID Admin（内部运营中心）。
+四者是独立前端项目，不是同一系统页面；通过统一身份认证及部分业务数据联动，大部分入口关系是跨应用跳转。正式项目名称为 ALSVID Official（ALSVID 官网）、My ALSVID（车主中心；消费者车辆区域可用“我的车库”）、ALSVID Dealer Portal（经销商平台）、ALSVID Admin（内部运营中心）。Supplier Portal 是未来独立外部门户预留，不改变当前四个核心项目。
 
 Admin 顶部右侧增加 App Switcher 概念，建议按钮 `ALSVID Apps`，入口文案“官网、车主中心、经销商平台”，新标签打开目标项目并保留 Admin 状态。完整规范见 [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md)。此处是文档确认，不代表 UI 或联登已完成。

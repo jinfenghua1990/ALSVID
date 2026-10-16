@@ -144,10 +144,10 @@ Ardot 与 Figma 分别承担不同设计范围；GitHub 是实现与架构交付
 
 | 工具 | 负责的设计模块 | 当前核对结果 |
 | --- | --- | --- |
-| Ardot | Admin 工作台 + 经销商采购 | [ALSVID 工作台-正式](https://ardot.tencent.com/file/736467599966143?web_only=1) 中可见“工作台”画板，也能检索到“经销商采购”入口；需继续逐页确认采购流程画板。画板中的“官方首页”“我的车库”文字是跨应用入口，不代表消费者页面画板。 |
-| Figma | ALSVID Official 首页 + My ALSVID 我的车库 | [My ALSVID 车主车库 V1](https://www.figma.com/design/LuoLxuaizvjNMPbAhubd8i) 已在车主架构资料中登记。Official 首页的 Figma 文件链接尚未找到，待补链接并核对实际页面。 |
+| Ardot | ALSVID Admin 全部内部运营设计/原型 | 当前 Ardot 同步资产用于 Admin 工作台及十个内部业务模块。经销商采购若作为流程原型可在 Ardot 讨论，但不作为 Dealer Portal 的最终视觉设计源。 |
+| Figma | 所有对外门户的最终 UI：Official / Shop、My ALSVID、Dealer Portal、未来 Supplier Portal | My ALSVID 车库已有 Figma 记录；Official 首页及 Dealer/Supplier 的最终设计文件仍需逐项登记和验收，不能把文件存在写成页面已完成。 |
 
-> 边界要求：Admin 工作台和经销商采购的设计资产归 Ardot；消费者商城首页和车主“我的车库”的设计资产归 Figma。Ardot 中的消费者入口只保留跨应用跳转，不把消费者首页或车库页面放进工作台画板。旧资料曾记录消费者页面在 Ardot；按本约定需要逐项迁移/归档，确认 Figma 页面完整后再从 Ardot 移除旧副本，迁移前不要删除。
+> **2026-10-16 更新：** Ardot 的最终设计范围收口为 ALSVID Admin 内部运营系统；Figma 的最终设计范围扩展为所有对外门户（Official / Shop、My ALSVID、Dealer Portal、未来 Supplier Portal）。Ardot 中的“官方首页 / 我的车库 / 经销商入口”只保留跨应用跳转，不代表这些页面归 Ardot 设计。旧消费者副本在 Figma 页面逐项确认前不得删除；先区分重复设计资产、代码依赖和历史 fixture。
 
 > 核对限制：Ardot 文件检索到工作台及“官方首页 / 经销商采购 / 我的车库”入口文字；Figma MCP 本轮因 Starter 计划调用上限无法读取画板元数据。车库文件链接来自现有 Notion 架构页；首页 Figma 链接仍待确认，因此目前只能确认目标归属，不能宣称两个 Figma 画板均已逐层验收。
 
@@ -213,11 +213,12 @@ Ardot 与 Figma 分别承担不同设计范围；GitHub 是实现与架构交付
 
 ### P0 — 先统一交付结构
 
-1. Ardot 仅保留 Admin 工作台和经销商采购设计；合并重复驾驶舱，只留一个规范工作台首页。
-2. 将消费者商城首页与 My ALSVID 我的车库作为 Figma 设计范围，确认 Figma 文件链接和页面完整性。
-3. 逐项盘点 Ardot 中的消费者旧副本；确认 Figma 页面完整后再归档/移除，保留跨应用跳转入口。
-4. 在 Admin IA 中标注工作台、经销商采购的 Ardot 页面与路由、角色、数据源和实现状态。
-5. 保持 `/admin` 登录与 Admin 权限边界；消费者入口不暴露内部路由。
+1. Ardot 仅保留 ALSVID Admin 内部运营设计；经销商采购可以作为 Admin 内部流程原型，但 Dealer Portal 最终 UI 不归 Ardot。
+2. Figma 负责 Official / Shop、My ALSVID、Dealer Portal，以及未来 Supplier Portal 的最终 UI；确认各文件链接和页面完整性。
+3. 逐项盘点现有设计资产，区分 Ardot/Figma 重复稿、代码复用和历史 fixture；确认目标设计完整后再归档旧副本，不直接删除。
+4. 在 Admin IA 和各 Portal 架构文档中标注设计工具、路由、角色、数据源和实现状态。
+5. Supplier Portal 作为未来独立外部门户预留；上游供应商自助履约不通过 Shopify 冒充 Supplier Portal。
+6. 保持 `/admin` 登录与 Admin 权限边界；消费者和外部 Portal 不暴露内部工作台。
 
 ### P1 — 先闭合产品到售后主链路
 
@@ -253,6 +254,32 @@ Ardot 与 Figma 分别承担不同设计范围；GitHub 是实现与架构交付
 6. 关键动作是否有权限校验、审计记录、幂等与错误恢复？
 7. 是否有桌面/移动端、键盘、屏幕阅读器和高对比度验收？
 8. 页面是否由真实 API 驱动？若否，是否明确标为 fixture 并禁用有副作用的动作？
+
+## 8.1 2026-10-16 新增：Supplier Portal 与 Shopify 边界
+
+Supplier Portal 是未来第五个外部业务门户预留，不改变当前核心四项目定义。它面向 ALSVID 上游供应商，目标是让供应商自助完成采购订单确认、交期、生产进度、发货通知、文件/发票与对账等履约协同。
+
+长期链路：
+
+```text
+ALSVID Admin
+  → Procurement / PO
+  → Supplier Portal
+  → Supplier confirms quantity / delivery
+  → Production progress
+  → Shipment notice
+  → Documents / invoice
+  → ALSVID receiving / QC / inventory
+```
+
+Shopify 仍负责 B2C/B2B 商业交易。如果某供应商企业同时也是 ALSVID 的 B2B 买家，则其“Supplier Relationship”和“B2B Buyer Relationship”分开建模、授权和记账；向 ALSVID 采购的商业订单可以使用 Shopify B2B，不应因此把上游供应商履约功能塞进 Shopify。
+
+## 8.2 2026-10-16 新增：下一轮代码检查重点
+
+- Dealer Portal 当前代码存在复用 Admin 样式的情况；这是实现层现状，不应被解释成设计归属。下一轮应检查并逐步改为 Figma 对外门户视觉。
+- Supplier 当前主要是 Admin 的供应链/采购能力；下一轮应确认数据模型和权限可以支持未来 Supplier Portal，而不是直接复制 Admin 页面。
+- 不因设计工具归属调整而删除现有代码；先确认路由、组件、fixture 和业务 API 依赖，再做迁移/重构。
+- 所有“已完成”状态必须区分设计完成、代码完成、CI 通过、部署完成和业务验收。
 
 ## 9. 相关权威文档
 

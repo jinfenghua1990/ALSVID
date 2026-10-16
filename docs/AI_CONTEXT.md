@@ -100,3 +100,52 @@ Before changing architecture, check:
 ## Environment and release model (2026-10-14)
 
 The current cloud runtime is Production only (`alsvid-prod`). Local Docker and ephemeral GitHub CI are the development/validation environments. The former cloud Development/Test runtime and automatic promotion flow are retired. Pull requests target `main`; Production deployment requires successful CI for the exact commit. Treat older Development references elsewhere in the docs as historical unless explicitly updated. Verify live cloud inventory before claiming a resource exists or was deleted.
+
+## Design tool and portal boundary — 2026-10-16
+
+The latest design/portal decision is documented in `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` and takes precedence over older tool-assignment notes.
+
+### Design tools
+
+- **Ardot:** internal ALSVID Admin operations design/prototyping only. This includes Admin workbench, products, orders, production, inventory, dealer management from the employee view, customer, after-sales, supply chain, supplier management, data and settings.
+- **Figma:** final UI/visual design for all external user portals: ALSVID Official / Shop, My ALSVID, ALSVID Dealer Portal, and the future Supplier Portal.
+- Ardot and Figma must not maintain two competing final designs for the same page.
+- A design file is not evidence that code, API integration, CI, deployment or business acceptance is complete.
+
+### Portal model
+
+The four confirmed core projects remain:
+
+1. ALSVID Official
+2. My ALSVID
+3. ALSVID Dealer Portal
+4. ALSVID Admin
+
+A **Supplier Portal** is reserved as a future fifth external business portal. It is not a fifth current core project, but its identity, authorization, business relationships and UI boundaries must be designed so it does not require a later architectural rewrite.
+
+### Shopify boundary
+
+Shopify remains the commerce system for B2C and B2B transactions. Shopify B2B can represent a buyer company through Company / Company Location / Company Contact and control B2B catalogs and pricing. Do not turn Shopify into ALSVID Admin, WMS, or a full upstream supplier collaboration system.
+
+### Supplier boundary
+
+For an upstream supplier that supplies ALSVID, the long-term self-service flow is:
+
+```text
+ALSVID Admin
+  -> Procurement / PO
+  -> Supplier Portal
+  -> supplier confirms quantity / delivery date
+  -> production progress
+  -> shipment notice
+  -> documents / invoice
+  -> ALSVID receiving / QC / inventory
+```
+
+The Supplier Portal is therefore a supplier self-service fulfillment portal, not a Shopify supplier field.
+
+If the same company also buys ALSVID products, it can separately have a B2B buyer relationship in Shopify. Supplier relationship and B2B buyer relationship must remain separate in permissions, order types and data scope.
+
+### Implementation rule
+
+Future AI agents must read `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` before changing portal UI, Shopify integration, supplier flows or design-tool ownership. Do not delete existing design assets or code solely because ownership moved; first inspect whether the asset is a duplicate, an implementation dependency, or a historical fixture.
