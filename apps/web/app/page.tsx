@@ -1,8 +1,7 @@
-import { headers } from 'next/headers';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { portalFromHost, portalUrlFor } from './_lib/portal-routing';
-import { isLocale, type Locale } from './_lib/i18n';
+import { portalFromHost } from './_lib/portal-routing';
+import { localeCookie, preferredLocale } from './_lib/i18n/routing';
 
 /**
  * WWW 门户首页。
@@ -10,7 +9,7 @@ import { isLocale, type Locale } from './_lib/i18n';
  * www（或显式 www 主机名）渲染官方首页。
  */
 export default async function WwwHomePage() {
-  const [requestHeaders, cookieStore] = await Promise.all([headers(), cookies()]);
+  const requestHeaders = await headers();
   const host = requestHeaders.get('host') ?? '';
   const portal = portalFromHost(host);
 
@@ -18,11 +17,6 @@ export default async function WwwHomePage() {
   if (portal === 'dealer') redirect('/dealer');
   if (portal === 'my') redirect('/my');
 
-  const savedLocale = cookieStore.get('alsvid-locale')?.value;
-  const preferredLanguage = requestHeaders.get('accept-language')?.toLowerCase() ?? '';
-  const locale: Locale = isLocale(savedLocale)
-    ? savedLocale
-    : preferredLanguage.split(',').some((language) => language.trim().startsWith('de')) ? 'de' : 'en';
-
-  redirect(`/${locale}/`);
+  const saved = (await cookies()).get(localeCookie)?.value;
+  redirect(`/${preferredLocale(saved, requestHeaders.get('accept-language') ?? '')}/`);
 }

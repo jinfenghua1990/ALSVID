@@ -1,6 +1,6 @@
+import { headers } from 'next/headers';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { headers } from 'next/headers';
 import { RefreshButton } from './_components/refresh-button';
 import './globals.css';
 import './admin-shell-v2.css';
@@ -32,14 +32,12 @@ try {
 `;
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const requestHeaders = await headers();
-  const requestLocale = requestHeaders.get('x-alsvid-locale');
-  const documentLanguage = requestLocale === 'de' || requestLocale === 'en' ? requestLocale : 'zh-CN';
   const environment = runtimeEnvironment();
+  const locale = (await headers()).get('x-alsvid-locale') ?? 'zh-CN';
   const isDevelopment = environment !== 'production';
 
   return (
-    <html lang={documentLanguage} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
