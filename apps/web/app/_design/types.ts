@@ -46,6 +46,7 @@ export interface TaskItem {
 
 export type Block =
   | { kind: 'platforms'; items: { title: string; details: string[] }[] }
+  | { kind: 'shortcuts'; title: string; items: { label: string; description: string; href: string }[] }
   | { kind: 'form'; title: string; hint?: string; fields: { label: string; value: string }[] }
   | { kind: 'kpis'; items: Kpi[] }
   | {
@@ -67,8 +68,9 @@ export type Block =
       more?: string;
       tabs?: string[];
       items: TimelineItem[];
+      emptyMessage?: string;
     }
-  | { kind: 'tasks'; title: string; more?: string; items: TaskItem[] }
+  | { kind: 'tasks'; title: string; more?: string; items: TaskItem[]; emptyMessage?: string }
   | { kind: 'search'; title: string; hint?: string; placeholder: string; fields: string[] }
   | {
       kind: 'trend';
@@ -78,6 +80,7 @@ export type Block =
       note?: string;
       bars: number[];
       axis?: string[];
+      emptyMessage?: string;
     };
 
 export interface SecondaryGroup {
