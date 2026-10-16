@@ -2,18 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react';
 import styles from '../../home.module.css';
+import { t, type Locale } from '../../_lib/i18n';
 
 const STEPS = [
-  { n: 1, title: '骑行状态', desc: '整车展开，随时出发' },
-  { n: 2, title: '拆下立管', desc: '快拆立管向下折叠' },
-  { n: 3, title: '折叠车身', desc: '铰链解锁，前后轮并拢' },
-  { n: 4, title: '完成折叠', desc: '3 秒收拢，进入地铁 / 后备箱' },
+  { n: 1, title: 'folding.step.1.title', desc: 'folding.step.1.description' },
+  { n: 2, title: 'folding.step.2.title', desc: 'folding.step.2.description' },
+  { n: 3, title: 'folding.step.3.title', desc: 'folding.step.3.description' },
+  { n: 4, title: 'folding.step.4.title', desc: 'folding.step.4.description' },
 ] as const;
 
 const MORPH_MS = 2200;
 const EASE = 'cubic-bezier(.22,.61,.36,1)';
 
-export function FoldingDemo() {
+export function FoldingDemo({ locale }: { locale: Locale }) {
   const [cur, setCur] = useState(1);
   const [epoch, setEpoch] = useState(0);
   const [inView, setInView] = useState(false);
@@ -79,7 +80,7 @@ export function FoldingDemo() {
     >
       <div className={styles.foldStage}>
         <div className={styles.foldCanvas}>
-          <svg className={styles.foldBike} viewBox="0 0 300 180" role="img" aria-label={`折叠演示：第 ${cur} 步，${current.title}`}>
+          <svg className={styles.foldBike} viewBox="0 0 300 180" role="img" aria-label={`${t(locale, 'folding.aria')}: ${cur}, ${t(locale, current.title)}`}>
             {/* 后半段：后轮 + 后三角 + 座管 + 电池 + 座垫 */}
             <g style={rearStyle}>
               <circle cx="65" cy="130" r="38" fill="none" stroke={line} strokeWidth="3.5" />
@@ -119,10 +120,10 @@ export function FoldingDemo() {
             <path d="M176 112 L235 112 M176 148 L235 148" stroke="#bcc0c6" strokeWidth="1.5" strokeDasharray="3 2" />
             <circle cx="262" cy="119" r="4" fill="#0b61ff" />
           </svg>
-          <p className={styles.foldLabel}>{cur} · {current.title}</p>
+          <p className={styles.foldLabel}>{cur} · {t(locale, current.title)}</p>
         </div>
 
-        <div className={styles.foldSteps} role="tablist" aria-label="折叠步骤">
+        <div className={styles.foldSteps} role="tablist" aria-label={t(locale, 'folding.aria')}>
           {STEPS.map((step) => (
             <button
               key={step.n}
@@ -134,9 +135,9 @@ export function FoldingDemo() {
             >
               <span className={styles.foldNum}>{step.n}</span>
               <span>
-                <span className={styles.foldTitle}>{step.title}</span>
+                <span className={styles.foldTitle}>{t(locale, step.title)}</span>
                 <br />
-                <span className={styles.foldDesc}>{step.desc}</span>
+                <span className={styles.foldDesc}>{t(locale, step.desc)}</span>
               </span>
             </button>
           ))}
