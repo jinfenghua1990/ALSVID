@@ -27,7 +27,7 @@ For portal UI, design-tool ownership, Shopify or supplier work, also read `docs/
 15. the current issue/PR and affected `domain.json`
 17. `docs/ENVIRONMENT_ARCHITECTURE.md`
 
-For product, brand, website, dealer, customer-support, Shopify or AI work, also read the relevant files under `knowledge/`. The knowledge base is the shared ALSVID business context; this file and the `docs/` files remain authoritative for engineering constraints.
+For product, brand, website, dealer, customer-support, Shopify or AI work, also read the relevant files under `knowledge/`. The knowledge base is the shared ALSVID business context; this file and the `docs/` files remain authoritative for engineering constraints. For ALSVID WWW, My ALSVID or Dealer Portal web UI, also follow `docs/ALSVID_WEB_I18N_STANDARD.md`; Shopify-managed product, cart and checkout localization remains owned by Shopify.
 
 Confirmed architecture decisions are not suggestions. Do not replace providers, redraw system boundaries, or add major infrastructure merely because a different stack appears fashionable. First identify the concrete problem, review the recorded rationale, and document the new decision.
 
