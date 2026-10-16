@@ -5,7 +5,7 @@ const authBaseUrl = process.env.AUTH_BASE_URL;
 export function proxy(request: NextRequest) {
   const forwardedHost = request.headers.get('x-forwarded-host');
   const requestHost = forwardedHost ?? request.headers.get('host') ?? request.nextUrl.hostname;
-  const host = requestHost.split(',')[0].trim().split(':')[0].toLowerCase();
+  const host = requestHost.split(',').at(0)?.trim().split(':').at(0)?.toLowerCase() ?? '';
   const path = request.nextUrl.pathname;
   if (
     process.env.NODE_ENV === 'production'
