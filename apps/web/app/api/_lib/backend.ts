@@ -1,12 +1,14 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { sessionCookieNameForHost } from '../../_lib/session-cookie';
 
 const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 
 export async function backendFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const store = await cookies();
-  const token = store.get('alsvid_session')?.value;
-  const headers = new Headers(init.headers);
-  headers.set('content-type', 'application/json');
-  if (token) headers.set('authorization', `Bearer ${token}`);
-  return fetch(`${apiBase}${path}`, { ...init, headers, cache: 'no-store' });
+  const requestHeaders = await headers();
+  const token = store.get(sessionCookieNameForHost(requestHeaders.get('host') ?? ''))?.value;
+  const outgoingHeaders = new Headers(init.headers);
+  outgoingHeaders.set('content-type', 'application/json');
+  if (token) outgoingHeaders.set('authorization', `Bearer ${token}`);
+  return fetch(`${apiBase}${path}`, { ...init, headers: outgoingHeaders, cache: 'no-store' });
 }

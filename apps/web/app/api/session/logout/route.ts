@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { backendFetch } from '../../_lib/backend';
-import { expiredSessionCookieOptions } from '../../../_lib/session-cookie';
+import { expiredSessionCookieOptions, sessionCookieName } from '../../../_lib/session-cookie';
 
 async function clearSessionCookie(result: NextResponse, request: Request): Promise<NextResponse> {
-  result.cookies.set('alsvid_session', '', expiredSessionCookieOptions(request));
+  result.cookies.set(sessionCookieName(request), '', expiredSessionCookieOptions(request));
   return result;
 }
 

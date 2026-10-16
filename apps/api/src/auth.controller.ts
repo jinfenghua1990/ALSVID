@@ -54,7 +54,7 @@ export class AuthController {
   async requestPasswordReset(@Body() body: { email?: string }) {
     if (!body?.email?.trim()) throw new UnauthorizedException('Email is required');
     try {
-      await identityService.requestPasswordReset(body.email, process.env.ALSVID_PUBLIC_WEB_URL ?? 'http://localhost:3000');
+      await identityService.requestPasswordReset(body.email, process.env.AUTH_BASE_URL ?? 'http://localhost:3000');
     } catch (error) {
       if (error instanceof IdentityValidationError) throw error;
       throw new ServiceUnavailableException('Password reset email is temporarily unavailable');
