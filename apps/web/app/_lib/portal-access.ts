@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { ProtectedPortalId } from './portal-routing';
 import { ownerPreviewAllowed } from './owner-preview-policy';
+import { sessionCookieNameForPortal } from './session-cookie';
 
 export interface PortalSession {
   userId: string;
@@ -38,7 +39,7 @@ const DEV_SESSION: PortalSession = {
 export async function requirePortalSession(portal: ProtectedPortalId, returnTo: string): Promise<PortalSession> {
   if (ownerPreviewAllowed(portal, process.env.NODE_ENV, process.env.ALSVID_DEV_OPEN_PORTAL)) return DEV_SESSION;
 
-  const token = (await cookies()).get('alsvid_session')?.value;
+  const token = (await cookies()).get(sessionCookieNameForPortal(portal))?.value;
   if (!token) loginRedirect(portal, returnTo);
 
   const response = await fetch(`${apiBase}/v1/auth/me`, {

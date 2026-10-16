@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { sessionCookieName } from '../../../_lib/session-cookie';
 
 const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const token = (await cookies()).get('alsvid_session')?.value;
+  const token = (await cookies()).get(sessionCookieName(request))?.value;
   if (!token) return NextResponse.json({ message: '登录状态已失效，请重新登录。' }, { status: 401 });
 
   const response = await fetch(`${apiBase}/v1/auth/password`, {

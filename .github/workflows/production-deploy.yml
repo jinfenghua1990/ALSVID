@@ -117,6 +117,7 @@ jobs:
           R2_BUCKET: ${{ vars.R2_BUCKET }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
           RELEASE_EVENT: ${{ github.event_name }}
         run: |
           set -euo pipefail
@@ -124,7 +125,7 @@ jobs:
             GCP_PROJECT_ID GCP_REGION GAR_REPOSITORY \
             GCP_WORKLOAD_IDENTITY_PROVIDER GCP_DEPLOY_SERVICE_ACCOUNT \
             GCP_RUNTIME_SERVICE_ACCOUNT R2_ENDPOINT R2_BUCKET \
-            MAIL_PROVIDER MAIL_FROM_ADDRESS; do
+            MAIL_PROVIDER MAIL_FROM_ADDRESS AUTH_BASE_URL; do
             if [[ -z "${!name:-}" ]]; then
               echo "Missing required GitHub production variable: $name" >&2
               exit 1
@@ -133,6 +134,11 @@ jobs:
 
           if [[ "$MAIL_PROVIDER" != "resend" ]]; then
             echo "Production email verification requires MAIL_PROVIDER=resend; got: $MAIL_PROVIDER" >&2
+            exit 1
+          fi
+
+          if [[ "$AUTH_BASE_URL" != https://* || "$AUTH_BASE_URL" == *run.app* ]]; then
+            echo "AUTH_BASE_URL must be an HTTPS canonical domain and must not be a run.app URL" >&2
             exit 1
           fi
 
@@ -317,14 +323,10 @@ jobs:
           ALSVID_INITIAL_ADMIN_EMAIL: ${{ vars.ALSVID_INITIAL_ADMIN_EMAIL }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
         run: |
           set -euo pipefail
-          web_url="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
-          if [[ -z "$web_url" ]]; then
-            echo "Production web service URL is unavailable; refusing to deploy reset links without a destination" >&2
-            exit 1
-          fi
-          env_vars="NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_EMAIL_TEST_MODE=false,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,ALSVID_INTERNAL_EMAIL_DOMAINS=${ALSVID_INTERNAL_EMAIL_DOMAINS:-},ALSVID_INTERNAL_REGISTRATION_MODE=${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain},ALSVID_INITIAL_ADMIN_EMAIL=${ALSVID_INITIAL_ADMIN_EMAIL:-},MAIL_PROVIDER=${MAIL_PROVIDER:-resend},MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@chaibenn.com},MAIL_FROM_NAME=ALSVID,ALSVID_PUBLIC_WEB_URL=$web_url"
+          env_vars="NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_EMAIL_TEST_MODE=false,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,ALSVID_INTERNAL_EMAIL_DOMAINS=${ALSVID_INTERNAL_EMAIL_DOMAINS:-},ALSVID_INTERNAL_REGISTRATION_MODE=${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain},ALSVID_INITIAL_ADMIN_EMAIL=${ALSVID_INITIAL_ADMIN_EMAIL:-},MAIL_PROVIDER=${MAIL_PROVIDER:-resend},MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@chaibenn.com},MAIL_FROM_NAME=ALSVID,AUTH_BASE_URL=$AUTH_BASE_URL"
           secret_bindings="DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest,MAIL_API_KEY=alsvid-mail-api-key:latest"
 
           gcloud run deploy "$API_SERVICE" \
@@ -384,6 +386,7 @@ jobs:
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           API_URL: ${{ steps.api.outputs.url }}
+          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
         run: |
           set -euo pipefail
           gcloud run deploy "$WEB_SERVICE" \
@@ -397,7 +400,7 @@ jobs:
             --min 0 \
             --max 3 \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},ALSVID_API_BASE_URL=${API_URL}/api" \
+            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},ALSVID_API_BASE_URL=${API_URL}/api,AUTH_BASE_URL=${AUTH_BASE_URL}" \
             --quiet
 
       - name: Verify Web and record deployed release
@@ -405,15 +408,14 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
         run: |
           set -euo pipefail
-          web_url="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
-          curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$web_url" >/dev/null
+          curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$AUTH_BASE_URL" >/dev/null
           {
             echo "### ALSVID production deployment"
             echo "- Release: $RELEASE_SHA"
-            echo "- Web: $web_url"
-            echo "- API: ${{ steps.api.outputs.url }}"
+            echo "- Admin: $AUTH_BASE_URL"
             echo "- Worker pool: $WORKER_POOL (instances: $WORKER_INSTANCES)"
             echo "- Email verification: resend"
           } >> "$GITHUB_STEP_SUMMARY"

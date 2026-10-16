@@ -43,15 +43,18 @@ Admin 顶部右侧的应用切换器显示“官网、车主中心、经销商�
 
 ## 单点登录
 
-同一环境下，四个门户共享 ALSVID 会话：
+同一环境下，内部业务门户共享 ALSVID 会话；My ALSVID 的 Shopify Customer 身份保持独立：
 
-- 生产门户 Cookie 作用域：.chaibenn.com
-- 开发门户 Cookie 作用域：.dev.chaibenn.com
-- 临时 Cloud Run 地址使用当前域名 Cookie，不影响开发验收
+- Admin、Dealer、Supplier / Service 使用生产 Cookie 作用域：.chaibenn.com
+- Admin、Dealer、Supplier / Service 使用开发 Cookie 作用域：.dev.chaibenn.com
+- My ALSVID 使用独立的 `alsvid_my_session` Host-only Cookie，不与内部门户共享
+- 用户访问临时 Cloud Run Web 地址时，生产 Proxy 会保留路径与查询参数并跳转到 `AUTH_BASE_URL`
 - Cookie 只保存短期会话令牌，不保存业务数据
 - 每个门户进入页面时都通过统一 API 的 /v1/auth/me 验证会话
 - 会话是否有权访问某个门户，由后端角色与权限判断
-- 退出任意门户时，同时撤销后端会话并清除共享 Cookie
+- 退出内部门户时，同时撤销后端会话并清除内部共享 Cookie；退出 My 时清除其独立 Cookie
+
+生产认证链接的唯一基址由 Cloud Run 环境变量 `AUTH_BASE_URL` 提供。Web 服务会把浏览器从临时 `run.app` 地址重定向至该基址，API 用它生成密码重置链接。
 
 目标体验是：用户登录后，在同一环境内跳转至有权访问的其他项目时复用身份。该体验需在独立前端和域名完成后逐项验证；目标项目仍须验证权限，Shopify Customer 映射不能假设天然互通。
 
