@@ -293,5 +293,6 @@
   "detail.owner_support": "Service für Besitzer öffnen",
   "interaction.folding.riding": "Fahrkonzept: Rahmen und Räder sind aufgeklappt dargestellt. Diese Skizze ist keine Bedienungsanleitung.",
   "interaction.folding.folding": "Faltkonzept: Dieser Zustand zeigt eine kompaktere Anordnung des Rahmens. Für das tatsächliche Falten gilt das veröffentlichte Modellhandbuch.",
-  "interaction.folding.storing": "Verstaukonzept: Die Skizze zeigt den kompaktesten dieser drei schematischen Zustände. Die endgültigen Faltmaße sind noch nicht bestätigt."
+  "interaction.folding.storing": "Verstaukonzept: Die Skizze zeigt den kompaktesten dieser drei schematischen Zustände. Die endgültigen Faltmaße sind noch nicht bestätigt.",
+  "navigation.join_dealer": "Weltweit Händler werden"
 }

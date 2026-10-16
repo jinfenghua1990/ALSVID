@@ -34,6 +34,7 @@ export function HomePage({
           <a href="#tech">{t("navigation.technology")}</a>
           <a href="#service">{t("navigation.services")}</a>
           <a href={detail("about-story")}>{t("brand.story")}</a>
+          <a href="#dealer">{t("navigation.join_dealer")}</a>
         </nav>
         <div className={styles["actions"]}>
           <a href={dealerUrl}>{t("navigation.dealer")}</a>
@@ -44,7 +45,7 @@ export function HomePage({
             body={t("commerce.body")}
             closeLabel={t("common.close")}
           />
-          <a className={styles["buy"]} href="#platforms">
+          <a href="#platforms">
             {t("product.explore_models")}
           </a>
           <LanguageSwitcher locale={locale} label={t("language.label")} />

@@ -293,5 +293,6 @@
   "detail.owner_support": "Open owner support",
   "interaction.folding.riding": "Riding concept: the frame and wheels are shown unfolded. This schematic is not an operating instruction.",
   "interaction.folding.folding": "Folding concept: select this state to see the frame move into a more compact arrangement. Actual folding follows the released model manual.",
-  "interaction.folding.storing": "Storage concept: the schematic shows the most compact of these three illustrative states. Final folded dimensions are not confirmed."
+  "interaction.folding.storing": "Storage concept: the schematic shows the most compact of these three illustrative states. Final folded dimensions are not confirmed.",
+  "navigation.join_dealer": "Become a global dealer"
 }

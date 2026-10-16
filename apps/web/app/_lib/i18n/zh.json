@@ -293,5 +293,6 @@
   "detail.owner_support": "进入车主服务",
   "interaction.folding.riding": "骑行概念：示意图展示展开的车架与车轮，不作为实际操作指南。",
   "interaction.folding.folding": "折叠概念：查看车架收拢后的示意状态。实际折叠步骤以正式车型手册为准。",
-  "interaction.folding.storing": "收纳概念：示意图展示三种状态中更紧凑的排列，最终折叠尺寸尚未确认。"
+  "interaction.folding.storing": "收纳概念：示意图展示三种状态中更紧凑的排列，最终折叠尺寸尚未确认。",
+  "navigation.join_dealer": "加入全球经销商"
 }
