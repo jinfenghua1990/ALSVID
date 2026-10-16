@@ -22,11 +22,13 @@ export function HomePage({
       lang={locale}
       data-home-design="original-migration"
     >
-      <div className={styles["announcement"]}>{t("announcement")}</div>
       <header className={styles["header"]}>
-        <a href={`/${locale}`} className={styles["logo"]}>
-          {t("brand.name")}
-        </a>
+        <div className={styles["brand-lockup"]}>
+          <a href={`/${locale}`} className={styles["logo"]}>
+            {t("brand.name")}
+          </a>
+          <span className={styles["brand-strapline"]}>{t("announcement")}</span>
+        </div>
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
           <a href="#platforms">{t("navigation.products")}</a>
           <a href="#featured">{t("product.model_fc1")}</a>
