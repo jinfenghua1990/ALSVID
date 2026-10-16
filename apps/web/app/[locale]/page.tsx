@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isLocale(locale)) return {};
   const t = translator(locale);
   return { title: t('meta.title'), description: t('meta.description'), alternates: {
-    canonical: `https://www.chaibenn.com/${locale}/`, languages: { de: 'https://www.chaibenn.com/de/', en: 'https://www.chaibenn.com/en/' },
+    canonical: `https://www.chaibenn.com/${locale}/`, languages: { zh: 'https://www.chaibenn.com/zh/', de: 'https://www.chaibenn.com/de/', en: 'https://www.chaibenn.com/en/' },
   } };
 }
 export default async function LocalizedHome({ params }: Props) {

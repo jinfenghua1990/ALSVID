@@ -5,5 +5,5 @@ import { portalUrlFor } from '../_lib/portal-routing';
 export default async function HomePreviewPage() {
   const host = (await headers()).get('host') ?? '';
   const isLocal = /^(localhost|127\.0\.0\.1)(:|$)/.test(host);
-  redirect(isLocal ? '/de/' : `${portalUrlFor(host, 'www')}/de/`);
+  redirect(isLocal ? '/zh/' : `${portalUrlFor(host, 'www')}/zh/`);
 }

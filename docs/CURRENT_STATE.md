@@ -1,5 +1,9 @@
 # Current State
 
+## Consumer homepage interactions — 2026-10-16
+
+The original migration homepage now has manual scene tabs (mouse and arrow-key navigation), localized detail destinations for 20 platform/model/accessory/technology/brand concepts, clickable owner-service cards to existing guarded portal routes, and a selectable schematic folding preview. The shopping-bag control opens an accessible availability dialog explaining that Shopify commerce is not connected. Concept details do not assert unconfirmed specifications or complete commercial transactions. The user's follow-up adds Chinese `/zh` review pages alongside DE/EN; the shared switcher preserves the detail slug and remembers explicit choices. This is an implementation record; production completion requires exact-commit CI and live verification.
+
 ## Original consumer homepage restoration — 2026-10-16
 
 The WWW homepage now implements the user-approved original Penpot migration design (file `9e056cfe-f83f-81f8-8008-cc4972e16647`, page `86ab18b0-fcc4-8052-8008-cc5c73d58530`), rather than V2. It restores the photographic hero, four platform cards, FC1 feature, folding/technology/accessory/service/about sections and dealer banner. Five concept WebP images are served locally with HTML text overlays. Unconfirmed specifications and commerce remain explicitly unavailable; no Shopify transaction flow is added.

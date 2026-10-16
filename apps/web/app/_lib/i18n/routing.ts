@@ -1,4 +1,4 @@
-export const locales = ['de', 'en'] as const;
+export const locales = ['zh', 'de', 'en'] as const;
 export type Locale = typeof locales[number];
 export const futureLocales = ['nl', 'fr', 'it', 'es'] as const;
 export const localeCookie = 'alsvid-locale';
@@ -11,7 +11,7 @@ export function preferredLocale(saved: unknown, accepted = ''): Locale {
     const [tag = '', quality] = item.trim().split(';');
     return { language: tag.toLowerCase().split('-')[0], quality: quality ? Number(quality.trim().replace(/^q=/, '')) : 1 };
   }).filter(item => item.quality > 0).sort((a, b) => b.quality - a.quality);
-  return preferences.find(item => isLocale(item.language))?.language as Locale | undefined ?? 'de';
+  return preferences.find(item => isLocale(item.language))?.language as Locale | undefined ?? 'zh';
 }
 export function localizedPath(path: string, locale: Locale): string {
   const safePath = path.startsWith('/') && !path.startsWith('//') ? path : '/';
@@ -20,3 +20,5 @@ export function localizedPath(path: string, locale: Locale): string {
   else segments.splice(1, 0, locale);
   return segments.join('/');
 }
+
+export const localeLabels: Record<Locale, string> = { zh: '中文', de: 'DE', en: 'EN' };

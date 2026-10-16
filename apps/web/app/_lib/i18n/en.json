@@ -277,5 +277,21 @@
   "images.fat": "Outdoor bicycle concept",
   "images.touring": "Touring bicycle concept",
   "meta.title": "ALSVID — Engineered for freedom",
-  "meta.description": "Explore ALSVID bicycle platform concepts, FC1, accessories and owner support."
+  "meta.description": "Explore ALSVID bicycle platform concepts, FC1, accessories and owner support.",
+  "common.close": "Close",
+  "common.learn_more": "Learn more →",
+  "common.back_home": "Back to homepage",
+  "commerce.title": "Online shop",
+  "commerce.body": "The Shopify shop is not connected yet. You can explore the bicycle and accessory concepts here. Shopping bags, prices, availability and checkout will be provided by Shopify when the shop launches.",
+  "detail.concept_title": "Design concept",
+  "detail.next_title": "Next steps",
+  "detail.model_body": "This page presents a platform concept. Final equipment, dimensions, weight, range and availability have not yet been released. The imagery illustrates the design direction and is not a confirmed product specification.",
+  "detail.accessory_body": "This accessory is part of the ALSVID design concept. Model compatibility, fitting instructions, pricing and availability are pending confirmation. Online purchasing will be handled by Shopify.",
+  "detail.brand_body": "Explore the ALSVID design direction through the platform and technology concepts. Further brand stories, manufacturing information and updates will be published when confirmed.",
+  "detail.technology_body": "This is a technology overview for the platform concept. Check the confirmed specification and released manual for the relevant model before operating or servicing a bicycle.",
+  "detail.explore_platforms": "Explore bicycle platforms",
+  "detail.owner_support": "Open owner support",
+  "interaction.folding.riding": "Riding concept: the frame and wheels are shown unfolded. This schematic is not an operating instruction.",
+  "interaction.folding.folding": "Folding concept: select this state to see the frame move into a more compact arrangement. Actual folding follows the released model manual.",
+  "interaction.folding.storing": "Storage concept: the schematic shows the most compact of these three illustrative states. Final folded dimensions are not confirmed."
 }
