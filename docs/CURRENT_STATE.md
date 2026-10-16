@@ -1,5 +1,9 @@
 # Current State
 
+## Admin Ardot refinement sync — 2026-10-16
+
+Local Admin now includes the confirmed Ardot product/dealer sample labels, dealer regional-share bars and aligned table headings, and the corrected 60%/40% example sales ranking. The stale cached sales table was removed. Sixteen existing independent protected routes are mapped to the newly separated Ardot pages in `sync-manifest.json`; no duplicate Admin homepage or external Figma-owned screens were added. GitHub's current empty-state workbench remains intact. This is UI fixture synchronization, not a live business integration or evidence of Production deployment. See [ADMIN_DESIGN_SYNC.md](ADMIN_DESIGN_SYNC.md) for source and reimport limits.
+
 
 ## Consumer homepage interactions — 2026-10-16
 

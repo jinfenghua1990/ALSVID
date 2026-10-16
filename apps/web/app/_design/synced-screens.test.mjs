@@ -5,6 +5,21 @@ import { readFileSync } from 'node:fs';
 const screens = JSON.parse(readFileSync(new URL('./synced-screens.json', import.meta.url), 'utf8'));
 const at = route => screens.find(screen => screen.route === route);
 
+test('reviewed chart proportions agree with their sample totals', () => {
+  const regions = at('/admin/dealers').blocks.find(block => block.title === '区域授权');
+  assert.equal(regions.kind, 'bars');
+  assert.equal(Math.round(regions.items.reduce((sum, item) => sum + item.percent, 0) * 10), 1000);
+  const analytics = at('/admin/analytics');
+  const ranking = analytics.blocks.find(block => block.title === '产品销售排行 · 原讨论样例');
+  assert.equal(ranking.kind, 'bars');
+  for (const item of ranking.items) assert.equal(item.percent, Number.parseInt(item.value, 10) / 200 * 100);
+  assert.ok(!JSON.stringify(analytics).includes('18,420'));
+  assert.ok(!analytics.blocks.some(block => block.title === '细分表'));
+  const dealers = at('/admin/dealers').blocks.find(block => block.kind === 'table');
+  assert.deepEqual(dealers.columns.slice(0, 2), ['经销商', '区域']);
+  for (const route of ['/admin/product', '/admin/dealers']) assert.match(at(route).subtitle, /示例数据/);
+});
+
 test('reviewed screens have unique protected routes and complete table rows', () => {
   assert.equal(screens.length, 85);
   assert.equal(new Set(screens.map(screen => screen.route)).size, screens.length);
