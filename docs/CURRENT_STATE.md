@@ -1,5 +1,12 @@
 # Current State
 
+## Original consumer homepage restoration — 2026-10-16
+
+The WWW homepage now implements the user-approved original Penpot migration design (file `9e056cfe-f83f-81f8-8008-cc4972e16647`, page `86ab18b0-fcc4-8052-8008-cc5c73d58530`), rather than V2. It restores the photographic hero, four platform cards, FC1 feature, folding/technology/accessory/service/about sections and dealer banner. Five concept WebP images are served locally with HTML text overlays. Unconfirmed specifications and commerce remain explicitly unavailable; no Shopify transaction flow is added.
+
+Public `/de` and `/en` pages share semantic translation catalogs, a locale registry and a language switcher preserving the current path, query and fragment. The WWW root recommends a browser language on first entry and honors the explicit preference cookie; explicit locale URLs are never redirected to a browser preference. Existing Admin/My/Dealer root routing and session guards remain intact. `/home` redirects to the localized public homepage. This is an implementation record; production completion requires separate CI/deployment and live-page evidence.
+
+
 ## Portal evidence baseline and execution direction — 2026-10-16
 
 Use [PORTAL_DELIVERY_PLAN_2026-10-16.md](PORTAL_DELIVERY_PLAN_2026-10-16.md) for the reviewed source commit, current portal/identity gaps, design links, live HTTP check limits and next tasks. [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) records the target boundary. Supplier self-service is a confirmed phased target (#185), not delivered functionality. My garage data remains fixtures; Dealer/Shopify identity and external organization scope require implementation evidence.

@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { isLocale } from './app/_lib/i18n/routing';
+
 const authBaseUrl = process.env.AUTH_BASE_URL;
 
 export function proxy(request: NextRequest) {
@@ -21,5 +23,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(canonical, 308);
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete('x-alsvid-locale');
+  const locale = path.split('/')[1];
+  if (isLocale(locale)) requestHeaders.set('x-alsvid-locale', locale);
+  if (path === '/home') requestHeaders.set('x-alsvid-locale', 'de');
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }

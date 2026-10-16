@@ -1,7 +1,7 @@
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { portalFromHost, portalUrlFor } from './_lib/portal-routing';
-import { HomePage } from './_components/home/home-page';
+import { portalFromHost } from './_lib/portal-routing';
+import { localeCookie, preferredLocale } from './_lib/i18n/routing';
 
 /**
  * WWW 门户首页。
@@ -17,8 +17,6 @@ export default async function WwwHomePage() {
   if (portal === 'dealer') redirect('/dealer');
   if (portal === 'my') redirect('/my');
 
-  const myUrl = portalUrlFor(host, 'my');
-  const dealerUrl = portalUrlFor(host, 'dealer');
-
-  return <HomePage myUrl={myUrl} dealerUrl={dealerUrl} />;
+  const saved = (await cookies()).get(localeCookie)?.value;
+  redirect(`/${preferredLocale(saved, requestHeaders.get('accept-language') ?? '')}/`);
 }
