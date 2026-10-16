@@ -1,35 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" role="img" aria-label="ALSVID electric bicycle in mountain landscape">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="ALSVID landscape background">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#20354b"/><stop offset=".52" stop-color="#6f8ca6"/><stop offset="1" stop-color="#d9e2e8"/></linearGradient>
-    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8daac2"/><stop offset="1" stop-color="#dbe4e8"/></linearGradient>
-    <linearGradient id="bike" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6f7f8"/><stop offset="1" stop-color="#bfc8cf"/></linearGradient>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-opacity=".26"/></filter>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2a38"/>
+      <stop offset=".48" stop-color="#667f92"/>
+      <stop offset="1" stop-color="#cbd5d9"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7897ab"/>
+      <stop offset="1" stop-color="#cfdadd"/>
+    </linearGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a565d"/>
+      <stop offset="1" stop-color="#151a1e"/>
+    </linearGradient>
   </defs>
-  <rect width="1600" height="520" fill="url(#sky)"/>
-  <path d="M0 270 180 150 330 255 470 110 640 250 810 120 1020 280 1200 150 1380 255 1600 120 1600 520 0 520Z" fill="#24394d" opacity=".76"/>
-  <path d="M0 300 160 225 300 320 470 180 635 310 820 210 1000 325 1190 220 1360 330 1600 210 1600 520 0 520Z" fill="#667d8f" opacity=".82"/>
-  <rect y="350" width="1600" height="170" fill="url(#lake)" opacity=".9"/>
-  <path d="M0 400c230-45 430-20 610 0 245 28 460-25 690-7 110 9 205 23 300 8v119H0Z" fill="#e7eaec"/>
-  <g transform="translate(880 92)" filter="url(#shadow)" stroke="#111820" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="90" cy="292" r="104" fill="none" stroke-width="14"/>
-    <circle cx="450" cy="292" r="104" fill="none" stroke-width="14"/>
-    <circle cx="90" cy="292" r="93" fill="none" stroke="#4f5c66" stroke-width="2"/>
-    <circle cx="450" cy="292" r="93" fill="none" stroke="#4f5c66" stroke-width="2"/>
-    <g stroke="#6d7880" stroke-width="2" opacity=".75"><path d="M90 199v186M-3 292h186M25 227l130 130M25 357l130-130M450 199v186M357 292h186M385 227l130 130M385 357l130-130"/></g>
-    <path d="M95 286 215 175 355 276 265 292 95 286Z" fill="none" stroke="url(#bike)" stroke-width="24"/>
-    <path d="M215 175 265 292 355 276" fill="none" stroke="url(#bike)" stroke-width="24"/>
-    <path d="M214 174 197 131 249 131" fill="none" stroke-width="12"/>
-    <path d="M348 274 402 118 448 95" fill="none" stroke-width="13"/>
-    <path d="M418 116 467 114" fill="none" stroke-width="10"/>
-    <path d="M185 126h78" stroke-width="16"/>
-    <rect x="235" y="190" width="84" height="32" rx="14" fill="#1b2530" stroke-width="4"/>
-    <circle cx="265" cy="292" r="31" fill="#0f1720" stroke-width="4"/>
-    <circle cx="265" cy="292" r="11" fill="#8d99a1" stroke-width="3"/>
-    <path d="M265 292h64M266 292l-48 55" stroke-width="7"/>
-    <path d="M80 177h122" stroke-width="8"/>
-    <path d="M74 177 55 211" stroke-width="7"/>
-    <path d="M96 177 114 211" stroke-width="7"/>
-    <text x="252" y="206" font-family="Arial,sans-serif" font-size="20" fill="#f6f7f8" stroke="none" font-weight="700" letter-spacing="3">ALSVID</text>
-  </g>
-  <rect x="1170" y="0" width="430" height="520" fill="#0f1821" opacity=".12"/>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1230" cy="190" r="130" fill="#f1d5ae" opacity=".28"/>
+  <path d="M0 390 190 235 345 355 515 180 690 350 865 215 1060 365 1245 205 1415 350 1600 220V900H0Z" fill="#243744" opacity=".9"/>
+  <path d="M0 470 190 350 350 455 520 315 705 470 885 340 1065 475 1245 335 1420 475 1600 360V900H0Z" fill="#4d6572" opacity=".94"/>
+  <path d="M0 520 Q400 475 800 530 T1600 500V900H0Z" fill="url(#water)" opacity=".95"/>
+  <path d="M0 610 Q360 565 710 625 T1600 600V900H0Z" fill="#d9dedf" opacity=".56"/>
+  <path d="M0 700 Q420 625 850 700 T1600 660V900H0Z" fill="url(#road)"/>
+  <path d="M0 785 Q380 690 760 760 T1600 720" fill="none" stroke="#7f898d" stroke-width="5" opacity=".42"/>
+  <path d="M0 845 Q390 750 760 820 T1600 780" fill="none" stroke="#aab1b2" stroke-width="2" opacity=".28"/>
+  <rect width="1600" height="900" fill="#0b1116" opacity=".12"/>
 </svg>
