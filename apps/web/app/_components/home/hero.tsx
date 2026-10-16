@@ -109,7 +109,9 @@ export function HeroSection() {
             </div>
           </div>
           <div className={styles.heroBikeStage} ref={bikeRef}>
-            <BikeVector tone="light" className={styles.heroBike} />
+            <div className={styles.heroBikeMotion} aria-hidden="true">
+              <BikeVector tone="light" className={styles.heroBike} />
+            </div>
           </div>
         </div>
 
