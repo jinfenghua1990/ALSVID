@@ -64,7 +64,7 @@ flowchart LR
 | 外部同步游标、Webhook 接收证据 | Integrations | 不直接修改；页面显示来源和更新时间 |
 | 安全/业务审计证据 | Audit | 用户端不可修改或删除 |
 
-具体领域权威以 [DATA_OWNERSHIP.md](DATA_OWNERSHIP.md) 为准。跨领域写操作经公开 application contract 或事件，不直接改其他领域的数据表；前端不得连接 PostgreSQL 或对象存储。
+具体领域权威以 [数据权威](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/DATA_OWNERSHIP.md) 为准。跨领域写操作经公开 application contract 或事件，不直接改其他领域的数据表；前端不得连接 PostgreSQL 或对象存储。
 
 ### 2.2 外部事实与新鲜度
 
@@ -82,7 +82,7 @@ flowchart LR
 | 经销商人员 | 仅授权经销商、服务职责和分配范围；不得通过 My ALSVID 客户端查看其他车主资料 |
 | Admin 员工 | 仅在 Admin 项目按员工角色授权后访问运营数据；员工身份不自动授予车主或经销商身份 |
 
-My ALSVID 使用 Shopify Customer 账户作为客户身份来源：客户先在 Shopify 完成账户验证，再通过受控回调/令牌交换确认 Shopify customer 标识，由 ALSVID 建立最小身份映射。My ALSVID 不自行创建客户账号，也不允许仅凭一个邮箱注册。登录成功不等于拥有车辆，车辆可见范围仍由 Vehicle 所有权/授权关系决定。详见 [PORTAL_LOGIN_RULES.md](PORTAL_LOGIN_RULES.md)。
+My ALSVID 使用 Shopify Customer 账户作为客户身份来源：客户先在 Shopify 完成账户验证，再通过受控回调/令牌交换确认 Shopify customer 标识，由 ALSVID 建立最小身份映射。My ALSVID 不自行创建客户账号，也不允许仅凭一个邮箱注册。登录成功不等于拥有车辆，车辆可见范围仍由 Vehicle 所有权/授权关系决定。详见 [门户登录与会话规则](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/PORTAL_LOGIN_RULES.md)。
 
 强制规则：
 
@@ -109,7 +109,7 @@ My ALSVID 使用 Shopify Customer 账户作为客户身份来源：客户先在 
 | 服务记录 | `/my/vehicles/[vehicleId]/service` | 独立的服务时间线；日期、经销商/地点、项目、配件、人员、附件和状态 |
 | 维修记录 | `/my/vehicles/[vehicleId]/repairs` | 独立的维修记录；问题、类型、处理地点、状态、日期、更换件和结果 |
 | 我的服务 | `/my/service` | 车主可跟进的服务和售后请求列表/状态；与车辆上下文相连 |
-| 新建售后申请 | `/my/service/new` | 车辆、问题类型、描述、附件、联系方式、编号、状态、响应预期；从车辆入口用 `?vehicle=<vehicleId>` 预选 |
+| 新建售后申请 | `/my/service/new` | 车辆、问题类型、描述、附件、联系方式、编号、状态、响应预期；从车辆入口用查询参数预选 |
 | 车辆文件 | `/my/vehicles/[vehicleId]/manual` | 当前车辆可访问的手册、维护、安全、保修、交付、发票和报告；后续是否统一命名为 `/documents` 需单独评审 |
 | 兼容配件 | `/my/vehicles/[vehicleId]/accessories` | 按型号、Variant、年份和兼容规则筛选的配件；后续链接 Shopify，不在此复制商品/库存权威 |
 | 我的账户 | `/my/account` | 本人姓名、邮箱、手机、语言、通知、隐私、安全和退出登录；无积分/电商等级 |
@@ -280,11 +280,10 @@ pnpm --filter @alsvid/web build
 
 ## 11. 参考
 
-- [产品与车辆架构](PRODUCT_ARCHITECTURE.md)
-- [数据权威](DATA_OWNERSHIP.md)
-- [系统边界](BUSINESS_BOUNDARY.md)
-- [门户入口与项目边界](APP_ENTRY_ARCHITECTURE.md)
-- [统一身份与门户架构](SSO_AND_PORTAL_ARCHITECTURE.md)
-- [运行状态](CURRENT_STATE.md)
+- [产品与车辆架构](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/PRODUCT_ARCHITECTURE.md)
+- [数据权威](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/DATA_OWNERSHIP.md)
+- [系统边界](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/BUSINESS_BOUNDARY.md)
+- [门户入口与项目边界](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/APP_ENTRY_ARCHITECTURE.md)
+- [统一身份与门户架构](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/SSO_AND_PORTAL_ARCHITECTURE.md)
+- [运行状态](https://github.com/jinfenghua1990/ALSVID/blob/main/docs/CURRENT_STATE.md)
 - [My ALSVID 设计文件](https://www.figma.com/design/LuoLxuaizvjNMPbAhubd8i)
-
