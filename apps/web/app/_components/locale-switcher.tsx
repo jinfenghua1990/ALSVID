@@ -3,7 +3,7 @@
 import { t, type Locale } from '../_lib/i18n';
 import styles from '../home.module.css';
 
-const localeLabels: Record<Locale, string> = { de: 'DE', en: 'EN' };
+import { localeLabels } from '../_lib/i18n/routing';
 
 export function LocaleSwitcher({ locale, mode = 'path' }: { locale: Locale; mode?: 'path' | 'query' }) {
   const changeLocale = (nextLocale: Locale) => {
@@ -15,9 +15,9 @@ export function LocaleSwitcher({ locale, mode = 'path' }: { locale: Locale; mode
       window.location.assign(`${path}?${search.toString()}${window.location.hash}`);
       return;
     }
-    const match = path.match(/^\/(de|en)(?=\/|$)/);
+    const match = path.match(/^\/(zh|de|en)(?=\/|$)/);
     const nextPath = match
-      ? path.replace(/^\/(de|en)(?=\/|$)/, `/${nextLocale}`)
+      ? path.replace(/^\/(zh|de|en)(?=\/|$)/, `/${nextLocale}`)
       : `/${nextLocale}/`;
     window.location.assign(`${nextPath}${window.location.search}${window.location.hash}`);
   };

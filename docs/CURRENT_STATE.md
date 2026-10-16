@@ -1,8 +1,15 @@
 # Current State
 
+
+## Consumer homepage interactions — 2026-10-16
+
+The original migration homepage now has manual scene tabs (mouse and arrow-key navigation), localized detail destinations for 20 platform/model/accessory/technology/brand concepts, clickable owner-service cards to existing guarded portal routes, and a selectable schematic folding preview. The shopping-bag control opens an accessible availability dialog explaining that Shopify commerce is not connected. Concept details do not assert unconfirmed specifications or complete commercial transactions. The user's follow-up adds Chinese `/zh` review pages alongside DE/EN; the shared switcher preserves the detail slug and remembers explicit choices. This is an implementation record; production completion requires exact-commit CI and live verification.
+
+
 ## Admin workbench content alignment — 2026-10-16
 
 The canonical `/admin` workbench no longer presents invented order, production, inventory, customer, activity, task or trend examples as current business facts. Unconnected KPIs display `—`; activity, task and trend panels explain when data is unavailable. The page provides direct internal module shortcuts, while Official, Dealer and My links use their separate production portal hostnames (local development retains local preview routes). This is a presentation correction only: live KPI, task, activity and trend APIs remain unconnected. Changes were merged in [PR #193](https://github.com/jinfenghua1990/ALSVID/pull/193) and released from `82501d014420b9bb8a417c503f7ef495e630adba` by [Production Deploy run 38915614241](https://github.com/jinfenghua1990/ALSVID/actions/runs/38915614241). Unauthenticated production checks confirmed `/admin` redirects to `/login?portal=admin&returnTo=%2Fadmin` and the login page returns HTTP 200; the protected workbench requires a signed-in browser session for visual acceptance.
+
 
 ## Original consumer homepage restoration — 2026-10-16
 
@@ -229,3 +236,4 @@ The M1 Test update automation (`scripts/macos-test-auto-update.mjs`, `scripts/te
 历史状态（已失效）：当时以共享 Development 作为生产前置门禁，并要求 main 与 develop 同步。当前该门禁已由 exact-commit CI 和 Production 发布检查替代。
 
 历史状态（已失效）：旧流程使用 `alsvid-dev` 与 `alsvid-prod` 两套云资源。当前仓库不再包含 Development 部署链；只在 Production 工作流中部署。此说明不证明旧云资源已删除。
+

@@ -277,5 +277,21 @@
   "images.fat": "Outdoor-Fahrradkonzept",
   "images.touring": "Tourenradkonzept",
   "meta.title": "ALSVID — Für Freiheit entwickelt",
-  "meta.description": "Entdecke ALSVID Fahrradplattformkonzepte, FC1, Zubehör und Service."
+  "meta.description": "Entdecke ALSVID Fahrradplattformkonzepte, FC1, Zubehör und Service.",
+  "common.close": "Schließen",
+  "common.learn_more": "Mehr erfahren →",
+  "common.back_home": "Zur Startseite",
+  "commerce.title": "Onlineshop",
+  "commerce.body": "Der Shopify-Shop ist noch nicht verbunden. Hier kannst du Fahrrad- und Zubehörkonzepte entdecken. Warenkorb, Preise, Verfügbarkeit und Checkout werden nach dem Shopstart von Shopify bereitgestellt.",
+  "detail.concept_title": "Designkonzept",
+  "detail.next_title": "Nächste Schritte",
+  "detail.model_body": "Diese Seite zeigt ein Plattformkonzept. Endgültige Ausstattung, Maße, Gewicht, Reichweite und Verfügbarkeit sind noch nicht veröffentlicht. Die Bilder veranschaulichen die Designrichtung und sind keine bestätigte Produktspezifikation.",
+  "detail.accessory_body": "Dieses Zubehör gehört zum ALSVID-Designkonzept. Modellkompatibilität, Montagehinweise, Preise und Verfügbarkeit sind noch zu bestätigen. Den Onlinekauf übernimmt Shopify.",
+  "detail.brand_body": "Entdecke die ALSVID-Designrichtung anhand der Plattform- und Technikkonzepte. Weitere Markengeschichten, Informationen zur Fertigung und Neuigkeiten folgen nach Bestätigung.",
+  "detail.technology_body": "Dies ist ein Techniküberblick zum Plattformkonzept. Beachte vor Bedienung oder Wartung die bestätigten Spezifikationen und das veröffentlichte Handbuch des jeweiligen Modells.",
+  "detail.explore_platforms": "Fahrradplattformen entdecken",
+  "detail.owner_support": "Service für Besitzer öffnen",
+  "interaction.folding.riding": "Fahrkonzept: Rahmen und Räder sind aufgeklappt dargestellt. Diese Skizze ist keine Bedienungsanleitung.",
+  "interaction.folding.folding": "Faltkonzept: Dieser Zustand zeigt eine kompaktere Anordnung des Rahmens. Für das tatsächliche Falten gilt das veröffentlichte Modellhandbuch.",
+  "interaction.folding.storing": "Verstaukonzept: Die Skizze zeigt den kompaktesten dieser drei schematischen Zustände. Die endgültigen Faltmaße sind noch nicht bestätigt."
 }

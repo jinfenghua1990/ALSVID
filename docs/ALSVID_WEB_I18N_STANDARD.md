@@ -8,7 +8,7 @@ This is an implementation standard, not a request to translate every page into e
 
 ## 1. Locale policy
 
-- Phase 1 supported and exposed locales: German (`de`) and English (`en`).
+- Phase 1 supported and exposed locales: German (`de`) and English (`en`). The user's explicit 2026-10-16 follow-up adds Chinese (`zh`) to the consumer homepage and its concept-detail pages for Chinese review; retain DE/EN and the same translation-key architecture.
 - Reserve locale identifiers for later: Dutch (`nl`), French (`fr`), Italian (`it`), and Spanish (`es`).
 - Keep the supported-locale registry/configuration centralized. Do not scatter locale checks or hard-code a two-language assumption through page logic.
 - A locale is enabled only when its translation content and required route/UI coverage are ready. Reserving a locale does not imply exposing incomplete translations.
