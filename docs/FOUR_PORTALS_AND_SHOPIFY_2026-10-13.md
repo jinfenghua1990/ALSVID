@@ -2,24 +2,27 @@
 
 > **状态：业务规划已确认；不代表功能已开发或域名已部署。** 本文件是后续 AI / 开发人员的跨会话交接基准。不得把 Shopify Shop 误拆成独立公开站点。代码现状以 CURRENT_STATE.md 和实际代码为准。
 
+> 2026-10-16 执行修订：设计/供应商目标以[设计边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)和 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)为准；代码证据与后续任务统一维护在[实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md)。保留四核心产品，Supplier 自助是已确认的后续目标；共享云端 Development 已退役。
+
 ## 0. 不能重新讨论的已确认边界
 - **四个独立开发工作流/门户**：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
 - **www.chaibenn.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.chaibenn.com 作为独立公开商城入口**。
 - Admin 是员工内部运营系统；Dealer 是经销商 B2B 门户；My 是车主会员/车辆生命周期门户。官网的会员、经销商入口可以导航至对应门户，但不复制其后台业务逻辑。
 - **2026-10-16 更新：** Supplier Portal 作为未来第五个外部业务门户正式预留。它不改变当前“四个核心项目”的定义；其目标是让 ALSVID 上游供应商自助确认 PO、交期、生产进度、发货和文件，而不是把供应商协同硬塞进 Shopify。
 - Portal Launcher 仅用于内部身份/角色切换，不作为公开官网首页，也不在用户访问首页时增加无意义中间跳转。
-- 当前网站域名及 Dev 子域名均为**目标命名**，DNS、证书、发布状态必须分别验收，不可假称已上线。
+- 门户规范地址与 DNS、证书、业务上线状态分别验收；旧 Dev 子域仅为历史命名，当前本地开发/临时 CI 不要求共享云环境。
 - Shopify 负责 B2C 商城交易、购物车、结账、支付、退款和订单权威事实；ALSVID 负责 Vehicle/VIN、产品工程、客户车辆关系、经销商、生产、保修与售后等长期业务事实。WMS/外部仓储执行不能在 ALSVID 内重新造一套。
 
 ## 1. 门户及域名矩阵
-| 工作流 | Production 目标 | Development/Test 目标 | 核心受众 |
-| --- | --- | --- | --- |
-| ALSVID Official / ALSVID 官网 | www.chaibenn.com | www.dev.chaibenn.com | 全球访客、潜在消费者、购车客户 |
-| ALSVID Admin / 内部运营中心 | admin.chaibenn.com | admin.dev.chaibenn.com | 员工、管理层 |
-| ALSVID Dealer Portal | dealer.chaibenn.com | dealer.dev.chaibenn.com | 授权经销商 |
-| My ALSVID | my.chaibenn.com | my.dev.chaibenn.com | 车主、会员 |
+| 工作流 | Production 地址规范 | 核心受众 |
+| --- | --- | --- |
+| ALSVID Official / ALSVID 官网 | www.chaibenn.com | 全球访客、潜在消费者、购车客户 |
+| ALSVID Admin / 内部运营中心 | admin.chaibenn.com | 员工、管理层 |
+| ALSVID Dealer Portal | dealer.chaibenn.com | 授权经销商 |
+| My ALSVID | my.chaibenn.com | 车主、会员 |
+| Supplier Portal（后续目标） | supplier.chaibenn.com | 上游供应商成员 |
 
-“Dev”是环境标识，不是第五个产品。正式和测试环境隔离数据库、R2 资源、凭据、Shopify 测试配置；不能把 Test 数据迁到 Production。测试通过后以同一 Git commit 发布，按现有 CI/PR 流程执行。
+开发在本地、CI 使用临时资源；旧 `*.dev.chaibenn.com` 是历史命名，不是当前运行环境。测试身份、数据与凭据隔离，不能把测试数据迁到 Production；按 exact-commit CI/PR 发布规则执行。
 
 ## 2. ALSVID Official — 官网与 Shopify 商城一体化
 ### 公开信息架构
@@ -54,7 +57,7 @@
 6. 经销商：档案、区域、授权等级、合作关系、采购与销售情况。
 7. 客户：客户档案、车辆绑定、购买引用、保修与服务历史。
 8. 售后：工单、保修、维修、配件申请、技术知识库、维修爆炸图、服务统计。
-9. 供应链：供应商档案、采购、采购订单、来料检验、供应商评价、成本；供应商不设独立公开门户。
+9. 供应链：供应商档案、采购、采购订单、来料检验、供应商评价、成本；Supplier 自助通过后续独立受邀门户协同（#185），不直接开放 Admin 内部页面。
 10. 数据：销售、产品、生产、库存、经销商、客户、售后、供应链分析。
 11. 设置：员工、角色、权限、审计、集成、系统配置与环境状态。
 
@@ -82,7 +85,7 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 
 ## 6. 共用技术与数据权威
 - GitHub monorepo 单一代码权威；现有 Next.js Web、NestJS API、Worker、Domain 分层、共享 UI/contracts，继续沿用，不因“四项目”拆成四套独立数据库。
-- 当前目标运行：Cloud Run Production、Neon PostgreSQL、Cloudflare R2；Development/Test 隔离；以实际部署证据为准。
+- 当前运行方向：Cloud Run Production、Neon PostgreSQL、Cloudflare R2；开发本地、CI 临时运行并与生产隔离；以实际部署证据为准。
 - 业务权威：Product/Engineering、Vehicle/VIN、Customer、Dealer、Warranty/Service 在 ALSVID；B2C 支付/结账/交易在 Shopify；外部仓库执行在 WMS。
 - 通过 adapters/API、幂等同步、订单外部 ID 映射和受控刷新对接。默认定时校准与按需刷新；必要时再用 Webhook，避免整库复制。
 - 产品 3D、工程爆炸图、说明书、照片/视频等资源存 R2，对象元数据和关联在 PostgreSQL。

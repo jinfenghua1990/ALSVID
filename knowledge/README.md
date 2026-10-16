@@ -15,7 +15,7 @@
 00-Company/       公司规则、架构边界、决策记录
 01-Brand/         品牌故事、设计理念、语气
 02-Products/      FC、CT、FT、GT 平台及车型
-03-Systems/       WWW、Admin、Dealer Portal、My ALSVID
+03-Systems/       Official/Shop、Admin、Dealer、My、Supplier 后续目标
 04-SOP/           产品、制造、质量、销售、售后流程
 05-AI-Knowledge/  客服、导购、经销商和售后答案
 06-Shopify/       商品、内容、客服和自动化规则

@@ -31,10 +31,10 @@ The goal is to connect business systems and preserve important vehicle lifecycle
 
 ## Core Business Boundary
 
-Shopify owns:
+Shopify owns buyer commerce:
 
 - Ecommerce
-- Products
+- Storefront catalog/pricing/selling configuration (ALSVID Product/Engineering owns internal product, SKU and BOM identity)
 - Orders
 - Payments
 - Customer purchase transactions
@@ -103,7 +103,7 @@ The current cloud runtime is Production only (`alsvid-prod`). Local Docker and e
 
 ## Design tool and portal boundary — 2026-10-16
 
-The latest design/portal decision is documented in `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` and takes precedence over older tool-assignment notes.
+The design/portal target is documented in `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` and ADR 0004. Current implementation evidence, known gaps and task dependencies are in `docs/PORTAL_DELIVERY_PLAN_2026-10-16.md`. Read both before changing portals; older tool assignments or pre-deployment status do not override them.
 
 ### Design tools
 
@@ -121,7 +121,7 @@ The four confirmed core projects remain:
 3. ALSVID Dealer Portal
 4. ALSVID Admin
 
-A **Supplier Portal** is reserved as a future fifth external business portal. It is not a fifth current core project, but its identity, authorization, business relationships and UI boundaries must be designed so it does not require a later architectural rewrite.
+A **Supplier Portal** is a confirmed phased delivery target (#185), not an already delivered fifth core project. Upstream supplier self-service must include actual scoped workflows, rather than remain indefinitely a supplier field or role seed. Retain existing monorepo/domain foundations; portal count does not require separate backends/databases.
 
 ### Shopify boundary
 
@@ -142,10 +142,12 @@ ALSVID Admin
   -> ALSVID receiving / QC / inventory
 ```
 
-The Supplier Portal is therefore a supplier self-service fulfillment portal, not a Shopify supplier field.
+Supplier proposals/quotations may initiate the workflow, but formal PO issue, commercial approval, physical receiving/QC and payments remain with their owning authorized processes. Supplier reports and invoice uploads are submitted evidence. See the implementation plan's action matrix before exposing internal Procurement APIs.
 
 If the same company also buys ALSVID products, it can separately have a B2B buyer relationship in Shopify. Supplier relationship and B2B buyer relationship must remain separate in permissions, order types and data scope.
 
 ### Implementation rule
 
 Future AI agents must read `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` before changing portal UI, Shopify integration, supplier flows or design-tool ownership. Do not delete existing design assets or code solely because ownership moved; first inspect whether the asset is a duplicate, an implementation dependency, or a historical fixture.
+
+Current gaps matter: My still uses shared UI garage fixtures; a configurable Shopify login link is not a verified OAuth/customer mapping; Dealer/Supplier roles are not organization-scoped entitlements. Parent-domain Cookies are sent to every matching subdomain, including My, even with a different My cookie name. Follow G1 of the delivery plan before exposing real external business data. Issue #20 is closed; do not restart the historical platform rebuild or retired cloud Test/M1 release work.

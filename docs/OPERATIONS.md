@@ -97,7 +97,7 @@ ALSVID currently prefers low fixed cost and low operational burden over prematur
 
 ## Domain / custom URL
 
-A custom domain is not required to launch the technical Production environment. Cloud Run's provided HTTPS URL can be used during early deployment/acceptance. A branded domain can be added later for customer/dealer-facing surfaces and vehicle QR destinations.
+Admin's canonical Production entry is `https://admin.chaibenn.com`; its default Web `run.app` URLs are disabled. Production authentication/email links use configured canonical domains, not request-host inference or technical service aliases. API service URLs remain backend communication endpoints. Other portals and any future domain migration require separate DNS/TLS, identity and business acceptance; see `docs/PORTAL_DOMAINS.md`.
 
 ## Q4 / backup / DR
 
