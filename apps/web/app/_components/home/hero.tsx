@@ -3,26 +3,28 @@
 import { useEffect, useRef, useState } from 'react';
 import { BikeVector } from './bike-vector';
 import styles from '../../home.module.css';
+import { t, type Locale } from '../../_lib/i18n';
+import { LocaleSwitcher } from '../locale-switcher';
 
 const SCENES = [
-  { tag: 'FOLDING', title: '接下来去哪里？', sub: 'MORE THAN A RIDE' },
-  { tag: 'CITY', title: '城市，由我掌控', sub: 'URBAN COMMUTING' },
-  { tag: 'FAT TIRE', title: '越野，无边界', sub: 'ALL TERRAIN' },
-  { tag: 'TOURING', title: '远方，触手可及', sub: 'GO FURTHER' },
+  { id: 'folding', tag: 'hero.scene.folding.tag', title: 'hero.scene.folding.title', sub: 'hero.scene.folding.sub' },
+  { id: 'city', tag: 'hero.scene.city.tag', title: 'hero.scene.city.title', sub: 'hero.scene.city.sub' },
+  { id: 'fat_tire', tag: 'hero.scene.fat_tire.tag', title: 'hero.scene.fat_tire.title', sub: 'hero.scene.fat_tire.sub' },
+  { id: 'touring', tag: 'hero.scene.touring.tag', title: 'hero.scene.touring.title', sub: 'hero.scene.touring.sub' },
 ] as const;
 
 const NAV_LINKS = [
-  { label: '产品平台', href: '#platforms' },
-  { label: 'FC1', href: '#featured' },
-  { label: '折叠体验', href: '#folding' },
-  { label: '技术', href: '#tech' },
-  { label: '服务', href: '#service' },
-  { label: '经销商合作', href: '#dealer' },
+  { label: 'navigation.platforms', href: '#platforms' },
+  { label: 'navigation.featured', href: '#featured' },
+  { label: 'navigation.folding', href: '#folding' },
+  { label: 'navigation.technology', href: '#tech' },
+  { label: 'navigation.services', href: '#service' },
+  { label: 'navigation.dealers', href: '#dealer' },
 ] as const;
 
 const CYCLE_MS = 6000;
 
-export function HeroSection() {
+export function HeroSection({ locale, switcherMode = 'path' }: { locale: Locale; switcherMode?: 'path' | 'query' }) {
   const [cur, setCur] = useState(0);
   const [epoch, setEpoch] = useState(0);
   const [scrolled, setScrolled] = useState(false);
@@ -73,21 +75,22 @@ export function HeroSection() {
       <header className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`} data-home-nav>
         <div className={styles.navInner}>
           <a className={styles.logo} href="#top">ALSVID</a>
-          <nav className={styles.navLinks} aria-label="官网主导航">
+          <nav className={styles.navLinks} aria-label={t(locale, 'navigation.aria')}>
             {NAV_LINKS.map((item) => (
-              <a key={item.href} href={item.href}>{item.label}</a>
+              <a key={item.href} href={item.href}>{t(locale, item.label)}</a>
             ))}
           </nav>
           <div className={styles.navRight}>
-            <a className={styles.dealerBtn} href="#dealer">Dealer →</a>
+            <LocaleSwitcher locale={locale} mode={switcherMode} />
+            <a className={styles.dealerBtn} href="#dealer">{t(locale, 'navigation.dealer_cta')} →</a>
           </div>
         </div>
       </header>
 
-      <section id="top" className={styles.hero} aria-label="首页主视觉" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+      <section id="top" className={styles.hero} aria-label={t(locale, 'hero.aria')} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
         {SCENES.map((item, index) => (
           <div
-            key={item.tag}
+            key={item.id}
             ref={(node) => { sceneRefs.current[index] = node; }}
             className={`${styles.heroScene} ${styles[`scene${index}`]} ${cur === index ? styles.on : ''}`}
             aria-hidden={cur !== index}
@@ -96,12 +99,12 @@ export function HeroSection() {
 
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
-            <div key={scene.tag} className={styles.heroCopyInner}>
-              <p className={styles.heroTag}>{scene.tag}</p>
-              <h1 className={styles.heroTitle}>{scene.title}</h1>
-              <p className={styles.heroSub}>{scene.sub}</p>
+            <div key={scene.id} className={styles.heroCopyInner}>
+              <p className={styles.heroTag}>{t(locale, scene.tag)}</p>
+              <h1 className={styles.heroTitle}>{t(locale, scene.title)}</h1>
+              <p className={styles.heroSub}>{t(locale, scene.sub)}</p>
               <a className={styles.cta} href="#platforms">
-                Discover ALSVID
+                {t(locale, 'hero.cta')}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
@@ -115,10 +118,10 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className={styles.heroTabs} role="tablist" aria-label="车型类别">
+        <div className={styles.heroTabs} role="tablist" aria-label={t(locale, 'hero.categories')}>
           {SCENES.map((item, index) => (
             <button
-              key={item.tag}
+              key={item.id}
               type="button"
               role="tab"
               aria-selected={cur === index}
@@ -128,12 +131,12 @@ export function HeroSection() {
               <span className={styles.tabBar}>
                 <i key={`${index}-${cur === index}`} />
               </span>
-              {item.tag}
+              {t(locale, item.tag)}
             </button>
           ))}
         </div>
 
-        <a className={styles.scrollDown} href="#platforms" aria-label="向下滚动">
+        <a className={styles.scrollDown} href="#platforms" aria-label={t(locale, 'hero.scroll')}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="m6 9 6 6 6-6" />
           </svg>
