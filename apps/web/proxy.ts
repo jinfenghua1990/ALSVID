@@ -21,5 +21,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(canonical, 308);
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  const pathLocale = path.match(/^\/(de|en)(?:\/|$)/)?.[1]
+    ?? (path === '/home' ? request.nextUrl.searchParams.get('locale') : null);
+  if (pathLocale) requestHeaders.set('x-alsvid-locale', pathLocale);
+  else requestHeaders.delete('x-alsvid-locale');
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
