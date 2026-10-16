@@ -32,10 +32,10 @@ GitHub is the software source of truth.
 
 1. Submit a reviewed pull request into `main`.
 2. `CI` runs architecture checks, type checks, tests and builds, alongside cached Docker builds and startup/migration/authentication smoke checks on disposable GitHub runners.
-3. After merge, the same checks run against the exact `main` commit.
-4. A successful main-push `CI` run triggers `ALSVID Production Deploy`; failed or cancelled CI does not deploy.
-5. Production verifies both `verify` and `containers` jobs for that commit, builds with the same cache scopes, then runs the existing explicit migrations, deployment and live health checks.
-6. Automatic releases reject an obsolete commit if a newer `main` exists. Manual release still requires `confirm=deploy` and accepted CI or historical release evidence.
+3. After merge, the same checks run against the exact `main` commit. The trusted auto-merge workflow opts this run into production deployment; ordinary manual CI runs do not deploy.
+4. Once both `verify` and `containers` jobs succeed, the main CI workflow dispatches `ALSVID Production Deploy` for that exact commit. Direct pushes to `main` use the same gate; failed or cancelled CI does not deploy.
+5. Production verifies both jobs for the requested commit, builds with the same cache scopes, then runs the existing explicit migrations, deployment and live health checks.
+6. Automatic releases skip an obsolete commit if a newer `main` exists. Manual release still requires `confirm=deploy`; deploying an older commit also requires the explicit rollback option and successful Production release evidence.
 
 The separate cloud Development runtime and its promotion workflow have been retired by owner decision. CI databases and containers are temporary validation tools, not another cloud business environment. They use no Production secrets.
 

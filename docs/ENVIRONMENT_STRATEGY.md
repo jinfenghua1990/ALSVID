@@ -15,13 +15,14 @@ Local and CI environments must not use Production credentials. A local Compose p
 ## Release flow
 
 ```text
-GitHub branch / pull request → CI → review → main → exact-commit CI → Production
+GitHub pull request → CI → merge → exact-commit main CI → Production dispatch → Cloud Run
 ```
 
 - Pull requests target `main`; production code is not edited directly.
 - CI checks migrations, architecture boundaries, types, tests, application builds, Docker builds and startup smoke checks.
-- Production deploy accepts only the exact successful main commit and runs explicit migrations and live health checks.
-- Manual rollback selects a previously released main commit. Application rollback does not reverse database migrations.
+- After merge, the trusted auto-merge workflow explicitly opts the main CI run into Production dispatch; ordinary manual CI runs do not deploy. Direct pushes to `main` follow the same exact-commit CI gate.
+- Production deploy accepts only the exact successful main commit and runs explicit migrations and live health checks. Obsolete releases are skipped when a newer `main` commit exists.
+- Manual rollback selects a previously released main commit with explicit rollback confirmation. Application rollback does not reverse database migrations.
 - No automatic synchronization to `develop` or cloud Development deployment is part of the current pipeline.
 
 ## Retired environment

@@ -2,6 +2,12 @@ name: CI
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: "Deploy to Production after this main-branch CI run succeeds"
+        required: false
+        default: false
+        type: boolean
   pull_request:
     branches: [main]
   push:
@@ -9,7 +15,7 @@ on:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -245,3 +251,59 @@ jobs:
       - name: Tear down isolated CI containers
         if: always() && steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml down -v --remove-orphans
+
+  dispatch_production:
+    needs: [verify, containers]
+    if: >-
+      ${{
+        needs.verify.result == 'success' &&
+        needs.containers.result == 'success' &&
+        github.repository == 'jinfenghua1990/ALSVID' &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' ||
+         (github.event_name == 'workflow_dispatch' && inputs.deploy_production == true))
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Dispatch the verified main commit to Production
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
+            docs_only=true
+            while IFS= read -r file; do
+              case "$file" in
+                docs/*|*.md|AGENTS.md|.github/ISSUE_TEMPLATE/*) ;;
+                *) docs_only=false; break ;;
+              esac
+            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+            if [[ "$docs_only" == "true" ]]; then
+              echo "Documentation-only change; Production deployment is not needed."
+              exit 0
+            fi
+          fi
+
+          main_sha="$(gh api "repos/$GH_REPO/commits/main" --jq .sha)"
+          if [[ "$main_sha" != "$RELEASE_SHA" ]]; then
+            echo "A newer main commit exists; skipping the obsolete release dispatch."
+            exit 0
+          fi
+
+          gh workflow run production-deploy.yml --ref main \
+            -f confirm=deploy \
+            -f release_sha="$RELEASE_SHA"
+          echo "Production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"

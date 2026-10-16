@@ -19,6 +19,11 @@ export function mainReleaseRuns(runs) {
     ['push', 'workflow_dispatch'].includes(run.event));
 }
 
+export function mainProductionRuns(runs) {
+  return runs.filter(run => run.head_branch === 'main' &&
+    ['push', 'workflow_run', 'workflow_dispatch'].includes(run.event));
+}
+
 export async function acceptedRollback(runs, sha, allowed) {
   return allowed && successfulRuns(runs, sha);
 }
@@ -40,8 +45,7 @@ async function main() {
   }
   if (process.env.ALLOW_PREVIOUS_PRODUCTION === 'true') {
     const previous = await api(`actions/workflows/production-deploy.yml/runs?head_sha=${sha}&status=success&per_page=100`);
-    // Historical main-push runs identify the exact release; manual run metadata may not.
-    if (await acceptedRollback(previous.workflow_runs.filter(run => run.event === 'push' && run.head_branch === 'main'), sha, true)) {
+    if (await acceptedRollback(mainProductionRuns(previous.workflow_runs), sha, true)) {
       console.log(`ALSVID Production — previously released rollback ${sha}`);
       return;
     }
