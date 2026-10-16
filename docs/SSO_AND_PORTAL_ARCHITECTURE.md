@@ -10,16 +10,16 @@ ALSVID 使用：
 - 一个身份认证与会话中心
 - 一个环境内的 PostgreSQL 数据中心
 - 一个环境内的 R2 对象存储
-- 四个独立前端门户
+- 四个核心独立前端门户；Supplier Portal 作为未来第五个外部业务门户预留
 
-四个前端分别是：
+四个核心前端分别是：
 
 - ALSVID Official：官网与 Shopify 商城前端
 - ALSVID Admin：公司内部运营后台
 - ALSVID Dealer Portal：经销商 / B2B 门户
 - My ALSVID：车主与车辆生命周期中心
 
-四者是独立前端项目，不是同一系统中的页面。前端可以独立部署、独立迭代，共用统一身份认证及受授权 API；大部分入口关系为跨应用跳转，业务数据只按所需事实部分联动，不复制后端、数据库、认证或完整外部业务数据。
+四个核心项目是独立前端项目，不是同一系统中的页面。Supplier Portal 未来启用后同样保持独立入口、独立权限边界。前端可以独立部署、独立迭代，共用统一身份认证及受授权 API；大部分入口关系为跨应用跳转，业务数据只按所需事实部分联动，不复制后端、数据库、认证或完整外部业务数据。
 
 Admin 顶部右侧的应用切换器显示“官网、车主中心、经销商平台”，在新标签打开目标应用并保留 Admin 状态。项目名和入口显示名按 [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md) 与 [SYSTEM_NAMING.md](SYSTEM_NAMING.md) 执行。
 
@@ -65,6 +65,14 @@ Admin 顶部右侧的应用切换器显示“官网、车主中心、经销商�
 - WMS 仍然负责仓库执行数据。
 - 各门户只展示与自身角色相关的数据，不直接连接数据库。
 - 前端永远通过 API 访问数据，禁止前端直连 PostgreSQL 或 R2。
+
+## 供应商门户边界 — 2026-10-16
+
+- Supplier Portal 面向 ALSVID 上游供应商，是未来独立外部门户，不属于 Admin 页面，也不是 Shopify 的 Supplier 字段页面。
+- Supplier Portal 与 Admin 共享授权 API 和供应商业务事实，但供应商只能访问其被授权的采购、交付、文件和对账范围。
+- 上游供应商履约链路为：Admin 创建/发布 PO → Supplier Portal 确认数量与交期 → 更新生产进度 → 发货通知 → 上传文件/发票 → ALSVID 收货/质检/入库。
+- 如果同一企业同时是 ALSVID 的 B2B 买家，其 B2B 采购关系单独使用 Shopify B2B，不与 Supplier Relationship 混成一个权限或订单类型。
+- Supplier Portal 的最终 UI 归 Figma；Admin 内部供应商管理和采购流程原型归 Ardot。
 
 ## 当前实施状态
 
