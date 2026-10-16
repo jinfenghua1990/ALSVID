@@ -26,6 +26,8 @@ Ardot model creation (5 screens), production-plan creation (7 screens), and inte
 
 `scripts/admin-design-refinements.cjs` reapplies the reviewed presentation corrections after an import. This update used confirmed saved design evidence because the live Ardot connector continued returning HTTP 429; it does not claim a fresh full-file design audit.
 
+Authenticated localhost:3000 checks verified the current workbench empty states, product sample labels, independent model-creation steps, dealer search and aligned table headers. Browser geometry confirmed all six regional-share bars at 8px high with widths matching 32.4/22.1/16.8/12.3/9.2/7.2%, and the sales bars at 60/40%. The shared fill span now uses block layout so those widths actually render. Unauthenticated Admin requests still redirect to login.
+
 The committed fixture JSON is the source used by the application. To regenerate it from the reviewed handoff/export directory:
 
 ```sh
