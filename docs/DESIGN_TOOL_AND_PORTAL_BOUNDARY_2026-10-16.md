@@ -1,5 +1,7 @@
 # ALSVID 设计工具、门户与 Shopify 边界 — 2026-10-16
 
+> **后续用户确认：** 对外页面由 Penpot 整合对话负责连贯设计、前端交互与链接，可使用 Figma 或 Penpot，每页保留唯一确认设计源。覆盖官网、My ALSVID、Dealer Portal、商品详情与购物袋；Admin 继续沿用 Ardot。当前代码状态、目标链路与验收见 [Penpot 对外页面整合台账](PENPOT_EXTERNAL_PORTAL_INTEGRATION.md)。下文原有 Figma 归属须结合此次补充理解，不代表必须把已确认的 Penpot 首页再迁回 Figma。
+
 > **状态：最新确认基线，后续 AI / 设计 / 开发任务必须以本文为准。**
 >
 > 本文同步 2026-10-16 的最新沟通结论，重点解决“哪个工具设计什么、哪个门户给谁用、Shopify 承担什么、供应商以后如何自助”的边界问题。
