@@ -2,6 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '@alsvid/ui';
 import styles from './owner-shell.module.css';
+import { portalUrlFor } from '../_lib/portal-routing';
+import { headers } from 'next/headers';
 
 const ownerNavigation = [
   { label: '首页', href: '/my' },
@@ -18,7 +20,10 @@ function isActive(href: string, activeHref: string) {
   return activeHref === href;
 }
 
-export function OwnerShell({ activeHref, children }: { activeHref: string; children: ReactNode }) {
+export async function OwnerShell({ activeHref, children }: { activeHref: string; children: ReactNode }) {
+  const requestHeaders = await headers();
+  const officialHomeUrl = portalUrlFor(requestHeaders.get('host') ?? 'localhost:3000', 'www');
+
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
@@ -43,6 +48,9 @@ export function OwnerShell({ activeHref, children }: { activeHref: string; child
 
           <div className={styles.tools}>
             <ThemeToggle />
+            <a className={styles.officialHome} href={officialHomeUrl} target="_blank" rel="noopener noreferrer">
+              官方首页 <span aria-hidden="true">↗</span>
+            </a>
             <Link className={`${styles.account}${activeHref.startsWith('/my/account') ? ` ${styles.accountActive}` : ''}`} href="/my/account">
               账户
             </Link>

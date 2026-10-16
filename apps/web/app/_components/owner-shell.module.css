@@ -44,6 +44,20 @@
 .navActive { color: var(--alsvid-text); background: var(--alsvid-bg-soft); }
 
 .tools { display: flex; align-items: center; gap: 8px; }
+.officialHome {
+  min-height: 36px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--alsvid-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  transition: color .18s ease, background .18s ease;
+}
+.officialHome:hover { color: var(--alsvid-text); background: var(--alsvid-bg-soft); border-radius: 999px; }
 .account {
   min-height: 36px;
   padding: 0 14px;
@@ -89,6 +103,7 @@
 
 @media (max-width: 520px) {
   .portalName, .divider { display: none; }
+  .officialHome { padding: 0 8px; font-size: 10px; }
   .footer { display: block; }
   .footer > span { display: inline-block; margin-top: 8px; }
 }

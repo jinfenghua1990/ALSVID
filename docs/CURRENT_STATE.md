@@ -9,6 +9,12 @@ Web types, production build, architecture checks and five Web tests pass. Authen
 
 > **Current runtime correction (2026-10-14):** Production is the only live cloud target. Cloud Development/Test and its promotion workflow are retired; local Docker and ephemeral GitHub CI are validation environments. Pull requests target `main` and production releases require exact-commit CI. Older entries below are dated historical snapshots and do not describe current runtime state. This repository note does not prove that any cloud resource was deleted.
 
+## Owner homepage vehicle switching — 2026-10-16
+
+The owner homepage now selects a vehicle using desktop arrows, accessible dot buttons, keyboard arrows or a horizontal touch swipe. VIN, frame number, warranty, service activity, detail links and the after-sales request vehicle all follow the same selection. The last selected vehicle ID is remembered per account in browser storage; unavailable IDs fall back to the first currently supplied vehicle, and storage failure does not prevent switching. Single-vehicle and empty garages do not show switching controls. The session check remains server-side, and browser selection cannot add vehicles to the supplied garage.
+
+Local browser checks confirm that selecting another vehicle updates its VIN, warranty, service timeline and after-sales request link; selection survives reload, and keyboard arrow navigation works. Web types, tests, production build and the architecture check pass. Data remains the existing UI fixture layer.
+
 ## Local owner interface consolidation — 2026-10-15
 
 The local My ALSVID homepage, garage, vehicle tabs and service pages now use the same owner navigation and layout vocabulary. The former library URL redirects to the first vehicle's manual, or the garage when empty. Vehicle visuals support optional product images and retain the existing SVG illustration when no image is configured. Garage records remain explicitly labeled UI fixtures, not verified ownership or live warranty/service facts.
