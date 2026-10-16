@@ -392,6 +392,7 @@ jobs:
           gcloud run deploy "$WEB_SERVICE" \
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
+            --no-default-url \
             --image "${{ steps.images.outputs.web_image }}" \
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
             --port 3000 \
