@@ -1,10 +1,6 @@
 name: ALSVID Production Deploy
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    branches: [main]
-    types: [completed]
   workflow_dispatch:
     inputs:
       release_sha:
@@ -15,6 +11,11 @@ on:
         description: "Type deploy to confirm production deployment"
         required: true
         type: string
+      rollback:
+        description: "Allow deploying an older main commit (explicit rollback only)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -42,14 +43,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha || inputs.release_sha || github.sha }}
+          ref: ${{ inputs.release_sha || github.sha }}
           fetch-depth: 0
       - name: Classify changed paths
         id: scope
         shell: bash
         run: |
           set -euo pipefail
-          release_sha="${{ github.event.workflow_run.head_sha || inputs.release_sha || github.sha }}"
+          release_sha="${{ inputs.release_sha || github.sha }}"
           if ! git rev-parse "$release_sha^" >/dev/null 2>&1; then
             echo "docs_only=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -68,15 +69,7 @@ jobs:
     if: >-
       ${{
         needs.change_scope.result == 'success' &&
-        (
-          (github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy') ||
-          (github.event_name == 'workflow_run' &&
-           github.event.workflow_run.conclusion == 'success' &&
-           (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') &&
-           github.event.workflow_run.head_branch == 'main' &&
-           github.event.workflow_run.head_repository.full_name == github.repository &&
-           needs.change_scope.outputs.docs_only != 'true')
-        )
+        github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy'
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -86,7 +79,7 @@ jobs:
       - name: Checkout release
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha || inputs.release_sha || github.sha }}
+          ref: ${{ inputs.release_sha || github.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v7
@@ -149,8 +142,9 @@ jobs:
             exit 1
           fi
 
-          if [[ "$RELEASE_EVENT" == "workflow_run" && "$release_sha" != "$(git rev-parse origin/main)" ]]; then
-            echo "A newer main commit exists; refusing an outdated automatic release" >&2
+          main_sha="$(git rev-parse origin/main)"
+          if [[ "$RELEASE_EVENT" == "workflow_dispatch" && "${{ inputs.rollback }}" != "true" && "$release_sha" != "$main_sha" ]]; then
+            echo "Refusing an outdated release; select the explicit rollback option to deploy an older main commit." >&2
             exit 1
           fi
 

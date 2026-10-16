@@ -61,7 +61,7 @@ jobs:
             echo 'A newer main commit exists; do not dispatch CI for an obsolete release.'
             exit 0
           fi
-          # GITHUB_TOKEN merges do not trigger push workflows. Explicit dispatch
-          # runs the same CI on main before the existing Production release gate.
-          gh workflow run ci.yml --ref main
+          # GITHUB_TOKEN merges do not trigger push workflows. Explicitly run
+          # main CI with Production dispatch enabled; its gated final job deploys.
+          gh workflow run ci.yml --ref main -f deploy_production=true
           echo "PR #$number merged; main CI dispatched for $merged_sha." >> "$GITHUB_STEP_SUMMARY"
