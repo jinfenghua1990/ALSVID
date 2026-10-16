@@ -56,27 +56,32 @@
     {
       "sourceNode": "19:484",
       "route": "/admin/product/new/platform",
-      "title": "新建型号 · 选择产品平台"
+      "title": "新建型号 · 选择产品平台",
+      "sourcePage": "19:2456"
     },
     {
       "sourceNode": "19:583",
       "route": "/admin/product/new/model",
-      "title": "新建型号 · 创建型号"
+      "title": "新建型号 · 创建型号",
+      "sourcePage": "123:1"
     },
     {
       "sourceNode": "19:682",
       "route": "/admin/product/new/configuration",
-      "title": "新建型号 · 创建配置"
+      "title": "新建型号 · 创建配置",
+      "sourcePage": "123:2"
     },
     {
       "sourceNode": "19:781",
       "route": "/admin/product/new/sku",
-      "title": "新建型号 · 生成 SKU"
+      "title": "新建型号 · 生成 SKU",
+      "sourcePage": "123:3"
     },
     {
       "sourceNode": "19:880",
       "route": "/admin/product/new/bom",
-      "title": "新建型号 · 绑定 BOM"
+      "title": "新建型号 · 绑定 BOM",
+      "sourcePage": "123:4"
     },
     {
       "sourceNode": "19:4313",
@@ -96,37 +101,44 @@
     {
       "sourceNode": "19:1156",
       "route": "/admin/production/new/model",
-      "title": "新建生产计划 · 选择型号"
+      "title": "新建生产计划 · 选择型号",
+      "sourcePage": "19:2461"
     },
     {
       "sourceNode": "19:1241",
       "route": "/admin/production/new/bom",
-      "title": "新建生产计划 · 选择 BOM"
+      "title": "新建生产计划 · 选择 BOM",
+      "sourcePage": "123:5"
     },
     {
       "sourceNode": "19:1326",
       "route": "/admin/production/new/schedule",
-      "title": "新建生产计划 · 排产信息"
+      "title": "新建生产计划 · 排产信息",
+      "sourcePage": "123:6"
     },
     {
       "sourceNode": "19:1411",
       "route": "/admin/production/new/confirm",
-      "title": "新建生产计划 · 确认生成"
+      "title": "新建生产计划 · 确认生成",
+      "sourcePage": "123:7"
     },
     {
       "sourceNode": "19:1592",
       "route": "/admin/production/new/success",
-      "title": "生产计划已生成"
+      "title": "生产计划已生成",
+      "sourcePage": "123:8"
     },
     {
       "sourceNode": "19:1677",
       "route": "/admin/production/new/shortage",
-      "title": "物料不足，计划未生成"
+      "title": "物料不足，计划未生成",
+      "sourcePage": "123:9"
     },
     {
       "sourceNode": "19:1762",
       "route": "/admin/production/new/failure",
-      "title": "生成失败，请重试"
+      "title": "生成失败，请重试",
+      "sourcePage": "123:10"
     },
     {
       "sourceNode": "15:478",
@@ -226,22 +238,26 @@
     {
       "sourceNode": "55:720",
       "route": "/admin/dealers/purchase/request",
-      "title": "B2B采购申请"
+      "title": "B2B采购申请",
+      "sourcePage": "55:719"
     },
     {
       "sourceNode": "55:1313",
       "route": "/admin/dealers/purchase/approval",
-      "title": "B2B采购审核"
+      "title": "B2B采购审核",
+      "sourcePage": "123:11"
     },
     {
       "sourceNode": "55:810",
       "route": "/admin/dealers/purchase/fulfillment",
-      "title": "B2B采购审核与履约"
+      "title": "B2B采购审核与履约",
+      "sourcePage": "123:12"
     },
     {
       "sourceNode": "55:900",
       "route": "/admin/dealers/purchase/received",
-      "title": "B2B收货与入库结果"
+      "title": "B2B收货与入库结果",
+      "sourcePage": "123:13"
     },
     {
       "sourceNode": "15:1787",

@@ -18,6 +18,14 @@ These screens are rendered with the existing shared Admin renderer and responsiv
 
 ## Reimport
 
+### Reviewed refinements — 2026-10-16
+
+The latest GitHub workbench remains canonical: unconnected live metrics and activity use empty states rather than Ardot fixture counts. The product/dealer overviews explicitly label sample data. Dealer regional shares now use native percentage bars, and dealer table headings match the imported name/region order. The analytics sample ranking renders 120/80 units as 60%/40%; the superseded cached sales table has been removed. Web layout already sizes to content, so the Ardot inventory/analytics canvas-height corrections need no fixed pixel-height override.
+
+Ardot model creation (5 screens), production-plan creation (7 screens), and internal B2B procurement (4 screens) were separated into individual design pages. Their existing independent protected Web routes remain stable; `sourcePage` in the manifest records the confirmed new design-page IDs. Vehicle binding and supplier procurement still have separate Web routes, but their Ardot page separation remains pending after HTTP 429 limits. The duplicate Ardot dashboard is historical reference; the 12 My ALSVID design pages are marked Figma-owned references and are not imported into Admin.
+
+`scripts/admin-design-refinements.cjs` reapplies the reviewed presentation corrections after an import. This update used confirmed saved design evidence because the live Ardot connector continued returning HTTP 429; it does not claim a fresh full-file design audit.
+
 The committed fixture JSON is the source used by the application. To regenerate it from the reviewed handoff/export directory:
 
 ```sh

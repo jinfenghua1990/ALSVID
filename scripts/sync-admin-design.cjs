@@ -165,6 +165,8 @@ for(const s of result){
 }
 const flows=['/product/new/','/production/new/','/production/assembly/','/inventory/transfers/','/dealers/purchase/','/customers/binding/','/after-sales/parts/','/supply/purchase/'];
 for(const flow of flows){const group=result.filter(s=>s.route.includes(flow));for(const s of group)s.steps=group.map(({title:label,route:href})=>({label,href}));}
+const { refineScreens, sourcePages } = require('./admin-design-refinements.cjs');
+refineScreens(result);
 fs.writeFileSync(path.join(target,'synced-screens.json'),JSON.stringify(result,null,2)+'\n');
-fs.writeFileSync(path.join(target,'sync-manifest.json'),JSON.stringify({source:'https://ardot.tencent.com/file/736467599966143',reviewed:'2026-10-16',scope:'UI fixtures only; no backend business writes',screens:result.map(({sourceNode,route,title})=>({sourceNode,route,title}))},null,2)+'\n');
+fs.writeFileSync(path.join(target,'sync-manifest.json'),JSON.stringify({source:'https://ardot.tencent.com/file/736467599966143',reviewed:'2026-10-16',scope:'UI fixtures only; no backend business writes',screens:result.map(({sourceNode,route,title})=>({sourceNode,route,title,...(sourcePages[route.replace('/admin/','')] ? {sourcePage:sourcePages[route.replace('/admin/','')]} : {})}))},null,2)+'\n');
 console.log(JSON.stringify({screens:result.length,empty:result.filter(r=>!r.blocks.length).length,blocks:result.reduce((n,r)=>n+r.blocks.length,0)}));
