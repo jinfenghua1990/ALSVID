@@ -4,6 +4,8 @@
 
 > ALSVID 是自行车品牌的企业数字化平台。这个仓库是 ALSVID 的新实现权威源（implementation authority），不是 ChaiBen-OS 或旧 ALSVID 代码的迁移副本。
 
+> **门户执行基线（2026-10-16）：** 先读[设计与门户边界](docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)、[实施证据与执行顺序](docs/PORTAL_DELIVERY_PLAN_2026-10-16.md)及 [ADR 0004](docs/adr/0004-portal-experience-commerce-and-supplier.md)。Ardot 负责内部 Admin；Figma 负责外部门户最终 UI；Shopify 负责买方交易；Supplier 自助按 #185 分阶段交付。目标、演示页面、真实 API 与上线验收分开记录；历史段落不能覆盖该基线。
+
 这份 README 同时服务于三类读者：
 
 1. 业务负责人：快速看懂 ALSVID 是什么、为什么这样搭；
@@ -185,7 +187,7 @@ ALSVID Admin
 - 供应商评价
 - 成本
 
-“供应商”只是供应链中的一个对象，不单独形成公开系统。
+供应商档案属于 Admin 供应链；供应商自助协同是已确认的后续 Supplier Portal 目标，按独立组织权限和采购流程分阶段交付，不作为普通消费者导航。详见门户执行基线和 Issue #185。
 
 #### 数据 Analytics
 
@@ -781,45 +783,11 @@ Dealer Portal
 
 ### 13.7 供应商体系说明
 
-供应商不作为官网公开入口。
+内部供应商档案、采购批准、生产与质量管理留在 Admin；外部供应商通过独立 Supplier Portal 自助提交报价/提案、确认 PO、交期、进度、发货通知和文件。Supplier Portal 是已确认的后续建设目标，当前尚未交付，不再把它解释为“永远只有内部档案”。
 
-原因：
+“供应商自己下单”区分为：上游供货的提案与履约协同，或同一企业作为 B2B 买家向 ALSVID 买货。前者由 ALSVID Procurement 管理；后者才走 Shopify B2B。正式采购批准、收货/QC、入账和付款仍由授权流程处理。
 
-供应商属于内部供应链管理。
-
-不进入：
-
-```text
-官网导航
-```
-
-未来如果需要：
-
-通过：
-
-```text
-联系我们
-
-↓
-
-供应链合作
-```
-
-处理。
-
-供应商管理属于内部：
-
-```text
-ALSVID Admin
-
-供应链
-
-采购
-
-生产
-
-质量管理
-```
+官网不因预留 Supplier 就新增普通消费者主导航；通过邀请或经过验收的合作入口访问。执行与验收见 [门户实施台账](docs/PORTAL_DELIVERY_PLAN_2026-10-16.md)。
 
 ---
 
@@ -1065,11 +1033,11 @@ ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 
 **请所有 AI / 开发人员在设计官网、商城、后台、经销商或会员功能前，先阅读 [`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md)。**
 
-四个独立开发工作流：**ALSVID Official**（www.chaibenn.com，品牌官网与 Shopify 商城同一站点）、**ALSVID Admin**（admin.chaibenn.com，内部运营）、**ALSVID Dealer Portal**（dealer.chaibenn.com，经销商 B2B）、**My ALSVID**（my.chaibenn.com，车主会员与售后）。Dev 对应为 www.dev / admin.dev / dealer.dev / my.dev.chaibenn.com（均为目标命名，非上线证明）。**不要再把 ALSVID Shop 拆成第五个站点，也不要把内部 Portal Launcher 当成公开首页。**
+四个核心产品边界：**ALSVID Official**（www.chaibenn.com，品牌官网与 Shopify 商城一体体验）、**ALSVID Admin**（admin.chaibenn.com，内部运营）、**ALSVID Dealer Portal**（dealer.chaibenn.com，经销商 B2B）、**My ALSVID**（my.chaibenn.com，车主会员与售后），另有分阶段交付的 Supplier Portal。当前开发在本地、CI 临时运行；不恢复旧 `*.dev.chaibenn.com` 云发布链。**不把 ALSVID Shop 拆成额外公开站点，也不把内部 Portal Launcher 当成公开首页。**
 
 此文档逐项规定四门户页面结构、导航、角色、Shopify 边界、产品视觉、VIN/售后集成、测试与上线状态判断；与旧架构描述有冲突时，门户与官网商城的业务规划以该最新决策为准，实际代码与部署状态以 CURRENT_STATE 和验收证据为准。
 
-四大门户的固定生产 / 开发地址与当前上线状态见 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)。
+门户固定地址、历史开发地址与当前验证范围见 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)。
 
 
 ## 当前临时域名

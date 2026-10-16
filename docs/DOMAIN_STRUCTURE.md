@@ -70,4 +70,4 @@ No package is allowed to become a generic dumping ground for business entities.
 
 Existing domains created before the rebuild are marked `mode: legacy` in `domain.json`. They may continue to run while being moved behind the contract above, but no new feature work should enlarge legacy files. A domain is marked `encapsulated` only when its real implementation follows the four-layer structure and its public facade is small.
 
-Feature expansion remains frozen until the existing implemented domains have been moved out of legacy mode.
+Issue #20 completed the implemented-domain encapsulation gate. New work follows the backlog and keeps this contract; do not reopen the historical global feature freeze or expand a legacy implementation.

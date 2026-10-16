@@ -1,5 +1,9 @@
 # ALSVID Architecture Decisions Overview
 
+## Portal direction update — 2026-10-16
+
+[ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) fixes design ownership, commerce versus upstream procurement, and phased Supplier self-service. Use the [portal delivery plan](PORTAL_DELIVERY_PLAN_2026-10-16.md) for implementation evidence and next tasks. This supplements the existing modular-monolith/provider boundaries; it does not declare all portals delivered.
+
 ## 1. Why ALSVID Exists
 
 Modern bicycle business systems already have specialized platforms:

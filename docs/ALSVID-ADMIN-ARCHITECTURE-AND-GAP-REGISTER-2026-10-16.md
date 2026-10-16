@@ -124,8 +124,8 @@ Finance / Communication / Marketing / Integrations / Audit
 | 交付面 | 权威内容 | 验收方式 |
 | --- | --- | --- |
 | GitHub 仓库 | 架构、需求、页面/路由清单、实现代码、验证记录 | PR、CI、代码审查 |
-| Ardot（内部运营设计） | Admin 工作台、经销商采购流程 | 按独立画板检查页面、流程、状态和权限边界 |
-| Figma（消费者体验设计） | ALSVID Official 商城首页、My ALSVID 我的车库 | 按消费者旅程检查；与 Admin 画板隔离 |
+| Ardot（内部运营设计） | Admin 工作台与内部业务流程；Dealer 采购可作流程讨论原型 | 按独立画板检查页面、流程、状态和权限边界，不作为外部 Dealer 最终稿 |
+| Figma（外部门户最终 UI） | Official / Shop、My ALSVID、Dealer Portal、Supplier Portal | 按各角色旅程检查；与 Admin 画板隔离，企业门户可使用高密度业务布局 |
 | 本地 / CI 应用 | 对应 GitHub commit 的可运行实现或 fixture renderer | 类型检查、架构检查、测试、浏览器验收 |
 | Shopify / WMS 等外部系统 | 各自的交易或执行权威事实 | 集成状态、对账与外部系统验收 |
 
@@ -275,6 +275,8 @@ ALSVID Admin
 Shopify 仍负责 B2C/B2B 商业交易。如果某供应商企业同时也是 ALSVID 的 B2B 买家，则其“Supplier Relationship”和“B2B Buyer Relationship”分开建模、授权和记账；向 ALSVID 采购的商业订单可以使用 Shopify B2B，不应因此把上游供应商履约功能塞进 Shopify。
 
 ## 8.2 2026-10-16 新增：下一轮代码检查重点
+
+本轮已核对的证据、身份/范围缺口及执行门槛统一见 [PORTAL_DELIVERY_PLAN_2026-10-16.md](PORTAL_DELIVERY_PLAN_2026-10-16.md)。Supplier 自助是已确认的后续目标（#185），不再仅作为不设排期的可选架构字段。
 
 - Dealer Portal 当前代码存在复用 Admin 样式的情况；这是实现层现状，不应被解释成设计归属。下一轮应检查并逐步改为 Figma 对外门户视觉。
 - Supplier 当前主要是 Admin 的供应链/采购能力；下一轮应确认数据模型和权限可以支持未来 Supplier Portal，而不是直接复制 Admin 页面。

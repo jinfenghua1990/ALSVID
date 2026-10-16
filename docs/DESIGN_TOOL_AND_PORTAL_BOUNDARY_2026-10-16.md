@@ -6,13 +6,15 @@
 >
 > **重要：本文只定义目标架构与设计归属，不代表所有页面、接口、Portal 或 Shopify 能力已经开发、接通或上线。实际完成状态必须以 GitHub 代码、CI、部署和业务验收为准。**
 
+> 执行配套：[ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) 记录选择理由；[门户实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md) 记录当前代码证据、缺口、设计资产和依赖顺序。遇到历史文档冲突，以本目标边界和配套台账明确的状态为准，不从旧聊天重建另一套规则。
+
 ## 1. 一句话原则
 
 - **Ardot = ALSVID 内部运营系统的快速设计 / 原型工具。**
 - **Figma = ALSVID 所有对外用户门户的最终 UI / 视觉设计工具。**
 - **GitHub = 架构、需求、代码和最终实现的唯一事实来源。**
 - **Shopify = B2C/B2B 商业交易底座，不承担 ALSVID 内部运营，也不承担完整的上游供应商协同门户。**
-- **Supplier Portal = 未来独立的外部供应商门户，当前作为正式架构预留，不因为暂未开发而把供应商业务硬塞进 Shopify。**
+- **Supplier Portal = 已确认的后续外部供应商自助建设目标，按 #185 分阶段交付，当前尚未交付；不因为暂未开发而把供应商业务硬塞进 Shopify。**
 
 ## 2. 最终设计工具归属
 
@@ -45,7 +47,7 @@ Admin 的用户是 ALSVID 内部员工。设计优先级是：
 - 进入模块后显示当前模块左侧二级导航
 - 右侧工作区
 - 表格、筛选、抽屉、表单、状态、批量操作优先
-- 不使用消费者商城式 Hero、购物车和个人账户导航
+- 业务页面优先状态、表格和操作效率；现有已评审工作台 Hero 可保留，不因设计工具归属变化直接重写；不套用购物车和消费者账户导航
 - 可以保持克制、专业、SaaS/运营后台风格
 
 ### Figma：所有对外门户
@@ -91,7 +93,9 @@ ALSVID Admin
 Supplier Portal
 ```
 
-Supplier Portal 是未来第五个**外部业务门户**，不是把核心“四项目”定义改成五个当前项目；在真正启用之前只作为架构、权限、数据模型和 UI 体系的预留。
+Supplier Portal 是后续第五个**外部业务门户**，不是五个都已上线的声明。现在必须把身份、组织范围与采购契约设计成可交付自助闭环；实施排期由 #123/#185 管理，不能长期只留一个 Supplier 字段来代替需求。
+
+独立门户是产品、体验、权限和发布边界；当前仍可在 `apps/web` 内分阶段实现并复用模块化 API。没有实际需求不强拆五个仓库、后端或数据库。
 
 目标域名：
 
@@ -103,7 +107,7 @@ admin.alsvid.com
 supplier.alsvid.com   # future
 ```
 
-临时域名沿用当前 `chaibenn.com` 体系，实际 DNS / 部署状态另行验收。
+当前生产规范使用 `chaibenn.com` 体系，Admin Canonical URL 为 `https://admin.chaibenn.com`；`alsvid.com` 仅是未来品牌域名目标，不据此改 DNS 或认证配置。其他门户实际 DNS / 部署状态逐项验收，详见 [PORTAL_DOMAINS.md](PORTAL_DOMAINS.md)。
 
 ## 4. 五类用户与职责
 
@@ -190,6 +194,8 @@ ALSVID 收货 / 质检 / 入库
 Supplier Portal 的核心不是“商城下单”，而是**供应商自助履约**。
 
 供应商自己完成信息确认和履约操作，员工不再替供应商重复录入。
+
+自助还包括供应商提交报价、供货/订单提案和变更申请；正式 PO 发布、获批商业条件、实物收货/QC、财务入账与付款保持独立授权责任。供应商发货通知不自动增加实收库存，上传发票不代表已批准或已付款。具体动作矩阵见[实施台账第 4 节](PORTAL_DELIVERY_PLAN_2026-10-16.md#4-supplier-自助的明确含义)。
 
 ### B. Supplier 同时也是 ALSVID 的 B2B 买家
 
@@ -292,12 +298,11 @@ ALSVID Operations Design System
 
 以后任何 AI / 设计工具接手 ALSVID，必须先阅读：
 
-1. `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`
-2. `docs/AI_CONTEXT.md`
-3. `docs/CURRENT_STATE.md`
-4. `docs/BUSINESS_BOUNDARY.md`
-5. `docs/DATA_OWNERSHIP.md`
-6. 对应项目自己的架构文档
+1. 根目录 `AGENTS.md` 与相关知识库规则
+2. 本文件与 `docs/adr/0004-portal-experience-commerce-and-supplier.md`
+3. `docs/PORTAL_DELIVERY_PLAN_2026-10-16.md` 与 `docs/CURRENT_STATE.md`
+4. `docs/AI_CONTEXT.md`、`docs/BUSINESS_BOUNDARY.md`、`docs/DATA_OWNERSHIP.md`
+5. 对应项目架构文档和当前 Issue
 
 然后遵守：
 
@@ -377,3 +382,11 @@ ALSVID Admin / Backend
 
 ---
 最后更新：2026-10-16
+
+## 12. 本次核对后的执行补充
+
+- My 的 Shopify 登录来源是目标；当前登录链接、独立 Cookie 和演示车库不能证明 OAuth 回调/客户映射/车辆归属已接通。
+- Dealer 的 ALSVID 业务登录与 Shopify B2B 买家登录须经验证建立映射；当前不替换现有登录，不按邮箱相同直接联通或合并权限。
+- Supplier 的角色种子和内部采购 API 已存在，但还缺成员/组织范围与独立门户。不得直接向供应商授予全局内部采购权限来交付“自助”。
+- 父域 Cookie 会发送到所有匹配子域，不能通过独立 My Cookie 名称来宣称运输层隔离；外部门户开放前按身份规范完成信任边界与权限验收。
+- 官方当前 B2B 能力依套餐、客户账户、公司地点及店铺配置而定；实际店铺能力、主题/Headless 与设计文件逐项验证。资料依据与缺口统一维护在实施台账，避免在本文件复制易变功能清单。

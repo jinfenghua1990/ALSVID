@@ -1,5 +1,7 @@
 # ALSVID Official Website Navigation Architecture
 
+> Historical navigation proposal. Current product/design scope follows [the portal boundary](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md) and [delivery plan](PORTAL_DELIVERY_PLAN_2026-10-16.md). Supplier Portal is an authenticated, scoped collaboration target, not a required public consumer navigation item; do not implement this historical menu as a second competing website structure.
+
 ## Purpose
 
 This document defines the public-facing ALSVID official website structure. It is separated from the internal Admin / ERP / MES operation system.

@@ -1,5 +1,11 @@
 # Current State
 
+## Portal evidence baseline and execution direction — 2026-10-16
+
+Use [PORTAL_DELIVERY_PLAN_2026-10-16.md](PORTAL_DELIVERY_PLAN_2026-10-16.md) for the reviewed source commit, current portal/identity gaps, design links, live HTTP check limits and next tasks. [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) records the target boundary. Supplier self-service is a confirmed phased target (#185), not delivered functionality. My garage data remains fixtures; Dealer/Shopify identity and external organization scope require implementation evidence.
+
+Production has already been deployed: the successful workflow [run 38874426159](https://github.com/jinfenghua1990/ALSVID/actions/runs/38874426159) released `15b79ab…`. This does not prove all portals, real business data, backups or the remaining #34 acceptance are complete. Entries below contain older snapshots; pre-deployment/no-data statements must never authorize destructive changes to today's runtime.
+
 ## Reviewed Admin design pages — 2026-10-16
 
 The existing Admin fixture renderer now serves 85 reviewed Ardot module/detail/workflow screens through independent protected routes. Module page links, workflow navigation, local table filtering and editable/resettable example forms are available on localhost:3000. Imported records remain explicitly labeled fixtures; approvals, inventory, shipping and provider changes are not executed. The original server-side administrator guard is unchanged.
@@ -37,11 +43,11 @@ The shared AppShell now places the primary module menu in the header and the sel
 
 Implementation validation covers navigation-context regressions, UI/Web TypeScript checks, the Web production build, and browser layout/interaction checks across all 11 primary modules, sticky positioning, light/dark themes and mobile navigation. This entry records repository implementation; it does not prove the version is deployed to a user's current URL. Deployment and acceptance must be verified separately.
 
-## Status
+## Historical foundation status — 2026-10-10 (not current deployment evidence)
 
-ALSVID-Next is a clean-slate implementation created on 2026-10-10. No production business deployment exists yet and no real ALSVID business data needs backward compatibility.
+ALSVID-Next was created as a clean-slate implementation on 2026-10-10. The original baseline had no production deployment or business-data compatibility obligation; those are historical conditions, not assumptions about the current runtime.
 
-The platform-core architecture is established and is the implementation standard for all new work. Repository-side Docker/Test acceptance is complete; live production cloud resources still require account provisioning and first-deployment evidence.
+The platform-core architecture is established and remains the standard. The original account-provisioning/first-deployment checklist below is historical; use current workflow evidence and open acceptance tasks for live status.
 
 ## Platform rebuild — complete
 

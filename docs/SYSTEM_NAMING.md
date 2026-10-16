@@ -145,7 +145,7 @@ ALSVID Official
 
 ## 9. Environment surface matrix
 
-Development 与 Production 都按同样的四个 surface 组织：
+当前四个核心 surface 保持相同产品名称；Supplier Portal 是后续交付目标。以下开发名称仅为历史，不是要求恢复共享云环境：
 
 ```text
 ALSVID Development
@@ -161,7 +161,7 @@ ALSVID Production
 └── My ALSVID
 ```
 
-开发、测试和验收在 `ALSVID Development` 完成；正式业务运行在 `ALSVID Production`。
+开发在本地，自动检查在临时 GitHub CI 完成；正式业务运行在 `ALSVID Production`。旧共享云端 `ALSVID Development` 已退役。
 
 ## 10. Preferred domain mapping
 
@@ -174,7 +174,7 @@ dealer.chaibenn.com   → ALSVID Dealer Portal
 admin.chaibenn.com    → ALSVID Admin
 ```
 
-Development 域名优先使用：
+历史 Development 域名（不再作为现行测试入口）：
 
 ```text
 www.dev.chaibenn.com      → ALSVID Official / Development
@@ -194,7 +194,7 @@ admin.dev.chaibenn.com    → ALSVID Admin / Development
 1. 优先使用本文正式名称；
 2. 不因聊天窗口变化重新命名；
 3. 不把 ALSVID Official 与 ALSVID Admin 合并成同一个产品概念；
-4. 四个系统入口与 Development / Production 环境矩阵默认按本文执行；
+4. 门户地址和当前环境状态以 `PORTAL_DOMAINS.md`、`ENVIRONMENT_ARCHITECTURE.md` 为准，不复活历史 Development 资源；
 5. 如果确实需要改名或改变域名结构，必须先更新本文并说明迁移影响。
 
 

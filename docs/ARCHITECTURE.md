@@ -16,6 +16,8 @@ They share contracts and libraries but do not share arbitrary mutable state.
 
 ## Independent frontend project boundaries
 
+Current target and execution authority: [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md), [design/portal boundary](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md), and the [evidence/delivery plan](PORTAL_DELIVERY_PLAN_2026-10-16.md). Supplier self-service is a confirmed phased fifth portal target. Independent experience/security boundaries may initially share `apps/web`; split deployables only for a concrete need, without duplicating domains or business data.
+
 The confirmed frontend projects are ALSVID Official (ALSVID 官网), My ALSVID (车主中心 / 我的车库), ALSVID Dealer Portal (经销商平台), and ALSVID Admin (内部运营中心). They are independent frontend applications, not four pages inside one system. Most entry relationships are cross-application links; unified identity and selected authorized business facts connect the projects. This frontend boundary remains compatible with the modular-monolith API and shared monorepo. The existing `apps/web` packaging is not proof that all four independent frontends have been implemented.
 
 Admin defines a top-right App Switcher with 官网, 车主中心, and 经销商平台 links that open the corresponding application in a new tab and preserve Admin state. See [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md) for naming, authorization, environment and implementation-status rules.

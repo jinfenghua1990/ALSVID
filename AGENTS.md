@@ -6,6 +6,8 @@ This repository is the clean-slate implementation authority for ALSVID.
 
 Before changing application behavior or architecture, read in this order:
 
+For portal UI, design-tool ownership, Shopify or supplier work, also read `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`, `docs/PORTAL_DELIVERY_PLAN_2026-10-16.md` and ADR 0004. The first defines the target direction; the second records implementation evidence and delivery gates. Do not infer delivered capability from a design file, a role seed or a route alone.
+
 1. `knowledge/README.md`
 2. `knowledge/00-Company/Architecture.md`
 3. `docs/AI_CONTEXT.md`
@@ -31,9 +33,9 @@ Confirmed architecture decisions are not suggestions. Do not replace providers, 
 
 ## Current rebuild gate
 
-Feature expansion is frozen until Issue #20 is complete. Do not add Finance, Vehicle 360, Service, Communication or other new capability while implemented domains are still being encapsulated.
+Issue #20 is closed and the platform-core encapsulation gate is complete. Continue through the prioritized backlog (#123); do not restart the completed rebuild or enlarge legacy implementations. New capability must retain domain encapsulation and pass `pnpm arch:check`.
 
-Existing business code may be reorganized or rewritten freely because ALSVID has never been deployed with real business data.
+Production has been deployed. Never assume a target has no business data based on older pre-deployment notes; verify its state before a destructive operation.
 
 ## Non-negotiable business boundaries
 
@@ -42,6 +44,9 @@ Existing business code may be reorganized or rewritten freely because ALSVID has
 - ALSVID is for the bicycle/export/Europe business.
 - 1688, JackYun/吉客云, domestic China settlement/tax workflows and CoffeeBear-specific behavior are out of scope.
 - Shopify remains the external commerce/order authority for storefront transactions. ALSVID does not recreate a general-purpose OMS.
+- Ardot owns Admin operations design; Figma owns final external-portal UI. Keep one confirmed design source per page and reuse existing implementation incrementally.
+- Supplier self-service is a confirmed phased target (#185). Upstream supplier proposals/PO commitments belong to ALSVID Procurement; Shopify B2B is for businesses buying from ALSVID. Shared Partner identity does not merge Supplier/Dealer permissions.
+- External portal APIs must enforce organization/ownership scope server-side. A role, shared Cookie or matching email is not a business entitlement; consult the portal delivery plan before exposing existing internal APIs.
 - WMS remains the warehouse-execution authority for receiving, picking, packing, dispatch and warehouse-side fulfillment facts.
 - ALSVID may store/cache only the external facts needed for Vehicle 360, customer/dealer views, warranty, service, after-sales and reconciliation; do not clone complete Shopify/WMS databases.
 - PostgreSQL is authoritative for structured ALSVID business facts. R2/S3-compatible storage holds binary objects only.

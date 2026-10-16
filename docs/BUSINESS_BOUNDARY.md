@@ -69,9 +69,11 @@ ALSVID consumes necessary fulfillment information but does not replace warehouse
 
 # 3. Shopify Responsibility
 
+Shopify's buyer-commerce ownership is separate from ALSVID's upstream procurement. Supplier self-service is a confirmed phased ALSVID portal: suppliers may submit quotations/proposals and PO commitments, while Procurement owns formal POs and authorized internal processes own approval, receiving/QC and payment. A Supplier that also buys from ALSVID has a separate Shopify B2B buyer relationship. See [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) and the [implementation/action matrix](PORTAL_DELIVERY_PLAN_2026-10-16.md).
+
 Shopify remains responsible for:
 
-- Products
+- Storefront product/catalog, pricing and selling configuration (ALSVID Product/Engineering owns internal SKU/build/BOM identity)
 - Orders
 - Payments
 - Refunds
