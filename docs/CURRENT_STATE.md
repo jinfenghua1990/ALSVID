@@ -1,5 +1,9 @@
 # Current State
 
+## Admin workbench content alignment — 2026-10-16
+
+The canonical `/admin` workbench no longer presents invented order, production, inventory, customer, activity, task or trend examples as current business facts. Unconnected KPIs display `—`; activity, task and trend panels explain when data is unavailable. The page provides direct internal module shortcuts, while Official, Dealer and My links use their separate production portal hostnames (local development retains local preview routes). This is a presentation correction only: live KPI, task, activity and trend APIs remain unconnected. Changes were merged in [PR #193](https://github.com/jinfenghua1990/ALSVID/pull/193) and released from `82501d014420b9bb8a417c503f7ef495e630adba` by [Production Deploy run 38915614241](https://github.com/jinfenghua1990/ALSVID/actions/runs/38915614241). Unauthenticated production checks confirmed `/admin` redirects to `/login?portal=admin&returnTo=%2Fadmin` and the login page returns HTTP 200; the protected workbench requires a signed-in browser session for visual acceptance.
+
 ## Original consumer homepage restoration — 2026-10-16
 
 The WWW homepage now implements the user-approved original Penpot migration design (file `9e056cfe-f83f-81f8-8008-cc4972e16647`, page `86ab18b0-fcc4-8052-8008-cc5c73d58530`), rather than V2. It restores the photographic hero, four platform cards, FC1 feature, folding/technology/accessory/service/about sections and dealer banner. Five concept WebP images are served locally with HTML text overlays. Unconfirmed specifications and commerce remain explicitly unavailable; no Shopify transaction flow is added.
