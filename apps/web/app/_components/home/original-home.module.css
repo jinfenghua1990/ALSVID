@@ -23,8 +23,10 @@
 }
 .header {
   height: 70px;
-  position: sticky;
-  top: 0;
+  position: absolute;
+  top: 34px;
+  left: 0;
+  right: 0;
   z-index: 20;
   background: rgba(9, 13, 16, 0.97);
   display: grid;
@@ -79,7 +81,8 @@
   font-weight: 700;
 }
 .hero {
-  height: 630px;
+  height: calc(100svh - 34px);
+  min-height: min(680px, calc(100svh - 34px));
   position: relative;
   overflow: hidden;
   color: #fff;
@@ -94,7 +97,7 @@
   object-fit: cover;
 }
 .hero-bg {
-  object-position: center 48%;
+  object-position: center 50%;
 }
 .hero-shade {
   position: absolute;
@@ -102,9 +105,9 @@
   z-index: 1;
   background: linear-gradient(
     90deg,
-    rgba(6, 10, 12, 0.88),
-    rgba(6, 10, 12, 0.56) 40%,
-    rgba(6, 10, 12, 0.04) 100%
+    rgba(6, 10, 12, 0.25),
+    rgba(6, 10, 12, 0.12) 43%,
+    rgba(6, 10, 12, 0.14) 100%
   );
 }
 .hero:after {
@@ -116,10 +119,11 @@
 .hero-copy {
   position: absolute;
   z-index: 1;
-  left: 8%;
+  left: max(6vw, calc((100vw - 2160px) / 2));
   top: 50%;
   transform: translateY(-50%);
-  max-width: 540px;
+  width: min(34vw, 680px);
+  max-width: 680px;
 }
 .eyebrow {
   font-size: 10px;
@@ -128,13 +132,13 @@
   text-transform: uppercase;
 }
 .hero h1 {
-  font-size: 74px;
+  font-size: clamp(54px, 5.3vw, 112px);
   line-height: 0.98;
   letter-spacing: -0.055em;
   margin: 18px 0 10px;
 }
 .hero h2 {
-  font-size: 27px;
+  font-size: clamp(20px, 2vw, 34px);
   letter-spacing: 0.01em;
   margin: 0;
   font-weight: 550;
@@ -143,7 +147,7 @@
   font-size: 14px;
   color: rgba(255, 255, 255, 0.74);
   line-height: 1.85;
-  max-width: 400px;
+  max-width: 520px;
   margin: 17px 0 25px;
 }
 .btn-white,
@@ -195,8 +199,8 @@
 .hero-index {
   position: absolute;
   z-index: 2;
-  right: 8%;
-  bottom: 31px;
+  right: 6%;
+  bottom: 7%;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.72);
   letter-spacing: 0.14em;
@@ -1077,6 +1081,7 @@
   line-height: 1.05;
 }
 .page .hero-copy {
+  width: min(29vw, 650px);
   max-width: 650px;
 }
 .page .hero-tabs {
@@ -1187,6 +1192,28 @@
 .page .hero-tabs button i {
   background: #ffffff55;
 }
+.hero-product {
+  position: absolute;
+  z-index: 1;
+  right: 18.75vw;
+  bottom: 19%;
+  width: min(45vw, 83.8svh);
+  display: block;
+  line-height: 0;
+}
+.hero-product img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 34px 28px rgba(1, 6, 7, 0.36));
+  transition: transform 300ms ease;
+}
+.hero-product:hover img { transform: translateY(-5px); }
+.hero-product:focus-visible { outline: 3px solid #fff; outline-offset: 8px; }
+.mobileNav { display: none; }
+.mobileNav summary { cursor: pointer; list-style: none; }
+.mobileNav summary::-webkit-details-marker { display: none; }
+.mobileNav nav { display: grid; }
 .page .hero-tabs button[aria-selected="true"] i {
   background: #fff;
   height: 3px;
@@ -1349,6 +1376,84 @@
   touch-action: manipulation;
 }
 @media (max-width: 760px) {
+  .page .announcement { height: 30px; font-size: 9px; padding: 0 8px; text-align: center; }
+  .page .header {
+    top: 30px;
+    height: 62px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .page .logo { font-size: 20px; }
+  .page .nav { display: none; }
+  .page .actions { margin-left: auto; gap: 0; }
+  .page .actions > a:not(:last-child),
+  .page .actions > button { display: none; }
+  .page .mobileNav {
+    display: block;
+    position: relative;
+    margin-left: 16px;
+  }
+  .page .mobileNav summary {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #ffffff66;
+    border-radius: 50%;
+    font-size: 17px;
+  }
+  .page .mobileNav nav {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    z-index: 30;
+    width: min(82vw, 300px);
+    padding: 10px;
+    border: 1px solid #ffffff24;
+    border-radius: 14px;
+    background: #101719f5;
+    box-shadow: 0 18px 45px #0005;
+  }
+  .page .mobileNav nav a {
+    padding: 11px 12px;
+    border-radius: 8px;
+    color: #fff;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  .page .mobileNav nav a:hover { background: #ffffff18; }
+  .page .hero {
+    height: calc(100svh - 30px);
+    min-height: min(650px, calc(100svh - 30px));
+  }
+  .page .hero-bg { object-position: 62% center; }
+  .page .hero-shade {
+    background: linear-gradient(180deg, rgba(4, 8, 10, .46), rgba(4, 8, 10, .23) 53%, rgba(4, 8, 10, .2));
+  }
+  .page .hero-copy {
+    top: 17%;
+    left: 23px;
+    right: 23px;
+    transform: none;
+    width: auto;
+    max-width: 560px;
+  }
+  .page .hero h1 { margin: 10px 0 5px; font-size: clamp(40px, 13vw, 58px); }
+  .page .hero h2 { font-size: clamp(18px, 5vw, 24px); }
+  .page .hero p { max-width: 430px; margin: 12px 0 17px; font-size: 13px; line-height: 1.65; }
+  .page .hero .btn-white { min-height: 42px; }
+  .page .hero-product {
+    right: 1vw;
+    bottom: 18%;
+    width: min(96vw, 620px);
+  }
+  .page .hero-index {
+    right: 22px;
+    bottom: 5%;
+    z-index: 3;
+  }
   .detailHeader {
     flex-wrap: wrap;
     padding: 20px;

@@ -58,6 +58,7 @@ export function HomeHero({
   exploreLabel,
   modelLabel,
   modelHref,
+  modelAlt,
   scrollLabel,
 }: {
   scenes: Scene[];
@@ -66,12 +67,10 @@ export function HomeHero({
   exploreLabel: string;
   modelLabel: string;
   modelHref: string;
+  modelAlt: string;
   scrollLabel: string;
 }) {
-  const [selected, setSelected] = useState(0);
-  const scene = scenes[selected] ?? scenes[0];
-  const panelId = useId();
-  const tabId = useId();
+  const scene = scenes[0];
   if (!scene) return null;
   return (
     <section className={styles.hero}>
@@ -84,11 +83,21 @@ export function HomeHero({
         fetchPriority="high"
       />
       <div className={styles["hero-shade"]} />
+      <a
+        className={styles["hero-product"]}
+        href={modelHref}
+        aria-label={modelAlt}
+      >
+        <img
+          src="/products/fc1/hero-bike-final.png"
+          alt=""
+          width="1136"
+          height="746"
+          fetchPriority="high"
+        />
+      </a>
       <div
         className={styles["hero-copy"]}
-        role="tabpanel"
-        id={panelId}
-        aria-labelledby={`${tabId}-${selected}`}
       >
         <div className={styles.eyebrow}>{eyebrow}</div>
         <h1>{scene.title}</h1>
@@ -101,42 +110,7 @@ export function HomeHero({
           {modelLabel}
         </a>
       </div>
-      <div className={styles["hero-tabs"]} role="tablist" aria-label={eyebrow}>
-        {scenes.map((item, index) => (
-          <button
-            key={item.href}
-            type="button"
-            className={styles.tab}
-            role="tab"
-            id={`${tabId}-${index}`}
-            aria-selected={selected === index}
-            aria-controls={panelId}
-            tabIndex={selected === index ? 0 : -1}
-            onClick={() => setSelected(index)}
-            onKeyDown={(event) => {
-              let next: number | undefined;
-              if (event.key === "ArrowRight")
-                next = (index + 1) % scenes.length;
-              if (event.key === "ArrowLeft")
-                next = (index + scenes.length - 1) % scenes.length;
-              if (event.key === "Home") next = 0;
-              if (event.key === "End") next = scenes.length - 1;
-              if (next === undefined) return;
-              event.preventDefault();
-              setSelected(next);
-              const tabs =
-                event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
-                  '[role="tab"]',
-                );
-              tabs?.[next]?.focus();
-            }}
-          >
-            <i />
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <a className={styles["hero-index"]} href="#platforms">
+      <a className={styles["hero-index"]} href={modelHref}>
         {scrollLabel}
       </a>
     </section>

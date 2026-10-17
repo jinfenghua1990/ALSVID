@@ -6,11 +6,13 @@ import { isLocale } from "../../../_lib/i18n/routing";
 import { getHomeDetail } from "../../../_lib/home-details";
 import { portalUrlFor } from "../../../_lib/portal-routing";
 import { LanguageSwitcher } from "../../../_components/language-switcher";
+import { Fc1ProductPage, generateFc1Metadata } from "../../../_components/product/fc1-product";
 import styles from "../../../_components/home/original-home.module.css";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
+  if (slug === "fc1") return generateFc1Metadata(locale);
   const detail = getHomeDetail(slug);
   if (!isLocale(locale) || !detail) return {};
   const t = translator(locale);
@@ -28,6 +30,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function HomeDetailPage({ params }: Props) {
   const { locale, slug } = await params;
+  if (slug === "fc1") {
+    if (!isLocale(locale)) notFound();
+    const host = (await headers()).get("host") ?? "";
+    const prefix = host.toLowerCase().split(".")[0];
+    if (prefix === "admin" || prefix === "my" || prefix === "dealer") redirect(`/${prefix}`);
+    return <Fc1ProductPage locale={locale} myUrl={portalUrlFor(host, "my")} />;
+  }
   const detail = getHomeDetail(slug);
   if (!isLocale(locale) || !detail) notFound();
   const host = (await headers()).get("host") ?? "";
