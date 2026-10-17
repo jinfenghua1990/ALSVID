@@ -52,48 +52,38 @@ export function HomePage({
           </a>
           <LanguageSwitcher locale={locale} label={t("language.label")} />
         </div>
+        <details className={styles.mobileNav}>
+          <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
+          <nav aria-label={t("navigation.primary")}>
+            <a href="#platforms">{t("navigation.products")}</a>
+            <a href={detail("fc1")}>{t("product.model_fc1")}</a>
+            <a href="#folding">{t("navigation.folding")}</a>
+            <a href="#tech">{t("navigation.technology")}</a>
+            <a href="#service">{t("navigation.services")}</a>
+            <a href={detail("about-story")}>{t("brand.story")}</a>
+            <a href={dealerUrl}>{t("navigation.dealer")}</a>
+            <a href={myUrl}>{t("navigation.account")}</a>
+          </nav>
+        </details>
       </header>
       <HomeHero
         scenes={[
           {
-            label: t("scene.folding"),
-            title: [t("hero.title_first"), t("hero.title_second")].join(locale === "zh" ? "" : " "),
+            label: t("product.model_fc1"),
+            title: t("hero.fc1_title"),
             subtitle: t("product.slogan"),
-            image: "/home/original/hero-folding.webp",
-            alt: t("images.hero"),
-            href: detail("fc"),
-          },
-          {
-            label: t("scene.city"),
-            title: t("hero.scene.city.title"),
-            subtitle: t("platform.ct.title"),
-            image: "/home/original/scene-city.webp",
-            alt: t("images.city"),
-            href: detail("ct"),
-          },
-          {
-            label: t("scene.fat_tire"),
-            title: t("hero.scene.fat_tire.title"),
-            subtitle: t("platform.ft.title"),
-            image: "/home/original/scene-fat-tire.webp",
-            alt: t("images.fat"),
-            href: detail("ft"),
-          },
-          {
-            label: t("scene.touring"),
-            title: t("hero.scene.touring.title"),
-            subtitle: t("platform.gt.title"),
-            image: "/home/original/scene-touring.webp",
-            alt: t("images.touring"),
-            href: detail("gt"),
+            image: "/home/fc1-city-kv.webp",
+            alt: t("hero.fc1_background_alt"),
+            href: detail("fc1"),
           },
         ]}
-        eyebrow={t("hero.eyebrow")}
-        description={t("hero.description")}
-        exploreLabel={t("hero.explore")}
-        modelLabel={t("product.meet_fc1")}
+        eyebrow={t("hero.fc1_eyebrow")}
+        description={t("hero.fc1_description")}
+        exploreLabel={t("product.explore_fc1")}
+        modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
-        scrollLabel={t("hero.scroll")}
+        modelAlt={t("hero.fc1_product_alt")}
+        scrollLabel={t("product.explore_fc1")}
       />
       <section id="platforms" className={styles["section"]}>
         <div className={styles["inner"]}>
