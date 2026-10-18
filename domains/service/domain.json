@@ -1,0 +1,1 @@
+{"name":"service","schema":"service","mode":"encapsulated","dependsOn":["vehicle"]}
