@@ -9,6 +9,8 @@
   font: 15px/1.65 Inter, "Noto Sans SC", Arial, sans-serif;
 }
 .page * { box-sizing: border-box; }
+.page img { max-width: 100%; height: auto; }
+.page section[id] { scroll-margin-top: 90px; }
 .header {
   position: sticky;
   top: 0;
@@ -28,10 +30,10 @@
 .reviewBanner { min-height: 30px; padding: 5px 16px; background: #26362f; color: #e0e8e2; font-size: 10px; letter-spacing: .09em; text-align: center; }
 .main { overflow: hidden; }
 .hero {
-  min-height: 650px;
+  min-height: 580px;
   padding: clamp(42px, 6vw, 96px) max(5vw, calc((100vw - 1600px) / 2));
   display: grid;
-  grid-template-columns: minmax(0, .83fr) minmax(500px, 1fr);
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
   align-items: center;
   gap: clamp(36px, 6vw, 94px);
   background: #e9ece7;
@@ -45,18 +47,18 @@
 .buttonLight { background: transparent; color: var(--ink); }
 .heroVisual { min-width: 0; }
 .galleryMain { position: relative; }
-.zoomButton { position: relative; display: grid; width: 100%; min-height: 300px; padding: 0; overflow: hidden; border: 1px solid #e4e7e2; border-radius: 5px; background: #fff; cursor: zoom-in; }
-.zoomButton img { align-self: center; width: 100%; height: auto; max-height: min(50vw, 680px); object-fit: contain; }
+.zoomButton { position: relative; aspect-ratio: 3 / 2; display: grid; width: 100%; min-height: 0; padding: 0; overflow: hidden; border: 1px solid #e4e7e2; border-radius: 5px; background: #fff; cursor: zoom-in; }
+.zoomButton img { align-self: center; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
 .zoomButton > span { position: absolute; top: 16px; right: 16px; display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.9); color: #17241f; font-size: 17px; }
 .photoCaption { margin: 10px 2px 0; color: #606b66; font-size: 11px; }
 .galleryThumbs { display: flex; gap: 10px; margin-top: 14px; padding: 2px 2px 6px; overflow-x: auto; }
 .galleryThumbs button { flex: 0 0 100px; padding: 0 0 7px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #39443f; cursor: pointer; font: inherit; text-align: left; }
 .galleryThumbs button[aria-pressed="true"] { border-color: var(--green); color: #10241c; }
-.galleryThumbs img { display: block; width: 100%; height: auto; aspect-ratio: 1.55; border-radius: 4px; background: #fff; object-fit: cover; }
+.galleryThumbs img { display: block; width: 100%; height: auto; aspect-ratio: 1.55; border-radius: 4px; background: #fff; object-fit: contain; }
 .galleryThumbs span { display: block; margin-top: 5px; font-size: 10px; line-height: 1.4; }
 .lightbox { width: min(96vw, 1500px); max-width: none; max-height: 94svh; padding: 20px; border: 0; border-radius: 8px; background: #f6f7f3; }
 .lightbox::backdrop { background: rgba(6, 12, 11, .88); }
-.lightbox img { display: block; width: 100%; max-height: 84svh; object-fit: contain; }
+.lightbox img { display: block; width: 100%; height: auto; max-height: 78svh; object-fit: contain; }
 .lightboxClose { display: flex; margin: 0 0 8px auto; padding: 8px 12px; align-items: center; gap: 14px; border: 0; background: transparent; color: #18221f; font: inherit; cursor: pointer; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); padding: 30px max(5vw, calc((100vw - 1500px) / 2)); background: #16231e; color: #fff; }
 .stats > div { min-height: 82px; padding: 6px 26px; border-right: 1px solid #ffffff2b; }
@@ -78,9 +80,9 @@
 .swatchChoice small { display: block; margin-top: 2px; color: #7a6e4e; font-size: 10px; }
 .colourMessage { min-height: 24px; margin: 10px 0 5px; color: #41544b; font-size: 12px; }
 .smallNote { color: #68736e; font-size: 12px; line-height: 1.65; }
-.section { padding: clamp(64px, 8vw, 118px) max(5vw, calc((100vw - 1320px) / 2)); }
+.section { padding: clamp(56px, 6vw, 88px) max(5vw, calc((100vw - 1320px) / 2)); }
 .sectionHeader { max-width: 760px; margin-bottom: 34px; }
-.sectionHeader h2 { margin: 10px 0 14px; font-size: clamp(32px, 4vw, 56px); line-height: 1.06; letter-spacing: -.045em; text-wrap: balance; }
+.sectionHeader h2 { margin: 10px 0 14px; font-size: clamp(30px, 3.2vw, 46px); line-height: 1.06; letter-spacing: -.045em; text-wrap: balance; }
 .sectionHeader > p:last-child { color: #5d6963; font-size: 15px; line-height: 1.8; }
 .split { display: grid; grid-template-columns: 1fr .92fr; gap: clamp(38px, 7vw, 108px); align-items: center; }
 .splitReverse > :first-child { order: 2; }
@@ -98,20 +100,17 @@
 .darkSection { background: #16221e; color: #f4f6f2; }
 .darkSection .sectionHeader .eyebrow { color: #afc4b7; }
 .darkSection .sectionHeader > p:last-child { color: #becac2; }
-.hotspotGrid { display: grid; grid-template-columns: 1.2fr .8fr; align-items: center; gap: clamp(30px, 6vw, 80px); }
-.hotspotImage { position: relative; }
-.hotspotImage > img { display: block; width: 100%; border-radius: 3px; background: white; }
-.hotspotImage > button { position: absolute; transform: translate(-50%,-50%); display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid white; border-radius: 50%; background: #15271ee8; box-shadow: 0 3px 12px #0005; color: white; font-size: 10px; cursor: pointer; }
-.hotspotImage > button[aria-pressed="true"] { background: #8baf98; color: #122019; outline: 2px solid #e4f0e7; }
-.hotspotDetail { min-width: 0; }
-.hotspotDetail .eyebrow { color: #a7baac; }
-.hotspotDetail > img { display: block; width: 100%; margin: 12px 0; border-radius: 3px; background: #fff; }
-.hotspotDetail h3 { margin: 14px 0 4px; font-size: 23px; line-height: 1.2; }
-.hotspotDetail > p { color: #c3ccc6; }
-.hotspotTabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
-.hotspotTabs button { min-height: 46px; padding: 7px; display: flex; align-items: center; gap: 8px; border: 1px solid #ffffff29; background: transparent; color: #e6ebe7; font: inherit; font-size: 10px; line-height: 1.3; text-align: left; cursor: pointer; }
-.hotspotTabs button[aria-pressed="true"] { border-color: #d8eadc; background: #ffffff12; }
-.hotspotTabs small { color: #a6bdad; font-size: 9px; }
+.suspensionSection { background: #f1f4f7; color: #182536; }
+.suspensionSection .sectionHeader .eyebrow { color: #7caddc; }
+.suspensionSection .sectionHeader > p:last-child { color: #617084; }
+.suspensionCards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.suspensionCard { overflow: hidden; border: 1px solid #dce3eb; border-radius: 16px; background: #fff; }
+.suspensionPhoto { width: 100%; aspect-ratio: 1.42; overflow: hidden; background: #e9edf1; }
+.suspensionPhoto > img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.suspensionCopy { min-height: 210px; padding: 26px 32px 30px; }
+.suspensionCopy .eyebrow { margin: 0 0 14px; color: #5688bd; }
+.suspensionCopy h3 { margin: 0 0 10px; font-size: clamp(24px,2.6vw,36px); line-height: 1.15; }
+.suspensionCopy > p:last-child { max-width: 600px; margin: 0; color: #5b6a7c; font-size: 15px; }
 .driveGrid { display: grid; grid-template-columns: 1fr .85fr; gap: 55px; align-items: center; }
 .driveNumbers { display: grid; grid-template-columns: repeat(2,1fr); gap: 0; }
 .driveNumbers > div { min-height: 115px; padding: 19px 16px; border-top: 1px solid #ffffff30; }
@@ -175,13 +174,13 @@
   .heroCopy { max-width: 720px; }
   .hero h1 { max-width: 700px; }
   .heroVisual { max-width: 760px; width: 100%; margin: auto; }
-  .zoomButton img { max-height: 64vw; }
+
   .colourBand { grid-template-columns: 1fr; gap: 20px; }
-  .split, .hotspotGrid, .driveGrid { grid-template-columns: 1fr; gap: 30px; }
+  .split, .driveGrid { grid-template-columns: 1fr; gap: 30px; }
+  .suspensionCards { gap: 16px; }
+  .suspensionCopy { min-height: 230px; padding: 22px; }
   .splitReverse > :first-child, .splitReverse > :last-child { order: initial; }
-  .hotspotImage { max-width: 760px; }
-  .hotspotDetail { max-width: 680px; }
-  .hotspotDetail > img { max-height: 340px; object-fit: contain; }
+
   .faq { grid-template-columns: 1fr; gap: 30px; }
 }
 @media (max-width: 600px) {
@@ -210,9 +209,10 @@
   .measure { left: 8px; bottom: 8px; padding: 8px 11px; }
   .measure strong { font-size: 18px; }
   .foldMeasure { right: 8px; bottom: 16%; padding: 7px 9px; font-size: 15px; }
-  .hotspotImage > button { width: 34px; height: 34px; }
-  .hotspotTabs { grid-template-columns: 1fr 1fr; }
-  .hotspotTabs button { min-height: 54px; }
+  .suspensionCards { grid-template-columns: 1fr; gap: 16px; }
+  .suspensionPhoto { aspect-ratio: 1.45; }
+  .suspensionCopy { min-height: 0; padding: 21px; }
+  .suspensionCopy h3 { font-size: 26px; }
   .driveNumbers > div { min-height: 90px; padding: 14px 8px; }
   .driveNumbers strong { font-size: 27px; }
   .batteryCards, .configGrid { grid-template-columns: 1fr; }
@@ -220,6 +220,7 @@
   .batteryCards strong { font-size: 29px; }
   .tableScroll table { min-width: 680px; }
   .faq { gap: 22px; }
+
   .footer { flex-wrap: wrap; padding: 22px 20px; }
   .footer p { width: 100%; order: 3; margin: 0; }
   .reviewBanner { font-size: 9px; letter-spacing: .04em; }

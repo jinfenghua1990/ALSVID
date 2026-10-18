@@ -14,6 +14,12 @@ const gallery = [
   ["handlebar-display", "fc1.gallery.controls", "fc1.hotspot.controls.body"],
 ] as const;
 
+function photoSize(asset: string) {
+  if (asset === "hidden-carbon-front-suspension") return { width: 1333, height: 2000 };
+  if (asset === "dnm-rear-air-shock") return { width: 2000, height: 1333 };
+  return { width: 1536, height: 1024 };
+}
+
 const colourOptions = [
   { id: "sample", key: "fc1.colours.sample", tone: "green" },
   { id: "black", key: "fc1.colours.black", tone: "black" },
@@ -21,12 +27,7 @@ const colourOptions = [
   { id: "silver", key: "fc1.colours.silver", tone: "silver" },
 ] as const;
 
-const hotspots = [
-  { id: "front", key: "fc1.hotspot.front", asset: "hidden-carbon-front-suspension", left: "71%", top: "70%" },
-  { id: "rear", key: "fc1.hotspot.rear", asset: "dnm-rear-air-shock", left: "37%", top: "67%" },
-  { id: "chain", key: "fc1.hotspot.chain", asset: "shimano-chain-drivetrain", left: "33%", top: "77%" },
-  { id: "controls", key: "fc1.hotspot.controls", asset: "handlebar-display", left: "68%", top: "25%" },
-] as const;
+
 
 export function ProductGallery({ locale }: { locale: Locale }) {
   const t = translator(locale);
@@ -42,7 +43,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
           aria-label={t("fc1.open_photo")}
           onClick={() => dialog.current?.showModal()}
         >
-          <img src={`/products/fc1/${image[0]}.webp`} alt={t(image[2])} width="1536" height="1024" fetchPriority="high" />
+          <img src={`/products/fc1/${image[0]}.webp`} alt={t(image[2])} {...photoSize(image[0])} fetchPriority="high" />
           <span aria-hidden="true">↗</span>
         </button>
         <p className={styles.photoCaption}>{t("fc1.photo.note")}</p>
@@ -56,7 +57,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
             aria-label={t(label)}
             onClick={() => setActive(id)}
           >
-            <img src={`/products/fc1/${id}.webp`} alt="" width="1536" height="1024" loading="lazy" />
+            <img src={`/products/fc1/${id}.webp`} alt="" {...photoSize(id)} loading="lazy" />
             <span>{t(label)}</span>
           </button>
         ))}
@@ -65,7 +66,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
         <button className={styles.lightboxClose} type="button" onClick={() => dialog.current?.close()} autoFocus>
           {t("fc1.close")} <span aria-hidden="true">×</span>
         </button>
-        <img src={`/products/fc1/${image[0]}.webp`} alt={t(image[2])} width="1536" height="1024" />
+        <img src={`/products/fc1/${image[0]}.webp`} alt={t(image[2])} {...photoSize(image[0])} />
       </dialog>
     </div>
   );
@@ -107,42 +108,38 @@ export function FoldStatePreview({ locale }: { locale: Locale }) {
         <button type="button" aria-pressed={folded} onClick={() => setFolded(true)}>{t("fc1.fold.closed")}</button>
       </div>
       <img src={`/products/fc1/${asset}.webp`} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
-      <p className={styles.foldMeasure}>85 × 69 × 48 <small>cm</small></p>
+      {folded ? <p className={styles.foldMeasure}>85 × 69 × 48 <small>cm</small></p> : null}
       <p className={styles.smallNote}>{t("fc1.fold.caption")}</p>
     </div>
   );
 }
 
-export function ComponentHotspots({ locale }: { locale: Locale }) {
+export function SuspensionCards({ locale }: { locale: Locale }) {
   const t = translator(locale);
-  const [active, setActive] = useState<(typeof hotspots)[number]["id"]>("front");
-  const selected = hotspots.find(({ id }) => id === active) ?? hotspots[0];
-  const titleKey = `fc1.hotspot.${selected.id}` as TranslationKey;
-  const bodyKey = `fc1.hotspot.${selected.id}.body` as TranslationKey;
-  const imageAltKey = selected.id === "controls" ? "fc1.gallery.controls" : `fc1.gallery.${selected.id === "front" ? "front" : selected.id === "rear" ? "shock" : "chain"}` as TranslationKey;
+  const cards = [
+    { id: "front", asset: "hidden-carbon-front-suspension", number: "01" },
+    { id: "rear", asset: "dnm-rear-air-shock", number: "02" },
+  ] as const;
   return (
-    <div className={styles.hotspotGrid}>
-      <div className={styles.hotspotImage}>
-        <img src="/products/fc1/side.webp" alt={t("fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
-        {hotspots.map(({ id, key, left, top }, index) => (
-          <button key={id} type="button" style={{ left, top }} aria-label={t(key)} aria-pressed={active === id} onClick={() => setActive(id)}>
-            0{index + 1}
-          </button>
-        ))}
-      </div>
-      <div className={styles.hotspotDetail} aria-live="polite">
-        <span className={styles.eyebrow}>{t("fc1.section.detail.kicker")}</span>
-        <img src={`/products/fc1/${selected.asset}.webp`} alt={t(imageAltKey)} width="1536" height="1024" loading="lazy" />
-        <div className={styles.hotspotTabs} role="group" aria-label={t("fc1.section.detail.title")}>
-          {hotspots.map(({ id, key }, index) => (
-            <button key={id} type="button" aria-pressed={active === id} onClick={() => setActive(id)}>
-              <small>0{index + 1}</small>{t(key)}
-            </button>
-          ))}
-        </div>
-        <h3>{t(titleKey)}</h3>
-        <p>{t(bodyKey)}</p>
-      </div>
+    <div className={styles.suspensionCards}>
+      {cards.map(({ id, asset, number }) => {
+        const title = t(`fc1.hotspot.${id}` as TranslationKey);
+        const position = id === "front" ? (locale === "zh" ? "前部" : locale === "de" ? "VORNE" : "FRONT") : (locale === "zh" ? "后部" : locale === "de" ? "HINTEN" : "REAR");
+        const body = t(`fc1.hotspot.${id}.body` as TranslationKey);
+        const alt = t(id === "front" ? "fc1.gallery.front" : "fc1.gallery.shock");
+        return (
+          <article className={styles.suspensionCard} key={id}>
+            <div className={styles.suspensionPhoto}>
+              <img src={`/products/fc1/${asset}.webp`} alt={alt} {...photoSize(asset)} loading="lazy" />
+            </div>
+            <div className={styles.suspensionCopy}>
+              <p className={styles.eyebrow}>{position} / {number}</p>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 }
