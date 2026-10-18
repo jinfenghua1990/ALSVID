@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Put, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { IdentityValidationError, InvalidCredentialsError, InvalidPasswordResetTokenError } from '@alsvid/identity';
 import { bearerToken, requireAuth, type AuthenticatedRequest } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
@@ -39,6 +39,7 @@ export class AuthController {
   @Public()
   @Post('login')
   async login(@Body() body: { identifier?: string; email?: string; password?: string }) {
+    if (process.env.ALSVID_PASSWORD_LOGIN_ENABLED !== 'true') throw new ForbiddenException('Password login is currently disabled. Use email verification.');
     const identifier = body?.identifier ?? body?.email;
     if (!identifier || !body.password) throw new UnauthorizedException('Account identifier and password are required');
     try {
