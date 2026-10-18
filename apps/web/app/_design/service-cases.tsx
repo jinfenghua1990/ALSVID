@@ -70,7 +70,8 @@ export function ServiceCaseClient() {
 
  async function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();if(busy)return;
-  const form=new FormData(event.currentTarget);
+  const formElement=event.currentTarget;
+  const form=new FormData(formElement);
   const vehicleId=String(form.get('vehicleId')??'');
   const category=String(form.get('category')??'ISSUE') as CaseCategory;
   const title=String(form.get('title')??'').trim();
@@ -80,7 +81,7 @@ export function ServiceCaseClient() {
   try {
    const created=await api<CaseRow>('/v1/service/cases','POST',{vehicleId,category,title,description});
    setActionMessage('已保存真实工单 '+created.caseNumber);
-   event.currentTarget.reset();
+   formElement.reset();
    await reload();setSelected(created.id);
   }catch(error){setActionMessage(error instanceof Error?error.message:'工单创建失败');}
   finally{setBusy(false);}
