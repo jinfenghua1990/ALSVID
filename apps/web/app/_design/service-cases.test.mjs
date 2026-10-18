@@ -38,3 +38,24 @@ test('canonical after-sales screen uses real internal workflow and preserves Ard
  assert.match(ui,/expectedVersion:detail\.case\.version/);
  assert.match(ui,/不自动判定保修/);
 });
+
+test('preliminary warranty evidence is append-only and gated independently from service.write',()=>{
+ const schema=read('../../../../packages/database/migrations/0026_service_evidence_foundation.sql');
+ const domain=read('../../../../domains/service/src/application/service-case-service.ts');
+ const repository=read('../../../../domains/service/src/infrastructure/postgres-service-case-repository.ts');
+ const controller=read('../../../api/src/service-cases.controller.ts');
+ const ui=read('./service-cases.tsx');
+ assert.match(schema,/CREATE TABLE service\.case_activities/);
+ assert.match(schema,/service_activities_immutable/);
+ assert.match(schema,/UNIQUE \(case_id,client_request_id\)/);
+ assert.match(schema,/service\.warranty\.review/);
+ assert.match(domain,/authorize\(actor,'service\.warranty\.review'\)/);
+ assert.match(domain,/POSSIBLY_COVERED/);
+ assert.match(domain,/POSSIBLY_EXCLUDED/);
+ assert.match(domain,/findActivityByRequest/);
+ assert.match(repository,/ON CONFLICT\(case_id,client_request_id\) DO NOTHING/);
+ assert.match(controller,/@Post\(':id\/activities'\)/);
+ assert.match(ui,/clientRequestId:requestId/);
+ assert.match(ui,/初审意见/);
+ assert.match(ui,/不自动建立车主归属/);
+});
