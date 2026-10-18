@@ -60,3 +60,19 @@
 - 第三批前端：\`apps/web/app/_design/admin-records.tsx\`、\`admin-records.module.css\`、\`admin-records.test.mjs\`；通过 \`integrated-operations.tsx\` 复用既有 Admin 布局。
 
 注意：以上均为 Draft PR 中的新增代码，当前 CI 结果、正式发布和真实非生产业务浏览器验证须分别记录。合并后再按 Issue #212 分拆售后、权限变更、客户车辆归属与数据口径的独立工作。
+
+
+## 六、第四批：Service 领域的最小真实内部售后工单（Draft / 尚未业务验收）
+
+- 新建完全封装的 \`@alsvid/service\` Domain（\`domains/service\`），遵守 core/application/infrastructure/api 结构；事实权威在 Service，不在 Vehicle 或 Inventory。
+- \`0025_service_case_foundation.sql\`：新增 \`service.cases\`（车辆 FK、分类、问题标题、描述、状态、版本）及 append-only \`service.case_history\`，引入 \`service.read\` / \`service.write\` 两项权限；默认只允许实际具有内部身份 **且有权限** 的用户操作，system_admin / 内部 service_agent 经角色授权。
+- \`POST /api/v1/service/cases\`：仅接受真实已出生车辆的 \`vehicleId\`，只建立内部售后记录，不自动建立客户/经销商所有权、保修承诺或付款事实。
+- \`GET /api/v1/service/cases\`、\`GET /api/v1/service/cases/:id\`：读取最近记录、单据详情和不可变状态变更历史；每次处理都有版本、操作人及原因。
+- \`POST /api/v1/service/cases/:id/transition\`：NEW → TRIAGED → IN_PROGRESS → RESOLVED → CLOSED；RESOLVED 可重新转回 IN_PROGRESS；CLOSED 终态；提供乐观锁 \`expectedVersion\`，并使用同一数据库事务记录状态历史与审计，不允许静默覆盖/跳跃。
+- \`/admin/after-sales\`：接入真实售后受理、处理和历史，保留原 Ardot 画面折叠预览；失败、无权限、空数据和并发冲突有明确提示。
+- 域单元测试覆盖有效受理、未知车辆、权限拒绝、状态非法跳转、冲突和关闭；前端契约测试验证 API、迁移约束、页面接线。
+- 新增包已登记在 pnpm workspace lockfile 与 API 组合；依然使用原有 Neon/PostgreSQL 和 Cloud Run，不新增第二套运行基础设施。
+
+**明确未交付：** 客户/Dealer 对外提交、Shopify 订单身份映射、已验证车辆所有权、保修条款/判定、诊断/维修工时、零件替换及库存台账、经销商维修协作、用户/服务商派工、附件与通知，以及真实浏览器/生产业务验收。这只是 #31 的可追溯工单最小切片，不得关闭 #31 或 #212。
+
+**数据库发布风险：** 此 PR 增加新迁移，虽然没有删除/修改原有表和真实数据，但生产发布会应用正式 schema 变更；必须在隔离 CI 验证迁移、权限和 API 后人工审查，保持 Draft，不自动合并发布。
