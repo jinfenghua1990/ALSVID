@@ -1,0 +1,18 @@
+.stack { display: grid; gap: 16px; min-width: 0; }
+.heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.heading > div { min-width: 0; flex: 1 1 320px; }
+.heading h3 { margin: 0; font-size: 15px; }
+.muted { font-size: 12px; color: var(--av-muted); line-height: 1.65; margin: 8px 0; overflow-wrap: anywhere; }
+.search { min-height: 38px; min-width: 200px; max-width: 100%; flex: 1 1 210px; padding: 9px 12px; border: 1px solid var(--av-line); border-radius: 8px; background: var(--av-panel); color: var(--av-text); }
+.search:focus-visible, .linkButton:focus-visible { outline: 2px solid var(--av-brand); outline-offset: 2px; }
+.tableScroll { width: 100%; overflow-x: auto; border: 1px solid var(--av-line); border-radius: 8px; margin-top: 12px; }
+.table { width: 100%; border-collapse: collapse; min-width: 600px; text-align: left; font-size: 13px; }
+.table th { font-weight: 600; background: var(--av-panel-soft); color: var(--av-text-soft); white-space: nowrap; }
+.table td, .table th { padding: 12px 14px; border-bottom: 1px solid var(--av-line); }
+.table td { overflow-wrap: anywhere; max-width: 290px; vertical-align: top; }
+.table tr:last-child td { border-bottom: 0; }
+.notice { margin: 12px 0 4px; color: var(--av-muted); font-size: 13px; line-height: 1.6; }
+.error { color: var(--av-bad); background: var(--av-bad-soft); border-radius: 8px; padding: 12px; font-size: 13px; }
+.linkButton { cursor: pointer; border: 0; background: transparent; color: var(--av-brand); font: inherit; text-decoration: underline; padding: 6px 0; }
+.detail { background: var(--av-panel-soft); border: 1px solid var(--av-line); border-radius: 8px; padding: 16px; margin-top: 16px; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .table { min-width: 520px; } .heading { align-items: stretch; } .heading > button { flex: 0 1 auto; } .search { width: 100%; } }
