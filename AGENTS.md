@@ -61,7 +61,7 @@ Production has been deployed. Never assume a target has no business data based o
 - Production database primary: Neon PostgreSQL.
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
-- Local development compute: developer workstation with Docker; CI uses disposable GitHub-hosted runners.
+- Development compute: the shared GitHub Codespace (cloud devcontainer) and disposable GitHub-hosted CI runners. Following the owner's 2026-10-18 decision, do not clone, install, build or run ALSVID development servers on home/company workstations.
 - The only active cloud runtime is Production in `alsvid-prod`; the former shared Cloud Run Development/Test runtime in `alsvid-dev` is retired from the release architecture.
 - Local/CI databases and storage are isolated and temporary. Do not assume Neon/R2 Test resources exist, and never use Production credentials for validation.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
@@ -109,7 +109,7 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 
 ## Delivery discipline
 
-- Current environment names: local development, ephemeral CI, and Production. `ALSVID Development` refers only to the retired historical cloud runtime; `ALSVID Production` is the active cloud runtime.
+- Current environment names: Codespaces development, ephemeral CI, and Production. `ALSVID Development` refers only to the retired historical cloud runtime; `ALSVID Production` is the active cloud runtime.
 - Following the owner-approved 2026-10-14 Production-only decision, reviewed PRs target `main`; `develop` is optional and does not deploy a separate cloud runtime.
 - `CI` contains code verification and isolated Docker acceptance. Keep the `verify` and `containers` checks; they use disposable GitHub runners and no Production credentials.
 - Production starts only after successful main CI (push or explicit workflow dispatch after a bot merge) for the exact commit. The release gate verifies both jobs and rejects obsolete automatic releases. Explicit rollback may select a previously successful Production release.
@@ -132,4 +132,4 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 - AGENTS.md 只约束实际读取并遵循它的工具；权限、分支保护和 CI 才能提供服务器侧约束。不得宣称所有机器人会自动读取。
 - 不提交生产凭据或真实业务数据；代码回滚不等于数据库、对象存储和运行数据恢复。
 
-开发入口和恢复操作见 `docs/COLLABORATION.md`。Codespaces 是优先开发工作区；保留本机 Docker 和临时 CI 验证，不新增共享 Cloud Run Test 环境。
+开发入口和恢复操作见 `docs/COLLABORATION.md`。按用户 2026-10-18 最新决定，后续开发与验证只使用 Codespaces / 云端 AI 工作区及临时 CI；禁止在家里或公司电脑重新克隆仓库、安装项目依赖、构建或启动 localhost 开发服务。无需执行代码的文档小改可通过 GitHub 分支与 PR 完成。没有可用云端执行入口时，报告缺少的连接，不自行回退本机；不新增共享 Cloud Run Test 环境。
