@@ -471,7 +471,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             {actions.length > 0 ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
-                  const targets: Record<string, string> = { '新建型号':'/admin/product/new/platform','新建订单':'/admin/orders/new','新建生产计划':'/admin/production/new/model','新建调拨':'/admin/inventory/transfers/new' };
+                  // Only route business actions to real persisted workflows. Design-state pages remain accessible as previews.
+                  const targets: Record<string, string> = { '新建型号': '/product', '新建生产计划': '/production' };
                   const href = targets[action.replace(/^[+＋↓\s]+/g,'')];
                   return href ? <a key={action} className="av-btn" data-variant="primary" href={href}>{action}</a> : <button
                     className="av-btn"
@@ -479,7 +480,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                     key={action}
                     data-variant={index === actions.length - 1 ? 'primary' : undefined}
                     disabled
-                    title="此业务操作尚未接入服务"
+                    title="此操作尚无可保存的真实业务流程；请使用下方已接入业务工作台"
                   >
                     {action}
                   </button>;
