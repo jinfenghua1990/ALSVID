@@ -454,7 +454,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </div>
             ))}
             <div className="av-railgroup">
-              <div className="av-railtitle">页面与流程 · {moduleScreens.length}</div>
+              <div className="av-railtitle">设计页面与流程 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div>
           </aside>
@@ -463,7 +463,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         )}
 
         <main className="av-workspace">
-          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : isIntegratedOverview ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
@@ -499,10 +499,6 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             </>
           ) : isIntegratedOverview ? (
             <>
-              <p className="av-fixture-note">
-                当前为可读写的 ALSVID 业务工作台。只有 API 成功后才显示已保存；
-                Shopify 订单和 WMS 仓库执行仍由外部系统负责。
-              </p>
               <IntegratedOperations area={screen.area} />
               <details className="av-card av-design-archive">
                 <summary>查看原 Ardot 页面示例（仅设计预览，不保存）</summary>
