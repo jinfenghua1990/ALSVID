@@ -7,9 +7,10 @@ import { getHomeDetail } from "../../../_lib/home-details";
 import { portalUrlFor } from "../../../_lib/portal-routing";
 import { LanguageSwitcher } from "../../../_components/language-switcher";
 import { Fc1ProductPage, generateFc1Metadata } from "../../../_components/product/fc1-product";
+import { Fc1StoryPage } from "../../../_components/product/fc1-story-v4";
 import styles from "../../../_components/home/original-home.module.css";
 
-type Props = { params: Promise<{ locale: string; slug: string }> };
+type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ view?: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (slug === "fc1") return generateFc1Metadata(locale);
@@ -28,14 +29,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-export default async function HomeDetailPage({ params }: Props) {
+export default async function HomeDetailPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
   if (slug === "fc1") {
     if (!isLocale(locale)) notFound();
     const host = (await headers()).get("host") ?? "";
     const prefix = host.toLowerCase().split(".")[0];
     if (prefix === "admin" || prefix === "my" || prefix === "dealer") redirect(`/${prefix}`);
-    return <Fc1ProductPage locale={locale} myUrl={portalUrlFor(host, "my")} />;
+    const classic = (await searchParams).view === "classic";
+    const ProductPage = classic ? Fc1ProductPage : Fc1StoryPage;
+    return <ProductPage locale={locale} myUrl={portalUrlFor(host, "my")} />;
   }
   const detail = getHomeDetail(slug);
   if (!isLocale(locale) || !detail) notFound();

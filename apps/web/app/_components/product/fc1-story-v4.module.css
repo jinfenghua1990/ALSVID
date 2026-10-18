@@ -1,0 +1,136 @@
+/* V4 is an additive layer; the original page, styles and all V3 photography remain unchanged. */
+.story { --fc1-scroll-progress:0; --fc1-travel:0; }
+.page { --ink:#17232b; --muted:#5f6e78; --green:#3d657d; }
+.main { overflow:clip; }
+.header { border-color:#ffffff1c; background:#10191ff2; }
+.header::after { position:absolute; left:0; bottom:-1px; width:100%; height:2px; background:#9cb8cc; transform:scaleX(var(--fc1-scroll-progress)); transform-origin:left; content:""; pointer-events:none; }
+.hero { min-height:0; padding:64px 24px 24px; background:radial-gradient(ellipse at 50% 95%,#354b59 0%,#111c24 48%,#080e13 85%); }
+.hero::before { position:absolute; left:50%; bottom:8%; transform:translateX(-50%); content:"FC1"; font-size:clamp(180px,34vw,540px); font-weight:750; line-height:1; letter-spacing:-.08em; color:#ffffff05; pointer-events:none; }
+.heroCopy { max-width:900px; }
+.hero h1 { font-size:clamp(54px,6vw,88px); font-weight:600; letter-spacing:-.055em; }
+.heroTagline { font-size:clamp(23px,2.4vw,34px); }
+.heroDescription { max-width:650px; color:#b4c3cc; }
+.heroDelivery { color:#a8becb; }
+.heroProduct { width:min(860px,85vw); max-height:570px; margin:26px auto 0; object-fit:contain; transform:translateY(calc(var(--fc1-travel) * -18px)) scale(calc(1 + var(--fc1-travel) * .025)); }
+.stats { background:#e9eef1; padding-block:38px; }
+.stats>div+div { border-left:1px solid #bfcbd280; }
+.stats span { color:#536772; }
+.chapterNav { position:sticky; top:64px; z-index:15; display:flex; justify-content:center; gap:clamp(16px,3vw,42px); padding:18px 24px; overflow-x:auto; background:#f8fafbf2; border-bottom:1px solid #dce4e9; backdrop-filter:blur(16px); }
+.chapterNav a { flex-shrink:0; color:#5a6d79; font-size:12px; font-weight:550; text-decoration:none; text-underline-offset:8px; }
+.chapterNav a:hover,.chapterNav a[aria-current] { color:#192f3f; text-decoration:underline; }
+.page section[id] { scroll-margin-top:140px; }
+.featureOverview { padding:104px max(6vw,calc((100vw - 1320px)/2)); background:#f3f6f8; }
+.featureGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+.featureCard { display:flex; flex-direction:column; overflow:hidden; min-width:0; background:#fff; border-radius:16px; color:var(--ink); text-decoration:none; transition:transform .3s ease,box-shadow .3s ease; }
+.featureCard:hover { transform:translateY(-5px); box-shadow:0 15px 40px #233d4a0d; }
+.featurePhoto { height:230px; padding:24px; background:linear-gradient(145deg,#edf2f5,#f8fafb); overflow:hidden; }
+.featurePhoto img { width:100%; height:100%; object-fit:contain; transition:transform .6s ease; }
+.featureCard:hover img { transform:scale(1.035); }
+.featureCard>div:last-child { display:flex; align-items:center; gap:12px; padding:24px; }
+.featureCard h3 { flex:1; min-width:0; margin:0; font-size:17px; font-weight:550; line-height:1.5; overflow-wrap:anywhere; }
+.featureNumber { color:#7f95a3; font-size:10px; letter-spacing:.05em; }
+.featureOverview>.smallNote { margin:24px 0 0; text-align:center; }
+.section { padding-block:112px; }
+.sectionHeader h2 { font-size:clamp(32px,3.8vw,58px); letter-spacing:-.04em; line-height:1.18; }
+.eyebrow { color:#597b90; }
+.split { min-height:780px; gap:64px; }
+.frameVisual { padding:24px; }
+.frameVisual::before { position:absolute; inset:12% 0 3%; z-index:-1; content:""; border-radius:50%; background:radial-gradient(ellipse,#dce7ed,transparent 70%); }
+.splitReverse { background:#e9eff3; }
+.sceneBand { min-height:680px; }
+.darkSection { background:radial-gradient(ellipse at 50% 65%,#273e4c,#0b131a 70%); }
+.darkSection .sectionHeader { max-width:850px; }
+.driveImage { height:480px; }
+.driveNumbers strong { color:#e1edf4; }
+.batteryBand { background:linear-gradient(150deg,#e6eef3,#f3f7f9); }
+.batteryVisual { display:grid; grid-template-columns:minmax(0,1fr) minmax(170px,.5fr); align-items:center; gap:40px; max-width:850px; margin:0 auto 30px; }
+.batteryVisual img { width:100%; height:440px; object-fit:contain; }
+.batteryVisual figcaption { max-width:230px; border-top:1px solid #94aebf; padding-top:18px; color:#486779; font-size:15px; line-height:1.8; }
+.batteryVisual figcaption span { display:block; font-size:28px; margin-bottom:16px; }
+.batteryCards { border-top:1px solid #b5c7d2; }
+.batteryCards span { color:#546f80; }
+.safetySection { padding:112px max(7vw,calc((100vw - 1320px)/2)); background:#fff; }
+.safetyGrid { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:70px; }
+.safetyGrid figure { margin:0; padding:30px; border-radius:16px; background:#edf2f5; }
+.safetyGrid figure img { width:100%; height:450px; object-fit:contain; }
+.safetyGrid figcaption { margin-top:18px; color:var(--muted); font-size:11px; text-align:center; }
+.safetyGrid article { padding:24px 0; border-top:1px solid #d6e0e6; }
+.safetyGrid article>span { color:#7f97a6; font-size:11px; }
+.safetyGrid h3 { margin:12px 0; font-size:26px; font-weight:550; line-height:1.25; }
+.safetyGrid article p { color:var(--muted); font-size:14px; }
+.colourBand { background:#edf2f5; }
+.cta { background:#1c3342; }
+.story[data-fc1-motion=ready] [data-fc1-chapter] .sectionHeader { transition:opacity .7s ease,transform .7s cubic-bezier(.2,.65,.3,1); }
+.story[data-fc1-motion=ready] [data-fc1-revealed=false] .sectionHeader { opacity:.4; transform:translateY(26px); }
+@media(min-width:1001px) {
+  .split .sectionHeader { position:sticky; top:180px; align-self:center; }
+}
+@media(max-width:1000px) {
+  .featureOverview { padding:80px 6vw; }
+  .featurePhoto { height:180px; padding:18px; }
+  .featureCard>div:last-child { padding:18px; gap:8px; }
+  .featureCard h3 { font-size:14px; }
+  .split { gap:30px; min-height:660px; }
+  .section,.safetySection { padding-block:80px; }
+  .safetyGrid { gap:35px; }
+  .safetyGrid figure img { height:350px; }
+}
+@media(max-width:700px) {
+  .hero { padding:46px 20px 24px; }
+  .hero h1 { font-size:48px; }
+  .heroTagline { font-size:24px; }
+  .heroProduct { width:100%; max-height:390px; margin-top:30px; transform:none; }
+  .heroDescription { font-size:12px; }
+  .stats { padding:32px 12px; gap:25px 5px; }
+  .stats>div { padding:5px; }
+  .stats>div:nth-child(3) { border-left:0; }
+  .stats>div:nth-child(2) strong { font-size:22px; }
+  .chapterNav { top:58px; justify-content:flex-start; gap:24px; padding:15px 22px; }
+  .chapterNav a { font-size:11px; }
+  .page section[id] { scroll-margin-top:122px; }
+  .featureOverview { padding:64px 20px; }
+  .featureGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .featurePhoto { height:145px; padding:12px; }
+  .featureCard { border-radius:12px; }
+  .featureCard>div:last-child { align-items:flex-start; gap:7px; padding:15px 12px; }
+  .featureCard h3 { font-size:13px; }
+  .featureNumber { font-size:9px; padding-top:3px; }
+  .featureCard>div:last-child>span:last-child { font-size:12px; }
+  .section,.safetySection { padding:68px 22px; }
+  .sectionHeader h2 { font-size:33px; }
+  .split { min-height:0; gap:25px; }
+  .frameVisual { padding:0; }
+  .sceneBand { min-height:570px; }
+  .driveImage { height:260px; }
+  .batteryVisual { grid-template-columns:1fr; gap:10px; margin-bottom:30px; }
+  .batteryVisual img { height:350px; }
+  .batteryVisual figcaption { max-width:100%; text-align:center; font-size:12px; }
+  .batteryVisual figcaption span { display:inline; margin-right:12px; font-size:18px; }
+  .batteryCards strong { font-size:34px; }
+  .safetyGrid { grid-template-columns:1fr; gap:24px; }
+  .safetyGrid figure { padding:24px; }
+  .safetyGrid figure img { height:330px; }
+  .safetyGrid h3 { font-size:25px; }
+}
+@media(max-width:359px) {
+  .featureGrid { grid-template-columns:1fr; }
+  .featurePhoto { height:190px; }
+  .hero h1 { font-size:42px; }
+  .stats>div:nth-child(2) strong { font-size:19px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .heroProduct,.featureCard,.featureCard img,.story[data-fc1-motion=ready] [data-fc1-chapter] .sectionHeader { transform:none!important; transition:none!important; opacity:1!important; }
+}
+
+@media(max-width:700px) {
+  .header { padding-inline:16px; }
+  .logo { gap:6px; font-size:16px; letter-spacing:.12em; }
+  .logo img { width:30px; }
+}
+
+@media(max-width:359px) {
+  .logo img { display:none; }
+  .header .headerActions { gap:10px; }
+  .header .headerActions .headerShop { max-width:112px; white-space:normal; line-height:1.35; text-align:center; }
+  .batteryCards { grid-template-columns:1fr; gap:24px; }
+}
