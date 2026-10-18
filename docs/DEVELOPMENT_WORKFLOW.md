@@ -1,5 +1,9 @@
 # Development Workflow
 
+## Development workspace
+
+The owner confirmed cloud-only development on 2026-10-18. Reopen the same GitHub Codespace from home and company computers; use a connected cloud AI workspace for independent tasks. Do not clone, install project dependencies, build or start localhost development servers on those workstations. Documentation-only edits can use GitHub branches and PRs directly. If no cloud execution connection is available, report that limitation rather than falling back to local development. See `COLLABORATION.md`.
+
 ## Canonical flow
 
 ```text
@@ -32,4 +36,4 @@ Manual rollback selects a previously released `main` commit. It does not reverse
 
 ## Retired environment
 
-Cloud Development/Test and its automatic promotion workflows are retired. Local Docker and ephemeral CI are validation environments, not cloud business environments. Do not restore cloud Development without a reviewed architecture decision.
+Cloud Development/Test and its automatic promotion workflows are retired. Docker inside Codespaces and ephemeral CI are isolated validation environments, not cloud business environments. Do not restore cloud Development without a reviewed architecture decision.
