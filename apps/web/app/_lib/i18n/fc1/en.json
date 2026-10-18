@@ -2,8 +2,13 @@
   "hero.poster_title": "Less weight. More freedom.",
   "hero.poster_tagline": "ALSVID FC1 · FOLDING CARBON E-BIKE",
   "hero.poster_cta": "Explore FC1",
+  "hero.poster_buy": "Shop now",
+  "product.new_badge": "NEW",
   "hero.poster_alt": "A person on a mountain lake terrace with the FC1 parked on sunlit stone paving",
   "navigation.mobile_menu": "Open navigation",
+  "navigation.products": "Products",
+  "navigation.global_dealers": "Global dealers",
+  "navigation.owner_account": "Owner services",
   "hero.fc1_eyebrow": "20-INCH CARBON FOLDING E-BIKE",
   "hero.fc1_title": "ALSVID FC1",
   "hero.fc1_description": "A 40 cm low step, a compact main-frame fold, and suspension front and rear. Made for the city you know and the way home you choose.",
@@ -188,5 +193,10 @@
   "fc1.selection.delivery": "Once pre-orders launch, the estimated delivery window is 4–6 weeks after order confirmation, subject to logistics confirmation.",
   "fc1.selection.unavailable": "Preview only. No order or payment is taken. Checkout will be enabled when Shopify is connected.",
   "fc1.selection.cta": "View technical details",
-  "fc1.selection.cta_configure": "Choose model & colour"
+  "fc1.selection.cta_configure": "Choose model & colour",
+  "navigation.company": "Company",
+  "hero.pause": "Pause slideshow",
+  "hero.play": "Play slideshow",
+  "hero.platform_concept": "PLATFORM CONCEPT · PRODUCTION DETAILS TO BE CONFIRMED",
+  "hero.explore_platform": "Explore platform"
 }

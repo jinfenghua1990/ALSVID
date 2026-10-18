@@ -1,0 +1,8 @@
+.switcher { position: relative; flex-shrink: 0; }
+.trigger { display: grid; place-items: center; width: 44px; height: 44px; cursor: pointer; list-style: none; border-radius: 50%; color: inherit; }
+.trigger::-webkit-details-marker { display: none; }
+.trigger:hover, .switcher[open] .trigger { background: #ffffff18; }
+.trigger:focus-visible { outline: 2px solid #d6edb7; outline-offset: 3px; }
+.menu { position: absolute; top: calc(100% + 10px); right: 0; min-width: 144px; padding: 8px; border: 1px solid #ffffff24; border-radius: 12px; background: #101923; box-shadow: 0 12px 30px #0004; z-index: 60; }
+.switcher .menu a { padding: 8px 14px; border-radius: 6px; color: #fff; white-space: nowrap; }
+.switcher .menu a:hover { background: #ffffff18; }

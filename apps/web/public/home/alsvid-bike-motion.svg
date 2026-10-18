@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="alsvidBike" viewBox="0 0 1024 572" width="1024" height="572" aria-hidden="true">
+  
+  
+  <defs>
+    <linearGradient id="baseSky" x1="0" y1="0" x2="1" y2=".45" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#68433e"/><stop offset=".55" stop-color="#845238"/><stop offset="1" stop-color="#975d34"/>
+    </linearGradient>
+    <linearGradient id="warmWash" x1="0" y1="0" x2=".24" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#b87938" stop-opacity="0"/>
+      <stop offset="1" stop-color="#bd813b" stop-opacity=".27"/>
+    </linearGradient>
+    <radialGradient id="rightGlow" cx="1" cy="1" r=".82" fx="1" fy="1">
+      <stop offset="0" stop-color="#e18d2e" stop-opacity=".44"/>
+      <stop offset=".58" stop-color="#d27b2a" stop-opacity=".19"/>
+      <stop offset="1" stop-color="#b87437" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="metalWhite" x1="0" y1="0" x2=".2" y2="1">
+      <stop offset="0" stop-color="#f9f6ef"/><stop offset="1" stop-color="#f2e9dc"/>
+    </linearGradient>
+    <linearGradient id="rearArm" x1="0" y1="0" x2="1" y2=".16">
+      <stop offset="0" stop-color="#f8f4eb" stop-opacity=".72"/>
+      <stop offset=".55" stop-color="#f8f4eb" stop-opacity=".58"/>
+      <stop offset="1" stop-color="#f8f4eb" stop-opacity=".44"/>
+    </linearGradient>
+    <linearGradient id="motor" x1="0" y1="0" x2="1" y2=".85">
+      <stop offset="0" stop-color="#b8a18f" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#c1aa94" stop-opacity=".82"/>
+    </linearGradient>
+    <radialGradient id="batteryDockFade" gradientUnits="userSpaceOnUse" cx="485" cy="390" r="56.65">
+      <stop offset=".72" stop-color="black"/><stop offset="1" stop-color="white"/>
+    </radialGradient>
+    <mask id="batteryDockMask" maskUnits="userSpaceOnUse" x="375" y="110" width="130" height="290" style="mask-type:luminance">
+      <rect x="375" y="110" width="130" height="290" fill="white"/>
+      <circle cx="485" cy="390" r="56.65" fill="url(#batteryDockFade)"/>
+    </mask>
+    <linearGradient id="batteryChargeFill" x1="0" y1="0" x2=".2" y2="1">
+      <stop offset="0" stop-color="#28f25f"/>
+      <stop offset=".48" stop-color="#08e944"/>
+      <stop offset="1" stop-color="#00e03c"/>
+    </linearGradient>
+    <linearGradient id="batteryGlassEdge" x1="0" y1="0" x2="1" y2=".7">
+      <stop offset="0" stop-color="#fffdf5" stop-opacity=".76"/>
+      <stop offset=".48" stop-color="#fffdf5" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#e1f7e7" stop-opacity=".52"/>
+    </linearGradient>
+    <clipPath id="batteryCellClip"><rect x="-7" y="0" width="14" height="223" rx="4"/></clipPath>
+    <linearGradient id="batteryFillEdge" gradientUnits="userSpaceOnUse" x1="0" y1="-16" x2="0" y2="0">
+      <stop offset="0" stop-color="black"/><stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <mask id="batteryFillReveal" maskUnits="userSpaceOnUse" x="-8" y="-16" width="16" height="240" style="mask-type:luminance">
+      <rect x="-8" y="-16" width="16" height="240" fill="black"/>
+      <g class="chargeReveal" transform="translate(0 66.9)"><rect x="-8" y="-16" width="16" height="255" fill="url(#batteryFillEdge)"/></g>
+    </mask>
+    <clipPath id="rearInner"><circle cx="282.5" cy="405.4" r="104.3"/></clipPath>
+    <clipPath id="frontInner"><circle cx="767" cy="405.5" r="104.3"/></clipPath>
+    <clipPath id="batteryOutline"><use href="#seatTube" xlink:href="#seatTube"/></clipPath>
+    <mask id="frontJointCuts" maskUnits="userSpaceOnUse" x="450" y="45" width="340" height="380" style="mask-type:luminance">
+      <rect x="450" y="45" width="340" height="380" fill="white"/>
+      <!-- Two true cut lines through one silhouette; no painted-on bands. -->
+      <path d="M680 233.5 L711 223.4" stroke="black" stroke-width="2.9" fill="none"/>
+      <path d="M692 279 L722 269.4" stroke="black" stroke-width="2.8" fill="none"/>
+    </mask>
+  </defs>
+  <style>
+    #alsvidBike{overflow:visible;touch-action:manipulation}
+    #alsvidBike:not(.js) .spokeRotor{animation:turn 8.33s linear infinite}
+    #alsvidBike:not(.js):hover .spokeRotor{animation-duration:.87s}
+    #alsvidBike:not(.js) #chainLinks{animation:chainTravel .5341s linear infinite}
+    #alsvidBike:not(.js):hover #chainLinks{animation-duration:.05573s}
+    #alsvidBike:not(.js) #rearRotor{transform-origin:282.5px 405.4px}
+    #alsvidBike:not(.js) #frontRotor{transform-origin:767px 405.5px}
+    #batteryEffect{opacity:1;pointer-events:none;transition:opacity .35s ease}
+    .chargeLevel{opacity:.88;animation:chargeFill 20s ease-in-out infinite}
+    .chargeReveal{transform:translateY(66.9px);animation:chargeReveal 20s ease-in-out infinite}
+    .chargeFull{opacity:0;animation:chargeComplete 20s ease-in-out infinite}
+    #alsvidBike:not(.js):hover .chargeLevel,#alsvidBike:not(.js):hover .chargeReveal,#alsvidBike:not(.js):hover .chargeFull{animation-duration:2.2s}
+    #alsvidBike.js .chargeLevel,#alsvidBike.js .chargeReveal,#alsvidBike.js .chargeFull{animation:none}
+    #alsvidBike.js .chargeReveal{transform:none}
+    #alsvidBike.motionPaused .chargeLevel,#alsvidBike.motionPaused .chargeFull,#alsvidBike.motionPaused .chargeReveal{animation-play-state:paused}
+    @keyframes turn{to{transform:rotate(360deg)}}
+    @keyframes chainTravel{to{stroke-dashoffset:-10}}
+    @keyframes chargeFill{0%,8%{opacity:0}14%{opacity:.95}62%,78%{opacity:1}90%,100%{opacity:0}}
+    @keyframes chargeReveal{0%,8%{transform:translateY(239px)}62%,90%{transform:translateY(0)}91%,100%{transform:translateY(239px)}}
+    @keyframes chargeComplete{0%,60%,82%,100%{opacity:0}69%{opacity:.8}76%{opacity:.3}}
+    @media(prefers-reduced-motion:reduce){#alsvidBike:not(.js) .spokeRotor,#alsvidBike:not(.js) #chainLinks,.chargeLevel,.chargeFull,.chargeReveal{animation:none}.chargeFull{opacity:0}}
+  </style>
+
+  <!-- All visible geometry is vector. There is no image element or bitmap. -->
+  
+
+  <!-- Rear wheel: only the clipped spoke layer turns. Hub and rim remain centered. -->
+  <g id="rearRotor" class="spokeRotor" clip-path="url(#rearInner)" fill="none" stroke="#f6eddf" stroke-opacity=".76" stroke-width="1.5">
+    <path d="M282.5 405.4 V300.8 M282.5 405.4 L356.5 331.4 M282.5 405.4 H387.1 M282.5 405.4 L356.5 479.4 M282.5 405.4 V510 M282.5 405.4 L208.5 479.4 M282.5 405.4 H177.9 M282.5 405.4 L208.5 331.4"/>
+  </g>
+  <circle cx="282.5" cy="405.4" r="109" fill="none" stroke="url(#metalWhite)" stroke-width="9.3"/>
+
+  <!-- Front wheel. Its spokes are behind the fork. -->
+  <g id="frontRotor" class="spokeRotor" clip-path="url(#frontInner)" fill="none" stroke="#f6eddf" stroke-opacity=".76" stroke-width="1.5">
+    <path d="M767 405.5 V300.9 M767 405.5 L841 331.5 M767 405.5 H871.6 M767 405.5 L841 479.5 M767 405.5 V510.1 M767 405.5 L693 479.5 M767 405.5 H662.4 M767 405.5 L693 331.5"/>
+  </g>
+  <circle cx="767" cy="405.5" r="109" fill="none" stroke="url(#metalWhite)" stroke-width="9.3"/>
+
+  <!-- Fixed rear structure, chain and seat post: separately editable SVG paths. -->
+  <path d="M282 405 L481 386" stroke="url(#rearArm)" stroke-width="25" stroke-linecap="round" fill="none"/>
+  <path d="M282 405 L474 391" stroke="#faf3e7" stroke-opacity=".58" stroke-width="1.4" fill="none"/>
+
+  <!-- The entire narrow seat post is the battery. The wide lower sleeve remains neutral. -->
+  <g id="batteryCase">
+  <path id="seatTube" d="M382 123 L399 119 L461 346 C465 360 475 376 490 385 L480 395 C461 380 447 372 441 349 Z" fill="url(#metalWhite)"/>
+  <path id="seatSleeve" d="M409.26 269.63 Q407 263 413.83 261.45 L444.17 254.55 Q451 253 453.07 259.69 L479.23 344.27 Q481 350 475.17 351.42 L445.83 358.58 Q440 360 438.07 354.32 Z" fill="#eee0d0" fill-opacity=".32" stroke="url(#batteryGlassEdge)" stroke-width="1" mask="url(#batteryDockMask)"/>
+  <!-- The entire seat-post cell charges from empty with a feathered rising front. -->
+  <g id="batteryEffect" aria-hidden="true" clip-path="url(#batteryOutline)" mask="url(#batteryDockMask)">
+    <g transform="matrix(.966 -.258 .258 .966 392.4 128)">
+      <rect x="-7" y="0" width="14" height="223" rx="4" fill="#e5ece7" fill-opacity=".08"/>
+      <g clip-path="url(#batteryCellClip)">
+        <g class="chargeLevel">
+          <rect x="-7" y="0" width="14" height="223" fill="url(#batteryChargeFill)" mask="url(#batteryFillReveal)"/>
+        </g>
+        <rect class="chargeFull" x="-7" y="0" width="14" height="6" rx="3" fill="#e0ffeb"/>
+      </g>
+      <rect x="-7" y="0" width="14" height="223" rx="4" fill="none" stroke="url(#batteryGlassEdge)" stroke-width=".7"/>
+      <path d="M-4 7 V215" stroke="#ffffff" stroke-opacity=".16" stroke-width="1" stroke-linecap="round"/>
+    </g>
+  </g>
+  </g>
+
+  <!-- Original-style saddle, including the distinct open rail under the top. -->
+  <path d="M330 98 Q334 95 345 96 L433 96 Q448 95 451 105 Q452 110 447 110 L418 109 L387 126 Q377 129 370 124 L368 121 L359 123 Q355 123 351 119 L333 108 Q328 105 330 98 Z" fill="url(#metalWhite)"/>
+  <path d="M367 115 L403 106 L419 107 L399 116 L372 122 Z" fill="#86553d"/>
+
+  <!-- One continuous silhouette joins stem, head tube, main tube and fork.
+       Shared boundary coordinates eliminate the former gaps and stepped edges. -->
+  <path id="frontAssembly" fill="url(#metalWhite)" mask="url(#frontJointCuts)" d="
+    M666 78 Q663 75 668 72 L681 57 Q688 50 694 59
+    L700 66 L719 73 Q725 76 722 81 Q719 84 715 81
+    L689 69 Q681 76 677 84
+    L700 209 C704 224 709 245 716 270
+    C731 307 754 363 777 401
+    Q779 410 771 414 L764 418 Q759 418 754 407
+    L700 280 C697 272 695 269 689 269
+    C684 269 680 271 674 275
+    L554 354 C542 362 538 371 538 379
+    C538 385 508 392 493 394
+    L482 384 C493 370 504 355 514 350
+    C523 348 531 349 540 343
+    L673 255 C684 248 688 241 686 233
+    Q684 228 682 224
+    C677 224 674 221 675 217 C676 213 680 210 680 207
+    L665 90 Q663 85 666 78 Z"/>
+
+  <!-- Motor/bottom bracket in front of the overlapping tubes. -->
+  <circle cx="485" cy="390" r="53.5" fill="url(#motor)" stroke="#f4ede3" stroke-opacity=".78" stroke-width="6.3"/>
+  <circle cx="485" cy="390" r="11" fill="#fffaf2"/>
+
+  <!-- Closed chain: common tangents meet both sprocket arcs without corners.
+       Eighty evenly spaced links travel clockwise in sync with the rear wheel. -->
+  <path id="chainLinks" d="M277.178 385.603 L469.890 333.796 A58.2 58.2 0 1 1 478.564 447.843 L280.233 425.774 A20.5 20.5 0 0 1 277.178 385.603 Z" pathLength="800" fill="none" stroke="#fbf5e9" stroke-opacity=".91" stroke-width="2.1" stroke-dasharray="5 5" stroke-linecap="round"/>
+
+  <!-- Wheel hubs stay static while the spokes rotate beneath them. -->
+  <circle cx="282.5" cy="405.4" r="17.3" fill="#d4bca6" fill-opacity=".82"/>
+  <circle cx="282.5" cy="405.4" r="9.8" fill="#fffaf3"/>
+  <circle cx="767" cy="405.5" r="16" fill="#faf6ed"/>
+  <circle cx="767" cy="405.5" r="8.8" fill="#fffdf8"/>
+
+  
+</svg>

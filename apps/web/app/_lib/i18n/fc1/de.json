@@ -2,8 +2,13 @@
   "hero.poster_title": "Weniger Gewicht. Mehr Freiheit.",
   "hero.poster_tagline": "ALSVID FC1 · FALTBARES CARBON E-BIKE",
   "hero.poster_cta": "FC1 entdecken",
+  "hero.poster_buy": "Jetzt kaufen",
+  "product.new_badge": "NEU",
   "hero.poster_alt": "Eine Person auf einer Aussichtsterrasse und das FC1 auf Steinplatten vor einem Bergsee im Abendlicht",
   "navigation.mobile_menu": "Navigation öffnen",
+  "navigation.products": "Produkte",
+  "navigation.global_dealers": "Händler weltweit",
+  "navigation.owner_account": "Service",
   "hero.fc1_eyebrow": "20-ZOLL CARBON-FALT-E-BIKE",
   "hero.fc1_title": "ALSVID FC1",
   "hero.fc1_description": "40 cm niedriger Einstieg, kompakte Hauptrahmen-Faltung und Federung vorne wie hinten. Für die bekannte Stadt und den Weg, den Sie selbst wählen.",
@@ -188,5 +193,10 @@
   "fc1.selection.delivery": "Für die spätere Vorbestellung sind etwa 4–6 Wochen ab Bestellbestätigung geplant. Die Logistik muss noch bestätigt werden.",
   "fc1.selection.unavailable": "Momentan nur Konfigurationsvorschau. Keine Bestellung oder Zahlung möglich. Der Checkout folgt nach der Shopify-Anbindung.",
   "fc1.selection.cta": "Technische Daten ansehen",
-  "fc1.selection.cta_configure": "Modell & Farbe ansehen"
+  "fc1.selection.cta_configure": "Modell & Farbe ansehen",
+  "navigation.company": "Unternehmen",
+  "hero.pause": "Diashow pausieren",
+  "hero.play": "Diashow abspielen",
+  "hero.platform_concept": "PLATTFORMKONZEPT · SERIENDATEN NOCH OFFEN",
+  "hero.explore_platform": "Plattform entdecken"
 }

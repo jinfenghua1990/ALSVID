@@ -22,3 +22,4 @@ export function localizedPath(path: string, locale: Locale): string {
 }
 
 export const localeLabels: Record<Locale, string> = { zh: '中文', de: 'DE', en: 'EN' };
+export const localeNativeLabels: Record<Locale, string> = { zh: '中文', de: 'Deutsch', en: 'English' };

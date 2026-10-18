@@ -2,8 +2,13 @@
   "hero.poster_title": "更轻盈，更自由。",
   "hero.poster_tagline": "ALSVID FC1 · 碳纤维折叠电助力车",
   "hero.poster_cta": "探索 FC1",
+  "hero.poster_buy": "前往购买",
+  "product.new_badge": "新品",
   "hero.poster_alt": "人物站在山湖观景台，FC1 自行车停在夕照中的石板路面上",
   "navigation.mobile_menu": "打开导航菜单",
+  "navigation.products": "产品",
+  "navigation.global_dealers": "全球经销商",
+  "navigation.owner_account": "车主服务",
   "hero.fc1_eyebrow": "20 英寸碳纤维折叠电助力车",
   "hero.fc1_title": "ALSVID FC1",
   "hero.fc1_description": "40 cm 低跨设计、紧凑主车架折叠，前后均配减震。为熟悉的城市和下一段路程而来。",
@@ -188,5 +193,10 @@
   "fc1.selection.delivery": "计划开放预订后，预计交付时间为订单确认后的 4–6 周；需物流确认。",
   "fc1.selection.unavailable": "当前仅展示选配界面，不接受付款或生成订单。Shopify 接入后再开通正式下单。",
   "fc1.selection.cta": "查看技术参数",
-  "fc1.selection.cta_configure": "查看车型与颜色"
+  "fc1.selection.cta_configure": "查看车型与颜色",
+  "navigation.company": "品牌公司",
+  "hero.pause": "暂停轮播",
+  "hero.play": "播放轮播",
+  "hero.platform_concept": "平台概念 · 量产信息待确认",
+  "hero.explore_platform": "探索平台"
 }

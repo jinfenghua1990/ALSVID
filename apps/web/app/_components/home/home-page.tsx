@@ -1,4 +1,4 @@
-import { HomePosterHero, InfoDialog, FoldingSteps } from "./home-interactions";
+import { HomePosterHero, FoldingSteps } from "./home-interactions";
 import { LanguageSwitcher } from "../language-switcher";
 import { translator, type Locale } from "../../_lib/i18n";
 import styles from "./original-home.module.css";
@@ -14,6 +14,16 @@ export function HomePage({
 }) {
   const t = translator(locale);
   const detail = (slug: string) => `/${locale}/explore/${slug}`;
+  const configuredShopUrl = process.env.ALSVID_SHOPIFY_FC1_PRODUCT_URL?.trim();
+  const shopUrl = (() => {
+    if (!configuredShopUrl) return "";
+    try {
+      const url = new URL(configuredShopUrl);
+      return url.protocol === "https:" && url.hostname === "shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : "";
+    } catch {
+      return "";
+    }
+  })();
   return (
     <main
       translate="no"
@@ -25,44 +35,29 @@ export function HomePage({
       <header className={styles["header"]}>
         <div className={styles["brand-lockup"]}>
           <a href={`/${locale}`} className={styles["logo"]}>
-            {t("brand.name")}
+            <img className={styles.brandBike} src="/home/alsvid-bike-motion.svg" alt="" width="74" height="42" />
+            <span>{t("brand.name")}</span>
           </a>
           <span className={styles["brand-strapline"]}>{t("announcement")}</span>
         </div>
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
+          <a href="#featured" className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
           <a href="#platforms">{t("navigation.products")}</a>
-          <a href="#featured">{t("product.model_fc1")}</a>
-          <a href="#folding">{t("navigation.folding")}</a>
-          <a href="#tech">{t("navigation.technology")}</a>
-          <a href="#service">{t("navigation.services")}</a>
-          <a href={detail("about-story")}>{t("brand.story")}</a>
-          <a href="#dealer">{t("navigation.join_dealer")}</a>
+          <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
+          <a href={detail("about-story")}>{t("navigation.company")}</a>
         </nav>
         <div className={styles["actions"]}>
-          <a href={dealerUrl}>{t("navigation.dealer")}</a>
-          <a href={myUrl}>{t("navigation.account")}</a>
-          <InfoDialog
-            label={t("navigation.cart")}
-            title={t("commerce.title")}
-            body={t("commerce.body")}
-            closeLabel={t("common.close")}
-          />
-          <a href="#platforms">
-            {t("product.explore_models")}
-          </a>
-          <LanguageSwitcher locale={locale} label={t("language.label")} />
+          <a href={myUrl}>{t("navigation.owner_account")}</a>
+          <LanguageSwitcher locale={locale} label={t("language.label")} variant="globe" />
         </div>
         <details className={styles.mobileNav}>
           <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
           <nav aria-label={t("navigation.primary")}>
+            <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
             <a href="#platforms">{t("navigation.products")}</a>
-            <a href={detail("fc1")}>{t("product.model_fc1")}</a>
-            <a href="#folding">{t("navigation.folding")}</a>
-            <a href="#tech">{t("navigation.technology")}</a>
-            <a href="#service">{t("navigation.services")}</a>
-            <a href={detail("about-story")}>{t("brand.story")}</a>
-            <a href={dealerUrl}>{t("navigation.dealer")}</a>
-            <a href={myUrl}>{t("navigation.account")}</a>
+            <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
+            <a href={detail("about-story")}>{t("navigation.company")}</a>
+            <a href={myUrl}>{t("navigation.owner_account")}</a>
           </nav>
         </details>
       </header>
@@ -70,17 +65,23 @@ export function HomePage({
         title={t("hero.poster_title")}
         tagline={t("hero.poster_tagline")}
         discoverLabel={t("hero.poster_cta")}
+        buyLabel={t("hero.poster_buy")}
+        buyHref={shopUrl}
         posterAlt={t("hero.poster_alt")}
         modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
         secondaryLabel={t("hero.poster_customize")}
         deliveryNote={t("hero.poster_delivery")}
         categories={[
-          {href: detail("fc"), label: t("platform.fc.title")},
-          {href: detail("ct"), label: t("platform.ct.title")},
-          {href: detail("ft"), label: t("platform.ft.title")},
-          {href: detail("gt"), label: t("platform.gt.title")},
+          {href: detail("fc1"), label: t("platform.fc.title"), image: "/home/fc1-poster-clean.png", alt: t("hero.poster_alt")},
+          {href: detail("ct"), label: t("platform.ct.title"), image: "/home/original/scene-city.webp", alt: t("images.city")},
+          {href: detail("ft"), label: t("platform.ft.title"), image: "/home/original/scene-fat-tire.webp", alt: t("images.fat")},
+          {href: detail("gt"), label: t("platform.gt.title"), image: "/home/original/scene-touring.webp", alt: t("images.touring")},
         ]}
+        pauseLabel={t("hero.pause")}
+        playLabel={t("hero.play")}
+        conceptLabel={t("hero.platform_concept")}
+        exploreLabel={t("hero.explore_platform")}
         scrollLabel={t("navigation.products")}
       />
       <section id="platforms" className={styles["section"]}>
@@ -280,7 +281,7 @@ export function HomePage({
           </div>
           <div className={styles["tech-grid"]}>
             <article className={styles["tech-card"]}>
-              <div className={styles["tech-icon"]}>{t("icon.assist")}</div>
+              <div className={styles.motionDetail}><img src="/home/alsvid-bike-motion.svg" alt="" width="156" height="88" loading="lazy" /></div>
               <h3>{t("technology.assist.title")}</h3>
               <p>{t("technology.assist.body")}</p>
               <a
@@ -597,7 +598,7 @@ export function HomePage({
       <footer className={styles["footer"]}>
         <div className={styles["footer-grid"]}>
           <div className={styles["footer-brand"]}>
-            <b>{t("brand.name")}</b>
+            <div className={styles.footerMotionBrand}><img src="/home/alsvid-bike-motion.svg" alt="" width="80" height="46" loading="lazy" /><b>{t("brand.name")}</b></div>
             <p>{t("brand.tagline")}</p>
           </div>
           <div className={styles["footer-col"]}>
