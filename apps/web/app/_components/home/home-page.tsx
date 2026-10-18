@@ -14,6 +14,16 @@ export function HomePage({
 }) {
   const t = translator(locale);
   const detail = (slug: string) => `/${locale}/explore/${slug}`;
+  const configuredShopUrl = process.env.ALSVID_SHOPIFY_FC1_PRODUCT_URL?.trim();
+  const shopUrl = (() => {
+    if (!configuredShopUrl) return "";
+    try {
+      const url = new URL(configuredShopUrl);
+      return url.protocol === "https:" && url.hostname === "shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : "";
+    } catch {
+      return "";
+    }
+  })();
   return (
     <main
       translate="no"
@@ -56,10 +66,12 @@ export function HomePage({
         tagline={t("hero.poster_tagline")}
         discoverLabel={t("hero.poster_cta")}
         buyLabel={t("hero.poster_buy")}
-        buyHref="https://shop.chaibenn.com/"
+        buyHref={shopUrl}
         posterAlt={t("hero.poster_alt")}
         modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
+        secondaryLabel={t("hero.poster_customize")}
+        deliveryNote={t("hero.poster_delivery")}
         categories={[
           {href: detail("fc1"), label: t("platform.fc.title"), image: "/home/fc1-poster-clean.png", alt: t("hero.poster_alt")},
           {href: detail("ct"), label: t("platform.ct.title"), image: "/home/original/scene-city.webp", alt: t("images.city")},

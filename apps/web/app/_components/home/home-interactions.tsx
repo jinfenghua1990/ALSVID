@@ -60,6 +60,8 @@ export function HomePosterHero({
   playLabel,
   conceptLabel,
   exploreLabel,
+  secondaryLabel,
+  deliveryNote,
 }: {
   title: string;
   tagline: string;
@@ -75,6 +77,8 @@ export function HomePosterHero({
   playLabel: string;
   conceptLabel: string;
   exploreLabel: string;
+  secondaryLabel: string;
+  deliveryNote: string;
 }) {
   const headingId = useId();
   const [active, setActive] = useState(0);
@@ -113,9 +117,11 @@ export function HomePosterHero({
           <p className={styles.posterTagline}>{active === 0 ? tagline : conceptLabel}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
           <div className={styles.posterButtons}>
-            <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}>{buyLabel}<span aria-hidden="true">↗</span></a>
+            {buyHref ? <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref} target="_blank" rel="noreferrer">{buyLabel}<span aria-hidden="true">↗</span></a> : null}
             <a className={styles.posterDiscover} href={active === 0 ? modelHref : slide.href}>{active === 0 ? discoverLabel : exploreLabel}<span aria-hidden="true">→</span></a>
+            {active === 0 && <a className={styles.posterSecondary} href={`${modelHref}#configure`}>{secondaryLabel}</a>}
           </div>
+          {active === 0 && <p className={styles.posterDelivery}>{deliveryNote}</p>}
         </div>
         <a className={styles.posterBikeLink} href={slide.href} aria-label={active === 0 ? modelLabel : slide.label} />
         <div className={styles.carouselControls} role="group" aria-label={scrollLabel}>

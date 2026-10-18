@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { LanguageSwitcher } from "../language-switcher";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
-import { ProductGallery, ColourSelector, FoldStatePreview, ComponentHotspots, SpecificationFilters } from "./fc1-interactions";
+import { ProductGallery, ProductConfigurator, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
 import styles from "./fc1-product.module.css";
+import { fc1Photos } from "./fc1-photos";
 
 export async function generateFc1Metadata(localeValue: string): Promise<Metadata> {
   if (!isLocale(localeValue)) return {};
@@ -38,6 +39,16 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
   const t = translator(locale);
   const key = (value: string) => t(value as TranslationKey);
   const formatWeight = (value: number) => `${new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)} kg`;
+  const configuredShopUrl = process.env.ALSVID_SHOPIFY_FC1_PRODUCT_URL?.trim();
+  const fc1ShopUrl = (() => {
+    if (!configuredShopUrl) return null;
+    try {
+      const url = new URL(configuredShopUrl);
+      return url.protocol === "https:" && url.hostname === "shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
   return (
     <main className={styles.page} lang={locale}>
       <div className={styles.reviewBanner}>{key("fc1.preview")}</div>
@@ -47,6 +58,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <a href={`/${locale}/`}>{key("fc1.home")}</a>
           <a href="#specifications">{key("fc1.specifications")}</a>
           <a href="#faq">{key("fc1.questions")}</a>
+          <a className={styles.headerShop} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.shop" : "fc1.selection.cta_configure")} ↗</a>
           <LanguageSwitcher locale={locale} label={key("fc1.language")} />
         </div>
       </header>
@@ -54,14 +66,16 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{key("fc1.eyebrow")}</p>
-            <h1>{key("fc1.heading")}</h1>
-            <p>{key("fc1.intro")}</p>
+            <h1>ALSVID FC1</h1>
+            <p className={styles.heroTagline}>{key("fc1.heading")}</p>
+            <p className={styles.heroDescription}>{key("fc1.intro")}</p>
+            <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
             <div className={styles.heroCtas}>
-              <a className={styles.buttonDark} href="#colours">{key("fc1.colours.title")} <span aria-hidden="true">↘</span></a>
-              <a className={styles.buttonLight} href="#specifications">{key("fc1.specifications")}</a>
+              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↘</span></a>
+              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
             </div>
           </div>
-          <div className={styles.heroVisual}><ProductGallery locale={locale} /></div>
+          <img className={styles.heroProduct} {...fc1Photos.side} alt={key("fc1.photo.alt")} fetchPriority="high" />
         </section>
         <section className={styles.stats} aria-label={key("fc1.highlights")}>
           <div><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
@@ -69,23 +83,15 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <div><strong>{new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(15.5)} <small>kg</small></strong><span>{key("fc1.metric.weight")}</span></div>
           <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
         </section>
-        <section id="colours" className={styles.colourBand}>
-          <div>
-            <p className={styles.eyebrow}>{key("fc1.colours.kicker")}</p>
-            <h2>{key("fc1.colours.title")}</h2>
-            <p>{key("fc1.colours.body")}</p>
-          </div>
-          <ColourSelector locale={locale} />
-        </section>
         <section id="entry" className={`${styles.section} ${styles.split}`}>
           <div className={styles.sectionHeader}>
             <p className={styles.eyebrow}>{key("fc1.section.entry.kicker")}</p>
             <h2>{key("fc1.section.entry.title")}</h2>
             <p>{key("fc1.section.entry.body")}</p>
+            <div className={styles.measure}><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
           </div>
           <div className={styles.frameVisual}>
-            <img src="/products/fc1/rear-three-quarter.webp" alt={key("fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
-            <div className={styles.measure}><strong>40 cm</strong><span>{key("fc1.metric.step")}</span></div>
+            <img {...fc1Photos["rear-three-quarter"]} alt={key("fc1.photo.alt")} loading="lazy" />
           </div>
         </section>
         <section id="folding" className={`${styles.section} ${styles.split} ${styles.splitReverse}`}>
@@ -96,13 +102,16 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           </div>
           <FoldStatePreview locale={locale} />
         </section>
-        <section id="details" className={`${styles.section} ${styles.darkSection}`}>
+        <section className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
+          <div><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
+        </section>
+        <section id="details" className={`${styles.section} ${styles.suspensionSection}`}>
           <div className={styles.sectionHeader}>
             <p className={styles.eyebrow}>{key("fc1.section.detail.kicker")}</p>
             <h2>{key("fc1.section.detail.title")}</h2>
             <p>{key("fc1.section.detail.body")}</p>
           </div>
-          <ComponentHotspots locale={locale} />
+          <SuspensionCards locale={locale} />
         </section>
         <section className={`${styles.section} ${styles.darkSection}`}>
           <div className={styles.sectionHeader}>
@@ -111,7 +120,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p>{key("fc1.section.drive.body")}</p>
           </div>
           <div className={styles.driveGrid}>
-            <div className={styles.driveImage}><img src="/products/fc1/handlebar-display.webp" alt={key("fc1.gallery.controls")} width="1536" height="1024" loading="lazy" /></div>
+            <div className={styles.driveImage}><img {...fc1Photos["handlebar-display"]} alt={key("fc1.gallery.controls")} loading="lazy" /></div>
             <div>
               <div className={styles.driveNumbers}>
                 <div><strong>250 W</strong><span>{key("fc1.drive.power")}</span></div>
@@ -142,10 +151,22 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <h2>{key("fc1.section.config.title")}</h2>
           </div>
           <div className={styles.configGrid}>
-            <article><span>01 / {key("fc1.status.reference")}</span><h3>{key("fc1.config.chain.title")}</h3><div className={styles.configWeight}>{formatWeight(15.5)}</div><p>{key("fc1.config.chain.body")}</p><img src="/products/fc1/shimano-chain-drivetrain.webp" alt={key("fc1.gallery.chain")} width="1536" height="1024" loading="lazy" /></article>
+            <article><span>01 / {key("fc1.status.reference")}</span><h3>{key("fc1.config.chain.title")}</h3><div className={styles.configWeight}>{formatWeight(15.5)}</div><p>{key("fc1.config.chain.body")}</p></article>
             <article><span>02 / {key("fc1.status.option")}</span><h3>{key("fc1.config.belt.title")}</h3><div className={styles.configWeight}>{formatWeight(14.5)}</div><p>{key("fc1.config.belt.body")}</p></article>
           </div>
           <p className={styles.smallNote}>{key("fc1.config.note")}</p>
+        </section>
+        <section id="configure" className={styles.colourBand}>
+          <div>
+            <p className={styles.eyebrow}>{key("fc1.selection.kicker")}</p>
+            <h2 id="colours">{key("fc1.selection.title")}</h2>
+            <p>{key("fc1.selection.body")}</p>
+          </div>
+          <ProductConfigurator locale={locale} />
+        </section>
+        <section id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
+          <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
+          <ProductGallery locale={locale} />
         </section>
         <section id="specifications" className={`${styles.section} ${styles.specSection}`}>
           <div className={styles.sectionHeader}>
@@ -164,7 +185,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           </SpecificationFilters>
           <p className={styles.rangeNote}>{key("fc1.battery.range_note")}</p>
         </section>
-        <section id="faq" className={styles.faq}>
+        <section id="faq" className={`${styles.section} ${styles.faq}`}>
           <h2>{key("fc1.section.faq.title")}</h2>
           <div className={styles.faqList}>
             {Array.from({ length: 8 }, (_, i) => (
@@ -179,10 +200,10 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href="https://shop.chaibenn.com/" target="_blank" rel="noreferrer">{key("fc1.cta.shop")} <span aria-hidden="true">↗</span></a>
-          <p className={styles.smallNote}>{key("fc1.cta.shop_note")}</p>
+          <a className={`${styles.buttonDark} ${styles.button}`} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <p className={styles.smallNote}>{key(fc1ShopUrl ? "fc1.cta.shop_note" : "fc1.selection.unavailable")}</p>
         </section>
-        <p className={styles.sourceNote}>{key("fc1.source")} <a href="https://naicisports.com/de/produkt/pilot-x9-carbon-falt-e-bike-mit-tiefem-einstieg/#specifications" target="_blank" rel="noreferrer">{key("fc1.source.link")}</a></p>
+        <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
       </div>
       <footer className={styles.footer}>
         <a className={styles.logo} href={`/${locale}/`}>ALSVID</a>
