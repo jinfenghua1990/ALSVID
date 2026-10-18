@@ -1,4 +1,4 @@
-import { HomePosterHero, InfoDialog, FoldingSteps } from "./home-interactions";
+import { HomePosterHero, FoldingSteps } from "./home-interactions";
 import { LanguageSwitcher } from "../language-switcher";
 import { translator, type Locale } from "../../_lib/i18n";
 import styles from "./original-home.module.css";
@@ -30,39 +30,23 @@ export function HomePage({
           <span className={styles["brand-strapline"]}>{t("announcement")}</span>
         </div>
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
-          <a href="#platforms">{t("navigation.products")}</a>
           <a href="#featured" className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
-          <a href="#folding">{t("navigation.folding")}</a>
-          <a href="#tech">{t("navigation.technology")}</a>
-          <a href="#service">{t("navigation.services")}</a>
-          <a href={detail("about-story")}>{t("brand.story")}</a>
-          <a href="#dealer">{t("navigation.join_dealer")}</a>
+          <a href="#platforms">{t("navigation.products")}</a>
+          <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
         </nav>
         <div className={styles["actions"]}>
-          <a href={dealerUrl}>{t("navigation.dealer")}</a>
-          <a href={myUrl}>{t("navigation.account")}</a>
-          <InfoDialog
-            label={t("navigation.cart")}
-            title={t("commerce.title")}
-            body={t("commerce.body")}
-            closeLabel={t("common.close")}
-          />
-          <a href="#platforms">
-            {t("product.explore_models")}
-          </a>
-          <LanguageSwitcher locale={locale} label={t("language.label")} />
+          <a href={myUrl}>{t("navigation.owner_account")}</a>
+          <a href={detail("about-story")}>{t("brand.story")}</a>
+          <LanguageSwitcher locale={locale} label={t("language.label")} variant="globe" />
         </div>
         <details className={styles.mobileNav}>
           <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
           <nav aria-label={t("navigation.primary")}>
-            <a href="#platforms">{t("navigation.products")}</a>
             <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
-            <a href="#folding">{t("navigation.folding")}</a>
-            <a href="#tech">{t("navigation.technology")}</a>
-            <a href="#service">{t("navigation.services")}</a>
+            <a href="#platforms">{t("navigation.products")}</a>
+            <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
+            <a href={myUrl}>{t("navigation.owner_account")}</a>
             <a href={detail("about-story")}>{t("brand.story")}</a>
-            <a href={dealerUrl}>{t("navigation.dealer")}</a>
-            <a href={myUrl}>{t("navigation.account")}</a>
           </nav>
         </details>
       </header>
