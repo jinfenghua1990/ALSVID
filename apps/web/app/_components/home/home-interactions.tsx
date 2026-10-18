@@ -43,76 +43,33 @@ export function InfoDialog({
   );
 }
 
-type Scene = {
-  label: string;
-  title: string;
-  subtitle: string;
-  image: string;
-  alt: string;
-  href: string;
-};
-export function HomeHero({
-  scenes,
-  eyebrow,
-  description,
-  exploreLabel,
-  modelLabel,
+export function HomePosterHero({
+  title,
+  posterAlt,
   modelHref,
-  modelAlt,
+  modelLabel,
+  categories,
   scrollLabel,
 }: {
-  scenes: Scene[];
-  eyebrow: string;
-  description: string;
-  exploreLabel: string;
-  modelLabel: string;
+  title: string;
+  posterAlt: string;
   modelHref: string;
-  modelAlt: string;
+  modelLabel: string;
+  categories: { href: string; label: string }[];
   scrollLabel: string;
 }) {
-  const scene = scenes[0];
-  if (!scene) return null;
   return (
-    <section className={styles.hero}>
-      <img
-        className={styles["hero-bg"]}
-        src={scene.image}
-        alt={scene.alt}
-        width={1536}
-        height={1024}
-        fetchPriority="high"
-      />
-      <div className={styles["hero-shade"]} />
-      <a
-        className={styles["hero-product"]}
-        href={modelHref}
-        aria-label={modelAlt}
-      >
-        <img
-          src="/products/fc1/hero-bike-final.png"
-          alt=""
-          width="1136"
-          height="746"
-          fetchPriority="high"
-        />
-      </a>
-      <div
-        className={styles["hero-copy"]}
-      >
-        <div className={styles.eyebrow}>{eyebrow}</div>
-        <h1>{scene.title}</h1>
-        <h2>{scene.subtitle}</h2>
-        <p>{description}</p>
-        <a className={styles["btn-white"]} href={scene.href}>
-          {exploreLabel}
-        </a>
-        <a className={styles["btn-outline"]} href={modelHref}>
-          {modelLabel}
-        </a>
+    <section className={styles.posterHero} aria-label={title}>
+      <h1 className={styles.visuallyHidden}>{title}</h1>
+      <div className={styles.posterStage}>
+        <img className={styles.posterImage} src="/home/fc1-poster-kv.png" alt={posterAlt} width="1672" height="941" fetchPriority="high" />
+        <a className={styles.posterProductLink} href={modelHref} aria-label={modelLabel} />
+        <nav className={styles.posterCategories} aria-label={scrollLabel}>
+          {categories.map(({href, label}) => <a key={href} href={href} aria-label={label} />)}
+        </nav>
+        <a className={styles.posterScroll} href="#platforms" aria-label={scrollLabel} />
       </div>
-      <a className={styles["hero-index"]} href={modelHref}>
-        {scrollLabel}
-      </a>
+      <a className={styles.posterMobileCta} href={modelHref}>{modelLabel} <span aria-hidden="true">↗</span></a>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { HomeHero, InfoDialog, FoldingSteps } from "./home-interactions";
+import { HomePosterHero, InfoDialog, FoldingSteps } from "./home-interactions";
 import { LanguageSwitcher } from "../language-switcher";
 import { translator, type Locale } from "../../_lib/i18n";
 import styles from "./original-home.module.css";
@@ -18,7 +18,7 @@ export function HomePage({
     <main
       translate="no"
       id="top"
-      className={styles.page}
+      className={`${styles.page} ${styles.posterHome}`}
       lang={locale}
       data-home-design="original-migration"
     >
@@ -66,24 +66,18 @@ export function HomePage({
           </nav>
         </details>
       </header>
-      <HomeHero
-        scenes={[
-          {
-            label: t("product.model_fc1"),
-            title: t("hero.fc1_title"),
-            subtitle: t("product.slogan"),
-            image: "/home/fc1-city-kv.webp",
-            alt: t("hero.fc1_background_alt"),
-            href: detail("fc1"),
-          },
-        ]}
-        eyebrow={t("hero.fc1_eyebrow")}
-        description={t("hero.fc1_description")}
-        exploreLabel={t("product.explore_fc1")}
+      <HomePosterHero
+        title={t("hero.poster_title")}
+        posterAlt={t("hero.poster_alt")}
         modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
-        modelAlt={t("hero.fc1_product_alt")}
-        scrollLabel={t("product.explore_fc1")}
+        categories={[
+          {href: detail("fc"), label: t("platform.fc.title")},
+          {href: detail("ct"), label: t("platform.ct.title")},
+          {href: detail("ft"), label: t("platform.ft.title")},
+          {href: detail("gt"), label: t("platform.gt.title")},
+        ]}
+        scrollLabel={t("navigation.products")}
       />
       <section id="platforms" className={styles["section"]}>
         <div className={styles["inner"]}>
