@@ -829,3 +829,24 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 }
+
+/* Live domain workspaces share the canonical Admin chrome. */
+.av-live-operations {
+  min-width: 0;
+  margin: 12px 0 24px;
+}
+.av-live-operations > * {
+  min-width: 0;
+}
+.av-design-archive {
+  margin-top: 28px;
+}
+.av-design-archive > summary {
+  cursor: pointer;
+  font-weight: 650;
+  color: var(--av-text-soft);
+  padding: 4px 0;
+}
+.av-design-archive[open] > summary {
+  margin-bottom: 18px;
+}
