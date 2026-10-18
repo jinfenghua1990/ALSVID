@@ -15,6 +15,9 @@ const gallery = [
 ] as const;
 
 function photoSize(asset: string) {
+  if (asset === "side") return { width: 940, height: 724 };
+  if (asset === "rear-three-quarter") return { width: 757, height: 790 };
+  if (asset === "folded") return { width: 886, height: 806 };
   if (asset === "hidden-carbon-front-suspension") return { width: 1333, height: 2000 };
   if (asset === "dnm-rear-air-shock") return { width: 2000, height: 1333 };
   return { width: 1536, height: 1024 };
@@ -114,7 +117,7 @@ export function FoldStatePreview({ locale }: { locale: Locale }) {
         <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
         <button type="button" aria-pressed={folded} onClick={() => setFolded(true)}>{t("fc1.fold.closed")}</button>
       </div>
-      <img src={`/products/fc1/${asset}`} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
+      <img src={`/products/fc1/${asset}`} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} {...photoSize(folded ? "folded" : "side")} loading="lazy" />
       {folded ? <p className={styles.foldMeasure}>85 × 69 × 48 <small>cm</small></p> : null}
       <p className={styles.smallNote}>{t("fc1.fold.caption")}</p>
     </div>
@@ -131,7 +134,7 @@ export function SuspensionCards({ locale }: { locale: Locale }) {
     <div className={styles.suspensionCards}>
       {cards.map(({ id, asset, number }) => {
         const title = t(`fc1.hotspot.${id}` as TranslationKey);
-        const position = id === "front" ? (locale === "zh" ? "前部" : locale === "de" ? "VORNE" : "FRONT") : (locale === "zh" ? "后部" : locale === "de" ? "HINTEN" : "REAR");
+        const position = t(`fc1.position.${id}` as TranslationKey);
         const body = t(`fc1.hotspot.${id}.body` as TranslationKey);
         const alt = t(id === "front" ? "fc1.gallery.front" : "fc1.gallery.shock");
         return (

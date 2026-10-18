@@ -57,6 +57,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <a href={`/${locale}/`}>{key("fc1.home")}</a>
           <a href="#specifications">{key("fc1.specifications")}</a>
           <a href="#faq">{key("fc1.questions")}</a>
+          <a className={styles.headerShop} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key("fc1.purchase.shop")} ↗</a>
           <LanguageSwitcher locale={locale} label={key("fc1.language")} />
         </div>
       </header>
@@ -64,13 +65,15 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{key("fc1.eyebrow")}</p>
-            <h1>{key("fc1.heading")}</h1>
-            <p>{key("fc1.intro")}</p>
+            <h1>ALSVID FC1</h1>
+            <p className={styles.heroTagline}>{key("fc1.heading")}</p>
+            <p className={styles.heroDescription}>{key("fc1.intro")}</p>
             <div className={styles.heroCtas}>
               <a className={styles.buttonDark} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
               <a className={styles.buttonLight} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key("fc1.purchase.shop")} <span aria-hidden="true">↗</span></a>
             </div>
           </div>
+          <img className={styles.heroProduct} src="/products/fc1/side-hero.png" alt={key("fc1.photo.alt")} width="940" height="724" fetchPriority="high" />
         </section>
         <section className={styles.stats} aria-label={key("fc1.highlights")}>
           <div><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
@@ -78,22 +81,15 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <div><strong>{new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(15.5)} <small>kg</small></strong><span>{key("fc1.metric.weight")}</span></div>
           <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
         </section>
-        <section id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.eyebrow}>{key("fc1.eyebrow")}</p>
-            <h2>{key("fc1.gallery")}</h2>
-          </div>
-          <ProductGallery locale={locale} />
-        </section>
         <section id="entry" className={`${styles.section} ${styles.split}`}>
           <div className={styles.sectionHeader}>
             <p className={styles.eyebrow}>{key("fc1.section.entry.kicker")}</p>
             <h2>{key("fc1.section.entry.title")}</h2>
             <p>{key("fc1.section.entry.body")}</p>
+            <div className={styles.measure}><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
           </div>
           <div className={styles.frameVisual}>
-            <img src="/products/fc1/rear-three-quarter-transparent.png" alt={key("fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
-            <div className={styles.measure}><strong>40 cm</strong><span>{key("fc1.metric.step")}</span></div>
+            <img src="/products/fc1/rear-three-quarter-transparent.png" alt={key("fc1.photo.alt")} width="757" height="790" loading="lazy" />
           </div>
         </section>
         <section id="folding" className={`${styles.section} ${styles.split} ${styles.splitReverse}`}>
@@ -103,6 +99,9 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p>{key("fc1.section.fold.body")}</p>
           </div>
           <FoldStatePreview locale={locale} />
+        </section>
+        <section className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
+          <div><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
         </section>
         <section id="details" className={`${styles.section} ${styles.suspensionSection}`}>
           <div className={styles.sectionHeader}>
@@ -162,6 +161,10 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p>{key("fc1.colours.body")}</p>
           </div>
           <ColourSelector locale={locale} />
+        </section>
+        <section id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
+          <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
+          <ProductGallery locale={locale} />
         </section>
         <section id="specifications" className={`${styles.section} ${styles.specSection}`}>
           <div className={styles.sectionHeader}>
