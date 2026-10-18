@@ -27,6 +27,13 @@ const colourOptions = [
   { id: "silver", key: "fc1.colours.silver", tone: "silver" },
 ] as const;
 
+const transparentAssets = new Set(gallery.map(([id]) => id));
+
+function gallerySrc(asset: string) {
+  const suffix = transparentAssets.has(asset as (typeof gallery)[number][0]) ? "-transparent.png" : ".webp";
+  return `/products/fc1/${asset}${suffix}`;
+}
+
 
 
 export function ProductGallery({ locale }: { locale: Locale }) {
@@ -43,7 +50,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
           aria-label={t("fc1.open_photo")}
           onClick={() => dialog.current?.showModal()}
         >
-          <img src={`/products/fc1/${image[0]}.webp`} alt={t(image[2])} {...photoSize(image[0])} fetchPriority="high" />
+          <img src={gallerySrc(image[0])} alt={t(image[2])} {...photoSize(image[0])} fetchPriority="high" />
           <span aria-hidden="true">↗</span>
         </button>
         <p className={styles.photoCaption}>{t("fc1.photo.note")}</p>
@@ -57,7 +64,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
             aria-label={t(label)}
             onClick={() => setActive(id)}
           >
-            <img src={`/products/fc1/${id}.webp`} alt="" {...photoSize(id)} loading="lazy" />
+            <img src={gallerySrc(id)} alt="" {...photoSize(id)} loading="lazy" />
             <span>{t(label)}</span>
           </button>
         ))}
@@ -66,7 +73,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
         <button className={styles.lightboxClose} type="button" onClick={() => dialog.current?.close()} autoFocus>
           {t("fc1.close")} <span aria-hidden="true">×</span>
         </button>
-        <img src={`/products/fc1/${image[0]}.webp`} alt={t(image[2])} {...photoSize(image[0])} />
+        <img src={gallerySrc(image[0])} alt={t(image[2])} {...photoSize(image[0])} />
       </dialog>
     </div>
   );
@@ -100,14 +107,14 @@ export function ColourSelector({ locale }: { locale: Locale }) {
 export function FoldStatePreview({ locale }: { locale: Locale }) {
   const t = translator(locale);
   const [folded, setFolded] = useState(false);
-  const asset = folded ? "folded" : "side";
+  const asset = folded ? "folded-transparent.png" : "side-transparent.png";
   return (
     <div className={styles.foldPreview}>
       <div className={styles.segmented} role="group" aria-label={t("fc1.section.fold.title")}>
         <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
         <button type="button" aria-pressed={folded} onClick={() => setFolded(true)}>{t("fc1.fold.closed")}</button>
       </div>
-      <img src={`/products/fc1/${asset}.webp`} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
+      <img src={`/products/fc1/${asset}`} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} width="1536" height="1024" loading="lazy" />
       {folded ? <p className={styles.foldMeasure}>85 × 69 × 48 <small>cm</small></p> : null}
       <p className={styles.smallNote}>{t("fc1.fold.caption")}</p>
     </div>
@@ -130,7 +137,7 @@ export function SuspensionCards({ locale }: { locale: Locale }) {
         return (
           <article className={styles.suspensionCard} key={id}>
             <div className={styles.suspensionPhoto}>
-              <img src={`/products/fc1/${asset}.webp`} alt={alt} {...photoSize(asset)} loading="lazy" />
+              <img src={gallerySrc(asset)} alt={alt} {...photoSize(asset)} loading="lazy" />
             </div>
             <div className={styles.suspensionCopy}>
               <p className={styles.eyebrow}>{position} / {number}</p>
