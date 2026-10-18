@@ -5,8 +5,9 @@ import InventoryClient from '../inventory/inventory-client';
 import DealersClient from '../dealers/dealers-client';
 import SupplyClient from '../supply/supply-client';
 import { CustomerRecords, AccessAuditRecords } from './admin-records';
+import { ServiceCaseClient } from './service-cases';
 
-export const integratedAreas = ['产品', '订单', '生产', '库存', '经销商', '供应链', '客户', '设置'] as const;
+export const integratedAreas = ['产品', '订单', '生产', '库存', '经销商', '供应链', '客户', '设置', '售后'] as const;
 
 export function hasIntegratedOperations(area: string): boolean {
   return integratedAreas.some((name) => name === area);
@@ -27,6 +28,7 @@ export function IntegratedOperations({ area }: { area: string }) {
     case '供应链': return <SupplyClient embedded />;
     case '客户': return <CustomerRecords />;
     case '设置': return <AccessAuditRecords />;
+    case '售后': return <ServiceCaseClient />;
     default: return null;
   }
 }
