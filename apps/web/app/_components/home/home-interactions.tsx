@@ -52,6 +52,8 @@ export function HomePosterHero({
   modelLabel,
   categories,
   scrollLabel,
+  secondaryLabel,
+  deliveryNote,
 }: {
   title: string;
   tagline: string;
@@ -61,6 +63,8 @@ export function HomePosterHero({
   modelLabel: string;
   categories: { href: string; label: string }[];
   scrollLabel: string;
+  secondaryLabel: string;
+  deliveryNote: string;
 }) {
   const headingId = useId();
   return (
@@ -71,7 +75,11 @@ export function HomePosterHero({
           <h1 id={headingId}>{title}</h1>
           <p className={styles.posterTagline}>{tagline}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
-          <a className={styles.posterDiscover} href={modelHref}>{discoverLabel}<span aria-hidden="true">→</span></a>
+          <div className={styles.posterActions}>
+            <a className={styles.posterDiscover} href={modelHref}>{discoverLabel}<span aria-hidden="true">→</span></a>
+            <a className={styles.posterSecondary} href={`${modelHref}#configure`}>{secondaryLabel}</a>
+          </div>
+          <p className={styles.posterDelivery}>{deliveryNote}</p>
         </div>
         <a className={styles.posterBikeLink} href={modelHref} aria-label={modelLabel} />
         <nav className={styles.posterCategories} aria-label={scrollLabel}>

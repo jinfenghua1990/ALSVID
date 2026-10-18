@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LanguageSwitcher } from "../language-switcher";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
-import { ProductGallery, ColourSelector, FoldStatePreview, ComponentHotspots, SpecificationFilters } from "./fc1-interactions";
+import { ProductGallery, ProductConfigurator, FoldStatePreview, ComponentHotspots, SpecificationFilters } from "./fc1-interactions";
 import styles from "./fc1-product.module.css";
 
 export async function generateFc1Metadata(localeValue: string): Promise<Metadata> {
@@ -56,8 +56,9 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p className={styles.eyebrow}>{key("fc1.eyebrow")}</p>
             <h1>{key("fc1.heading")}</h1>
             <p>{key("fc1.intro")}</p>
+            <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
             <div className={styles.heroCtas}>
-              <a className={styles.buttonDark} href="#colours">{key("fc1.colours.title")} <span aria-hidden="true">↘</span></a>
+              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↘</span></a>
               <a className={styles.buttonLight} href="#specifications">{key("fc1.specifications")}</a>
             </div>
           </div>
@@ -69,13 +70,13 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <div><strong>{new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(15.5)} <small>kg</small></strong><span>{key("fc1.metric.weight")}</span></div>
           <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
         </section>
-        <section id="colours" className={styles.colourBand}>
+        <section id="configure" className={styles.colourBand}>
           <div>
-            <p className={styles.eyebrow}>{key("fc1.colours.kicker")}</p>
-            <h2>{key("fc1.colours.title")}</h2>
-            <p>{key("fc1.colours.body")}</p>
+            <p className={styles.eyebrow}>{key("fc1.selection.kicker")}</p>
+            <h2>{key("fc1.selection.title")}</h2>
+            <p>{key("fc1.selection.body")}</p>
           </div>
-          <ColourSelector locale={locale} />
+          <ProductConfigurator locale={locale} />
         </section>
         <section id="entry" className={`${styles.section} ${styles.split}`}>
           <div className={styles.sectionHeader}>
@@ -179,8 +180,8 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href="https://shop.chaibenn.com/" target="_blank" rel="noreferrer">{key("fc1.cta.shop")} <span aria-hidden="true">↗</span></a>
-          <p className={styles.smallNote}>{key("fc1.cta.shop_note")}</p>
+          <a className={[styles.buttonDark, styles.button].join(" ")} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <p className={styles.smallNote}>{key("fc1.selection.unavailable")}</p>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="https://naicisports.com/de/produkt/pilot-x9-carbon-falt-e-bike-mit-tiefem-einstieg/#specifications" target="_blank" rel="noreferrer">{key("fc1.source.link")}</a></p>
       </div>
