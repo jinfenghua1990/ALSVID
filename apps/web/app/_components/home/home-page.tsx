@@ -14,16 +14,7 @@ export function HomePage({
 }) {
   const t = translator(locale);
   const detail = (slug: string) => `/${locale}/explore/${slug}`;
-  const configuredShopUrl = process.env.ALSVID_SHOPIFY_FC1_PRODUCT_URL?.trim();
-  const shopUrl = (() => {
-    if (!configuredShopUrl) return "";
-    try {
-      const url = new URL(configuredShopUrl);
-      return url.protocol === "https:" && url.hostname === "shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : "";
-    } catch {
-      return "";
-    }
-  })();
+  const shopUrl = detail("fc1");
   return (
     <main
       translate="no"

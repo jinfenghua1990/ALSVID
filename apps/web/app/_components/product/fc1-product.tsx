@@ -53,7 +53,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
     <main className={styles.page} lang={locale}>
       <div className={styles.reviewBanner}>{key("fc1.preview")}</div>
       <header className={styles.header}>
-        <a className={styles.logo} href={`/${locale}/`}>ALSVID</a>
+        <a className={styles.logo} href={`/${locale}/`}><img src="/home/alsvid-bike-motion.svg" alt="" width="74" height="42" /> <span>ALSVID</span></a>
         <div className={styles.headerActions}>
           <a href={`/${locale}/`}>{key("fc1.home")}</a>
           <a href="#specifications">{key("fc1.specifications")}</a>
