@@ -68,6 +68,8 @@ export function HomePage({
       </header>
       <HomePosterHero
         title={t("hero.poster_title")}
+        tagline={t("hero.poster_tagline")}
+        discoverLabel={t("hero.poster_cta")}
         posterAlt={t("hero.poster_alt")}
         modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
