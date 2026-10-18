@@ -1,9 +1,9 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
+import { OperationsFrame } from '../_components/operations-frame';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { navigationFor } from '../app-navigation';
+
 import styles from './commerce.module.css';
 
 type Partner = { id: string; partnerCode: string; displayName: string; roles: string[] };
@@ -37,7 +37,7 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
-export default function CommerceClient() {
+export default function CommerceClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [commerce, setCommerce] = useState<CommerceSummary>(emptyCommerce);
   const [integrations, setIntegrations] = useState<IntegrationSummary>(emptyIntegrations);
@@ -194,7 +194,7 @@ export default function CommerceClient() {
   }
 
   return (
-    <AppShell navigation={navigationFor('/commerce')} footer="Commerce / 外部渠道 / 对账">
+    <OperationsFrame embedded={embedded} area="commerce" footer="Commerce / 外部渠道 / 对账">
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>电商渠道 / Commerce</div>
@@ -318,6 +318,6 @@ export default function CommerceClient() {
           {!integrations.receipts.length ? <p className={styles.empty}>还没有保留的集成证据。</p> : null}
         </div>
       </section>
-    </AppShell>
+    </OperationsFrame>
   );
 }
