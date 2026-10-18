@@ -19,7 +19,7 @@ const portalCopy: Record<LoginPortal, { emailLabel: string; emailHelp: string; c
   my: { emailLabel: 'Shopify 客户账户', emailHelp: '客户身份由 Shopify 客户账户验证，ALSVID 不直接创建客户邮箱账号。', codeNotice: '将跳转到 Shopify 完成客户身份验证。', lead: '使用 Shopify 客户账户登录 My ALSVID。验证成功后，ALSVID 只同步与你本人建立了真实关系的客户和车辆数据。', passwordPlaceholder: 'name@example.com' },
 };
 
-export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetupRequired = false, redirectTo = '/admin', shopifyLoginUrl = '', children }: { portal?: LoginPortal; authenticated: boolean; passwordSetupRequired?: boolean; redirectTo?: string; shopifyLoginUrl?: string; children: ReactNode }) {
+export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetupRequired = false, redirectTo = '/admin', shopifyLoginUrl = '', passwordLoginEnabled = false, children }: { portal?: LoginPortal; authenticated: boolean; passwordSetupRequired?: boolean; redirectTo?: string; shopifyLoginUrl?: string; passwordLoginEnabled?: boolean; children: ReactNode }) {
   const copy = portalCopy[portal];
   const [open, setOpen] = useState(!authenticated || passwordSetupRequired);
   const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : 'email');
@@ -81,7 +81,8 @@ export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetup
   }
 
   async function submitPassword(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(''); setNotice('');
+    event.preventDefault();
+    if (!passwordLoginEnabled) return; setBusy(true); setError(''); setNotice('');
     try {
       const form = new FormData(event.currentTarget);
       const response = await fetch('/api/session/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: form.get('email'), password: form.get('password'), portal }) });
@@ -103,14 +104,14 @@ export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetup
       const payload = await response.json().catch(() => null) as AuthResponse | null;
       if (!response.ok) { setError(payload?.message ?? '密码设置失败，请重新输入。'); return; }
       setSetupRequired(false);
-      setNotice('个人密码已设置。以后可以直接使用邮箱和密码登录。');
+      setNotice('个人密码已设置。账户密码登录目前停用，可继续使用邮箱验证码。');
       router.replace(redirectTo);
       router.refresh();
     } catch { setError('无法连接密码服务，请稍后重试。'); }
     finally { setBusy(false); }
   }
 
-  function switchMethod(next: 'email' | 'password') { if (setupRequired) return; setMethod(next); setError(''); setNotice(''); setCodeRequested(false); setVerificationCode(''); }
+  function switchMethod(next: 'email' | 'password') { if (setupRequired || (next === 'password' && !passwordLoginEnabled)) return; setMethod(next); setError(''); setNotice(''); setCodeRequested(false); setVerificationCode(''); }
   function handleClickCapture(event: MouseEvent) {
     if (authenticated && !setupRequired) return;
     const anchor = (event.target as HTMLElement).closest('a');
@@ -127,8 +128,8 @@ export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetup
       <section className={styles.dialog} role="dialog" aria-modal="true" aria-label={setupRequired ? '设置 ALSVID 个人密码' : '登录 ALSVID'} onClick={(event) => event.stopPropagation()}>
         {!setupRequired ? <button className={styles.dialogClose} onClick={closeDialog} aria-label="关闭">×</button> : null}
         <p className={styles.dialogKicker}>ALSVID ID</p><h2>{setupRequired ? '设置个人密码' : '登录中心'}</h2>
-        <p className={styles.dialogLead}>{setupRequired ? '身份验证已经完成。为了结束首次登录初始化，请设置仅你本人知道的新密码；完成后本次会话继续有效，不需要再次登录。' : '使用公司邮箱完成身份验证。正常登录成功后，系统会保持会话；仅账号安全或高风险操作需要额外验证。'}</p>
-        {!setupRequired ? <div className={loginStyles.tabs}>
+        <p className={styles.dialogLead}>{setupRequired ? '身份验证已经完成。首次登录需要设置个人密码以完成账户初始化；账户密码登录方式目前仍停用，请使用邮箱验证码登录。' : '使用公司邮箱完成身份验证。正常登录成功后，系统会保持会话；仅账号安全或高风险操作需要额外验证。'}</p>
+        {!setupRequired && portal !== 'my' && passwordLoginEnabled ? <div className={loginStyles.tabs}>
           <button className={method === 'email' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('email')}>邮箱验证码</button>
           <button className={method === 'password' ? loginStyles.tabActive : loginStyles.tab} type="button" onClick={() => switchMethod('password')}>账户密码</button>
         </div> : null}
@@ -139,7 +140,7 @@ export function PortalLoginGate({ portal = 'admin', authenticated, passwordSetup
           <button className={styles.dialogSubmit} disabled={busy}>{busy ? '处理中…' : codeRequested ? '验证并登录' : '发送验证码'}</button>
           {codeRequested ? <button className={loginStyles.secondary} type="button" disabled={busy} onClick={() => { setCodeRequested(false); setVerificationCode(''); setNotice(''); setError(''); }}>更换邮箱 / 重新获取</button> : null}
         </form> : null}
-        {portal !== 'my' && method === 'password' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitPassword}>
+        {portal !== 'my' && passwordLoginEnabled && method === 'password' && !setupRequired ? <form className={styles.dialogForm} onSubmit={submitPassword}>
           <label>{copy.emailLabel}<input name="email" type="email" autoComplete="username" placeholder={copy.passwordPlaceholder} required /></label><label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
           <div className={loginStyles.pendingCapability} aria-disabled="true"><span>手机号登录</span><span className={loginStyles.pendingBadge}>待启用</span></div>
           <a className={loginStyles.resetLink} href="/reset-password">忘记密码？通过邮箱重置</a>
