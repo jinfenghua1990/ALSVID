@@ -22,3 +22,15 @@ export interface ServiceCaseHistory {
 }
 export type CreateServiceCaseInput = { vehicleId: string; category: ServiceCaseCategory; title: string; description?: string };
 export type TransitionServiceCaseInput = { expectedVersion: number; toStatus: ServiceCaseStatus; reason: string };
+
+export type ServiceActivityKind = 'DIAGNOSIS'|'REPAIR_NOTE'|'WARRANTY_ASSESSMENT';
+export type PreliminaryWarrantyAssessment = 'EVIDENCE_REQUIRED'|'POSSIBLY_COVERED'|'POSSIBLY_EXCLUDED';
+export interface ServiceActivity {
+ id:string; caseId:string; clientRequestId:string; kind:ServiceActivityKind;
+ note:string; laborMinutes:number|null; assessment:PreliminaryWarrantyAssessment|null;
+ actorUserId:string; occurredAt:string;
+}
+export interface RecordServiceActivityInput {
+ clientRequestId:string; kind:ServiceActivityKind; note:string;
+ laborMinutes?:number; assessment?:PreliminaryWarrantyAssessment;
+}
