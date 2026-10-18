@@ -1,7 +1,7 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
-import { navigationFor } from '../app-navigation';
+import { OperationsFrame } from '../_components/operations-frame';
+
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -43,7 +43,7 @@ function statusLabel(status: string) {
   return labels[status] ?? status;
 }
 
-export default function DealersClient() {
+export default function DealersClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [summary, setSummary] = useState<DealerSummary>(empty);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -143,7 +143,7 @@ export default function DealersClient() {
   }
 
   return (
-    <AppShell navigation={navigationFor('/dealers')} footer="ALSVID · 内部管理">
+    <OperationsFrame embedded={embedded} area="dealers" footer="ALSVID · 内部管理">
       <section>
         <header className={styles.header}>
           <div className={styles.eyebrow}>经销商网络 / DEALER NETWORK</div>
@@ -236,6 +236,6 @@ export default function DealersClient() {
           )}
         </section>
       </section>
-    </AppShell>
+    </OperationsFrame>
   );
 }
