@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const from = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 test('password login remains available in source but defaults to disabled at every trust boundary', () => {
-  const api = from('../../../../api/src/auth.controller.ts');
+  const api = from('../../../api/src/auth.controller.ts');
   const proxy = from('../api/session/login/route.ts');
   const login = from('../login/page.tsx');
   const ui = from('../_components/portal-login.tsx');
