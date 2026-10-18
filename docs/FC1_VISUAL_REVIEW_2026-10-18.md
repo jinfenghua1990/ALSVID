@@ -1,5 +1,7 @@
 # FC1 product story: visual review and local revision
 
+The subsequent edge-refinement revision is documented in [FC1_EDGE_REFINEMENT_2026-10-18.md](FC1_EDGE_REFINEMENT_2026-10-18.md). The page now uses its versioned v3 cutouts; the layout described here is unchanged.
+
 User reference: https://www.mi.com/de/product/xiaomi-pad-8/
 
 ## Observations

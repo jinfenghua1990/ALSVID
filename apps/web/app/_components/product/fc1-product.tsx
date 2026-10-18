@@ -4,6 +4,7 @@ import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { ProductGallery, ColourSelector, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
 import styles from "./fc1-product.module.css";
+import { fc1Photos } from "./fc1-photos";
 
 export async function generateFc1Metadata(localeValue: string): Promise<Metadata> {
   if (!isLocale(localeValue)) return {};
@@ -73,7 +74,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
               <a className={styles.buttonLight} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key("fc1.purchase.shop")} <span aria-hidden="true">↗</span></a>
             </div>
           </div>
-          <img className={styles.heroProduct} src="/products/fc1/side-hero.png" alt={key("fc1.photo.alt")} width="940" height="724" fetchPriority="high" />
+          <img className={styles.heroProduct} {...fc1Photos.side} alt={key("fc1.photo.alt")} fetchPriority="high" />
         </section>
         <section className={styles.stats} aria-label={key("fc1.highlights")}>
           <div><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
@@ -89,7 +90,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <div className={styles.measure}><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
           </div>
           <div className={styles.frameVisual}>
-            <img src="/products/fc1/rear-three-quarter-transparent.png" alt={key("fc1.photo.alt")} width="757" height="790" loading="lazy" />
+            <img {...fc1Photos["rear-three-quarter"]} alt={key("fc1.photo.alt")} loading="lazy" />
           </div>
         </section>
         <section id="folding" className={`${styles.section} ${styles.split} ${styles.splitReverse}`}>
@@ -118,7 +119,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p>{key("fc1.section.drive.body")}</p>
           </div>
           <div className={styles.driveGrid}>
-            <div className={styles.driveImage}><img src="/products/fc1/handlebar-display-transparent.png" alt={key("fc1.gallery.controls")} width="1536" height="1024" loading="lazy" /></div>
+            <div className={styles.driveImage}><img {...fc1Photos["handlebar-display"]} alt={key("fc1.gallery.controls")} loading="lazy" /></div>
             <div>
               <div className={styles.driveNumbers}>
                 <div><strong>250 W</strong><span>{key("fc1.drive.power")}</span></div>

@@ -3,6 +3,7 @@
 import React, { useRef, useState, type ReactNode } from "react";
 import { translator, type Locale, type TranslationKey } from "../../_lib/i18n";
 import styles from "./fc1-product.module.css";
+import { fc1Photos } from "./fc1-photos";
 
 const gallery = [
   ["side", "fc1.gallery.side", "fc1.photo.alt"],
@@ -14,30 +15,12 @@ const gallery = [
   ["handlebar-display", "fc1.gallery.controls", "fc1.hotspot.controls.body"],
 ] as const;
 
-function photoSize(asset: string) {
-  if (asset === "side") return { width: 940, height: 724 };
-  if (asset === "rear-three-quarter") return { width: 757, height: 790 };
-  if (asset === "folded") return { width: 886, height: 806 };
-  if (asset === "hidden-carbon-front-suspension") return { width: 1333, height: 2000 };
-  if (asset === "dnm-rear-air-shock") return { width: 2000, height: 1333 };
-  return { width: 1536, height: 1024 };
-}
-
 const colourOptions = [
   { id: "sample", key: "fc1.colours.sample", tone: "green" },
   { id: "black", key: "fc1.colours.black", tone: "black" },
   { id: "blue", key: "fc1.colours.blue", tone: "blue" },
   { id: "silver", key: "fc1.colours.silver", tone: "silver" },
 ] as const;
-
-const transparentAssets = new Set(gallery.map(([id]) => id));
-
-function gallerySrc(asset: string) {
-  const suffix = transparentAssets.has(asset as (typeof gallery)[number][0]) ? "-transparent.png" : ".webp";
-  return `/products/fc1/${asset}${suffix}`;
-}
-
-
 
 export function ProductGallery({ locale }: { locale: Locale }) {
   const t = translator(locale);
@@ -53,7 +36,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
           aria-label={t("fc1.open_photo")}
           onClick={() => dialog.current?.showModal()}
         >
-          <img src={gallerySrc(image[0])} alt={t(image[2])} {...photoSize(image[0])} fetchPriority="high" />
+          <img {...fc1Photos[image[0]]} alt={t(image[2])} fetchPriority="high" />
           <span aria-hidden="true">↗</span>
         </button>
         <p className={styles.photoCaption}>{t("fc1.photo.note")}</p>
@@ -67,7 +50,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
             aria-label={t(label)}
             onClick={() => setActive(id)}
           >
-            <img src={gallerySrc(id)} alt="" {...photoSize(id)} loading="lazy" />
+            <img {...fc1Photos[id]} alt="" loading="lazy" />
             <span>{t(label)}</span>
           </button>
         ))}
@@ -76,7 +59,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
         <button className={styles.lightboxClose} type="button" onClick={() => dialog.current?.close()} autoFocus>
           {t("fc1.close")} <span aria-hidden="true">×</span>
         </button>
-        <img src={gallerySrc(image[0])} alt={t(image[2])} {...photoSize(image[0])} />
+        <img {...fc1Photos[image[0]]} alt={t(image[2])} />
       </dialog>
     </div>
   );
@@ -110,14 +93,14 @@ export function ColourSelector({ locale }: { locale: Locale }) {
 export function FoldStatePreview({ locale }: { locale: Locale }) {
   const t = translator(locale);
   const [folded, setFolded] = useState(false);
-  const asset = folded ? "folded-transparent.png" : "side-transparent.png";
+  const asset = folded ? "folded" : "side";
   return (
     <div className={styles.foldPreview}>
       <div className={styles.segmented} role="group" aria-label={t("fc1.section.fold.title")}>
         <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
         <button type="button" aria-pressed={folded} onClick={() => setFolded(true)}>{t("fc1.fold.closed")}</button>
       </div>
-      <img src={`/products/fc1/${asset}`} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} {...photoSize(folded ? "folded" : "side")} loading="lazy" />
+      <img {...fc1Photos[asset]} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} loading="lazy" />
       {folded ? <p className={styles.foldMeasure}>85 × 69 × 48 <small>cm</small></p> : null}
       <p className={styles.smallNote}>{t("fc1.fold.caption")}</p>
     </div>
@@ -140,7 +123,7 @@ export function SuspensionCards({ locale }: { locale: Locale }) {
         return (
           <article className={styles.suspensionCard} key={id}>
             <div className={styles.suspensionPhoto}>
-              <img src={gallerySrc(asset)} alt={alt} {...photoSize(asset)} loading="lazy" />
+              <img {...fc1Photos[asset]} alt={alt} loading="lazy" />
             </div>
             <div className={styles.suspensionCopy}>
               <p className={styles.eyebrow}>{position} / {number}</p>
