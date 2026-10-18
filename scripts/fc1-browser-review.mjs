@@ -30,6 +30,14 @@ try {
         await page.waitForTimeout(100);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, locale + " " + device + " overflow");
       }
+      const progress = await page.locator("[data-fc1-motion]").evaluate((node) => Number(node.style.getPropertyValue("--fc1-scroll-progress")));
+      assert.ok(progress > 0.5, "reading progress must respond to scrolling");
+      assert.equal(await page.locator('[data-fc1-chapter][data-fc1-revealed="false"]').count(), 0);
+      const chapterNav = page.getByRole("navigation", { name:copy["fc1.highlights"], exact:true });
+      await chapterNav.getByRole("link", { name:copy["fc1.story.nav.fold"], exact:true }).click();
+      await page.waitForURL("**#folding");
+      await page.waitForTimeout(120);
+      assert.equal(await chapterNav.locator('a[href="#folding"]').getAttribute("aria-current"), "location");
       const fold = page.locator("#folding");
       await fold.getByRole("button", { name:copy["fc1.fold.closed"], exact:true }).click();
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("folded-transparent-v3.png"));
@@ -77,6 +85,7 @@ try {
   const page = await context.newPage();
   await page.goto(base + "/de/explore/fc1", { waitUntil:"networkidle" });
   assert.equal(await page.locator("[data-fc1-motion]").count(), 0);
+  assert.equal(await page.locator("#overview > img").evaluate((img) => getComputedStyle(img).transform), "none");
   await page.screenshot({ path:output + "/de-narrow-reduced-motion.png", fullPage:true });
   const overflow = await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter((node) => { const r=node.getBoundingClientRect(); return r.right > innerWidth+1 && r.width > 0 && !node.closest("table"); }).map((node) => ({ tag:node.tagName, class:node.className, right:node.getBoundingClientRect().right })).slice(0,20));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, JSON.stringify(overflow));
