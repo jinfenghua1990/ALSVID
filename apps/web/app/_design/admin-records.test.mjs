@@ -8,8 +8,8 @@ test('customer overview uses existing Partner + Vehicle API with capability chec
   const ui = read('./admin-records.tsx');
   const controller = read('../../../api/src/partners.controller.ts');
   const vehicleController = read('../../../api/src/vehicle.controller.ts');
-  const partnerService = read('../../../../../domains/partners/src/application/partner-service.ts');
-  const vehicleService = read('../../../../../domains/vehicle/src/application/vehicle-service.ts');
+  const partnerService = read('../../../../domains/partners/src/application/partner-service.ts');
+  const vehicleService = read('../../../../domains/vehicle/src/application/vehicle-service.ts');
   assert.match(ui, /listData<Partner>\('\/v1\/partners'/);
   assert.match(ui, /listData<Vehicle>\('\/v1\/vehicles'/);
   assert.match(ui, /item\.roles\.includes\('CUSTOMER'\)/);
