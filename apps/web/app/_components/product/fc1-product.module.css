@@ -145,3 +145,21 @@
 @media(max-width:700px){.header{min-height:58px;padding:12px 20px}.headerActions{gap:13px}.headerActions>a:first-child,.headerActions>a:nth-child(3){display:none}.headerActions .headerShop{font-size:10px;padding:7px 11px}.logo{font-size:18px}.hero{min-height:0;padding:62px 15px 25px}.hero h1{font-size:46px}.heroTagline{font-size:23px}.heroDescription{max-width:330px;font-size:12px}.heroCtas{gap:23px;margin-top:18px}.heroProduct{width:100%;max-width:520px;margin-top:30px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:27px 10px;padding:35px 20px}.stats strong{font-size:28px}.stats span{font-size:10px}.section{padding:65px 22px}.sectionHeader{margin-bottom:35px}.sectionHeader h2{font-size:32px}.sectionHeader>p:last-child{font-size:13px}.split,.splitReverse{display:flex;flex-direction:column;gap:30px;min-height:0}.split .sectionHeader{width:100%;text-align:center}.measure{margin-top:24px;padding-top:18px}.measure strong{font-size:42px}.frameVisual,.foldPreview{width:100%}.splitReverse .sectionHeader{order:0}.foldPreview{order:1}.foldPreview>img{aspect-ratio:1.3}.segmented{margin-top:10px}.sceneBand{min-height:570px;padding:60px 22px;background-position:53% center}.sceneBand>div{width:100%}.sceneBand h2{font-size:33px}.sceneBand::before{background:linear-gradient(180deg,#07101745,transparent 70%)}.suspensionCards{grid-template-columns:1fr;gap:25px}.suspensionCopy{padding:25px}.suspensionCopy h3{font-size:25px}.suspensionPhoto{aspect-ratio:1.3}.driveImage{height:230px}.driveNumbers{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 15px}.driveNumbers strong{font-size:30px}.driveNumbers span{font-size:10px}.marketNote{margin-top:30px}.batteryCards{gap:20px 10px}.batteryCards strong{font-size:37px}.batteryCards span{font-size:10px}.configGrid{grid-template-columns:1fr;gap:18px}.configGrid article{padding:28px}.colourBand{grid-template-columns:1fr;gap:25px;padding:65px 22px}.colourBand h2{font-size:30px}.gallery{min-height:370px;aspect-ratio:1.05}.zoomButton{padding:0 0 110px}.galleryThumbs{gap:8px}.galleryThumbs button{flex-basis:85px}.galleryThumbs img{height:53px}.photoCaption{bottom:110px;font-size:9px}.tableScroll table{min-width:640px}.faq{grid-template-columns:1fr;gap:30px}.faq h2{font-size:32px}.footer{flex-wrap:wrap;padding:25px 22px;gap:15px}.footer p{order:3;flex-basis:100%;margin:0}.cta{padding:70px 22px}}
 @media(prefers-reduced-motion:reduce){.page *, .page *::before,.page *::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 @media(max-width:700px){.headerActions>a:not(.headerShop){display:none}.header{gap:14px}.headerActions{min-width:0}.stats>div:nth-child(2) strong{font-size:22px;white-space:nowrap}}
+
+/* Keep the model/colour preview merged into main in PR #204. */
+.heroDelivery { margin:16px 0 0; color:#b7c8bd; font-size:12px; font-weight:500; }
+.configurator { display:grid; gap:22px; min-width:0; }
+.configurator h3 { margin:0 0 12px; font-size:13px; font-weight:650; letter-spacing:.015em; }
+.modelChoices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+.modelChoice { display:grid; align-content:center; gap:3px; min-height:80px; padding:14px 16px; border:1px solid #cad2cb; border-radius:8px; background:#f8f9f5; color:var(--ink); font:inherit; text-align:left; cursor:pointer; }
+.modelChoice strong { font-size:14px; }
+.modelChoice span { color:#5f6d64; font-size:11px; }
+.modelChoice[aria-pressed=true] { border-color:#192d24; box-shadow:inset 0 0 0 1px #192d24; }
+.selectionSummary { padding:20px; border:1px solid #ccd5cc; border-radius:8px; background:#fafbf8; }
+.selectionSummary>span { color:#59675f; font-size:11px; text-transform:uppercase; letter-spacing:.12em; }
+.selectionSummary>strong { display:block; margin-top:5px; font-size:18px; line-height:1.3; }
+.selectionSummary>p { margin:7px 0 0; font-size:12px; line-height:1.65; }
+.selectionSummary .deliveryText { font-weight:650; color:#294d3d; }
+.selectionSummary .buttonDark { margin-top:14px; }
+.modelChoice:focus-visible,.swatchChoice:focus-visible { outline:3px solid #167355; outline-offset:3px; }
+@media(max-width:700px){.modelChoices{grid-template-columns:1fr}.heroDelivery{max-width:330px;margin:16px auto 0;}}

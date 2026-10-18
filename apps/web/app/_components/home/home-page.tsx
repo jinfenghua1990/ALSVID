@@ -73,6 +73,8 @@ export function HomePage({
         posterAlt={t("hero.poster_alt")}
         modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
+        secondaryLabel={t("hero.poster_customize")}
+        deliveryNote={t("hero.poster_delivery")}
         categories={[
           {href: detail("fc"), label: t("platform.fc.title")},
           {href: detail("ct"), label: t("platform.ct.title")},

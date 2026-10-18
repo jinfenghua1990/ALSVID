@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LanguageSwitcher } from "../language-switcher";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
-import { ProductGallery, ColourSelector, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
+import { ProductGallery, ProductConfigurator, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
 import styles from "./fc1-product.module.css";
 import { fc1Photos } from "./fc1-photos";
 
@@ -58,7 +58,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <a href={`/${locale}/`}>{key("fc1.home")}</a>
           <a href="#specifications">{key("fc1.specifications")}</a>
           <a href="#faq">{key("fc1.questions")}</a>
-          <a className={styles.headerShop} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key("fc1.purchase.shop")} ↗</a>
+          <a className={styles.headerShop} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.shop" : "fc1.selection.cta_configure")} ↗</a>
           <LanguageSwitcher locale={locale} label={key("fc1.language")} />
         </div>
       </header>
@@ -69,9 +69,10 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <h1>ALSVID FC1</h1>
             <p className={styles.heroTagline}>{key("fc1.heading")}</p>
             <p className={styles.heroDescription}>{key("fc1.intro")}</p>
+            <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
             <div className={styles.heroCtas}>
-              <a className={styles.buttonDark} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
-              <a className={styles.buttonLight} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key("fc1.purchase.shop")} <span aria-hidden="true">↗</span></a>
+              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↘</span></a>
+              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
             </div>
           </div>
           <img className={styles.heroProduct} {...fc1Photos.side} alt={key("fc1.photo.alt")} fetchPriority="high" />
@@ -155,13 +156,13 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           </div>
           <p className={styles.smallNote}>{key("fc1.config.note")}</p>
         </section>
-        <section id="colours" className={styles.colourBand}>
+        <section id="configure" className={styles.colourBand}>
           <div>
-            <p className={styles.eyebrow}>{key("fc1.colours.kicker")}</p>
-            <h2>{key("fc1.colours.title")}</h2>
-            <p>{key("fc1.colours.body")}</p>
+            <p className={styles.eyebrow}>{key("fc1.selection.kicker")}</p>
+            <h2 id="colours">{key("fc1.selection.title")}</h2>
+            <p>{key("fc1.selection.body")}</p>
           </div>
-          <ColourSelector locale={locale} />
+          <ProductConfigurator locale={locale} />
         </section>
         <section id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
           <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
@@ -199,8 +200,8 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.cta.shop")} <span aria-hidden="true">↗</span></a>
-          <p className={styles.smallNote}>{key("fc1.cta.shop_note")}</p>
+          <a className={`${styles.buttonDark} ${styles.button}`} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <p className={styles.smallNote}>{key(fc1ShopUrl ? "fc1.cta.shop_note" : "fc1.selection.unavailable")}</p>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
       </div>

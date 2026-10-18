@@ -65,27 +65,58 @@ export function ProductGallery({ locale }: { locale: Locale }) {
   );
 }
 
-export function ColourSelector({ locale }: { locale: Locale }) {
+
+const modelOptions = [
+  { id: "standard", label: "FC1 Standard", note: "fc1.selection.standard_status" },
+  { id: "pro", label: "FC1 Pro", note: "fc1.selection.pro_status" },
+] as const;
+
+/**
+ * UI-only selection. No stock, SKU, order or payment is created.
+ * The photos intentionally stay on the confirmed green supplier sample.
+ */
+export function ProductConfigurator({ locale }: { locale: Locale }) {
   const t = translator(locale);
-  const [active, setActive] = useState<(typeof colourOptions)[number]["id"]>("sample");
-  const option = colourOptions.find(({ id }) => id === active) ?? colourOptions[0];
-  const name = t(option.key);
-  const message = active === "sample"
-    ? t("fc1.colours.none_selected")
-    : t("fc1.colours.proposal_selected", { colour: name });
+  const [modelId, setModelId] = useState<(typeof modelOptions)[number]["id"]>("standard");
+  const [colourId, setColourId] = useState<(typeof colourOptions)[number]["id"]>("sample");
+  const model = modelOptions.find(({ id }) => id === modelId) ?? modelOptions[0];
+  const colour = colourOptions.find(({ id }) => id === colourId) ?? colourOptions[0];
+  const colourName = t(colour.key);
   return (
-    <div className={styles.colourPanel}>
-      <div className={styles.swatchGroup} role="group" aria-label={t("fc1.colours.proposals")}>
-        {colourOptions.map(({ id, key, tone }) => (
-          <button key={id} type="button" className={styles.swatchChoice} aria-pressed={active === id} onClick={() => setActive(id)}>
-            <span className={`${styles.swatch} ${styles[tone]}`} aria-hidden="true" />
-            <span>{t(key)}</span>
-            {id === "sample" ? <small>{t("fc1.colours.pending")}</small> : null}
-          </button>
-        ))}
+    <div className={styles.configurator}>
+      <div className={styles.modelPanel}>
+        <h3>{t("fc1.selection.model")}</h3>
+        <div className={styles.modelChoices} role="group" aria-label={t("fc1.selection.model")}>
+          {modelOptions.map(({ id, label, note }) => (
+            <button key={id} type="button" className={styles.modelChoice} aria-pressed={modelId === id} onClick={() => setModelId(id)}>
+              <strong>{label}</strong>
+              <span>{t(note)}</span>
+            </button>
+          ))}
+        </div>
+        <p className={styles.smallNote}>{t("fc1.selection.model_note")}</p>
       </div>
-      <p className={styles.colourMessage} aria-live="polite">{message}</p>
-      <p className={styles.smallNote}>{t("fc1.colours.disclaimer")}</p>
+      <div className={styles.colourPanel}>
+        <h3>{t("fc1.selection.colour")}</h3>
+        <div className={styles.swatchGroup} role="group" aria-label={t("fc1.colours.proposals")}>
+          {colourOptions.map(({ id, key, tone }) => (
+            <button key={id} type="button" className={styles.swatchChoice} aria-pressed={colourId === id} onClick={() => setColourId(id)}>
+              <span className={[styles.swatch, styles[tone]].join(" ")} aria-hidden="true" />
+              <span>{t(key)}</span>
+              {id === "sample" ? <small>{t("fc1.colours.pending")}</small> : null}
+            </button>
+          ))}
+        </div>
+        <p className={styles.smallNote}>{t("fc1.colours.disclaimer")}</p>
+      </div>
+      <div className={styles.selectionSummary} role="status" aria-live="polite">
+        <span>{t("fc1.selection.summary")}</span>
+        <strong>{model.label} / {colourName}</strong>
+        <p>{t("fc1.selection.selected", { model: model.label, colour: colourName })}</p>
+        <p className={styles.deliveryText}>{t("fc1.selection.delivery")}</p>
+        <p className={styles.smallNote}>{t("fc1.selection.unavailable")}</p>
+        <a className={styles.buttonDark} href="#specifications">{t("fc1.selection.cta")} <span aria-hidden="true">→</span></a>
+      </div>
     </div>
   );
 }
