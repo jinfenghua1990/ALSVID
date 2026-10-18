@@ -127,3 +127,10 @@
   .logo { gap:6px; font-size:16px; letter-spacing:.12em; }
   .logo img { width:30px; }
 }
+
+@media(max-width:359px) {
+  .logo img { display:none; }
+  .header .headerActions { gap:10px; }
+  .header .headerActions .headerShop { max-width:112px; white-space:normal; line-height:1.35; text-align:center; }
+  .batteryCards { grid-template-columns:1fr; gap:24px; }
+}

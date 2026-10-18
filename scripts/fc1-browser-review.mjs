@@ -77,8 +77,9 @@ try {
   const page = await context.newPage();
   await page.goto(base + "/de/explore/fc1", { waitUntil:"networkidle" });
   assert.equal(await page.locator("[data-fc1-motion]").count(), 0);
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
   await page.screenshot({ path:output + "/de-narrow-reduced-motion.png", fullPage:true });
+  const overflow = await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter((node) => { const r=node.getBoundingClientRect(); return r.right > innerWidth+1 && r.width > 0 && !node.closest("table"); }).map((node) => ({ tag:node.tagName, class:node.className, right:node.getBoundingClientRect().right })).slice(0,20));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, JSON.stringify(overflow));
   await page.emulateMedia({ reducedMotion:"no-preference" });
   await page.locator('[data-fc1-motion="ready"]').waitFor();
   await page.emulateMedia({ reducedMotion:"reduce" });
