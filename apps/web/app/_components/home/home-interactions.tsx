@@ -47,6 +47,8 @@ export function HomePosterHero({
   title,
   tagline,
   discoverLabel,
+  buyLabel,
+  buyHref,
   posterAlt,
   modelHref,
   modelLabel,
@@ -56,6 +58,8 @@ export function HomePosterHero({
   title: string;
   tagline: string;
   discoverLabel: string;
+  buyLabel: string;
+  buyHref: string;
   posterAlt: string;
   modelHref: string;
   modelLabel: string;
@@ -71,7 +75,10 @@ export function HomePosterHero({
           <h1 id={headingId}>{title}</h1>
           <p className={styles.posterTagline}>{tagline}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
-          <a className={styles.posterDiscover} href={modelHref}>{discoverLabel}<span aria-hidden="true">→</span></a>
+          <div className={styles.posterButtons}>
+            <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}>{buyLabel}<span aria-hidden="true">↗</span></a>
+            <a className={styles.posterDiscover} href={modelHref}>{discoverLabel}<span aria-hidden="true">→</span></a>
+          </div>
         </div>
         <a className={styles.posterBikeLink} href={modelHref} aria-label={modelLabel} />
         <nav className={styles.posterCategories} aria-label={scrollLabel}>

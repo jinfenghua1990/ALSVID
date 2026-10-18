@@ -31,7 +31,7 @@ export function HomePage({
         </div>
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
           <a href="#platforms">{t("navigation.products")}</a>
-          <a href="#featured">{t("product.model_fc1")}</a>
+          <a href="#featured" className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
           <a href="#folding">{t("navigation.folding")}</a>
           <a href="#tech">{t("navigation.technology")}</a>
           <a href="#service">{t("navigation.services")}</a>
@@ -56,7 +56,7 @@ export function HomePage({
           <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
           <nav aria-label={t("navigation.primary")}>
             <a href="#platforms">{t("navigation.products")}</a>
-            <a href={detail("fc1")}>{t("product.model_fc1")}</a>
+            <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
             <a href="#folding">{t("navigation.folding")}</a>
             <a href="#tech">{t("navigation.technology")}</a>
             <a href="#service">{t("navigation.services")}</a>
@@ -70,6 +70,8 @@ export function HomePage({
         title={t("hero.poster_title")}
         tagline={t("hero.poster_tagline")}
         discoverLabel={t("hero.poster_cta")}
+        buyLabel={t("hero.poster_buy")}
+        buyHref="https://shop.chaibenn.com/"
         posterAlt={t("hero.poster_alt")}
         modelLabel={t("hero.fc1_details")}
         modelHref={detail("fc1")}
