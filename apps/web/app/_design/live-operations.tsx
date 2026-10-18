@@ -21,7 +21,7 @@ async function loadMetric(
     const response = await fetch('/api/control' + source.path, {
       method: 'GET',
       cache: 'no-store',
-      signal,
+      ...(signal ? { signal } : {}),
     });
     if (response.status === 401 || response.status === 403) return { status: 'unauthorized' };
     if (!response.ok) return { status: 'unavailable' };
