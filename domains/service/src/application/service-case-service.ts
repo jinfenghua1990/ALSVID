@@ -1,5 +1,5 @@
 import { ForbiddenError } from '@alsvid/kernel';
-import { ServiceCaseCapabilities, type CreateServiceCaseInput, type ServiceCaseCategory, type ServiceCaseStatus, type TransitionServiceCaseInput } from '../core/model.js';
+import { ServiceCaseCapabilities, type CreateServiceCaseInput, type ServiceCaseCategory, type ServiceCaseStatus, type TransitionServiceCaseInput, type RecordServiceActivityInput, type ServiceActivity, type ServiceActivityKind, type PreliminaryWarrantyAssessment } from '../core/model.js';
 import { ServiceCaseConflictError, ServiceCaseNotFoundError, ServiceCaseValidationError } from '../core/errors.js';
 import type { ServiceCaseActor, ServiceCaseAuditPort, ServiceCaseRepository } from './ports.js';
 
@@ -30,7 +30,7 @@ export class ServiceCaseService {
   const caseId=validId(id);
   const record=await this.repo.get(caseId);
   if(!record)throw new ServiceCaseNotFoundError('Service case not found');
-  return {case:record,history:await this.repo.history(caseId)};
+  return {case:record,history:await this.repo.history(caseId),activities:await this.repo.activities(caseId)};
  }
  async create(actor:ServiceCaseActor,input:CreateServiceCaseInput){
   authorize(actor,ServiceCaseCapabilities.Write);
@@ -50,6 +50,58 @@ export class ServiceCaseService {
     return saved;
   });
  }
+ async recordActivity(actor:ServiceCaseActor,id:string,input:RecordServiceActivityInput):Promise<ServiceActivity> {
+  authorize(actor,ServiceCaseCapabilities.Write);
+  const caseId=validId(id);
+  if(!input||typeof input!=='object')throw new ServiceCaseValidationError('Activity details are required');
+  const clientRequestId=validId(input.clientRequestId);
+  const kinds:readonly ServiceActivityKind[]=['DIAGNOSIS','REPAIR_NOTE','WARRANTY_ASSESSMENT'];
+  if(!kinds.includes(input.kind))throw new ServiceCaseValidationError('Invalid activity kind');
+  if(input.kind==='WARRANTY_ASSESSMENT')authorize(actor,'service.warranty.review');
+  const note=typeof input.note==='string'?input.note.trim():'';
+  if(note.length<10||note.length>3000)throw new ServiceCaseValidationError('Activity note must be 10-3000 characters');
+  const assessments:readonly PreliminaryWarrantyAssessment[]=['EVIDENCE_REQUIRED','POSSIBLY_COVERED','POSSIBLY_EXCLUDED'];
+  if(input.kind==='REPAIR_NOTE'){
+   if(!Number.isInteger(input.laborMinutes)||(input.laborMinutes??-1)<0||(input.laborMinutes??1441)>1440)throw new ServiceCaseValidationError('Labor minutes must be an integer between 0 and 1440');
+   if(input.assessment!==undefined)throw new ServiceCaseValidationError('Repair notes cannot contain a warranty assessment');
+  }else if(input.laborMinutes!==undefined){
+   throw new ServiceCaseValidationError('Only repair notes can record labor minutes');
+  }
+  if(input.kind==='WARRANTY_ASSESSMENT'){
+   if(!assessments.includes(input.assessment!))throw new ServiceCaseValidationError('Invalid preliminary warranty assessment');
+  }else if(input.assessment!==undefined){
+   throw new ServiceCaseValidationError('Only warranty reviews can contain preliminary assessments');
+  }
+  const normalized:RecordServiceActivityInput={
+   clientRequestId,kind:input.kind,note,
+   ...(input.kind==='REPAIR_NOTE'?{laborMinutes:input.laborMinutes!}:{}),
+   ...(input.kind==='WARRANTY_ASSESSMENT'?{assessment:input.assessment!}:{}),
+  };
+  return this.repo.transaction(async e=>{
+   // Serialize evidence submission against the case lifecycle and concurrent retries.
+   const record=await this.repo.lockedCase(caseId,e);
+   if(!record)throw new ServiceCaseNotFoundError('Service case not found');
+   const existing=await this.repo.findActivityByRequest(caseId,clientRequestId,e);
+   if(existing){
+    if(existing.actorUserId!==actor.userId||existing.kind!==normalized.kind||existing.note!==note
+       ||existing.laborMinutes!==(normalized.laborMinutes??null)||existing.assessment!==(normalized.assessment??null))
+       throw new ServiceCaseConflictError('Idempotency key is already used for a different activity');
+    return existing;
+   }
+   if(!['TRIAGED','IN_PROGRESS'].includes(record.status))
+    throw new ServiceCaseConflictError('Case must be triaged or in progress before recording evidence');
+   if(input.kind==='REPAIR_NOTE'&&record.status!=='IN_PROGRESS')
+    throw new ServiceCaseConflictError('Repair labor can only be recorded while case is IN_PROGRESS');
+   const created=await this.repo.createActivity(caseId,normalized,actor.userId,e);
+   if(!created)throw new ServiceCaseConflictError('Activity already exists; reload case details');
+   await this.audit.record({
+    actorUserId:actor.userId,action:'service.case_activity_recorded',targetType:'service_case',
+    targetId:caseId,metadata:{activityId:created.id,kind:created.kind,assessment:created.assessment},
+   },e);
+   return created;
+  });
+ }
+
  async transition(actor:ServiceCaseActor,id:string,input:TransitionServiceCaseInput){
   authorize(actor,ServiceCaseCapabilities.Write);
   const caseId=validId(id);
