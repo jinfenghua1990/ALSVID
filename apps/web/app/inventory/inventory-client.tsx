@@ -1,7 +1,7 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
-import { navigationFor } from '../app-navigation';
+import { OperationsFrame } from '../_components/operations-frame';
+
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './inventory.module.css';
@@ -37,7 +37,7 @@ const stocktakeStatusLabel: Record<string, string> = { OPEN: '盘点中', CLOSED
 function displayMovementType(value: string) { return movementTypeLabel[value] ?? value; }
 function displayStocktakeStatus(value: string) { return stocktakeStatusLabel[value] ?? value; }
 
-export default function InventoryClient() {
+export default function InventoryClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [inventory, setInventory] = useState<InventorySummary>(emptyInventory);
   const [warehouse, setWarehouse] = useState<WarehouseSummary>(emptyWarehouse);
@@ -132,7 +132,7 @@ export default function InventoryClient() {
   }
 
   return (
-    <AppShell navigation={navigationFor('/inventory')} footer="ALSVID · 库存 / 仓库">
+    <OperationsFrame embedded={embedded} area="inventory" footer="ALSVID · 库存 / 仓库">
       <section>
         <header className={styles.header}>
           <div>
@@ -299,6 +299,6 @@ export default function InventoryClient() {
           </div>
         </section>
       </section>
-    </AppShell>
+    </OperationsFrame>
   );
 }
