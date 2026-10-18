@@ -8,7 +8,7 @@
   "navigation.mobile_menu": "Open navigation",
   "navigation.products": "Products",
   "navigation.global_dealers": "Global dealers",
-  "navigation.owner_account": "Owner services · My ALSVID",
+  "navigation.owner_account": "Owner services",
   "hero.fc1_eyebrow": "20-INCH CARBON FOLDING E-BIKE",
   "hero.fc1_title": "ALSVID FC1",
   "hero.fc1_description": "A 40 cm low step, a compact main-frame fold, and suspension front and rear. Made for the city you know and the way home you choose.",
@@ -172,5 +172,10 @@
   "fc1.footer": "Product preview · final FC1 specification and retail availability pending supplier and ALSVID approval",
   "hero.fc1_details": "Discover the FC1 ↗",
   "fc1.drive.sensor": "Pedal-assist sensor",
-  "fc1.drive.sensor_value": "Torque"
+  "fc1.drive.sensor_value": "Torque",
+  "navigation.company": "Company",
+  "hero.pause": "Pause slideshow",
+  "hero.play": "Play slideshow",
+  "hero.platform_concept": "PLATFORM CONCEPT · PRODUCTION DETAILS TO BE CONFIRMED",
+  "hero.explore_platform": "Explore platform"
 }

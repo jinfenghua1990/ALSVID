@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import styles from "./original-home.module.css";
 
 export function InfoDialog({
@@ -43,6 +43,8 @@ export function InfoDialog({
   );
 }
 
+type HeroSlide = { href: string; label: string; image: string; alt: string };
+
 export function HomePosterHero({
   title,
   tagline,
@@ -54,6 +56,10 @@ export function HomePosterHero({
   modelLabel,
   categories,
   scrollLabel,
+  pauseLabel,
+  playLabel,
+  conceptLabel,
+  exploreLabel,
 }: {
   title: string;
   tagline: string;
@@ -63,27 +69,61 @@ export function HomePosterHero({
   posterAlt: string;
   modelHref: string;
   modelLabel: string;
-  categories: { href: string; label: string }[];
+  categories: [HeroSlide, HeroSlide, HeroSlide, HeroSlide];
   scrollLabel: string;
+  pauseLabel: string;
+  playLabel: string;
+  conceptLabel: string;
+  exploreLabel: string;
 }) {
   const headingId = useId();
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [suspended, setSuspended] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(true);
+  const touchStart = useRef<number | null>(null);
+  const slide = categories[active] ?? categories[0];
+  useEffect(() => {
+    const media = matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (paused || suspended || reducedMotion) return;
+    const timer = setInterval(() => {
+      if (!document.hidden) setActive(index => (index + 1) % categories.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [paused, suspended, reducedMotion, categories.length, active]);
   return (
-    <section className={styles.posterHero} aria-labelledby={headingId}>
-      <div className={styles.posterStage}>
-        <img className={styles.posterImage} src="/home/fc1-poster-clean.png" alt={posterAlt} width="1672" height="941" fetchPriority="high" />
+    <section className={styles.posterHero} aria-labelledby={headingId} onMouseEnter={() => setSuspended(true)} onMouseLeave={() => setSuspended(false)} onFocusCapture={() => setSuspended(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setSuspended(false); }}>
+      <div className={styles.posterStage} onTouchStart={event => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={event => {
+        if (touchStart.current !== null) {
+          const delta = (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
+          if (Math.abs(delta) > 50) { setActive(index => (index + (delta < 0 ? 1 : categories.length - 1)) % categories.length); setPaused(true); }
+        }
+        touchStart.current = null;
+      }}>
+        <img key={slide.image} className={`${styles.posterImage} ${styles.carouselImage}`} src={slide.image} alt={active === 0 ? posterAlt : slide.alt} width="1672" height="941" fetchPriority={active === 0 ? "high" : "auto"} />
+        {active !== 0 && <div className={styles.slideShade} />}
         <div className={styles.posterContent}>
-          <h1 id={headingId}>{title}</h1>
-          <p className={styles.posterTagline}>{tagline}</p>
+          <h1 id={headingId}>{active === 0 ? title : slide.label}</h1>
+          <p className={styles.posterTagline}>{active === 0 ? tagline : conceptLabel}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
           <div className={styles.posterButtons}>
             <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}>{buyLabel}<span aria-hidden="true">↗</span></a>
-            <a className={styles.posterDiscover} href={modelHref}>{discoverLabel}<span aria-hidden="true">→</span></a>
+            <a className={styles.posterDiscover} href={active === 0 ? modelHref : slide.href}>{active === 0 ? discoverLabel : exploreLabel}<span aria-hidden="true">→</span></a>
           </div>
         </div>
-        <a className={styles.posterBikeLink} href={modelHref} aria-label={modelLabel} />
-        <nav className={styles.posterCategories} aria-label={scrollLabel}>
-          {categories.map(({href, label}) => <a key={href} href={href}>{label}</a>)}
-        </nav>
+        <a className={styles.posterBikeLink} href={slide.href} aria-label={active === 0 ? modelLabel : slide.label} />
+        <div className={styles.carouselControls} role="group" aria-label={scrollLabel}>
+          {categories.map(({href, label}, index) => <button className={styles.slideSelector} key={href} type="button" aria-label={label} aria-pressed={active === index} onClick={() => { setActive(index); setPaused(true); }}><span className={styles.slideName}>{label}</span><span className={styles.slideTrack} aria-hidden="true" /></button>)}
+          {!reducedMotion && <button className={styles.carouselPause} type="button" aria-label={paused ? playLabel : pauseLabel} onClick={() => setPaused(value => !value)}>
+            {paused ? <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg> : <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" strokeWidth="2"/></svg>}
+          </button>}
+        </div>
         <a className={styles.posterScroll} href="#platforms" aria-label={scrollLabel}><svg viewBox="0 0 24 14" width="20" height="12" fill="none" aria-hidden="true"><path d="m3 3 9 8 9-8" stroke="currentColor" strokeWidth="1.5" /></svg></a>
       </div>
     </section>

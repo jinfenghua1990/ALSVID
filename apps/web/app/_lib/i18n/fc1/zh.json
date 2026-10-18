@@ -8,7 +8,7 @@
   "navigation.mobile_menu": "打开导航菜单",
   "navigation.products": "产品",
   "navigation.global_dealers": "全球经销商",
-  "navigation.owner_account": "车主服务 · 我的 ALSVID",
+  "navigation.owner_account": "车主服务",
   "hero.fc1_eyebrow": "20 英寸碳纤维折叠电助力车",
   "hero.fc1_title": "ALSVID FC1",
   "hero.fc1_description": "40 cm 低跨设计、紧凑主车架折叠，前后均配减震。为熟悉的城市和下一段路程而来。",
@@ -172,5 +172,10 @@
   "fc1.footer": "商品预览 · FC1 最终参数与销售状态待供应商和 ALSVID 确认",
   "hero.fc1_details": "了解车型详情 ↗",
   "fc1.drive.sensor": "传感助力",
-  "fc1.drive.sensor_value": "扭矩"
+  "fc1.drive.sensor_value": "扭矩",
+  "navigation.company": "品牌公司",
+  "hero.pause": "暂停轮播",
+  "hero.play": "播放轮播",
+  "hero.platform_concept": "平台概念 · 量产信息待确认",
+  "hero.explore_platform": "探索平台"
 }
