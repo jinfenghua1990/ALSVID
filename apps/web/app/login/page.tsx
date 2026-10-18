@@ -37,6 +37,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
       portal={portal}
       authenticated={portalAuthenticated}
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
+      passwordLoginEnabled={process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'}
       redirectTo={redirectTo}
       shopifyLoginUrl={process.env.ALSVID_SHOPIFY_CUSTOMER_LOGIN_URL?.trim() ?? ''}
     >
