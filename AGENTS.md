@@ -121,3 +121,15 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 - Prefer one clean implementation over compatibility shims for code that has never been deployed.
 - CI validates a software version/commit; it never promotes test data into Production.
 - Production changes must remain reproducible from GitHub source and documented configuration.
+
+## 多设备与多 AI 协作规则（2026-10-18）
+
+- 开工先读取当前 main、相关开放 PR 和工作树状态；已有任务优先续接原分支/PR，禁止从过期聊天快照覆盖代码。
+- 一项任务一个短期分支和 PR；不要直接推送 main。换电脑优先重开同一个 Codespace；独立 AI 工作区只通过已推送的提交、分支和 PR 交接。
+- 修改前 fetch 最新远端；脏工作树先保留并确认归属，不得 reset --hard、清理未跟踪文件、覆盖他人修改或强推共享分支。发现同文件并行工作先在 PR 说明并协调。
+- 提交前检查 diff、密钥与相关验证；推送前再次检查远端分支，处理冲突并复验。禁止为了过 CI 而弱化检查。
+- 交接写清仓库、分支、基准/当前 SHA、PR、已修改文件、验证结果、未提交内容和下一步。未提交修改不是 GitHub 备份。
+- AGENTS.md 只约束实际读取并遵循它的工具；权限、分支保护和 CI 才能提供服务器侧约束。不得宣称所有机器人会自动读取。
+- 不提交生产凭据或真实业务数据；代码回滚不等于数据库、对象存储和运行数据恢复。
+
+开发入口和恢复操作见 `docs/COLLABORATION.md`。Codespaces 是优先开发工作区；保留本机 Docker 和临时 CI 验证，不新增共享 Cloud Run Test 环境。

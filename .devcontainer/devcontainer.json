@@ -1,0 +1,31 @@
+{
+  "name": "ALSVID cloud development",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "remoteUser": "node",
+  "forwardPorts": [
+    3000,
+    4000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "ALSVID Web",
+      "onAutoForward": "notify"
+    },
+    "4000": {
+      "label": "ALSVID API",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  }
+}
