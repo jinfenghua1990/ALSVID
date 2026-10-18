@@ -4,6 +4,7 @@ import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
+import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
 import { portalUrlFor } from '../_lib/portal-routing';
 
 const AREAS: readonly { label: string; href: string }[] = [
@@ -409,15 +410,16 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </span>
             ))}
           </div>
-          <button className="av-iconbtn" type="button" aria-label="搜索">
+          <button className="av-iconbtn" type="button" aria-label="搜索尚未接入" title="全局搜索尚未接入" disabled>
             ⌕
           </button>
-          <button className="av-iconbtn" type="button" aria-label="通知">
+          <button className="av-iconbtn" type="button" aria-label="通知尚未接入" title="通知中心尚未接入" disabled>
             ◔
           </button>
-          <button className="av-iconbtn" type="button" aria-label="主题">
+          <button className="av-iconbtn" type="button" aria-label="主题切换尚未接入" title="主题切换尚未接入" disabled>
             ◐
           </button>
+          <AdminLogout />
           <div className="av-user">
             <span className="av-avatar" aria-hidden="true">
               A
@@ -459,7 +461,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         )}
 
         <main className="av-workspace">
-          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台结构预览 · 指标与业务动态仅显示已接入数据；当前未接入项以空状态或「—」显示。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
@@ -487,7 +489,19 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           </div>
 
           {screen.steps && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
-          <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
+          {screen.id === 'workbench' ? (
+            <>
+              <LiveWorkbench />
+              <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
+            </>
+          ) : (
+            <>
+              {screen.sourceNode && screen.route.split('/').length === 3
+                ? <LiveOperationEntry area={screen.area} />
+                : null}
+              <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
+            </>
+          )}
           {moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>
