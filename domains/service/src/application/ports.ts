@@ -1,5 +1,5 @@
 import type { QueryExecutor } from '@alsvid/database';
-import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus } from '../core/model.js';
+import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, ServiceActivity, RecordServiceActivityInput } from '../core/model.js';
 
 export interface ServiceCaseActor { userId: string; roles: readonly string[]; permissions: readonly string[] }
 export interface ServiceCaseAuditPort {
@@ -10,9 +10,12 @@ export interface ServiceCaseRepository {
  list():Promise<ServiceCase[]>;
  get(id:string,executor?:QueryExecutor):Promise<ServiceCase|null>;
  history(caseId:string):Promise<ServiceCaseHistory[]>;
+ activities(caseId:string):Promise<ServiceActivity[]>;
  vehicleExists(vehicleId:string,executor:QueryExecutor):Promise<boolean>;
  create(input:CreateServiceCaseInput,actorId:string,executor:QueryExecutor):Promise<ServiceCase>;
  lockedCase(id:string,executor:QueryExecutor):Promise<ServiceCase|null>;
  transition(id:string,expectedVersion:number,fromStatus:ServiceCaseStatus,toStatus:ServiceCaseStatus,actorId:string,executor:QueryExecutor):Promise<ServiceCase>;
+ findActivityByRequest(caseId:string,requestId:string,executor:QueryExecutor):Promise<ServiceActivity|null>;
+ createActivity(caseId:string,input:RecordServiceActivityInput,actorId:string,executor:QueryExecutor):Promise<ServiceActivity|null>;
  recordHistory(input:{caseId:string;fromStatus:ServiceCaseStatus|null;toStatus:ServiceCaseStatus;caseVersion:number;actorId:string;reason:string},executor:QueryExecutor):Promise<void>;
 }
