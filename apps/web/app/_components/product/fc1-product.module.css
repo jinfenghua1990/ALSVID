@@ -67,14 +67,6 @@
 .stats strong { display: block; font-size: clamp(22px, 2.1vw, 34px); font-weight: 650; letter-spacing: -.04em; line-height: 1.15; }
 .stats strong small { font-size: .52em; font-weight: 500; letter-spacing: 0; }
 .stats span { display: block; margin-top: 8px; color: #c4cec8; font-size: 11px; line-height: 1.45; }
-.purchaseSection { padding: 52px max(6vw, calc((100vw - 1560px) / 2)); display: grid; grid-template-columns: minmax(0,.82fr) minmax(0,1.18fr); gap: clamp(28px,6vw,90px); align-items: center; background: #f1f3ef; }
-.purchaseIntro { max-width: 570px; }
-.purchaseIntro h2 { margin: 10px 0; font-size: clamp(28px,3.1vw,44px); line-height: 1.08; letter-spacing: -.04em; }
-.purchaseIntro > p:last-child { margin: 0; color: #5e6a63; font-size: 14px; }
-.purchaseCard { min-height: 142px; padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-radius: 8px; background: #17251f; color: #f7f8f5; }
-.purchaseStatus { display: inline-block; margin-bottom: 6px; color: #c5dccd; font-size: 12px; font-weight: 700; letter-spacing: .05em; }
-.purchaseCard p { margin: 0; color: #c6d0c9; font-size: 12px; }
-.purchaseButton { display: inline-flex; min-width: 190px; min-height: 48px; padding: 0 19px; align-items: center; justify-content: center; gap: 12px; border-radius: 99px; background: #f5f6f2; color: #17251f; text-decoration: none; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .colourBand { padding: 72px max(5vw, calc((100vw - 1320px) / 2)); display: grid; grid-template-columns: .95fr 1.05fr; gap: 40px; align-items: start; background: #e8ebe5; }
 .colourBand h2 { margin: 8px 0 12px; font-size: clamp(27px, 3vw, 42px); line-height: 1.12; letter-spacing: -.04em; }
 .colourBand p { max-width: 620px; color: var(--muted); }
@@ -200,7 +192,6 @@
   .photoCaption { left: 5vw; bottom: 18px; max-width: 28%; }
 
   .colourBand { grid-template-columns: 1fr; gap: 20px; }
-  .purchaseSection { grid-template-columns: 1fr; gap: 24px; }
   .split { min-height: 720px; padding: 0 5vw; }
   .suspensionCards { gap: 16px; }
   .suspensionCopy { min-height: 230px; padding: 22px; }
@@ -241,9 +232,6 @@
   .stats > div:nth-child(n+3) { border-bottom: 0; }
   .stats strong { font-size: 24px; }
   .stats span { font-size: 10px; }
-  .purchaseSection { padding: 34px 20px; }
-  .purchaseCard { padding: 20px; align-items: flex-start; flex-direction: column; gap: 17px; }
-  .purchaseButton { width: 100%; }
   .colourBand, .section { padding: 52px 20px; }
   .colourBand h2 { font-size: 32px; }
   .swatchGroup { grid-template-columns: 1fr; }

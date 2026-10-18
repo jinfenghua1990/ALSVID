@@ -169,12 +169,6 @@
   "fc1.drive.sensor": "传感助力",
   "fc1.drive.sensor_value": "扭矩",
   "fc1.explore_features": "探索 FC1",
-  "fc1.purchase.kicker": "ALSVID 商城 · SHOPIFY",
-  "fc1.purchase.title": "喜欢这台 FC1？",
-  "fc1.purchase.body": "前往 ALSVID 商城查看当前可售车型。售价、可选配置、库存与配送信息以商城实时页面为准。",
-  "fc1.purchase.pending": "购买信息将在商城同步",
-  "fc1.purchase.ready": "FC1 可在 ALSVID 商城查看",
-  "fc1.purchase.details": "商品上架后，可在 Shopify 查看价格与配置并加入购物车。",
   "fc1.purchase.open": "查看 FC1 商品并购买",
   "fc1.purchase.shop": "前往 ALSVID 商城"
 }
