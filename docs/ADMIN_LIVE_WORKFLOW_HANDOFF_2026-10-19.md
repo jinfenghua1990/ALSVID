@@ -76,3 +76,16 @@
 **明确未交付：** 客户/Dealer 对外提交、Shopify 订单身份映射、已验证车辆所有权、保修条款/判定、诊断/维修工时、零件替换及库存台账、经销商维修协作、用户/服务商派工、附件与通知，以及真实浏览器/生产业务验收。这只是 #31 的可追溯工单最小切片，不得关闭 #31 或 #212。
 
 **数据库发布风险：** 此 PR 增加新迁移，虽然没有删除/修改原有表和真实数据，但生产发布会应用正式 schema 变更；必须在隔离 CI 验证迁移、权限和 API 后人工审查，保持 Draft，不自动合并发布。
+
+
+## 七、第五批：维修证据与保修初评（Draft PR，尚未上线）
+
+- `0026_service_evidence_foundation.sql` 新增 `service.case_activities`，持久化内部诊断（DIAGNOSIS）、维修活动与工时（REPAIR_NOTE）及保修**初步评估**（WARRANTY_ASSESSMENT）。
+- 写入记录具备：车辆关联的真实 Service Case、操作者、记录时间、事件类别、审核依据、必要的工时或初评结果；服务端 + PostgreSQL 禁止修改/删除历史行。
+- 工单必须为 TRIAGED / IN_PROGRESS 才可记录证据；维修工时仅限 IN_PROGRESS；已解决和已关闭不可插入新操作。
+- `service.warranty.review` 作为额外权限，默认只赋予 system_admin。即使 service_agent 具备 service.write，也不能单独提交保修初评；将来应配置经审核的保修专员角色。
+- 初评选项只有 `EVIDENCE_REQUIRED`、`POSSIBLY_COVERED`、`POSSIBLY_EXCLUDED`，**并非法定保修资格或商业承诺**。正式 APPROVED / DENIED 需要验证车主归属、订单/交付、政策版本和证据后，另行开发受控审批。
+- `POST /api/v1/service/cases/:id/activities` 使用 `clientRequestId` 幂等键，重复同一请求不会重复写入或审计；相同键尝试提交不同载荷返回冲突。锁定工单行并在同一事务内追加活动和审计。
+- `GET /api/v1/service/cases/:id` 在历史状态旁额外返回活动证据；`/admin/after-sales` 新增录入、查看、失败重试 UI，保持 85 张 Ardot 设计图和旧业务页不变。
+- **不执行**配件出库、库存数量变化、成本/付款计算、外部经销商访问、自动邮件通知或车主所有权绑定；这些均需要各自所属领域接口与授权验收。
+- 本批只写 GitHub 分支 `feat/admin-live-operations-closure-20261019`，PR #211 保留 Draft。迁移和容器 CI 只在临时数据库执行。用户真实业务验收与生产发布尚未完成。
