@@ -5,6 +5,7 @@ import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
 import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
+import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { portalUrlFor } from '../_lib/portal-routing';
 
 const AREAS: readonly { label: string; href: string }[] = [
@@ -381,6 +382,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
+  const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
 
   return (
     <div className="av av-ambient" data-theme={theme}>
@@ -468,7 +470,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               <h1 className="av-pagetitle">{screen.title}</h1>
               <p className="av-pagesub">{screen.subtitle}</p>
             </div>
-            {actions.length > 0 ? (
+            {actions.length > 0 && !isIntegratedOverview ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
                   // Only route business actions to real persisted workflows. Design-state pages remain accessible as previews.
@@ -494,6 +496,18 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             <>
               <LiveWorkbench />
               <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
+            </>
+          ) : isIntegratedOverview ? (
+            <>
+              <p className="av-fixture-note">
+                当前为可读写的 ALSVID 业务工作台。只有 API 成功后才显示已保存；
+                Shopify 订单和 WMS 仓库执行仍由外部系统负责。
+              </p>
+              <IntegratedOperations area={screen.area} />
+              <details className="av-card av-design-archive">
+                <summary>查看原 Ardot 页面示例（仅设计预览，不保存）</summary>
+                <Blocks blocks={screen.blocks} stacked />
+              </details>
             </>
           ) : (
             <>
