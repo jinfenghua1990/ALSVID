@@ -44,3 +44,19 @@
 - `apps/web/app/_design/integrated-operations.test.mjs`, `live-operations.test.mjs`, `login-policy.test.mjs`
 - `apps/web/app/login/page.tsx`, `apps/web/app/_components/portal-login.tsx`, `apps/web/app/api/session/login/route.ts`
 - `apps/api/src/auth.controller.ts`
+
+
+## 五、第三批：客户档案 / 身份审计真实查询（本 PR 新增，待验收）
+
+| 模块 | 新版页面 | 真实读取 | 明确不做 |
+| --- | --- | --- | --- |
+| 客户/车主 | \`/admin/customers\` | \`GET /v1/partners\` 中的 CUSTOMER 角色档案，\`GET /v1/partners/:id\` 明细；\`GET /v1/vehicles\` 车辆出生台账 | **不**把 Partner 邮箱/角色匹配当作 Shopify 客户验证；**不**自动关联车辆所有权、保修或交付事实 |
+| 设置/审计 | \`/admin/settings\` | \`GET /v1/auth/users\` 内部账号与角色，\`GET /v1/audit?limit=100\` 已保存审计事件 | **不**在 UI 修改角色、创建用户或伪造日志；只读接口仍按 \`identity.user.read\` 和 \`audit.read\` 等后端权限执行 |
+
+- 页面采用真实记录、加载、失败、无权限和空状态；接口返回 403 不伪装为 0 条数据。
+- 客户筛选与档案详情是查询功能，不代表已实现客户售后/车主所有权；车辆台账最多展示前 100 条，服务端车辆列表当前最多 1000 条。
+- **售后未闭环**：尚无已交付的 Service/Warranty/Repair Controller 与持久化领域流程，不将 UI 假操作挂接到订单/车辆写入；需要单独设计授权、业务状态机、审计和 API 验收后再开放。
+- 账户列表和审计事件仅在有权限的 Admin 页面读取，审计元数据不直接渲染；不对消费者/Dealer/Supplier 开放。
+- 第三批前端：\`apps/web/app/_design/admin-records.tsx\`、\`admin-records.module.css\`、\`admin-records.test.mjs\`；通过 \`integrated-operations.tsx\` 复用既有 Admin 布局。
+
+注意：以上均为 Draft PR 中的新增代码，当前 CI 结果、正式发布和真实非生产业务浏览器验证须分别记录。合并后再按 Issue #212 分拆售后、权限变更、客户车辆归属与数据口径的独立工作。
