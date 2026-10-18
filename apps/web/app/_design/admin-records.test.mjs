@@ -45,3 +45,18 @@ test('client read states distinguish error/unauthorized from true empty record l
   assert.match(ui, /接口返回 0 条账户记录/);
   assert.match(ui, /读取失败，请刷新重试/);
 });
+
+
+test('legacy directory and settings subroutes converge on canonical authorized Admin views', () => {
+  const routes = [
+    ['../customers/page.tsx', '/admin/customers'],
+    ['../settings/access/page.tsx', '/admin/settings'],
+    ['../settings/roles/page.tsx', '/admin/settings'],
+    ['../settings/audit/page.tsx', '/admin/settings'],
+  ];
+  for (const [path, target] of routes) {
+    const content = read(path);
+    assert.ok(content.includes("redirect('" + target + "')"), path);
+    assert.ok(!content.includes('PortalSectionPage'), path);
+  }
+});
