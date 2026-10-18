@@ -2,7 +2,7 @@
 
 ## Current release mode
 
-ALSVID operates against one live cloud runtime: Production. Local development and disposable GitHub CI are used to build and validate candidates. The former cloud Development/Test environment and automatic promotion flow are retired.
+ALSVID operates against one live cloud runtime: Production. Codespaces/cloud development and disposable GitHub CI are used to build and validate candidates. The owner retired workstation development on 2026-10-18; do not recreate local clones or localhost preview servers. The former cloud Development/Test environment and automatic promotion flow are retired.
 
 ```text
 Feature branch / pull request to main
@@ -24,7 +24,7 @@ Automatic deployment is limited to the current main source. Manual deployment re
 
 ## Environments
 
-- **Local:** workstation and Docker Compose; disposable developer data.
+- **Development:** GitHub Codespaces / connected cloud AI workspaces; Docker Compose and disposable developer data remain isolated within the cloud workspace.
 - **CI:** GitHub-hosted ephemeral databases and containers; no Production secrets.
 - **Production:** Google Cloud Run in `alsvid-prod`, with Production database, object storage and secret bindings.
 - **Retired:** `alsvid-dev` cloud runtime and Development promotion workflows.
