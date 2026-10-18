@@ -1,7 +1,7 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
-import { navigationFor } from '../app-navigation';
+import { OperationsFrame } from '../_components/operations-frame';
+
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -36,7 +36,7 @@ const statusLabels: Record<string,string> = {
 };
 const statusLabel=(status:string)=>statusLabels[status]??status.replaceAll('_',' ');
 
-export default function ProductionClient(){
+export default function ProductionClient({ embedded = false }: { embedded?: boolean }){
   const router=useRouter();
   const [summary,setSummary]=useState<Summary>(empty);
   const [vehicles,setVehicles]=useState<Vehicle[]>([]);
@@ -72,7 +72,7 @@ export default function ProductionClient(){
   async function action(endpoint:string,body:unknown={}){try{await api(endpoint,{method:'POST',body:JSON.stringify(body)});setMessage('已更新。');await reload();}catch(error){setMessage(error instanceof Error?error.message:'无法更新');}}
   async function submit(event:FormEvent<HTMLFormElement>,endpoint:string,build:(form:FormData)=>unknown){event.preventDefault();const form=new FormData(event.currentTarget);try{await api(endpoint,{method:'POST',body:JSON.stringify(build(form))});setMessage('已保存。');await reload();}catch(error){setMessage(error instanceof Error?error.message:'无法保存');}}
 
-  return <AppShell navigation={navigationFor('/production')} footer="ALSVID · 内部管理">
+  return <OperationsFrame embedded={embedded} area="production" footer="ALSVID · 内部管理">
     <section>
       <header className={styles.header}><div><div className={styles.eyebrow}>生产 / 质检追踪</div><h1>从已发布配置，制造真实车辆。</h1><p>每一个生产单元都继承不可变的 Build Specification 基线。只有通过质检并形成证据后，车辆才可以出生并绑定唯一车架号。</p></div></header>
       {message?<div className={styles.notice}>{message}</div>:null}
@@ -97,5 +97,5 @@ export default function ProductionClient(){
 
       <section className={styles.vehicles}><div className={styles.sectionHead}><span>车辆登记</span><h2>从生产事实生成车辆身份</h2></div><div className={styles.vehicleGrid}>{vehicles.map(vehicle=><article key={vehicle.id}><span>{vehicle.vehicle_code}</span><b>{vehicle.frame_number}</b><p>{vehicle.sku} · {vehicle.build_spec_code}</p><small>{vehicle.production_order_number} / 单元 {vehicle.unit_no} · {vehicle.factory_name}</small></article>)}{!vehicles.length?<p className={styles.empty}>暂无已出生车辆。</p>:null}</div></section>
     </section>
-  </AppShell>;
+  </OperationsFrame>;
 }
