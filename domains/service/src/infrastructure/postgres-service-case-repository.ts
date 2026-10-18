@@ -1,5 +1,5 @@
 import type { DatabasePort, QueryExecutor } from '@alsvid/database';
-import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus } from '../core/model.js';
+import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, ServiceActivity, RecordServiceActivityInput, PreliminaryWarrantyAssessment, ServiceActivityKind } from '../core/model.js';
 import { ServiceCaseConflictError } from '../core/errors.js';
 import type { ServiceCaseRepository } from '../application/ports.js';
 
@@ -12,6 +12,18 @@ type HistoryRow = {
  id:string;case_id:string;from_status:ServiceCaseStatus|null;to_status:ServiceCaseStatus;
  case_version:number;actor_user_id:string;reason:string;occurred_at:Date;
 };
+type ActivityRow={
+ id:string;case_id:string;client_request_id:string;kind:ServiceActivityKind;note:string;
+ labor_minutes:number|null;assessment:PreliminaryWarrantyAssessment|null;actor_user_id:string;occurred_at:Date;
+};
+function mapActivity(row:ActivityRow):ServiceActivity {
+ return {
+  id:row.id,caseId:row.case_id,clientRequestId:row.client_request_id,kind:row.kind,
+  note:row.note,laborMinutes:row.labor_minutes,assessment:row.assessment,
+  actorUserId:row.actor_user_id,occurredAt:row.occurred_at.toISOString()
+ };
+}
+const selectActivity='SELECT id,case_id,client_request_id,kind,note,labor_minutes,assessment,actor_user_id,occurred_at FROM service.case_activities';
 const selectCases = 'SELECT c.*,v.frame_number,s.sku FROM service.cases c JOIN vehicle.vehicles v ON v.id=c.vehicle_id JOIN product.skus s ON s.id=v.sku_id';
 function mapCase(row:CaseRow):ServiceCase {
  return {
@@ -36,6 +48,20 @@ export class PostgresServiceCaseRepository implements ServiceCaseRepository {
   const r=await this.db.query<HistoryRow>(
    'SELECT id,case_id,from_status,to_status,case_version,actor_user_id,reason,occurred_at FROM service.case_history WHERE case_id=$1 ORDER BY case_version ASC',[caseId]);
   return r.rows.map(row=>({id:row.id,caseId:row.case_id,fromStatus:row.from_status,toStatus:row.to_status,caseVersion:row.case_version,actorUserId:row.actor_user_id,reason:row.reason,occurredAt:row.occurred_at.toISOString()}));
+ }
+ async activities(caseId:string):Promise<ServiceActivity[]> {
+  const r=await this.db.query<ActivityRow>(selectActivity+' WHERE case_id=$1 ORDER BY occurred_at ASC,id ASC',[caseId]);
+  return r.rows.map(mapActivity);
+ }
+ async findActivityByRequest(caseId:string,requestId:string,e:QueryExecutor):Promise<ServiceActivity|null> {
+  const r=await e.query<ActivityRow>(selectActivity+' WHERE case_id=$1 AND client_request_id=$2',[caseId,requestId]);
+  return r.rows[0]?mapActivity(r.rows[0]):null;
+ }
+ async createActivity(caseId:string,input:RecordServiceActivityInput,actorId:string,e:QueryExecutor):Promise<ServiceActivity|null> {
+  const r=await e.query<ActivityRow>(
+   'INSERT INTO service.case_activities(case_id,client_request_id,kind,note,labor_minutes,assessment,actor_user_id) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(case_id,client_request_id) DO NOTHING RETURNING id,case_id,client_request_id,kind,note,labor_minutes,assessment,actor_user_id,occurred_at',
+   [caseId,input.clientRequestId,input.kind,input.note,input.laborMinutes??null,input.assessment??null,actorId]);
+  return r.rows[0]?mapActivity(r.rows[0]):null;
  }
  async vehicleExists(vehicleId:string,e:QueryExecutor):Promise<boolean>{
   const r=await e.query('SELECT id FROM vehicle.vehicles WHERE id=$1',[vehicleId]);
