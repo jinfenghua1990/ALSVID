@@ -1,7 +1,7 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
-import { navigationFor } from '../app-navigation';
+import { OperationsFrame } from '../_components/operations-frame';
+
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -26,7 +26,7 @@ const statusLabels: Record<string,string> = {
 };
 const statusLabel=(status:string)=>statusLabels[status]??status.replaceAll('_',' ');
 
-export default function SupplyClient() {
+export default function SupplyClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [data, setData] = useState<Procurement>(empty);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -118,7 +118,7 @@ export default function SupplyClient() {
   }
 
   return (
-    <AppShell navigation={navigationFor('/supply')} footer="ALSVID · 内部管理">
+    <OperationsFrame embedded={embedded} area="supply" footer="ALSVID · 内部管理">
       <section>
         <header className={styles.header}>
           <div><div className={styles.eyebrow}>采购 / SUPPLY</div><h1>把供应商承诺，变成可追溯的采购事实。</h1><p>报价、采购订单、供应商确认与收货 / 承诺分别记录。采购只管理商业承诺，不直接修改库存余额，也不执行付款。</p></div>
@@ -177,6 +177,6 @@ export default function SupplyClient() {
           <div className={styles.history}><span>不可变状态历史</span>{data.snapshots.filter((snapshot) => snapshot.purchase_order_id === selected.id).map((snapshot) => <div key={snapshot.id}><b>{statusLabel(snapshot.state)}</b><small>v{snapshot.po_version} · {new Date(snapshot.created_at).toLocaleString()}</small></div>)}</div>
         </section> : null}
       </section>
-    </AppShell>
+    </OperationsFrame>
   );
 }
