@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import styles from './admin-records.module.css';
 
 type CaseStatus = 'NEW'|'TRIAGED'|'IN_PROGRESS'|'RESOLVED'|'CLOSED';
@@ -10,6 +10,10 @@ type CaseRow = {
  title:string;description:string;category:CaseCategory;status:CaseStatus;version:number;
  createdAt:string;updatedAt:string;
 };
+type ActivityKind = 'DIAGNOSIS'|'REPAIR_NOTE'|'WARRANTY_ASSESSMENT';
+type Assessment = 'EVIDENCE_REQUIRED'|'POSSIBLY_COVERED'|'POSSIBLY_EXCLUDED';
+type ActivityRow = {id:string;kind:ActivityKind;note:string;laborMinutes:number|null;assessment:Assessment|null;actorUserId:string;occurredAt:string};
+type CaseDetail = {case:CaseRow;history:HistoryRow[];activities:ActivityRow[]};
 type VehicleRow = { id:string;frame_number:string;sku:string };
 type HistoryRow = { id:string;caseVersion:number;fromStatus:CaseStatus|null;toStatus:CaseStatus;reason:string;occurredAt:string;actorUserId:string };
 const states:Record<CaseStatus,string> = { NEW:'待受理',TRIAGED:'已分诊',IN_PROGRESS:'处理中',RESOLVED:'已解决（待确认）',CLOSED:'已关闭' };
@@ -40,7 +44,7 @@ export function ServiceCaseClient() {
  const [cases,setCases]=useState<CaseRow[]>([]);
  const [vehicles,setVehicles]=useState<VehicleRow[]>([]);
  const [selected,setSelected]=useState('');
- const [detail,setDetail]=useState<{case:CaseRow;history:HistoryRow[]}|null>(null);
+ const [detail,setDetail]=useState<CaseDetail|null>(null);
  const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
  const [message,setMessage]=useState('');
  const [actionMessage,setActionMessage]=useState('');
@@ -48,6 +52,8 @@ export function ServiceCaseClient() {
  const [reason,setReason]=useState('');
  const [target,setTarget]=useState<CaseStatus>('TRIAGED');
  const [readAt,setReadAt]=useState('');
+ const [activityKind,setActivityKind]=useState<ActivityKind>('DIAGNOSIS');
+ const retryActivity=useRef<{fingerprint:string;requestId:string}|null>(null);
 
  async function reload() {
   setStatus('loading');setMessage('');
@@ -62,7 +68,7 @@ export function ServiceCaseClient() {
  useEffect(()=>{
   if(!selected){setDetail(null);return;}
   let active=true;setDetail(null);setMessage('');
-  void api<{case:CaseRow;history:HistoryRow[]}>('/v1/service/cases/'+encodeURIComponent(selected))
+  void api<CaseDetail>('/v1/service/cases/'+encodeURIComponent(selected))
     .then(data=>{if(active){setDetail(data);setTarget(nextStatus[data.case.status][0]??'TRIAGED');setReason('');}})
     .catch(error=>{if(active)setMessage(error instanceof Error?error.message:'读取工单明细失败');});
   return()=>{active=false;};
@@ -94,11 +100,37 @@ export function ServiceCaseClient() {
    await api('/v1/service/cases/'+encodeURIComponent(detail.case.id)+'/transition','POST',{
     expectedVersion:detail.case.version,toStatus:target,reason:reason.trim(),
    });
-   const refreshed=await api<{case:CaseRow;history:HistoryRow[]}>('/v1/service/cases/'+encodeURIComponent(detail.case.id));
+   const refreshed=await api<CaseDetail>('/v1/service/cases/'+encodeURIComponent(detail.case.id));
    setDetail(refreshed);setCases(current=>current.map(c=>c.id===refreshed.case.id?refreshed.case:c));
    setTarget(nextStatus[refreshed.case.status][0]??'TRIAGED');setReason('');
    setActionMessage('状态更新已保存到历史与审计');
   }catch(error){setActionMessage(error instanceof Error?error.message:'状态更新失败');}
+  finally{setBusy(false);}
+ }
+
+
+ async function recordActivity(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  if(!detail||busy)return;
+  const formElement=event.currentTarget;
+  const data=new FormData(formElement);
+  const note=String(data.get('activityNote')??'').trim();
+  const kind=activityKind;
+  const assessment=kind==='WARRANTY_ASSESSMENT'?String(data.get('assessment')??'') as Assessment:undefined;
+  const laborMinutes=kind==='REPAIR_NOTE'?Number(data.get('laborMinutes')):undefined;
+  if(note.length<10||note.length>3000){setActionMessage('说明需要 10 至 3000 字符');return;}
+  const payload={kind,note,...(assessment?{assessment}:{}),...(laborMinutes!==undefined?{laborMinutes}:{})};
+  const fingerprint=JSON.stringify([detail.case.id,payload]);
+  const requestId=retryActivity.current?.fingerprint===fingerprint?retryActivity.current.requestId:crypto.randomUUID();
+  retryActivity.current={fingerprint,requestId};
+  setBusy(true);setActionMessage('');
+  try{
+   await api('/v1/service/cases/'+encodeURIComponent(detail.case.id)+'/activities','POST',{...payload,clientRequestId:requestId});
+   const refreshed=await api<CaseDetail>('/v1/service/cases/'+encodeURIComponent(detail.case.id));
+   setDetail(refreshed);retryActivity.current=null;
+   formElement.reset();setActivityKind('DIAGNOSIS');
+   setActionMessage('已保存处理证据及审计记录');
+  }catch(error){setActionMessage(error instanceof Error?error.message:'提交失败；原表单已保留可重试');}
   finally{setBusy(false);}
  }
 
@@ -160,6 +192,43 @@ export function ServiceCaseClient() {
      <label>处理原因（必填）<textarea className={styles.search} minLength={3} maxLength={1000} rows={2} required value={reason} onChange={event=>setReason(event.target.value)} /></label>
      <div><button className="av-btn" type="button" disabled={busy||reason.trim().length<3} onClick={()=>{void changeStatus();}}>保存处理结果</button></div>
     </div>:<p className={styles.notice}>工单已关闭；不能再执行其他状态变更。</p>}
+
+    <h3>诊断、维修和保修初步评估</h3>
+    <p className={styles.muted}>内部事实记录并非最终保修资格判定；不自动建立车主归属、费用、配件领用或库存扣减。</p>
+    {['TRIAGED','IN_PROGRESS'].includes(detail.case.status)?<form className={styles.stack} onSubmit={event=>{void recordActivity(event);}}>
+     <label>记录类型<select className={styles.search} value={activityKind} disabled={busy} onChange={event=>setActivityKind(event.target.value as ActivityKind)}>
+      <option value="DIAGNOSIS">诊断与现场检查</option>
+      {detail.case.status==='IN_PROGRESS'?<option value="REPAIR_NOTE">维修过程与工时</option>:null}
+      <option value="WARRANTY_ASSESSMENT">保修初审意见（非最终批准）</option>
+     </select></label>
+     {activityKind==='REPAIR_NOTE'?<label>实际工作分钟（不产生应付费用）
+      <input className={styles.search} type="number" min={0} max={1440} step={1} name="laborMinutes" defaultValue={0} required />
+     </label>:null}
+     {activityKind==='WARRANTY_ASSESSMENT'?<label>初审意见（不代表保修资格或法律承诺）
+      <select className={styles.search} name="assessment" defaultValue="EVIDENCE_REQUIRED" required>
+       <option value="EVIDENCE_REQUIRED">缺少证据，需要进一步核验</option>
+       <option value="POSSIBLY_COVERED">可能符合保修范围（初审）</option>
+       <option value="POSSIBLY_EXCLUDED">可能不符合保修范围（初审）</option>
+      </select></label>:null}
+     <label>记录实际证据（至少 10 字符）
+      <textarea className={styles.search} rows={3} name="activityNote" minLength={10} maxLength={3000} required
+       placeholder="填写检查结论、维修动作或审核依据，不包含无关个人信息" />
+     </label>
+     <div><button type="submit" className="av-btn" disabled={busy}>{busy?'保存中…':'保存处理证据'}</button></div>
+    </form>:<p className={styles.notice}>仅已分诊或处理中的工单允许新增证据；待受理、已解决和已关闭均不允许。</p>}
+    <div className={styles.tableScroll}><table className={styles.table}>
+     <thead><tr><th>时间与类型</th><th>记录内容</th><th>审核意见 / 工时</th><th>操作者 ID</th></tr></thead>
+     <tbody>{(detail.activities??[]).map(item=><tr key={item.id}>
+      <td>{occurred(item.occurredAt)} · {item.kind==='DIAGNOSIS'?'诊断':item.kind==='REPAIR_NOTE'?'维修':'保修初审'}</td>
+      <td>{item.note}</td>
+      <td>{item.kind==='REPAIR_NOTE'?String(item.laborMinutes??0)+' 分钟':
+       item.assessment==='EVIDENCE_REQUIRED'?'待补证':
+       item.assessment==='POSSIBLY_COVERED'?'可能保内':
+       item.assessment==='POSSIBLY_EXCLUDED'?'可能保外':'—'}</td>
+      <td>{item.actorUserId}</td>
+     </tr>)}</tbody>
+    </table></div>
+    {!(detail.activities??[]).length?<p className={styles.notice}>暂无真实诊断、维修或保修初审记录。</p>:null}
     <h3>不可变处理历史</h3>
     <div className={styles.tableScroll}><table className={styles.table}><thead><tr><th>版本 / 时间</th><th>状态</th><th>原因</th><th>操作者 ID</th></tr></thead>
      <tbody>{detail.history.map(h=><tr key={h.id}><td>v{h.caseVersion} · {occurred(h.occurredAt)}</td><td>{h.fromStatus?states[h.fromStatus]+' → ':''}{states[h.toStatus]}</td><td>{h.reason}</td><td>{h.actorUserId}</td></tr>)}</tbody>
