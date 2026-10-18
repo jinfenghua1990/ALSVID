@@ -117,8 +117,7 @@ export function HomePosterHero({
           <p className={styles.posterTagline}>{active === 0 ? tagline : conceptLabel}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
           <div className={styles.posterButtons}>
-            {buyHref ? <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref} target="_blank" rel="noreferrer">{buyLabel}<span aria-hidden="true">↗</span></a> : null}
-            <a className={styles.posterDiscover} href={active === 0 ? modelHref : slide.href}>{active === 0 ? discoverLabel : exploreLabel}<span aria-hidden="true">→</span></a>
+            {active === 0 ? <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}>{buyLabel}<span aria-hidden="true">↗</span></a> : <a className={styles.posterDiscover} href={slide.href}>{exploreLabel}<span aria-hidden="true">→</span></a>}
             {active === 0 && <a className={styles.posterSecondary} href={`${modelHref}#configure`}>{secondaryLabel}</a>}
           </div>
           {active === 0 && <p className={styles.posterDelivery}>{deliveryNote}</p>}
