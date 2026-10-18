@@ -38,6 +38,16 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
   const t = translator(locale);
   const key = (value: string) => t(value as TranslationKey);
   const formatWeight = (value: number) => `${new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)} kg`;
+  const configuredShopUrl = process.env.ALSVID_SHOPIFY_FC1_PRODUCT_URL?.trim();
+  const fc1ShopUrl = (() => {
+    if (!configuredShopUrl) return null;
+    try {
+      const url = new URL(configuredShopUrl);
+      return url.protocol === "https:" && url.hostname === "shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
   return (
     <main className={styles.page} lang={locale}>
       <div className={styles.reviewBanner}>{key("fc1.preview")}</div>
@@ -58,7 +68,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p>{key("fc1.intro")}</p>
             <div className={styles.heroCtas}>
               <a className={styles.buttonDark} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
-              <a className={styles.buttonLight} href="#specifications">{key("fc1.specifications")}</a>
+              <a className={styles.buttonLight} href="#purchase">{key("fc1.purchase.shop")}</a>
             </div>
           </div>
           <div className={styles.heroVisual}><ProductGallery locale={locale} /></div>
@@ -68,6 +78,22 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <div><strong>85 × 69 × 48</strong><span>{key("fc1.metric.folded")}</span></div>
           <div><strong>{new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(15.5)} <small>kg</small></strong><span>{key("fc1.metric.weight")}</span></div>
           <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
+        </section>
+        <section id="purchase" className={styles.purchaseSection}>
+          <div className={styles.purchaseIntro}>
+            <p className={styles.eyebrow}>{key("fc1.purchase.kicker")}</p>
+            <h2>{key("fc1.purchase.title")}</h2>
+            <p>{key("fc1.purchase.body")}</p>
+          </div>
+          <div className={styles.purchaseCard}>
+            <div>
+              <span className={styles.purchaseStatus}>{key(fc1ShopUrl ? "fc1.purchase.ready" : "fc1.purchase.pending")}</span>
+              <p>{key("fc1.purchase.details")}</p>
+            </div>
+            <a href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer" className={styles.purchaseButton}>
+              {key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.purchase.shop")} <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </section>
         <section id="entry" className={`${styles.section} ${styles.split}`}>
           <div className={styles.sectionHeader}>
@@ -179,7 +205,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href="https://shop.chaibenn.com/" target="_blank" rel="noreferrer">{key("fc1.cta.shop")} <span aria-hidden="true">↗</span></a>
+          <a className={`${styles.buttonDark} ${styles.button}`} href={fc1ShopUrl ?? "https://shop.chaibenn.com/"} target="_blank" rel="noreferrer">{key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.cta.shop")} <span aria-hidden="true">↗</span></a>
           <p className={styles.smallNote}>{key("fc1.cta.shop_note")}</p>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
