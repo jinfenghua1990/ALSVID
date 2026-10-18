@@ -36,7 +36,7 @@ try {
       const chapterNav = page.getByRole("navigation", { name:copy["fc1.highlights"], exact:true });
       await chapterNav.getByRole("link", { name:copy["fc1.story.nav.fold"], exact:true }).click();
       await page.waitForURL("**#folding");
-      await page.waitForTimeout(120);
+      await page.waitForFunction(() => document.querySelector('nav a[href="#folding"][aria-current="location"]'));
       assert.equal(await chapterNav.locator('a[href="#folding"]').getAttribute("aria-current"), "location");
       const fold = page.locator("#folding");
       await fold.getByRole("button", { name:copy["fc1.fold.closed"], exact:true }).click();
