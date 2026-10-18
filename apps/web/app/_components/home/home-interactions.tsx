@@ -45,6 +45,8 @@ export function InfoDialog({
 
 export function HomePosterHero({
   title,
+  tagline,
+  discoverLabel,
   posterAlt,
   modelHref,
   modelLabel,
@@ -52,24 +54,31 @@ export function HomePosterHero({
   scrollLabel,
 }: {
   title: string;
+  tagline: string;
+  discoverLabel: string;
   posterAlt: string;
   modelHref: string;
   modelLabel: string;
   categories: { href: string; label: string }[];
   scrollLabel: string;
 }) {
+  const headingId = useId();
   return (
-    <section className={styles.posterHero} aria-label={title}>
-      <h1 className={styles.visuallyHidden}>{title}</h1>
+    <section className={styles.posterHero} aria-labelledby={headingId}>
       <div className={styles.posterStage}>
-        <img className={styles.posterImage} src="/home/fc1-poster-kv.png" alt={posterAlt} width="1672" height="941" fetchPriority="high" />
-        <a className={styles.posterProductLink} href={modelHref} aria-label={modelLabel} />
+        <img className={styles.posterImage} src="/home/fc1-poster-clean.png" alt={posterAlt} width="1672" height="941" fetchPriority="high" />
+        <div className={styles.posterContent}>
+          <h1 id={headingId}>{title}</h1>
+          <p className={styles.posterTagline}>{tagline}</p>
+          <span className={styles.posterDivider} aria-hidden="true" />
+          <a className={styles.posterDiscover} href={modelHref}>{discoverLabel}<span aria-hidden="true">→</span></a>
+        </div>
+        <a className={styles.posterBikeLink} href={modelHref} aria-label={modelLabel} />
         <nav className={styles.posterCategories} aria-label={scrollLabel}>
-          {categories.map(({href, label}) => <a key={href} href={href} aria-label={label} />)}
+          {categories.map(({href, label}) => <a key={href} href={href}>{label}</a>)}
         </nav>
-        <a className={styles.posterScroll} href="#platforms" aria-label={scrollLabel} />
+        <a className={styles.posterScroll} href="#platforms" aria-label={scrollLabel}><svg viewBox="0 0 24 14" width="20" height="12" fill="none" aria-hidden="true"><path d="m3 3 9 8 9-8" stroke="currentColor" strokeWidth="1.5" /></svg></a>
       </div>
-      <a className={styles.posterMobileCta} href={modelHref}>{modelLabel} <span aria-hidden="true">↗</span></a>
     </section>
   );
 }
