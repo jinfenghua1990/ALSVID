@@ -37,3 +37,20 @@ test("customer-facing FC1 source note omits the supplier brand and former model 
     assert.ok(locales[locale]["fc1.source.link"].trim().length > 0);
   }
 });
+
+
+test("preview checkout does not advertise Shopify or accept live payment", async () => {
+  for (const [locale, copy] of Object.entries(locales)) {
+    const relevant = ["fc1.cta.body", "fc1.selection.unavailable", "fc1.checkout.intro", "fc1.checkout.notice"];
+    for (const key of relevant) assert.doesNotMatch(copy[key], /shopify/i, `${locale}:${key}`);
+    assert.match(copy["fc1.selection.unavailable"], /不接受付款|不生成购买订单|keine Zahlung|no payment/i, locale);
+    assert.ok(copy["fc1.checkout.disabled"]);
+  }
+  const files = ["../../_components/product/fc1-product.tsx", "../../_components/product/fc1-story-v4.tsx"];
+  for (const file of files) {
+    const source = await readFile(path.join(directory, file), "utf8");
+    assert.doesNotMatch(source, /ALSVID_SHOPIFY_FC1_PRODUCT_URL|shop\\.chaibenn\\.com/);
+    assert.match(source, /fc1\.selection\.unavailable/);
+    assert.match(source, /\/checkout/);
+  }
+});
