@@ -123,48 +123,47 @@ export function ProductConfigurator({ locale }: { locale: Locale }) {
 
 export function FoldStatePreview({ locale }: { locale: Locale }) {
   const t = translator(locale);
-  const [folded, setFolded] = useState(false);
+  const [folded, setFolded] = useState(true);
   const asset = folded ? "folded" : "side";
   return (
-    <div className={styles.foldPreview}>
-      <div className={styles.segmented} role="group" aria-label={t("fc1.section.fold.title")}>
-        <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
-        <button type="button" aria-pressed={folded} onClick={() => setFolded(true)}>{t("fc1.fold.closed")}</button>
-      </div>
-      <div className={`${styles.foldImageFrame} ${folded ? styles.foldedWithDimensions : ""}`}>
-        <img {...fc1Photos[asset]} className={styles.foldPhoto} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} loading="lazy" />
-        {folded ? (
-          <>
+    <div className={styles.foldStoryLayout}>
+      <div className={styles.foldPreview}>
+        <div className={`${styles.foldImageFrame} ${folded ? styles.foldedWithDimensions : ""}`}>
+          <img {...fc1Photos[asset]} className={styles.foldPhoto} alt={t(folded ? "fc1.gallery.folded" : "fc1.photo.alt")} loading="lazy" />
+          {folded ? (
             <svg className={styles.foldDimensionOverlay} viewBox="0 0 1100 970" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
               <defs>
                 <marker id="fc1-fold-measure-arrow" viewBox="0 0 12 12" refX="6" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                   <path d="M2 2 L10 6 L2 10" fill="none" stroke="#42677b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </marker>
               </defs>
-              {/* Thin measurement guides track the folded bicycle's visible overall silhouette. */}
-              <g fill="none" stroke="#7d9ba9" strokeWidth="2">
-                <path d="M126 834 V889 M960 834 V889 M970 78 H1015 M970 839 H1015" />
-              </g>
+              <g fill="none" stroke="#7d9ba9" strokeWidth="2"><path d="M126 834 V889 M960 834 V889 M970 78 H1015 M970 839 H1015" /></g>
               <g fill="none" stroke="#42677b" strokeWidth="3" strokeLinecap="round">
                 <path d="M146 875 H941" markerStart="url(#fc1-fold-measure-arrow)" markerEnd="url(#fc1-fold-measure-arrow)" />
                 <path d="M1000 95 V818" markerStart="url(#fc1-fold-measure-arrow)" markerEnd="url(#fc1-fold-measure-arrow)" />
-                <path d="M830 166 L913 237" strokeDasharray="8 9" markerStart="url(#fc1-fold-measure-arrow)" markerEnd="url(#fc1-fold-measure-arrow)" />
               </g>
               <g className={styles.foldDimensionLabels}>
                 <rect x="435" y="841" width="211" height="68" rx="14" />
                 <text x="540" y="887" textAnchor="middle">85 cm</text>
                 <rect x="964" y="420" width="72" height="138" rx="14" />
                 <text transform="translate(1000 489) rotate(90)" textAnchor="middle">69 cm</text>
-                <rect x="721" y="110" width="147" height="54" rx="12" />
-                <text x="795" y="146" textAnchor="middle">48 cm</text>
               </g>
             </svg>
-            <span className={styles.foldDimensionAccess}>{t("fc1.spec.folded.value")}</span>
-          </>
-        ) : null}
+          ) : null}
+        </div>
       </div>
-      {folded ? <p className={styles.foldDimensionFootnote}>{t("fc1.spec.folded.value")}</p> : null}
-      <p className={styles.smallNote}>{t("fc1.fold.caption")}</p>
+      <div className={styles.foldStoryCopy}>
+        <p className={styles.eyebrow}>{t("fc1.section.fold.kicker")}</p>
+        <h2>{t("fc1.section.fold.title")}</h2>
+        <p>{t("fc1.section.fold.body")}</p>
+        <div className={styles.foldStorySpecs}><small>{t("fc1.spec.folded.label")}</small><strong>85 × 69 × 48 <small>cm</small></strong></div>
+        <p className={styles.foldStoryNote}>{t("fc1.spec.folded.value")}</p>
+        <p className={styles.foldStoryNote}>{t("fc1.fold.caption")}</p>
+        <div className={styles.segmented} role="group" aria-label={t("fc1.section.fold.title")}>
+          <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
+          <button type="button" aria-pressed={folded} onClick={() => setFolded(true)}>{t("fc1.fold.closed")}</button>
+        </div>
+      </div>
     </div>
   );
 }
