@@ -35,8 +35,8 @@ export default async function VehicleOverviewPage({ params }: { params: Promise<
           <h2>保修</h2>
           <p>{vehicle.warranty.plan}</p>
           <div className={garage.warrantyHero}>
-            <strong className={garage.bigNum}>{warrantyRemainingDays(vehicle)}</strong>
-            <span className={garage.numLabel}>剩余天数 · 至 {vehicle.warranty.end}</span>
+            <strong className={garage.bigNum}>{vehicle.warranty.end ? warrantyRemainingDays(vehicle) : '—'}</strong>
+            <span className={garage.numLabel}>{vehicle.warranty.end ? `剩余天数 · 至 ${vehicle.warranty.end}` : '保修起止日期尚待核验'}</span>
           </div>
           <div className={garage.track}>
             <div className={garage.trackFill} style={{ width: `${warrantyProgress(vehicle)}%` }} />
