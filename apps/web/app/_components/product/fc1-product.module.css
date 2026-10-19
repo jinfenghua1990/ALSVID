@@ -167,14 +167,18 @@
 
 /* FC1 selection studio — 70% true product visual, 30% selection controls. */
 .interestConfigurator{display:grid;grid-template-columns:minmax(0,7fr) minmax(345px,3fr);height:clamp(680px,calc(100svh - 64px),1000px);min-height:680px;overflow:hidden;scroll-margin-top:72px;background:#131e26;color:#fff;text-align:left}
-.interestVisual{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:radial-gradient(ellipse at 50% 68%,#3a505b 0%,#263640 42%,#101a23 90%);isolation:isolate}
-.interestVisual::before{position:absolute;top:33%;left:50%;transform:translateX(-50%);content:"FC1";font-size:min(24vw,360px);line-height:1;font-weight:700;letter-spacing:-.08em;color:#ffffff06;pointer-events:none}
+/* Gentle graphite-blue studio lighting gives the fully visible bicycle depth without changing the product image. */
+.interestVisual{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:radial-gradient(ellipse 85% 65% at 50% 66%,#667c87 0%,#455d6a 44%,#2b3e4b 72%,transparent 100%),linear-gradient(165deg,#1c2b36 0%,#354b57 58%,#1c2c38 100%);isolation:isolate}
+/* Replace the oversized background FC1 lettering with a subtle studio floor fade. */
+.interestVisual::before{position:absolute;inset:0;content:"";background:linear-gradient(180deg,transparent 58%,#16273105 70%,#13212b82 100%);pointer-events:none}
 .interestIntro{position:relative;z-index:2;padding:44px 5% 0;animation:fc1ConfigIntro .75s .15s both}
 .interestIntro>span,.interestControlsHeading>span{font-size:11px;letter-spacing:.21em;color:#a0bcc8}
 .interestIntro h1{margin:8px 0 6px;font-size:clamp(44px,5.6vw,85px);font-weight:620;line-height:1.05;letter-spacing:-.055em}
 .interestIntro p{margin:4px 0;color:#c3d0d6;font-size:clamp(13px,1.2vw,17px)}
 /* Reserve a bounded flex slot for the complete bicycle. The image must never size the grid track by its intrinsic dimensions. */
 .interestBikeStage{position:relative;display:block;flex:1 1 0%;min-height:0;min-width:0;margin:8px 6% 0;animation:fc1ConfigBikeIn 1.05s cubic-bezier(.2,.65,.3,1) .05s both}
+/* Low-profile contact shadow beneath the wheels, behind the original transparent bicycle and its colour overlay. */
+.interestBikeStage::before{content:"";position:absolute;left:50%;bottom:2%;width:76%;height:12%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,#08182296 0%,#0d1c2650 35%,transparent 72%);filter:blur(16px);pointer-events:none}
 /* .page img sets height:auto. Override it explicitly so the source photo and colour canvas use identical, bounded contain boxes. */
 .page .interestOriginalBike,.interestColourCanvas{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:contain;object-position:center;filter:drop-shadow(0 28px 26px #0006)}
 .interestColourCanvas{opacity:0;transition:opacity .36s ease;pointer-events:none}
