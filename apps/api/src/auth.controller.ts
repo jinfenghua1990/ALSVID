@@ -102,6 +102,13 @@ export class AuthController {
     }
   }
 
+  @Post('supplier-memberships')
+  async manageSupplierMembership(@Req() request:AuthenticatedRequest,@Body() input:{
+   userId:string;partnerId:string;status:'ACTIVE'|'DISABLED';evidenceRef:string;
+  }){
+   return {data:await identityService.manageSupplierMembership(requireAuth(request),input)};
+  }
+
   @Get('security-policy')
   async securityPolicy(@Req() request: AuthenticatedRequest) {
     try {
