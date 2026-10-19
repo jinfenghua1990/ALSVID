@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import styles from './admin-records.module.css';
+import { adminRecordHref, queryRecordId } from './record-links';
 
 type CaseStatus = 'NEW'|'TRIAGED'|'IN_PROGRESS'|'RESOLVED'|'CLOSED';
 type CaseCategory = 'ISSUE'|'WARRANTY_REVIEW'|'REPAIR_REQUEST';
@@ -43,6 +44,8 @@ function occurred(value:string){const n=Date.parse(value);return Number.isNaN(n)
 export function ServiceCaseClient() {
  const [cases,setCases]=useState<CaseRow[]>([]);
  const [vehicles,setVehicles]=useState<VehicleRow[]>([]);
+ const [intakeVehicleId,setIntakeVehicleId]=useState('');
+ const [requestedCaseId,setRequestedCaseId]=useState<string|null>(null);
  const [selected,setSelected]=useState('');
  const [detail,setDetail]=useState<CaseDetail|null>(null);
  const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
@@ -64,7 +67,15 @@ export function ServiceCaseClient() {
    setReadAt(new Date().toLocaleString('zh-CN',{hour12:false}));
   }catch(error){setStatus('error');setMessage(error instanceof Error?error.message:'读取失败');}
  }
- useEffect(()=>{void reload();},[]);
+ useEffect(()=>{
+  // Deep links only focus/prepare records; they never trigger a business mutation.
+  const caseId=queryRecordId('caseId');
+  const vehicleId=queryRecordId('vehicleId');
+  setRequestedCaseId(caseId);
+  if(caseId)setSelected(caseId);
+  if(vehicleId)setIntakeVehicleId(vehicleId);
+  void reload();
+ },[]);
  useEffect(()=>{
   if(!selected){setDetail(null);return;}
   let active=true;setDetail(null);setMessage('');
@@ -87,8 +98,9 @@ export function ServiceCaseClient() {
   try {
    const created=await api<CaseRow>('/v1/service/cases','POST',{vehicleId,category,title,description});
    setActionMessage('已保存真实工单 '+created.caseNumber);
-   formElement.reset();
+   formElement.reset();setIntakeVehicleId('');
    await reload();setSelected(created.id);
+   window.history.replaceState(null,'',adminRecordHref('service',created.id));
   }catch(error){setActionMessage(error instanceof Error?error.message:'工单创建失败');}
   finally{setBusy(false);}
  }
@@ -149,8 +161,8 @@ export function ServiceCaseClient() {
      <table className={styles.table}>
       <thead><tr><th>工单号</th><th>车辆</th><th>分类 / 标题</th><th>状态</th><th>操作</th></tr></thead>
       <tbody>{cases.map(c=><tr key={c.id}>
-       <td>{c.caseNumber}</td><td>{c.frameNumber} · {c.sku}</td><td>{categories[c.category]} · {c.title}</td>
-       <td>{states[c.status]}</td><td><button type="button" className={styles.linkButton} onClick={()=>setSelected(c.id)}>查看 / 处理</button></td>
+       <td><a href={adminRecordHref('service',c.id)}>{c.caseNumber}</a></td><td><a href={adminRecordHref('vehicle',c.vehicleId)}>{c.frameNumber}</a> · {c.sku}</td><td>{categories[c.category]} · {c.title}</td>
+       <td>{states[c.status]}</td><td><a href={adminRecordHref('service',c.id)} className={styles.linkButton}>查看 / 处理</a></td>
       </tr>)}</tbody>
      </table>
     </div>:<p className={styles.notice}>没有已保存的真实售后工单</p>}
@@ -160,9 +172,10 @@ export function ServiceCaseClient() {
   <section className="av-card">
    <h2 className="av-cardtitle">创建售后受理记录</h2>
    <p className={styles.muted}>必须先通过真实生产和质检生成 Vehicle 记录。此入口只创建内部问题记录，保修范围需要后续人工审核。</p>
+   {intakeVehicleId&&status==='ready'&&!vehicles.some(v=>v.id===intakeVehicleId)?<p className={styles.error} role="alert">链接指定的车辆不在当前授权列表中；不能自动填入其他车辆。<a href="/admin/production">查看车辆登记</a></p>:null}
    <form onSubmit={event=>{void submit(event);}} className={styles.stack}>
     <label>关联车辆（车架号 / SKU）
-     <select name="vehicleId" required disabled={busy||status!=='ready'} className={styles.search} defaultValue="">
+     <select name="vehicleId" required disabled={busy||status!=='ready'} className={styles.search} value={intakeVehicleId} onChange={event=>setIntakeVehicleId(event.target.value)}>
       <option value="">请选择真实车辆</option>
       {vehicles.map(v=><option key={v.id} value={v.id}>{v.frame_number} · {v.sku}</option>)}
      </select>
@@ -182,8 +195,10 @@ export function ServiceCaseClient() {
    <div className={styles.heading}><h2 className="av-cardtitle">工单详情与处理记录</h2>
     <button className="av-btn" type="button" onClick={()=>setSelected('')}>关闭详情</button></div>
    {message?<p role="alert" className={styles.error}>{message}</p>:null}
+   {requestedCaseId&&status==='ready'&&!cases.some(row=>row.id===requestedCaseId)?<p role="status" className={styles.notice}>此链接定位的工单未出现在最近 200 条列表中；正在通过工单 ID 查询详情，若无权限或不存在将显示错误。</p>:null}
    {!detail?<p>正在读取详情…</p>:<>
-    <p><strong>{detail.case.caseNumber}</strong> · {detail.case.frameNumber} · {states[detail.case.status]} · 版本 {detail.case.version}</p>
+    <p><strong>{detail.case.caseNumber}</strong> · <a href={adminRecordHref('vehicle',detail.case.vehicleId)}>{detail.case.frameNumber}（查看车辆）</a> · {states[detail.case.status]} · 版本 {detail.case.version}</p>
+    <p><a href={adminRecordHref('service',detail.case.id)}>复制 / 打开此工单专属链接 →</a></p>
     <p>{detail.case.title}</p><p className={styles.muted}>{detail.case.description||'没有额外说明'}</p>
     {nextStatus[detail.case.status].length?<div className={styles.stack}>
      <label>下一业务状态<select className={styles.search} value={target} onChange={event=>setTarget(event.target.value as CaseStatus)}>
