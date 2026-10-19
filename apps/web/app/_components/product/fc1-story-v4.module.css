@@ -133,7 +133,8 @@
   justify-content:center;
   width:51%;
   max-width:470px;
-  height:100%;
+  min-height:390px;
+  height:auto;
   padding:clamp(28px,3vw,46px);
   border-top:0;
   background:transparent;
@@ -217,7 +218,7 @@
   .featureCardHero { min-height:360px; }
   .featureCardFold { min-height:340px; }
   .featureCardHero .featurePhoto { padding-left:25%; }
-  .featureCardHero .featureCardCopy { width:56%; padding:30px; }
+  .featureCardHero .featureCardCopy { width:56%; min-height:360px; padding:30px; }
   .featureCardCopy { padding:20px; }
   .featureCard h3 { font-size:20px; }
   .featureCardHero h3 { font-size:clamp(28px,3.6vw,40px); }
@@ -251,7 +252,7 @@
   .featureCardHero .featurePhoto { inset:auto 0 0; height:230px; padding:0 12px 12px; }
   .featureCardHero .featurePhoto img { object-position:center bottom; }
   .featureCardHero::after { background:linear-gradient(180deg,#10202b 0%,rgba(16,32,43,.95) 34%,rgba(16,32,43,.22) 100%); }
-  .featureCardHero .featureCardCopy { width:100%; max-width:none; height:auto; padding:25px 23px 0; }
+  .featureCardHero .featureCardCopy { width:100%; max-width:none; min-height:0; height:auto; padding:25px 23px 0; }
   .featureCardHero h3 { max-width:320px; margin-top:14px; font-size:32px; }
   .featureDescription { font-size:12px; line-height:1.8; }
   .featureCardHero .featureDescription { max-width:34ch; }
