@@ -31,6 +31,7 @@ export function Fc1ScrollStory({ children }: { children: ReactNode }) {
       }
       let frame = 0;
       const hero = element.querySelector<HTMLElement>("#overview");
+      const gallery = element.querySelector<HTMLElement>("[data-fc1-gallery-reveal]");
       const update = () => {
         frame = 0;
         const rect = element.getBoundingClientRect();
@@ -39,6 +40,15 @@ export function Fc1ScrollStory({ children }: { children: ReactNode }) {
         if (hero) {
           const box = hero.getBoundingClientRect();
           element.style.setProperty("--fc1-travel", String(Math.max(0, Math.min(1, -box.top / Math.max(1, box.height)))));
+        }
+        // Scroll-scrubbed product reveal: one real FC1 image, no artificial morph or fake 3D.
+        if (gallery) {
+          const box = gallery.getBoundingClientRect();
+          const viewport = window.innerHeight;
+          const progress = Math.max(0, Math.min(1, (viewport * .76 - box.top) / Math.max(1, viewport * .72)));
+          gallery.style.setProperty("--fc1-gallery-scale", String(1.32 - .32 * progress));
+          gallery.style.setProperty("--fc1-gallery-details-opacity", String(Math.max(0, Math.min(1, (progress - .3) / .55))));
+          gallery.style.setProperty("--fc1-gallery-details-y", String(Math.round((1 - progress) * 20)) + "px");
         }
         let active = "";
         for (const chapter of chapters) {
@@ -60,6 +70,7 @@ export function Fc1ScrollStory({ children }: { children: ReactNode }) {
         window.removeEventListener("resize", schedule);
         if (frame) window.cancelAnimationFrame(frame);
         for (const link of links) link.removeAttribute("aria-current");
+        if (gallery) for (const name of ["--fc1-gallery-scale", "--fc1-gallery-details-opacity", "--fc1-gallery-details-y"]) gallery.style.removeProperty(name);
       };
     };
     start();
