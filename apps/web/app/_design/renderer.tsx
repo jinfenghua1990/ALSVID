@@ -384,7 +384,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
   const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
-  const isVehicleDetail = screen.route === '/admin/production/vin-detail';
+  const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
 
   return (
     <div className="av av-ambient" data-theme={theme}>
