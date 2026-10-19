@@ -62,3 +62,25 @@ test('owner service timeline exposes only status and title from verified current
  assert.match(garage,/\/v1\/my\/service\/cases/);
  assert.doesNotMatch(controller,/case\.activities|assessment|internalNotes/);
 });
+
+test('Admin reads current supplier/owner link status and blocks blind or duplicate binding',()=>{
+ const ui=read('./portal-bindings-admin.tsx');
+ const identity=read('../../../../domains/identity/src/application/identity-service.ts');
+ const vehicle=read('../../../../domains/vehicle/src/application/vehicle-service.ts');
+ const apiIdentity=read('../../../api/src/auth.controller.ts');
+ const apiOwner=read('../../../api/src/owner-garage.controller.ts');
+ const customers=read('./admin-records.tsx');
+ assert.match(ui,/supplierState!=='ready'/);
+ assert.match(ui,/ownerState!=='ready'/);
+ assert.match(ui,/supplierAccess\?\.status==='ACTIVE'/);
+ assert.match(ui,/ownerAccess\?\.status==='GRANTED'/);
+ assert.match(ui,/setSupplierAttested/);
+ assert.match(ui,/setOwnerAttested/);
+ assert.match(ui,/refreshSupplierAccess/);
+ assert.match(ui,/refreshOwnerAccess/);
+ assert.match(apiIdentity,/@Get\('supplier-memberships\/:userId\/:partnerId'\)/);
+ assert.match(apiOwner,/@Get\(':id\/owner-access'\)/);
+ assert.match(identity,/async supplierMembershipStatus/);
+ assert.match(vehicle,/async ownerAccess/);
+ assert.doesNotMatch(customers,/OwnerAccessManager/);
+});
