@@ -20,7 +20,7 @@ export function canAccessPortal(portal: ProtectedPortalId, session: PortalSessio
   if (portal === 'admin') return session.roles.includes('system_admin');
   if (portal === 'dealer') return session.roles.includes('system_admin') || session.roles.includes('dealer_user') || session.roles.includes('dealer_manager');
   if (portal === 'supplier') return session.roles.includes('supplier_user');
-  return session.roles.includes('system_admin') || session.roles.includes('internal_user') || session.roles.includes('customer_user');
+  return session.roles.includes('customer_user');
 }
 
 function loginRedirect(portal: ProtectedPortalId, returnTo: string, reason?: string): never {
