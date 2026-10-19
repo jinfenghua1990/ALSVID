@@ -15,6 +15,7 @@ function fixture(){
  const sample={id:vehicleId,frame_number:'FC1-2026-0001',sku:'FC1'};
  const repository={
   transaction:<T>(fn:(executor:QueryExecutor)=>Promise<T>)=>fn({} as QueryExecutor),
+  get:async(id:string)=>id===vehicleId?sample:null,
   listOwned:async(userId:string)=>current?.kind==='GRANTED'&&current.customerUserId===userId?[sample]:[],
   getOwned:async(userId:string,id:string)=>current?.kind==='GRANTED'&&current.customerUserId===userId&&id===vehicleId?sample:null,
   lockForOwnerChange:async(id:string)=>id===vehicleId,
@@ -45,4 +46,15 @@ test('owner handover and revoke require internal administrator and immutable aud
  assert.deepEqual(x.events,['GRANTED','REVOKED']);
  assert.deepEqual(x.auditEvents,['vehicle.owner_access_granted','vehicle.owner_access_revoked']);
  assert.deepEqual(await x.service.ownedGarage({userId:ownerId,roles:['customer_user'],permissions:[]}),[]);
+});
+
+test('current owner access state is admin-only, never exposes revoked user ID',async()=>{
+ const x=fixture();
+ assert.deepEqual(await x.service.ownerAccess(admin,vehicleId),{vehicleId,status:'UNASSIGNED',customerUserId:null});
+ await x.service.grantOwnerAccess(admin,vehicleId,ownerId,'DELIVERY-REF-2026-001');
+ assert.deepEqual(await x.service.ownerAccess(admin,vehicleId),{vehicleId,status:'GRANTED',customerUserId:ownerId});
+ await assert.rejects(x.service.ownerAccess({...admin,roles:['customer_user']},vehicleId),{code:'VEHICLE_OWNER_FORBIDDEN'});
+ await x.service.revokeOwnerAccess(admin,vehicleId,'OWNER-TRANSFER-2026-01');
+ assert.deepEqual(await x.service.ownerAccess(admin,vehicleId),{vehicleId,status:'REVOKED',customerUserId:null});
+ await assert.rejects(x.service.ownerAccess(admin,outsiderId),{code:'VEHICLE_NOT_FOUND'});
 });
