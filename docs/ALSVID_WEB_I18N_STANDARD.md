@@ -2,7 +2,7 @@
 
 **Status:** Required for new and materially revised web pages  
 **Scope:** ALSVID WWW, My ALSVID, and Dealer Portal  
-**Shopify boundary:** Shopify product, cart, checkout, and storefront commerce language is handled by Shopify's own multilingual system. Do not build a parallel ALSVID i18n layer inside Shopify commerce flows.
+**Storefront boundary (ADR 0005):** ALSVID owns the initial B2C storefront and its cart/checkout/order copy. All ALSVID-owned public checkout copy requires zh/de/en translation-key parity; DE and EN require pre-launch legal review. Optional future external-provider checkout/localization remains the provider's responsibility where applicable.
 
 This is an implementation standard, not a request to translate every page into every planned language immediately. Build the internationalization boundary into page structure and data from the start so adding a language later is primarily a translation-content change.
 
@@ -91,7 +91,7 @@ Do not model translatable business copy as a single-language `name` or `descript
 
 Apply this to platform/model/variant names, configuration labels, product descriptions, specifications, selling points, warranty and service explanations, and other customer-facing catalog content. Preserve invariant identifiers and structured numeric/unit data separately from translated prose. Define validation for required locales and a safe fallback for incomplete optional content.
 
-Localized content remains data, not page markup. The Shopify commerce boundary in this document still applies: Shopify owns its product/storefront/checkout localization for Shopify-managed commerce.
+Localized content remains data, not page markup. ALSVID-owned checkout copy uses the shared locale catalogs; future hosted-provider UI must be reviewed separately for locale and legal requirements.
 
 ## 7. Images and media
 
@@ -115,9 +115,9 @@ The acceptance bar is a usable, intentional layout in both phase-1 locales, not 
 
 Format dates, numbers, currencies, measurements, and pluralized quantities using locale-aware APIs and explicit business units/currency. Do not concatenate localized text with hard-coded formatting assumptions. Store canonical business values separately from their formatted display representation.
 
-## 10. Shopify ownership
+## 10. ALSVID storefront ownership
 
-For Shopify Shop, Shopify's own language, market, product, cart, and checkout localization systems remain authoritative. ALSVID-owned pages that link to or integrate with Shopify must preserve a clear handoff and must not duplicate checkout language logic. This exemption does not remove the i18n requirement from ALSVID WWW, My ALSVID, or Dealer Portal.
+The initial ALSVID-owned B2C cart, checkout and order UI must use the same localization rules as all ALSVID public pages. If a future third-party hosted checkout or separate sales channel is approved, its externally hosted fields and legal disclosures require an explicit translation and jurisdiction review. The ALSVID-owned surrounding UI remains localized.
 
 ## 11. Required acceptance checklist
 
@@ -134,6 +134,6 @@ A new or materially revised ALSVID-owned web page is ready only when all applica
 - [ ] German-length content has been checked at desktop and mobile breakpoints.
 - [ ] Date, number, currency, measurement, plural, and accessibility text are locale-aware.
 - [ ] Missing translation keys are detectable in development or CI.
-- [ ] Shopify-managed product/cart/checkout localization stays with Shopify.
+- [ ] ALSVID-owned product/cart/checkout copy uses shared translations; provider-hosted payment steps receive separate locale review.
 
 **Future-language rule:** adding Dutch, French, Italian, or Spanish should primarily add reviewed translations and enable the locale. It must not require rebuilding page structure or changing business logic.
