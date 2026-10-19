@@ -377,11 +377,11 @@
 .foldStory{background:#e9eff3}
 .gallerySection{min-height:145vh;--fc1-gallery-progress:1}
 .galleryPin{position:sticky;top:120px;max-width:1380px;margin:0 auto}
-.story[data-fc1-motion=ready] .gallerySection .galleryPin .zoomButton img{
+.story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-photo]) img{
  transform:scale(calc(1.2 - var(--fc1-gallery-progress) * .2));
  transform-origin:center;transition:none;will-change:transform
 }
-.story[data-fc1-motion=ready] .gallerySection .galleryPin .galleryThumbs{
+.story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){
  opacity:clamp(0,calc(var(--fc1-gallery-progress) * 3.5 - .4),1);
  transition:opacity .15s ease
 }
@@ -416,12 +416,12 @@
  .narrativeSpecs strong{font-size:25px}
  .gallerySection{min-height:0}
  .galleryPin{position:static}
- .story[data-fc1-motion=ready] .gallerySection .galleryPin .zoomButton img{transform:none;will-change:auto}
- .story[data-fc1-motion=ready] .gallerySection .galleryPin .galleryThumbs{opacity:1}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-photo]) img{transform:none;will-change:auto}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){opacity:1}
  .story[data-fc1-motion=ready] .gallerySection .galleryPin .sectionHeader{opacity:1;transform:none}
 }
 @media(prefers-reduced-motion:reduce){
- .story[data-fc1-motion=ready] .gallerySection .galleryPin .zoomButton img{transform:none!important;transition:none!important}
- .story[data-fc1-motion=ready] .gallerySection .galleryPin .galleryThumbs{opacity:1!important}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-photo]) img{transform:none!important;transition:none!important}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){opacity:1!important}
  .story[data-fc1-motion=ready] .gallerySection .galleryPin .sectionHeader{opacity:1!important;transform:none!important}
 }
