@@ -48,3 +48,17 @@ test('Admin cross portal binding actions require evidence and internal authoriza
  assert.match(owner,/vehicle\.owner\.manage/);
  assert.match(integrated,/PortalBindingsAdmin/);
 });
+
+test('owner service timeline exposes only status and title from verified current-owned VIN',()=>{
+ const repo=read('../../../../domains/service/src/infrastructure/postgres-service-case-repository.ts');
+ const domain=read('../../../../domains/service/src/application/service-case-service.ts');
+ const controller=read('../../../api/src/my-owner-service.controller.ts');
+ const garage=read('../my/_data/garage-live.ts');
+ assert.match(repo,/FROM service\.cases c JOIN LATERAL/);
+ assert.match(repo,/owner\.customer_user_id=\$1/);
+ assert.match(repo,/SELECT c\.id,c\.case_number,c\.vehicle_id,c\.title,c\.status,c\.created_at,c\.updated_at/);
+ assert.match(domain,/MY_SERVICE_FORBIDDEN/);
+ assert.match(controller,/@Controller\('v1\/my\/service'\)/);
+ assert.match(garage,/\/v1\/my\/service\/cases/);
+ assert.doesNotMatch(controller,/case\.activities|assessment|internalNotes/);
+});
