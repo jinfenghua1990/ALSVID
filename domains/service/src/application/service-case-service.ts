@@ -1,5 +1,5 @@
 import { ForbiddenError } from '@alsvid/kernel';
-import { ServiceCaseCapabilities, type CreateServiceCaseInput, type ServiceCaseCategory, type ServiceCaseStatus, type TransitionServiceCaseInput, type RecordServiceActivityInput, type ServiceActivity, type ServiceActivityKind, type PreliminaryWarrantyAssessment } from '../core/model.js';
+import { ServiceCaseCapabilities, type CreateServiceCaseInput, type ServiceCaseCategory, type ServiceCaseStatus, type TransitionServiceCaseInput, type RecordServiceActivityInput, type ServiceActivity, type ServiceActivityKind, type PreliminaryWarrantyAssessment, type OwnerServiceSubmissionInput } from '../core/model.js';
 import { ServiceCaseConflictError, ServiceCaseNotFoundError, ServiceCaseValidationError } from '../core/errors.js';
 import type { ServiceCaseActor, ServiceCaseAuditPort, ServiceCaseRepository } from './ports.js';
 
@@ -29,6 +29,42 @@ export class ServiceCaseService {
   if(!actor.roles.includes('customer_user'))throw new ForbiddenError('MY_SERVICE_FORBIDDEN','Customer identity required');
   return this.repo.ownerCases(actor.userId);
  }
+
+ async ownerCreateCase(actor:ServiceCaseActor,input:OwnerServiceSubmissionInput):Promise<{id:string;caseNumber:string;vehicleId:string;status:'NEW'}> {
+  if(!actor.roles.includes('customer_user'))
+   throw new ForbiddenError('MY_SERVICE_FORBIDDEN','Verified customer account required');
+  if(!input||typeof input!=='object')throw new ServiceCaseValidationError('Vehicle and problem details required');
+  const vehicleId=validId(input.vehicleId);
+  const requestId=validId(input.clientRequestId);
+  if(!categories.includes(input.category))throw new ServiceCaseValidationError('Invalid case category');
+  const title=typeof input.title==='string'?input.title.trim():'';
+  const description=typeof input.description==='string'?input.description.trim():'';
+  if(title.length<5||title.length>160)throw new ServiceCaseValidationError('Title must have 5-160 characters');
+  if(input.description!==undefined&&typeof input.description!=='string')throw new ServiceCaseValidationError('Description must be text');
+  if(description.length>4000)throw new ServiceCaseValidationError('Description must be at most 4000 characters');
+  const payload={category:input.category,title,description};
+  return this.repo.transaction(async e=>{
+   if(!await this.repo.ownerVehicleAccessible(actor.userId,vehicleId,e))
+    throw new ServiceCaseNotFoundError('Owned vehicle not found');
+   const earlier=await this.repo.findOwnerSubmission(actor.userId,requestId,e);
+   if(earlier){
+    if(earlier.vehicleId!==vehicleId||earlier.category!==payload.category
+     ||earlier.title!==payload.title||earlier.description!==payload.description)
+     throw new ServiceCaseConflictError('Request ID already used for a different service case');
+    const saved=await this.repo.get(earlier.caseId,e);
+    if(!saved)throw new ServiceCaseNotFoundError('Submitted service case not found');
+    return {id:saved.id,caseNumber:saved.caseNumber,vehicleId:saved.vehicleId,status:'NEW' as const};
+   }
+   const saved=await this.repo.create({vehicleId,...payload},actor.userId,e);
+   await this.repo.recordOwnerSubmission(actor.userId,requestId,vehicleId,saved.id,payload,e);
+   await this.repo.recordHistory({caseId:saved.id,fromStatus:null,toStatus:'NEW',caseVersion:1,
+    actorId:actor.userId,reason:'车主通过 My ALSVID 提交售后申请'},e);
+   await this.audit.record({actorUserId:actor.userId,action:'service.owner_case_created',
+    targetType:'service_case',targetId:saved.id,metadata:{vehicleId,requestId,category:payload.category}},e);
+   return {id:saved.id,caseNumber:saved.caseNumber,vehicleId:saved.vehicleId,status:'NEW' as const};
+  });
+ }
+
  async detail(actor:ServiceCaseActor,id:string) {
   authorize(actor,ServiceCaseCapabilities.Read);
   const caseId=validId(id);
