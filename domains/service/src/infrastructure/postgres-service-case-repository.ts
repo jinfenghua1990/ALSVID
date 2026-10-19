@@ -1,5 +1,5 @@
 import type { DatabasePort, QueryExecutor } from '@alsvid/database';
-import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, ServiceActivity, RecordServiceActivityInput, PreliminaryWarrantyAssessment, ServiceActivityKind } from '../core/model.js';
+import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, OwnerServiceCase, ServiceActivity, RecordServiceActivityInput, PreliminaryWarrantyAssessment, ServiceActivityKind } from '../core/model.js';
 import { ServiceCaseConflictError } from '../core/errors.js';
 import type { ServiceCaseRepository } from '../application/ports.js';
 
@@ -48,6 +48,23 @@ export class PostgresServiceCaseRepository implements ServiceCaseRepository {
   const r=await this.db.query<HistoryRow>(
    'SELECT id,case_id,from_status,to_status,case_version,actor_user_id,reason,occurred_at FROM service.case_history WHERE case_id=$1 ORDER BY case_version ASC',[caseId]);
   return r.rows.map(row=>({id:row.id,caseId:row.case_id,fromStatus:row.from_status,toStatus:row.to_status,caseVersion:row.case_version,actorUserId:row.actor_user_id,reason:row.reason,occurredAt:row.occurred_at.toISOString()}));
+ }
+ async ownerCases(userId:string):Promise<OwnerServiceCase[]>{
+  // Projection only: Service never changes Vehicle ownership truth. Latest immutable owner event controls scope.
+  const r=await this.db.query<{
+    id:string;case_number:string;vehicle_id:string;title:string;status:ServiceCaseStatus;
+    created_at:Date;updated_at:Date;
+   }>(`SELECT c.id,c.case_number,c.vehicle_id,c.title,c.status,c.created_at,c.updated_at
+     FROM service.cases c JOIN LATERAL (
+       SELECT customer_user_id,event_kind FROM vehicle.owner_access_events
+       WHERE vehicle_id=c.vehicle_id ORDER BY event_no DESC LIMIT 1
+     ) owner ON true
+     JOIN identity.users u ON u.id=owner.customer_user_id AND u.status='ACTIVE'
+     WHERE owner.event_kind='GRANTED' AND owner.customer_user_id=$1
+       AND EXISTS(SELECT 1 FROM identity.user_roles ur WHERE ur.user_id=u.id AND ur.role_id='customer_user')
+     ORDER BY c.created_at DESC,c.id DESC LIMIT 200`,[userId]);
+  return r.rows.map(row=>({id:row.id,caseNumber:row.case_number,vehicleId:row.vehicle_id,
+   title:row.title,status:row.status,createdAt:row.created_at.toISOString(),updatedAt:row.updated_at.toISOString()}));
  }
  async activities(caseId:string):Promise<ServiceActivity[]> {
   const r=await this.db.query<ActivityRow>(selectActivity+' WHERE case_id=$1 ORDER BY occurred_at ASC,id ASC',[caseId]);
