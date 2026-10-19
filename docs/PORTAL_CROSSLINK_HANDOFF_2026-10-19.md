@@ -36,3 +36,14 @@
 - **回归**：增加 Identity 查询权限测试、Vehicle 非管理员读取/撤销脱敏测试、Web 授权状态接线契约测试；测试与 CI 结果须以本 PR **最新 head** 为准。
 
 **尚未完成且不得声称完成**：Supplier 企业级自助邀请/续权、PO 交期变更/发货/附件；Shopify Customer Account OAuth/PKCE 实际 subject 绑定、Shopify 已付款/交付核验与自动车主激活、客户主动提起售后、真实供应商和车主账号浏览器全流程测试。审核凭证目前由管理员人工核对，并不是由 Provider 自动验证。此 PR 不合并、不发布正式、不触碰生产库。
+
+
+## 2026-10-19 My → Admin 售后真实提交（同一 Draft PR，待验收）
+
+- `POST /v1/my/service/cases`：仅限当前带有 `customer_user` 角色的 My ALSVID 账号。接收当前车库中的真实 Vehicle UUID、业务分类、标题、描述和 `clientRequestId`，调用 Service 独立的 `ownerCreateCase` 方法。
+- Service 在**同一数据库事务**中读取 Vehicle 的最新、仍为 GRANTED 的车主身份授权事件；锁定 Vehicle 行，和管理员所有权 GRANT/REVOKE 操作序列化。既不按邮箱猜测归属，也不从浏览器接受客户 userId。非车主 / 已撤销 / 无车辆时拒绝提交，不能探测其他人的售后数据。
+- `0029_owner_service_intake.sql`：用不可变 `service.owner_submission_requests` 记录客户 ID、请求幂等 UUID、关联 Vehicle / Service Case 和经过规范化的表单载荷；`(customer_user_id,client_request_id)` 唯一。重试相同请求 ID + 同内容返回同工单，换内容冲突，防重复。
+- 事务内复用已有 `service.cases`、`service.case_history`、`audit.events`，管理员在同一 `/admin/after-sales` 工单列表看到新申请；状态从 NEW 开始，**不会自动批准保修**、发货或扣库存。
+- `/my/service/new`：原禁用表单被真实客户端提交组件替代，只允许从已授权车库车辆中选择；支持错误提示、幂等重试和成功后查看 `/my/service`。照片/附件保持明确待开放，不展示虚构上传成功。订单/保修时限未核验时不写假记录。
+- 域权限测试覆盖未授权客户、经销商角色、撤销所有权、幂等重复请求、请求 ID 冲突；页面契约测试检验真实 API、数据库范围校验及审计路径。
+- 当前仍为未合并的 Draft PR，不代表 Shopify Customer Account OAuth/PKCE 已实际联通；实体验收必须先具备真实外部身份 subject 绑定和交付核验，不得直接开放正式外网提交。供应商交期变更/发票上传等尚待后续交付。
