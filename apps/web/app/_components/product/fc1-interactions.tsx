@@ -42,7 +42,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
         </button>
         <p className={styles.photoCaption}>{t("fc1.photo.note")}</p>
       </div>
-      <div className={styles.galleryThumbs} role="group" aria-label={t("fc1.gallery")}>
+      <div className={styles.galleryThumbs} data-fc1-gallery-thumbs role="group" aria-label={t("fc1.gallery")}>
         {gallery.map(([id, label]) => (
           <button
             key={id}
