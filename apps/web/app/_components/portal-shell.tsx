@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ThemeToggle } from '@alsvid/ui';
 import styles from './portal-shell.module.css';
 
-export type PortalKind = 'admin' | 'dealer' | 'my';
+export type PortalKind = 'admin' | 'dealer' | 'supplier' | 'my';
 
 type PortalLink = { label: string; href: string; status?: string; disabled?: boolean };
 
@@ -66,6 +66,11 @@ const portalConfig: Record<PortalKind, PortalConfig> = {
       { label: '经销商账户', href: '/dealer/account' },
     ],
   },
+  supplier: {
+    name: 'ALSVID 供应商门户',subtitle: '上游采购协同',brandHref: '/supplier',
+    launcher: {label: '供应商采购单 ↗',href:'/supplier'},
+    primaryLinks: [{label:'采购单',href:'/supplier'}],secondaryLinks: [],
+  },
   my: {
     name: '我的 ALSVID',
     subtitle: '车主服务',
@@ -105,6 +110,7 @@ function NavEntry({ item, primary = false, active = false }: { item: PortalLink;
 
 function defaultActiveHref(kind: PortalKind) {
   if (kind === 'dealer') return '/dealer';
+  if (kind === 'supplier') return '/supplier';
   if (kind === 'my') return '/my';
   return '/product';
 }
@@ -122,7 +128,7 @@ function isAdminPrimaryActive(href: string, currentHref: string) {
 
 function isPortalLinkActive(kind: PortalKind, href: string, currentHref: string) {
   if (kind === 'admin') return isAdminPrimaryActive(href, currentHref);
-  if (href === '/dealer' || href === '/my') return href === currentHref;
+  if (href === '/dealer' || href === '/supplier' || href === '/my') return href === currentHref;
   return currentHref === href || currentHref.startsWith(`${href}/`);
 }
 
