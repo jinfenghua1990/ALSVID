@@ -211,6 +211,8 @@
   "fc1.story.feature.drive": "Hinterradnabenmotor",
   "fc1.story.feature.battery": "Entnehmbarer Sattelstützenakku",
   "fc1.story.feature.safety": "Hydraulische Scheibenbremsen",
+  "fc1.story.feature.comfortBrakes": "Federung vorne und hinten · Hydraulische Scheibenbremsen",
+  "fc1.story.feature.driveBattery": "Hinterradnabenmotor · Entnehmbarer Sattelstützenakku",
   "fc1.story.battery.caption": "In die Sattelstütze integriert und zum Laden entnehmbar. Akku und Lieferumfang richten sich nach der endgültigen Ausstattung.",
   "fc1.story.safety.kicker": "DETAILS / KONTROLLE IM ALLTAG",
   "fc1.story.safety.title": "Entspannt losfahren. Kontrolliert anhalten.",
