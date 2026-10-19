@@ -211,6 +211,8 @@
   "fc1.story.feature.drive": "后轮毂电机助力",
   "fc1.story.feature.battery": "可拆卸座管电池",
   "fc1.story.feature.safety": "液压碟刹",
+  "fc1.story.feature.comfortBrakes": "前后减震 · 液压碟刹",
+  "fc1.story.feature.driveBattery": "后轮毂电机助力 · 可拆卸座管电池",
   "fc1.story.battery.caption": "电池融入座管，可拆卸设计方便日常充电。实际电池与随车配套以最终配置为准。",
   "fc1.story.safety.kicker": "细节 / 日常掌控",
   "fc1.story.safety.title": "从容出发，也从容停下。",
