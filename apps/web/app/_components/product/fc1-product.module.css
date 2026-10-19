@@ -265,3 +265,35 @@
   .foldStoryCopy h2{font-size:34px}
   .foldStorySpecs{margin-top:18px}
 }
+
+
+/* FC1 3D mode: real GLB orbit controls, never a faux rotation of the 2D photo. */
+.interestViewModes{
+  position:absolute;z-index:5;top:36px;right:5%;display:flex;gap:4px;
+  padding:4px;border:1px solid #e4eef244;border-radius:24px;
+  background:#182a369c;backdrop-filter:blur(12px);
+}
+.interestViewModes button{
+  min-width:64px;padding:8px 14px;border:0;border-radius:20px;
+  font:inherit;font-size:11px;color:#e9f4f8;background:transparent;cursor:pointer;
+}
+.interestViewModes button[aria-pressed=true]{background:#f6f9fa;color:#1c3543}
+.interestViewModes button:focus-visible{outline:2px solid #9ae2f0;outline-offset:2px}
+.interestBikeStage[data-3d-active=true] .interestOriginalBike,
+.interestBikeStage[data-3d-active=true] .interestColourCanvas{opacity:0}
+.interestThreeDView{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:14px}
+.interestThreeDCanvas{display:block;width:100%;height:100%;background:transparent;--poster-color:transparent}
+.interestThreeDLoading{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:#e7f2f6}
+.interestThreeDNote{
+  position:absolute;bottom:7%;left:6%;right:6%;max-width:570px;
+  margin:0;color:#ecf5f8;font-size:11px;line-height:1.55;
+  text-shadow:0 1px 8px #08161ce0;pointer-events:none;
+}
+@media(max-width:760px){
+  .interestViewModes{top:27px;right:16px}
+  .interestViewModes button{padding:7px 11px;min-width:54px;font-size:10px}
+  .interestThreeDNote{font-size:9px;bottom:2%;left:3%;right:3%}
+}
+@media(prefers-reduced-motion:reduce){
+  .interestThreeDView,.interestThreeDCanvas{animation:none!important;transition:none!important}
+}
