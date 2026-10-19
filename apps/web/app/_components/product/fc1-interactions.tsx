@@ -32,6 +32,7 @@ export function ProductGallery({ locale }: { locale: Locale }) {
       <div className={styles.galleryMain}>
         <button
           className={styles.zoomButton}
+          data-fc1-gallery-photo
           type="button"
           aria-label={t("fc1.open_photo")}
           onClick={() => dialog.current?.showModal()}
