@@ -140,6 +140,11 @@ try {
       assert.equal(await fold.locator('svg[class*="foldDimensionOverlay"]').count(), 0, "no folded dimensions when bike is expanded");
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("side-transparent-v3.png"));
       const configure = page.locator("#configure");
+      // Until the exact reviewed GLB is hosted, the original photo is mandatory.
+      // A 2D CSS/canvas effect must not appear as a fake functional 3D mode.
+      await page.waitForFunction(() => !document.querySelector('#configure [data-fc1-model-viewer]'));
+      assert.equal(await configure.locator('[data-fc1-model-viewer]').count(), 0, "3D GLB must not load without a real asset");
+      assert.equal(await configure.locator('[class*="interestViewModes"] button').count(), 1, "keep genuine-photo mode while unhosted");
       const pro = configure.getByRole("button", { name:/FC1 Pro/ });
       await pro.click();
       assert.equal(await pro.getAttribute("aria-pressed"), "true");
