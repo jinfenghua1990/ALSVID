@@ -46,11 +46,19 @@ test("preview checkout does not advertise Shopify or accept live payment", async
     assert.match(copy["fc1.selection.unavailable"], /不接受付款|不生成购买订单|keine Zahlung|no payment/i, locale);
     assert.ok(copy["fc1.checkout.disabled"]);
   }
-  const files = ["../../_components/product/fc1-product.tsx", "../../_components/product/fc1-story-v4.tsx"];
+  const files = ["../../../_components/product/fc1-product.tsx", "../../../_components/product/fc1-story-v4.tsx"];
   for (const file of files) {
     const source = await readFile(path.join(directory, file), "utf8");
-    assert.doesNotMatch(source, /ALSVID_SHOPIFY_FC1_PRODUCT_URL|shop\\.chaibenn\\.com/);
+    assert.equal(source.includes("ALSVID_SHOPIFY_FC1_PRODUCT_URL"), false);
+    assert.equal(source.includes("shop.chaibenn.com"), false);
     assert.match(source, /fc1\.selection\.unavailable/);
-    assert.match(source, /\/checkout/);
+    assert.ok(source.includes("/checkout"));
   }
+});
+
+test("checkout preview cannot submit an order or capture payment", async () => {
+  const source = await readFile(path.join(directory, "../../../[locale]/checkout/page.tsx"), "utf8");
+  assert.ok(source.includes('data-checkout-mode="preview-only"'));
+  assert.ok(source.includes('disabled aria-disabled="true"'));
+  assert.doesNotMatch(source, /<form|onSubmit=|paymentIntent|createOrder|createPayment/);
 });
