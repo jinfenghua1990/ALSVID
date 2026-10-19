@@ -75,7 +75,7 @@ try {
       await page.locator('[data-fc1-motion="ready"]').waitFor();
       const featureGrid = page.locator('[aria-labelledby="feature-overview-title"] .featureGrid');
       assert.equal(await featureGrid.locator(':scope > a').count(), 4, "overview should show four larger feature cards");
-      const featureColumns = await featureGrid.evaluate((node) => getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).length);
+      const featureColumns = await featureGrid.evaluate((node) => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
       assert.equal(featureColumns, device === "desktop" ? 2 : 1, locale + " " + device + " feature card columns");
       assert.equal(await featureGrid.locator('.featureCardFeatured').count(), 1, "folding card should be visually featured");
       assert.deepEqual(await featureGrid.locator('.featureCardFeatured .featurePhotoLabel').allTextContents(), [copy["fc1.story.state.open"], copy["fc1.story.state.folded"]]);
