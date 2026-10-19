@@ -133,3 +133,12 @@ At the current stage, Shopify/WMS integration does not require permanent real-ti
 - 不提交生产凭据或真实业务数据；代码回滚不等于数据库、对象存储和运行数据恢复。
 
 开发入口和恢复操作见 `docs/COLLABORATION.md`。按用户 2026-10-18 最新决定，后续开发与验证只使用 Codespaces / 云端 AI 工作区及临时 CI；禁止在家里或公司电脑重新克隆仓库、安装项目依赖、构建或启动 localhost 开发服务。无需执行代码的文档小改可通过 GitHub 分支与 PR 完成。没有可用云端执行入口时，报告缺少的连接，不自行回退本机；不新增共享 Cloud Run Test 环境。
+
+## 可选 AI 工具链（2026-10-19）
+
+具体安装方法、隐私边界和验收状态见 [docs/AI_TOOLCHAIN.md](docs/AI_TOOLCHAIN.md)。
+
+- Playwright 已通过 `.github/workflows/fc1-preview.yml` 在 PR 临时 CI 中使用，并新增官网多语言/桌面/移动端冒烟检查；不要在 Production 容器中安装浏览器工具。
+- Superpowers 和 Claude-Mem 是特定 Agent 的可选本地技能/记忆，不取代仓库 `AGENTS.md`、`knowledge/`、`docs/`、Git 提交和 PR 交接；其他机器人不会因为安装到某一个 Codespace 就自动获得这些能力。
+- HyperFrames 是可选视频产出工具，与官网交互动画的上线代码分开管理。
+- 在 Codespaces 中按需手动执行 `bash scripts/setup-optional-dev-tools.sh all`；未经执行和验收不得声称工具已安装，不向第三方记忆工具传输客户隐私或生产密钥。
