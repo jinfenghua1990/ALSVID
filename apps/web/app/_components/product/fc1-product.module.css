@@ -173,8 +173,10 @@
 .interestIntro>span,.interestControlsHeading>span{font-size:11px;letter-spacing:.21em;color:#a0bcc8}
 .interestIntro h1{margin:8px 0 6px;font-size:clamp(44px,5.6vw,85px);font-weight:620;line-height:1.05;letter-spacing:-.055em}
 .interestIntro p{margin:4px 0;color:#c3d0d6;font-size:clamp(13px,1.2vw,17px)}
-.interestBikeStage{position:relative;display:grid;align-items:center;justify-items:center;flex:1;min-height:0;margin:0 3%;animation:fc1ConfigBikeIn 1.05s cubic-bezier(.2,.65,.3,1) .05s both}
-.interestOriginalBike,.interestColourCanvas{grid-area:1/1;width:100%;max-height:100%;height:100%;object-fit:contain;filter:drop-shadow(0 28px 26px #0006)}
+/* Reserve a bounded flex slot for the complete bicycle. The image must never size the grid track by its intrinsic dimensions. */
+.interestBikeStage{position:relative;display:block;flex:1 1 0%;min-height:0;min-width:0;margin:8px 6% 0;animation:fc1ConfigBikeIn 1.05s cubic-bezier(.2,.65,.3,1) .05s both}
+/* .page img sets height:auto. Override it explicitly so the source photo and colour canvas use identical, bounded contain boxes. */
+.page .interestOriginalBike,.interestColourCanvas{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:contain;object-position:center;filter:drop-shadow(0 28px 26px #0006)}
 .interestColourCanvas{opacity:0;transition:opacity .36s ease;pointer-events:none}
 .interestColourCanvas[data-visible=true]{opacity:1}
 .interestPreviewLabel{position:absolute;bottom:2%;left:50%;transform:translateX(-50%);font-size:10px;color:#b6c9d1;white-space:nowrap;letter-spacing:.035em}
