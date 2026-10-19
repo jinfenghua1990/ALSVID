@@ -60,3 +60,26 @@ test('supplier cannot alter ordered quantity, remove lines or ignore expected ve
  await assert.rejects(x.service.acknowledge(supplier,poId,{...ack,expectedVersion:1}),{code:'PROCUREMENT_CONFLICT'});
  assert.equal(x.count,0);
 });
+
+test('supplier cannot silently rewrite published delivery dates through PO acknowledgement',async()=>{
+ const x=fixture();
+ await assert.rejects(x.service.acknowledge(supplier,poId,{
+  ...ack,lines:[{...ack.lines[0]!,confirmedDate:'2026-12-05'}]
+ }),{code:'PROCUREMENT_VALIDATION'});
+ await assert.rejects(x.service.acknowledge(supplier,poId,{
+  ...ack,lines:[{...ack.lines[0]!,confirmedDate:'2026-11-20'}]
+ }),{code:'PROCUREMENT_VALIDATION'});
+ assert.equal(x.count,0);
+ assert.deepEqual(x.events,[]);
+});
+
+test('omitting confirmed date implies acceptance of original issued PO date',async()=>{
+ const x=fixture();
+ const input={...ack,lines:[{purchaseOrderLineId:lineId,confirmedQuantity:'4.000000'}]};
+ const saved=await x.service.acknowledge(supplier,poId,input);
+ assert.equal(saved.status,'CONFIRMED');
+ assert.equal(x.count,1);
+ const retry=await x.service.acknowledge(supplier,poId,input);
+ assert.equal(retry.id,saved.id);
+ assert.equal(x.count,1);
+});
