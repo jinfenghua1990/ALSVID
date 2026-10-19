@@ -29,6 +29,7 @@ test('VIN record detail uses targeted authorized primary-key route instead of 10
  assert.match(ui,/\/api\/control\/v1\/vehicles\/'\+encodeURIComponent\(id\)/);
  assert.match(ui,/adminRecordHref\('service-intake',vehicle\.id\)/);
  assert.match(renderer,/<VehicleRecordDetail \/>/);
+ assert.match(renderer,/screen\.route === '\/admin\/production\/vin-detail' \|\| screen\.route === '\/admin\/production\/vin'/);
  assert.ok(existsSync(new URL('../admin/production/vin-detail/page.tsx',import.meta.url)));
 });
 test('real inter-module links focus the selected order, customer and service case',()=>{
