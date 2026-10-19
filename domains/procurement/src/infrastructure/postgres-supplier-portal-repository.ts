@@ -13,7 +13,7 @@ const scopedWhere=`po.supplier_partner_id IN (
 const headerSelect=`SELECT po.id,po.po_number,po.status,po.version,po.currency,po.issued_at,p.display_name AS supplier_name
  FROM procurement.purchase_orders po JOIN partners.partners p ON p.id=po.supplier_partner_id
  WHERE ${scopedWhere} AND po.status <> 'DRAFT'`;
-const lineSelect=`SELECT id,line_no,description,ordered_quantity::text,unit,requested_date
+const lineSelect=`SELECT id,line_no,description,ordered_quantity::text,unit,requested_date::text AS requested_date
  FROM procurement.purchase_order_lines WHERE purchase_order_id=$1 ORDER BY line_no`;
 function iso(value:Date|null){return value?value.toISOString():null}
 function mapOrder(h:Header,lines:Line[]):SupplierPortalOrder{
@@ -30,7 +30,7 @@ export class PostgresSupplierPortalRepository implements SupplierPortalRepositor
   // Scoped query returns at most 100 POs; line detail is also scoped to these IDs.
   if(!r.rows.length)return [];
   const ids=r.rows.map(x=>x.id);
-  const l=await this.db.query<Line & {purchase_order_id:string}>(`SELECT purchase_order_id,id,line_no,description,ordered_quantity::text,unit,requested_date
+  const l=await this.db.query<Line & {purchase_order_id:string}>(`SELECT purchase_order_id,id,line_no,description,ordered_quantity::text,unit,requested_date::text AS requested_date
    FROM procurement.purchase_order_lines WHERE purchase_order_id=ANY($1::uuid[]) ORDER BY purchase_order_id,line_no`,[ids]);
   return r.rows.map(h=>mapOrder(h,l.rows.filter(x=>x.purchase_order_id===h.id)));
  }
