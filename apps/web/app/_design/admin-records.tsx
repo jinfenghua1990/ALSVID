@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './admin-records.module.css';
+import { adminRecordHref, queryRecordId } from './record-links';
 
 type LoadState = 'loading' | 'ready' | 'unauthorized' | 'failed';
 type RemoteList<T> = { state: LoadState; items: T[]; message: string };
@@ -92,6 +93,7 @@ export function CustomerRecords() {
   }, []);
 
   useEffect(() => {
+    setSelectedId(queryRecordId('partnerId') ?? '');
     const controller = new AbortController();
     void load(controller.signal);
     return () => controller.abort();
@@ -148,9 +150,9 @@ export function CustomerRecords() {
                   <thead><tr><th>客户编号</th><th>名称</th><th>类型</th><th>国家</th><th>状态</th><th>操作</th></tr></thead>
                   <tbody>{customers.map((partner) => (
                     <tr key={partner.id}>
-                      <td>{partner.partnerCode}</td><td>{partner.displayName}</td><td>{partner.kind === 'PERSON' ? '个人' : '机构'}</td>
+                      <td><a href={adminRecordHref('customer',partner.id)}>{partner.partnerCode}</a></td><td>{partner.displayName}</td><td>{partner.kind === 'PERSON' ? '个人' : '机构'}</td>
                       <td>{partner.countryCode ?? '—'}</td><td>{partner.status}</td>
-                      <td><button className={styles.linkButton} type="button" onClick={() => setSelectedId(partner.id)}>查看真实档案</button></td>
+                      <td><a className={styles.linkButton} href={adminRecordHref('customer',partner.id)}>查看真实档案</a></td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -172,6 +174,7 @@ export function CustomerRecords() {
                     <p className={styles.muted}>联系方式（权限内可见）：{selected.contacts?.map((c) => c.purpose + ' ' + c.value).join('；') || '未记录'}</p>
                     <p className={styles.muted}>档案最后更新：{time(selected.updatedAt)}</p>
                     <p className={styles.notice}>车辆归属需要独立的交付、激活或审核证明，不能根据客户邮箱或 VIN 自动建立。</p>
+                    <p><a href={adminRecordHref('customer',selected.id)}>此客户档案专属链接 →</a></p>
                   </>
                 ) : <p className={styles.error}>此档案不是有效客户关系，无法显示客户详情。</p>}
           </div>
@@ -185,7 +188,7 @@ export function CustomerRecords() {
             <table className={styles.table}>
               <thead><tr><th>车架号</th><th>SKU</th><th>生产单号</th><th>出生时间</th></tr></thead>
               <tbody>{vehicles.items.slice(0, 100).map((vehicle) => <tr key={vehicle.id}>
-                <td>{vehicle.frame_number}</td><td>{vehicle.sku}</td><td>{vehicle.production_order_number}</td><td>{time(vehicle.born_at)}</td>
+                <td><a href={adminRecordHref('vehicle',vehicle.id)}>{vehicle.frame_number}</a></td><td>{vehicle.sku}</td><td>{vehicle.production_order_number}<p><a href={adminRecordHref('service-intake',vehicle.id)}>售后 →</a></p></td><td>{time(vehicle.born_at)}</td>
               </tr>)}</tbody>
             </table>
             {vehicles.items.length > 100 ? <p className={styles.muted}>仅展示前 100 条，实际查询 API 最多返回 1000 条。</p> : null}
