@@ -31,6 +31,7 @@ export function Fc1ScrollStory({ children }: { children: ReactNode }) {
       }
       let frame = 0;
       const hero = element.querySelector<HTMLElement>("#overview");
+      const gallery = element.querySelector<HTMLElement>("#gallery");
       const update = () => {
         frame = 0;
         const rect = element.getBoundingClientRect();
@@ -39,6 +40,12 @@ export function Fc1ScrollStory({ children }: { children: ReactNode }) {
         if (hero) {
           const box = hero.getBoundingClientRect();
           element.style.setProperty("--fc1-travel", String(Math.max(0, Math.min(1, -box.top / Math.max(1, box.height)))));
+        }
+        if (gallery) {
+          const area = gallery.getBoundingClientRect();
+          const travel = Math.max(1, Math.min(window.innerHeight * .9, area.height - window.innerHeight * .3));
+          const progress = Math.max(0, Math.min(1, (window.innerHeight * .65 - area.top) / travel));
+          gallery.style.setProperty("--fc1-gallery-progress", String(progress));
         }
         let active = "";
         for (const chapter of chapters) {

@@ -311,3 +311,117 @@
 /* Immersive configurator is shown immediately, without a blocking loader. */
 .interestHero{padding:0;min-height:0;background:#101a23;text-align:left}
 .interestHero::before{display:none}
+
+
+/* 2026-10-19 product story revision: restrained editorial layout, real FC1 photographs. */
+.featureOverview{color:#17232b;background:#f4f6f7;padding-block:90px}
+.featureOverview::before{display:none}
+.featureOverview .eyebrow{color:#648295}
+.featureOverview .sectionHeader h2{color:#17232b}
+.featureIntro{color:#687b87}
+.featureGrid{display:grid;grid-template-areas:none;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto;gap:18px}
+.featureCard,.featureCardHero,.featureCardFold,.featureCardFrame,.featureCardComfort,.featureCardDrive{
+  grid-area:auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid #e1e8eb;border-radius:15px;background:#fff;color:#192a35;box-shadow:none
+}
+.featureCardHero::after{display:none}
+.featureCard .featurePhoto,.featureCardHero .featurePhoto,.featureCardFold .featurePhoto,
+.featureCardFrame .featurePhoto,.featureCardComfort .featurePhoto,.featureCardDrive .featurePhoto{
+  position:relative;inset:auto;flex:0 0 auto;width:100%;height:clamp(210px,19vw,292px);min-height:0;max-height:none;
+  padding:18px 24px;background:linear-gradient(160deg,#e8eff3 0%,#f3f6f8 100%)
+}
+.featureCard .featurePhoto img,.featureCardHero .featurePhoto img,.featureCardFold .featurePhoto img{
+  width:100%;height:100%;max-height:none;object-fit:contain;object-position:center
+}
+.featureCard .featureCardCopy,.featureCardHero .featureCardCopy,.featureCardFold .featureCardCopy{
+  flex:1 1 auto;justify-content:flex-start;align-items:flex-start;width:100%;height:auto;min-height:180px;max-width:none;
+  padding:24px 26px 27px;border-top:0;background:#fff;color:#192a35
+}
+.featureCard .featureNumber{color:#7b9aaa}
+.featureCard h3,.featureCardHero h3,.featureCardFold h3{color:#182a34;font-size:clamp(19px,1.5vw,24px);line-height:1.33;margin:10px 0}
+.featureCard .featureDescription{color:#6f7e86;font-size:12px;line-height:1.8}
+.featureCard .featureArrow{display:none}
+.featureCard:hover{transform:translateY(-2px);border-color:#c2d1d9;box-shadow:0 8px 26px #152e3a0d}
+.featureOverview>.smallNote{color:#8b9ba6}
+.narrativeSection{background:#fff}
+.narrativeReverse{background:#eef3f6}
+.narrativeDark{background:#13212b;color:#f0f5f7}
+.narrativeBattery{background:#e6eef3}
+.narrativeLayout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;gap:clamp(30px,5vw,90px);max-width:1380px;margin:auto}
+.narrativeReverse .narrativeLayout{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+.narrativeReverse .narrativeMedia{grid-column:2;grid-row:1}
+.narrativeReverse .narrativeCopy{grid-column:1;grid-row:1}
+.narrativeMedia{display:flex;align-items:center;justify-content:center;min-width:0;min-height:390px;margin:0;padding:20px;border-radius:16px;background:#edf2f4}
+.narrativeMedia img{display:block;width:100%;height:100%;max-height:520px;object-fit:contain}
+.narrativeDark .narrativeMedia{background:radial-gradient(ellipse at 55% 55%,#405666,#263643 70%)}
+.narrativeBattery .narrativeMedia{background:#dae5ec}
+.narrativeCopy{min-width:0}
+.narrativeCopy .eyebrow{color:#65889c}
+.narrativeCopy h2{font-size:clamp(32px,3.6vw,55px);font-weight:600;line-height:1.2;letter-spacing:-.04em;margin:14px 0 22px}
+.narrativeCopy>p:not(.eyebrow):not(.narrativeDisclaimer){color:#697b86;font-size:15px;line-height:1.85}
+.narrativeDark .narrativeCopy h2{color:#eff5f7}
+.narrativeDark .narrativeCopy>p:not(.eyebrow):not(.narrativeDisclaimer){color:#a9bcc6}
+.narrativeDark .narrativeCopy .eyebrow{color:#a3d4e5}
+.narrativeSpecs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px;margin-top:30px;border-top:1px solid #bed0da}
+.narrativeSpecs>div{min-width:0;padding:17px 0;border-bottom:1px solid #bed0da}
+.narrativeSpecs strong{display:block;font-size:clamp(23px,2.1vw,33px);font-weight:600;letter-spacing:-.04em;white-space:nowrap}
+.narrativeSpecs strong small{font-size:.5em;font-weight:450}
+.narrativeSpecs span{display:block;margin-top:7px;color:#657d8b;font-size:11px;line-height:1.6}
+.narrativeDark .narrativeSpecs{border-color:#607786}
+.narrativeDark .narrativeSpecs>div{border-color:#607786}
+.narrativeDark .narrativeSpecs span{color:#a4b8c4}
+.narrativeDisclaimer{display:block;color:#738892;font-size:11px;line-height:1.8;margin:19px 0 0}
+.narrativeDisclaimer strong{font-size:11px;font-weight:600}
+.narrativeDisclaimer p{margin:6px 0 0}
+.narrativeDark .narrativeDisclaimer{color:#99abb8}
+.foldStory{background:#e9eff3}
+.gallerySection{min-height:145vh;--fc1-gallery-progress:1}
+.galleryPin{position:sticky;top:120px;max-width:1380px;margin:0 auto}
+.story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-photo]) img{
+ transform:scale(calc(1.2 - var(--fc1-gallery-progress) * .2));
+ transform-origin:center;transition:none;will-change:transform
+}
+.story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){
+ opacity:clamp(0,calc(var(--fc1-gallery-progress) * 3.5 - .4),1);
+ transition:opacity .15s ease
+}
+.story[data-fc1-motion=ready] .gallerySection .galleryPin .sectionHeader{
+ opacity:clamp(.35,calc(var(--fc1-gallery-progress) * 3),1);
+ transform:translateY(calc((1 - var(--fc1-gallery-progress)) * 18px))
+}
+@media(max-width:1000px){
+ .featureGrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;gap:14px}
+ .featureCard,.featureCardHero,.featureCardFold,.featureCardFrame,.featureCardComfort,.featureCardDrive{grid-area:auto;min-height:0}
+ .featureCardHero .featureCardCopy{width:100%;min-height:180px;padding:24px}
+ .featureCard .featurePhoto,.featureCardHero .featurePhoto,.featureCardFold .featurePhoto{height:235px;padding:20px}
+ .narrativeLayout,.narrativeReverse .narrativeLayout{gap:28px}
+ .narrativeMedia{min-height:320px;padding:16px}
+ .gallerySection{min-height:130vh}
+}
+@media(max-width:760px){
+ .featureOverview{padding:64px 18px}
+ .featureGrid{grid-template-columns:1fr;grid-template-areas:none;gap:14px}
+ .featureCard,.featureCardHero,.featureCardFold,.featureCardFrame,.featureCardComfort,.featureCardDrive{grid-column:auto;grid-row:auto;min-height:0}
+ .featureCard .featurePhoto,.featureCardHero .featurePhoto,.featureCardFold .featurePhoto,
+ .featureCardFrame .featurePhoto,.featureCardComfort .featurePhoto,.featureCardDrive .featurePhoto{
+  position:relative;inset:auto;height:250px;min-height:0;padding:18px}
+ .featureCard .featureCardCopy,.featureCardHero .featureCardCopy,.featureCardFold .featureCardCopy{
+  width:100%;height:auto;min-height:0;padding:18px 22px 24px}
+ .featureCard h3,.featureCardHero h3,.featureCardFold h3{font-size:22px}
+ .narrativeLayout,.narrativeReverse .narrativeLayout{display:flex;flex-direction:column;gap:25px}
+ .narrativeMedia,.narrativeReverse .narrativeMedia{order:0;width:100%;min-height:280px;max-height:420px;padding:14px}
+ .narrativeCopy,.narrativeReverse .narrativeCopy{order:1;width:100%}
+ .narrativeCopy h2{font-size:34px}
+ .narrativeSpecs{gap:0 16px;margin-top:20px}
+ .narrativeSpecs strong{font-size:25px}
+ .gallerySection{min-height:0}
+ .galleryPin{position:static}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-photo]) img{transform:none;will-change:auto}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){opacity:1}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin .sectionHeader{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-photo]) img{transform:none!important;transition:none!important}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){opacity:1!important}
+ .story[data-fc1-motion=ready] .gallerySection .galleryPin .sectionHeader{opacity:1!important;transform:none!important}
+}

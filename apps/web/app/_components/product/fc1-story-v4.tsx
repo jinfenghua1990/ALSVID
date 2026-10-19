@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LanguageSwitcher } from "../language-switcher";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
-import { ProductGallery, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
+import { ProductGallery, FoldStatePreview, SpecificationFilters } from "./fc1-interactions";
 import baseStyles from "./fc1-product.module.css";
 import storyStyles from "./fc1-story-v4.module.css";
 import { Fc1ScrollStory } from "./fc1-scroll-story";
@@ -76,13 +76,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         <section id="overview" className={`${styles.hero} ${styles.interestHero}`} data-fc1-chapter>
           <Fc1ColourConfigurator locale={locale} />
         </section>
-        <section className={styles.stats} aria-label={key("fc1.highlights")}>
-          <div><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
-          <div><strong>85 × 69 × 48</strong><span>{key("fc1.metric.folded")}</span></div>
-          <div><strong>{new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(15.5)} <small>kg</small></strong><span>{key("fc1.metric.weight")}</span></div>
-          <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
-        </section>
-
         <nav className={styles.chapterNav} aria-label={key("fc1.highlights")}>
           <a href="#entry">{key("fc1.story.nav.frame")}</a>
           <a href="#folding">{key("fc1.story.nav.fold")}</a>
@@ -157,61 +150,61 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <img {...fc1Photos["rear-three-quarter"]} alt={key("fc1.photo.alt")} loading="lazy" />
           </div>
         </section>
-        <section data-fc1-chapter id="folding" className={`${styles.section} ${styles.split} ${styles.splitReverse}`}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.eyebrow}>{key("fc1.section.fold.kicker")}</p>
-            <h2>{key("fc1.section.fold.title")}</h2>
-            <p>{key("fc1.section.fold.body")}</p>
-          </div>
+        <section data-fc1-chapter id="folding" className={`${styles.section} ${styles.foldStory}`}>
           <FoldStatePreview locale={locale} />
         </section>
-        <section data-fc1-chapter className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
-          <div><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
-        </section>
-        <section data-fc1-chapter id="details" className={`${styles.section} ${styles.suspensionSection}`}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.eyebrow}>{key("fc1.section.detail.kicker")}</p>
-            <h2>{key("fc1.section.detail.title")}</h2>
-            <p>{key("fc1.section.detail.body")}</p>
+        <section data-fc1-chapter id="details" className={`${styles.section} ${styles.narrativeSection}`}>
+          <div className={styles.narrativeLayout}>
+            <figure className={styles.narrativeMedia}><img {...fc1Photos["hidden-carbon-front-suspension"]} alt={key("fc1.gallery.front")} loading="lazy" /></figure>
+            <div className={styles.narrativeCopy}>
+              <p className={styles.eyebrow}>{key("fc1.position.front")} / 03</p>
+              <h2>{key("fc1.hotspot.front")}</h2>
+              <p>{key("fc1.hotspot.front.body")}</p>
+            </div>
           </div>
-          <SuspensionCards locale={locale} />
         </section>
-        <section data-fc1-chapter id="drive" className={`${styles.section} ${styles.darkSection}`}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.eyebrow}>{key("fc1.section.drive.kicker")}</p>
-            <h2>{key("fc1.section.drive.title")}</h2>
-            <p>{key("fc1.section.drive.body")}</p>
+        <section data-fc1-chapter id="details-rear" className={`${styles.section} ${styles.narrativeSection} ${styles.narrativeReverse}`}>
+          <div className={styles.narrativeLayout}>
+            <figure className={styles.narrativeMedia}><img {...fc1Photos["dnm-rear-air-shock"]} alt={key("fc1.gallery.shock")} loading="lazy" /></figure>
+            <div className={styles.narrativeCopy}>
+              <p className={styles.eyebrow}>{key("fc1.position.rear")} / 03</p>
+              <h2>{key("fc1.hotspot.rear")}</h2>
+              <p>{key("fc1.hotspot.rear.body")}</p>
+            </div>
           </div>
-          <div className={styles.driveGrid}>
-            <div className={styles.driveImage}><img {...fc1Photos["shimano-chain-drivetrain"]} alt={key("fc1.gallery.chain")} loading="lazy" /></div>
-            <div>
-              <div className={styles.driveNumbers}>
+        </section>
+        <section data-fc1-chapter id="drive" className={`${styles.section} ${styles.narrativeSection} ${styles.narrativeDark}`}>
+          <div className={styles.narrativeLayout}>
+            <figure className={styles.narrativeMedia}><img {...fc1Photos["shimano-chain-drivetrain"]} alt={key("fc1.gallery.chain")} loading="lazy" /></figure>
+            <div className={styles.narrativeCopy}>
+              <p className={styles.eyebrow}>{key("fc1.section.drive.kicker")}</p>
+              <h2>{key("fc1.section.drive.title")}</h2>
+              <p>{key("fc1.section.drive.body")}</p>
+              <div className={styles.narrativeSpecs}>
                 <div><strong>250 W</strong><span>{key("fc1.drive.power")}</span></div>
                 <div><strong>40 Nm</strong><span>{key("fc1.drive.torque")}</span></div>
                 <div><strong>25 km/h</strong><span>{key("fc1.drive.cutoff")}</span></div>
                 <div><strong>{key("fc1.drive.sensor_value")}</strong><span>{key("fc1.drive.sensor")}</span></div>
               </div>
-              <aside className={styles.marketNote}><strong>{key("fc1.market.title")}</strong><p>{key("fc1.market.body")}</p></aside>
+              <aside className={styles.narrativeDisclaimer}><strong>{key("fc1.market.title")}</strong><p>{key("fc1.market.body")}</p></aside>
             </div>
           </div>
         </section>
-        <section data-fc1-chapter id="battery" className={`${styles.section} ${styles.batteryBand}`}>
-          <div className={styles.sectionHeader}>
-            <p className={styles.eyebrow}>{key("fc1.section.battery.kicker")}</p>
-            <h2>{key("fc1.section.battery.title")}</h2>
-            <p>{key("fc1.section.battery.body")}</p>
+        <section data-fc1-chapter id="battery" className={`${styles.section} ${styles.narrativeSection} ${styles.narrativeReverse} ${styles.narrativeBattery}`}>
+          <div className={styles.narrativeLayout}>
+            <figure className={styles.narrativeMedia}><img {...fc1Photos["rear-three-quarter"]} alt={key("fc1.photo.alt")} loading="lazy" /></figure>
+            <div className={styles.narrativeCopy}>
+              <p className={styles.eyebrow}>{key("fc1.section.battery.kicker")}</p>
+              <h2>{key("fc1.section.battery.title")}</h2>
+              <p>{key("fc1.section.battery.body")}</p>
+              <div className={styles.narrativeSpecs}>
+                <div><strong>360 <small>Wh</small></strong><span>36 V · 10 Ah</span></div>
+                <div><strong>4–6 <small>h</small></strong><span>{key("fc1.spec.charge.label")}</span></div>
+                <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
+              </div>
+              <p className={styles.narrativeDisclaimer}>{key("fc1.battery.range_note")}</p>
+            </div>
           </div>
-
-          <figure className={styles.batteryVisual}>
-            <img {...fc1Photos["rear-three-quarter"]} alt={key("fc1.photo.alt")} loading="lazy" />
-            <figcaption><span aria-hidden="true">↗</span>{key("fc1.story.battery.caption")}</figcaption>
-          </figure>
-          <div className={styles.batteryCards}>
-            <div><strong>360 <small>Wh</small></strong><span>36 V · 10 Ah</span></div>
-            <div><strong>4–6 <small>h</small></strong><span>{key("fc1.spec.charge.label")}</span></div>
-            <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
-          </div>
-          <p className={styles.rangeNote}>{key("fc1.battery.range_note")}</p>
         </section>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
@@ -241,8 +234,10 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           </div>
         </section>
         <section data-fc1-chapter id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
-          <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
-          <ProductGallery locale={locale} />
+          <div className={styles.galleryPin}>
+            <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
+            <ProductGallery locale={locale} />
+          </div>
         </section>
         <section data-fc1-chapter id="specifications" className={`${styles.section} ${styles.specSection}`}>
           <div className={styles.sectionHeader}>
@@ -278,6 +273,10 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           <p>{key("fc1.cta.body")}</p>
           <a className={`${styles.buttonDark} ${styles.button}`} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
           <p className={styles.smallNote}>{key(fc1ShopUrl ? "fc1.cta.shop_note" : "fc1.selection.unavailable")}</p>
+        </section>
+
+        <section data-fc1-chapter className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
+          <div><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
       </div>
