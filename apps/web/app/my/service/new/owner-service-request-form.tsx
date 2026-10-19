@@ -6,7 +6,7 @@ import styles from '../../owner-portal.module.css';
 
 type OwnedVehicle={id:string;model:string;frameNumber:string};
 type Kind='ISSUE'|'REPAIR_REQUEST'|'WARRANTY_REVIEW';
-type Result={id:string;caseNumber:string;vehicleId:string;status:'NEW'};
+type Result={id:string;caseNumber:string;vehicleId:string;status:string};
 const categories:Record<Kind,string>={
  ISSUE:'车辆 / 产品问题',REPAIR_REQUEST:'维修服务申请',WARRANTY_REVIEW:'保修资格审核申请'
 };
@@ -53,7 +53,7 @@ export function OwnerServiceRequestForm({vehicles,preselected}:{vehicles:OwnedVe
  </div>;
  if(created)return <div className={styles.notice} role="status">
   <h2>售后工单已保存</h2>
-  <p>工单编号：<strong>{created.caseNumber}</strong>。状态：待受理。此记录已进入 ALSVID Admin 内部售后工作台。</p>
+  <p>工单编号：<strong>{created.caseNumber}</strong>。已进入 ALSVID Admin 内部售后工作台。当前工单状态：{created.status}。</p>
   <p>保修是否适用仍需审核；此处不承诺免费维修或配件费用。</p>
   <Link className={styles.primaryAction} href="/my/service">查看我的售后进度</Link>
  </div>;
