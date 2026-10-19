@@ -88,15 +88,15 @@ try {
       assert.ok(Math.abs(widths[0] - widths[1]) < 3, "all FC1 feature cards must be evenly tiled");
       const columns = await featureOverview.locator('a[data-feature="hero"]').evaluate((node) => getComputedStyle(node.parentElement).gridTemplateColumns.split(" ").length);
       assert.equal(columns, device === "desktop" ? 3 : 1, "feature layout must use three desktop columns and one mobile column");
-      assert.equal(await page.locator("section.stats").count(), 0, "large horizontal metrics strip must be removed");
+      assert.equal(await page.locator("section[class*=\"stats\"]").count(), 0, "large horizontal metrics strip must be removed");
       const sideSpecs = page.locator("#configure [class*='interestSpecs']");
       assert.equal(await sideSpecs.locator(":scope > div").count(), 4, "four reference figures belong in the right configurator");
       assert.equal(await sideSpecs.getByText("85 × 69 × 48", {exact:false}).count(), 1);
-      assert.equal(await page.locator("#details .narrativeMedia img").count(), 1);
-      assert.equal(await page.locator("#details-rear .narrativeMedia img").count(), 1);
+      assert.equal(await page.locator("#details [class*=\"narrativeMedia\"] img").count(), 1);
+      assert.equal(await page.locator("#details-rear [class*=\"narrativeMedia\"] img").count(), 1);
       for (const id of ["drive", "battery"]) {
-        assert.equal(await page.locator("#" + id + " .narrativeMedia img").count(), 1, id + " keeps authentic separate bike image");
-        assert.ok(await page.locator("#" + id + " .narrativeSpecs>div").count() >= 3, id + " metrics must sit beside its copy");
+        assert.equal(await page.locator("#" + id + " [class*=\"narrativeMedia\"] img").count(), 1, id + " keeps authentic separate bike image");
+        assert.ok(await page.locator("#" + id + " [class*=\"narrativeSpecs\"] > div").count() >= 3, id + " metrics must sit beside its copy");
       }
       const finale = await page.locator("section[class*='sceneBand']").evaluate((node) => {
         const faq = document.getElementById("faq");
