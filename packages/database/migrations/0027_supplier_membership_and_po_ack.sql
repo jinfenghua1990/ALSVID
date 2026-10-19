@@ -39,6 +39,7 @@ CREATE TABLE procurement.supplier_po_acknowledgements (
  supplier_partner_id uuid NOT NULL REFERENCES partners.partners(id) ON DELETE RESTRICT,
  submitted_by uuid NOT NULL REFERENCES identity.users(id) ON DELETE RESTRICT,
  po_version integer NOT NULL CHECK(po_version>0),
+ payload jsonb NOT NULL CHECK (jsonb_typeof(payload)='object'),
  note text NOT NULL CHECK(length(trim(note)) BETWEEN 5 AND 1000),
  confirmation_id uuid REFERENCES procurement.supplier_confirmations(id) ON DELETE RESTRICT,
  submitted_at timestamptz NOT NULL DEFAULT now(),
