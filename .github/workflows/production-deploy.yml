@@ -403,7 +403,8 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
-          PUBLIC_SITE_URL: https://www.alsvid.com/zh/explore/fc1
+          # chaibenn.com is the currently provisioned production domain; alsvid.com needs DNS/domain cutover first.
+          PUBLIC_SITE_URL: https://www.chaibenn.com/zh/explore/fc1
           AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
         run: |
           set -euo pipefail
