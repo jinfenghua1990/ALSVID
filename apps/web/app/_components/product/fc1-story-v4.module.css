@@ -203,7 +203,7 @@
 .foldSection{background:#eef3f6;padding-block:clamp(75px,8vw,115px)}
 /* Gallery behaves like a gentle scroll-driven reveal, not a blocking animation. */
 .gallerySection{min-height:0;--fc1-gallery-scale:1;--fc1-gallery-details-opacity:1;--fc1-gallery-details-y:0px}
-.galleryExperience{position:relative;top:auto;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.galleryExperience{display:block;position:static;min-height:0}
 .galleryExperience>.sectionHeader{margin-bottom:20px;opacity:var(--fc1-gallery-details-opacity,1);transform:translateY(var(--fc1-gallery-details-y,0px))}
 @media(max-width:1000px){
   .featureGrid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;grid-template-rows:none}
