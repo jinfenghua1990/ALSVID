@@ -63,6 +63,7 @@ export interface EmailVerificationChallenge {
 
 export interface IdentityRepository {
   setSupplierMembership(userId:string,partnerId:string,status:'ACTIVE'|'DISABLED',evidenceRef:string,approvedBy:string,executor:QueryExecutor):Promise<void>;
+  getSupplierMembership(userId:string,partnerId:string):Promise<{status:'ACTIVE'|'DISABLED';updatedAt:string}|null>;
   eligibleSupplierAccount(userId:string,executor:QueryExecutor):Promise<boolean>;
   eligibleSupplierPartner(partnerId:string,executor:QueryExecutor):Promise<boolean>;
   transaction<T>(work: (executor: QueryExecutor) => Promise<T>): Promise<T>;
