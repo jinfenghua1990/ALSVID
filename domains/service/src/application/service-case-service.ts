@@ -30,7 +30,7 @@ export class ServiceCaseService {
   return this.repo.ownerCases(actor.userId);
  }
 
- async ownerCreateCase(actor:ServiceCaseActor,input:OwnerServiceSubmissionInput):Promise<{id:string;caseNumber:string;vehicleId:string;status:'NEW'}> {
+ async ownerCreateCase(actor:ServiceCaseActor,input:OwnerServiceSubmissionInput):Promise<{id:string;caseNumber:string;vehicleId:string;status:ServiceCaseStatus}> {
   if(!actor.roles.includes('customer_user'))
    throw new ForbiddenError('MY_SERVICE_FORBIDDEN','Verified customer account required');
   if(!input||typeof input!=='object')throw new ServiceCaseValidationError('Vehicle and problem details required');
@@ -53,7 +53,7 @@ export class ServiceCaseService {
      throw new ServiceCaseConflictError('Request ID already used for a different service case');
     const saved=await this.repo.get(earlier.caseId,e);
     if(!saved)throw new ServiceCaseNotFoundError('Submitted service case not found');
-    return {id:saved.id,caseNumber:saved.caseNumber,vehicleId:saved.vehicleId,status:'NEW' as const};
+    return {id:saved.id,caseNumber:saved.caseNumber,vehicleId:saved.vehicleId,status:saved.status};
    }
    const saved=await this.repo.create({vehicleId,...payload},actor.userId,e);
    await this.repo.recordOwnerSubmission(actor.userId,requestId,vehicleId,saved.id,payload,e);
@@ -61,7 +61,7 @@ export class ServiceCaseService {
     actorId:actor.userId,reason:'车主通过 My ALSVID 提交售后申请'},e);
    await this.audit.record({actorUserId:actor.userId,action:'service.owner_case_created',
     targetType:'service_case',targetId:saved.id,metadata:{vehicleId,requestId,category:payload.category}},e);
-   return {id:saved.id,caseNumber:saved.caseNumber,vehicleId:saved.vehicleId,status:'NEW' as const};
+   return {id:saved.id,caseNumber:saved.caseNumber,vehicleId:saved.vehicleId,status:saved.status};
   });
  }
 
