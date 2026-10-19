@@ -1,6 +1,19 @@
 import type{DatabasePort,QueryExecutor}from'@alsvid/database';import type{VehicleRepository}from'../application/ports.js';
 export class PostgresVehicleRepository implements VehicleRepository{constructor(private readonly db:DatabasePort){}transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>{return this.db.transaction(work)}
  async list():Promise<any[]>{const r=await this.db.query<any>(`SELECT v.*,po.production_order_number,bs.code AS build_spec_code,s.sku,p.display_name AS factory_name,u.unit_no FROM vehicle.vehicles v JOIN production.production_units u ON u.id=v.production_unit_id JOIN production.production_orders po ON po.id=v.production_order_id JOIN engineering.build_specs bs ON bs.id=v.build_spec_id JOIN product.skus s ON s.id=v.sku_id JOIN partners.partners p ON p.id=v.factory_partner_id ORDER BY v.born_at DESC LIMIT 1000`);return r.rows}
+ async get(id:string):Promise<any|null>{
+  // Targeted primary-key lookup; do not fetch the last 1000 vehicles for a link.
+  const r=await this.db.query<any>(
+   `SELECT v.*,po.production_order_number,bs.code AS build_spec_code,s.sku,p.display_name AS factory_name,u.unit_no
+   FROM vehicle.vehicles v
+   JOIN production.production_units u ON u.id=v.production_unit_id
+   JOIN production.production_orders po ON po.id=v.production_order_id
+   JOIN engineering.build_specs bs ON bs.id=v.build_spec_id
+   JOIN product.skus s ON s.id=v.sku_id
+   JOIN partners.partners p ON p.id=v.factory_partner_id
+   WHERE v.id=$1 LIMIT 1`,[id]);
+  return r.rows[0]??null;
+ }
  async lockBirthCandidate(id:string,e:QueryExecutor):Promise<any|null>{const r=await e.query<any>(`SELECT u.id,u.status,u.production_order_id,po.build_spec_id,po.factory_partner_id,bs.sku_id FROM production.production_units u JOIN production.production_orders po ON po.id=u.production_order_id JOIN engineering.build_specs bs ON bs.id=po.build_spec_id WHERE u.id=$1 FOR UPDATE OF u`,[id]);return r.rows[0]??null}
  async latestQc(id:string,e:QueryExecutor):Promise<any|null>{const r=await e.query<any>(`SELECT id,result FROM production.qc_inspections WHERE production_unit_id=$1 ORDER BY inspected_at DESC,id DESC LIMIT 1`,[id]);return r.rows[0]??null}
  async createVehicle(input:{frameNumber:string;unitId:string;productionOrderId:string;buildSpecId:string;skuId:string;factoryPartnerId:string;birthQcInspectionId:string;actorUserId:string},e:QueryExecutor):Promise<any>{const r=await e.query<any>(`INSERT INTO vehicle.vehicles(frame_number,production_unit_id,production_order_id,build_spec_id,sku_id,factory_partner_id,birth_qc_inspection_id,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,[input.frameNumber,input.unitId,input.productionOrderId,input.buildSpecId,input.skuId,input.factoryPartnerId,input.birthQcInspectionId,input.actorUserId]);return r.rows[0]}
