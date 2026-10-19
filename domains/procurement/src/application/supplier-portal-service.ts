@@ -26,6 +26,14 @@ export interface SupplierPortalAuditPort {
  record(input:{actorUserId:string;action:string;targetType:string;targetId:string;metadata?:Record<string,unknown>},executor?:QueryExecutor):Promise<void>;
 }
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function canonical(value:unknown):string{
+ if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
+ if(value&&typeof value==='object'){
+  const obj=value as Record<string,unknown>;
+  return '{'+Object.keys(obj).sort().map(k=>JSON.stringify(k)+':'+canonical(obj[k])).join(',')+'}';
+ }
+ return JSON.stringify(value);
+}
 function requireSupplier(actor:SupplierPortalActor,permission:string){
  if(!actor.roles.includes('supplier_user')||!actor.permissions.includes(permission))
   throw new ForbiddenError('SUPPLIER_SCOPE_FORBIDDEN','Supplier membership and permission required');
@@ -81,7 +89,7 @@ export class SupplierPortalService {
    const payload=normalizedAck(input,po);
    const earlier=await this.repo.acknowledgement(po.id,payload.clientRequestId,e);
    if(earlier){
-    if(JSON.stringify(earlier.payload)!==JSON.stringify(payload))throw new ProcurementConflictError('Request ID belongs to another confirmation');
+    if(canonical(earlier.payload)!==canonical(payload))throw new ProcurementConflictError('Request ID belongs to another confirmation');
     return {id:earlier.recordId,poId:po.id,status:'CONFIRMED' as const};
    }
    if(po.status!=='ISSUED'||po.version!==payload.expectedVersion)
