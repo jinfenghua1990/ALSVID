@@ -84,3 +84,26 @@ test('Admin reads current supplier/owner link status and blocks blind or duplica
  assert.match(vehicle,/async ownerAccess/);
  assert.doesNotMatch(customers,/OwnerAccessManager/);
 });
+
+test('My ALSVID submits real after-sales only for currently verified owner with idempotency and server audit',()=>{
+ const page=read('../my/service/new/page.tsx');
+ const form=read('../my/service/new/owner-service-request-form.tsx');
+ const controller=read('../../../api/src/my-owner-service.controller.ts');
+ const domain=read('../../../../domains/service/src/application/service-case-service.ts');
+ const repo=read('../../../../domains/service/src/infrastructure/postgres-service-case-repository.ts');
+ const migration=read('../../../../packages/database/migrations/0029_owner_service_intake.sql');
+ assert.match(page,/OwnerServiceRequestForm/);
+ assert.doesNotMatch(page,/type="button" disabled>提交申请/);
+ assert.match(form,/\/api\/control\/v1\/my\/service\/cases/);
+ assert.match(form,/clientRequestId/);
+ assert.match(form,/crypto\.randomUUID/);
+ assert.match(controller,/@Post\('cases'\)/);
+ assert.match(domain,/async ownerCreateCase/);
+ assert.match(domain,/ownerVehicleAccessible\(actor\.userId,vehicleId,e\)/);
+ assert.match(domain,/findOwnerSubmission/);
+ assert.match(domain,/service\.owner_case_created/);
+ assert.match(repo,/vehicle\.owner_access_events/);
+ assert.match(repo,/FOR UPDATE OF v/);
+ assert.match(migration,/UNIQUE\(customer_user_id,client_request_id\)/);
+ assert.match(migration,/service_owner_submissions_immutable/);
+});
