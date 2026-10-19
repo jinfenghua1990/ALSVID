@@ -1,6 +1,6 @@
 import { requirePortalSession } from '../../_lib/portal-access';
 import { OwnerShell } from '../../_components/owner-shell';
-import { getOwnerGarage } from '../_data/garage';
+import { getOwnerGarage } from '../_data/garage-live';
 import styles from '../owner-portal.module.css';
 
 export default async function MyAccountPage() {
