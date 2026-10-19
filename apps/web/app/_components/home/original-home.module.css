@@ -1540,7 +1540,8 @@
 .slideName { font-size: 11px; white-space: nowrap; }
 .slideTrack { height: 2px; width: 40px; background: #ffffff66; transition: background 200ms, width 200ms; }
 .slideSelector[aria-pressed="true"], .slideSelector:hover { color: #fff; }
-.slideSelector[aria-pressed="true"] .slideTrack { width: 56px; background: #d6ed96; }
+.slideSelector:hover .slideTrack { background: #45bfe8; }
+.slideSelector[aria-pressed="true"] .slideTrack { width: 56px; background: #45bfe8; box-shadow: 0 0 10px #45bfe866; }
 .carouselPause { display: grid; place-items: center; min-width: 40px; height: 40px; border: 1px solid #ffffff50; border-radius: 50%; background: transparent; color: #fff; cursor: pointer; }
 .carouselControls button:focus-visible { outline: 2px solid white; outline-offset: 3px; }
 @keyframes heroAppear { from { opacity: .5; } to { opacity: 1; } }
