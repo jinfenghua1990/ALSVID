@@ -84,11 +84,25 @@ try {
       assert.equal(await heroCard.locator("img").count(), 1);
       assert.equal(await foldingCard.locator("img").count(), 1, locale + " folding card must show only the authentic folded-bike image");
       assert.equal(await featureOverview.locator('[data-feature="comfort"] img').count(), 1);
-      if (device === "desktop") {
-        const widths = await Promise.all([heroCard, foldingCard].map((card) => card.evaluate((node) => node.getBoundingClientRect().width)));
-        assert.ok(widths[0] > widths[1] * 1.4, "the unfolded riding card must have clear primary visual hierarchy");
-        assert.equal(await heroCard.evaluate((node) => getComputedStyle(node).gridArea), "hero");
+      const widths = await Promise.all([heroCard, foldingCard].map((card) => card.evaluate((node) => node.getBoundingClientRect().width)));
+      assert.ok(Math.abs(widths[0] - widths[1]) < 3, "all FC1 feature cards must be evenly tiled");
+      const columns = await featureOverview.locator('a[data-feature="hero"]').evaluate((node) => getComputedStyle(node.parentElement).gridTemplateColumns.split(" ").length);
+      assert.equal(columns, device === "desktop" ? 3 : 1, "feature layout must use three desktop columns and one mobile column");
+      assert.equal(await page.locator("section.stats").count(), 0, "large horizontal metrics strip must be removed");
+      const sideSpecs = page.locator("#configure [class*='interestSpecs']");
+      assert.equal(await sideSpecs.locator("> div").count(), 4, "four reference figures belong in the right configurator");
+      assert.equal(await sideSpecs.getByText("85 × 69 × 48", {exact:false}).count(), 1);
+      assert.equal(await page.locator("#details .narrativeMedia img").count(), 1);
+      assert.equal(await page.locator("#details-rear .narrativeMedia img").count(), 1);
+      for (const id of ["drive", "battery"]) {
+        assert.equal(await page.locator("#" + id + " .narrativeMedia img").count(), 1, id + " keeps authentic separate bike image");
+        assert.ok(await page.locator("#" + id + " .narrativeSpecs>div").count() >= 3, id + " metrics must sit beside its copy");
       }
+      const finale = await page.locator("section[class*='sceneBand']").evaluate((node) => {
+        const faq = document.getElementById("faq");
+        return Boolean(faq && node.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_PRECEDING);
+      });
+      assert.ok(finale, "original sunset photograph must appear after FAQs, near page footer");
       await featureOverview.screenshot({ path:output + "/" + locale + "-" + device + "-feature-overview.png" });
       await page.screenshot({ path:output + "/" + locale + "-" + device + "-hero.png" });
       // Visit the complete story so lazy photography and heading reveals have been exercised.
@@ -111,7 +125,8 @@ try {
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("folded-transparent-v3.png"));
       const dimensions = fold.locator('svg[class*="foldDimensionOverlay"]');
       assert.equal(await dimensions.count(), 1, "folded state must show measurement guides over the product photo");
-      assert.deepEqual(await dimensions.locator("text").allTextContents(), ["85 cm", "69 cm", "48 cm"]);
+      assert.deepEqual(await dimensions.locator("text").allTextContents(), ["85 cm", "69 cm"]);
+      assert.equal(await fold.locator('[class*="foldStoryCopy"]').getByText("85 × 69 × 48", {exact:false}).count(), 1, "48 cm is text-only in the right column");
       const bounds = await fold.locator('[class*="foldImageFrame"]').evaluate((frame) => {
         const photo = frame.querySelector("img").getBoundingClientRect();
         const overlay = frame.querySelector("svg").getBoundingClientRect();
@@ -140,6 +155,10 @@ try {
       assert.equal(preferences.at(-1).productCode, "FC1");
       assert.ok(preferences.at(-1).sessionKey);
       const gallery = page.locator("#gallery");
+      await gallery.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(250);
+      const reveal = await gallery.evaluate((node) => Number(node.style.getPropertyValue("--fc1-gallery-progress")));
+      assert.ok(reveal >= 0 && reveal <= 1, "scroll driven photo reveal progress must be bounded");
       const names = ["side", "rear", "folded", "front", "shock", "chain", "controls"];
       for (const name of names) {
         await gallery.getByRole("button", { name:copy["fc1.gallery." + name], exact:true }).click();
