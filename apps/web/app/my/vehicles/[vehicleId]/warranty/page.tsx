@@ -16,9 +16,9 @@ export default async function VehicleWarrantyPage({ params }: { params: Promise<
         <p>{vehicle.model} · {vehicle.warranty.plan}</p>
 
         <div className={garage.warrantyHero}>
-          <strong className={garage.bigNum}>{warrantyRemainingDays(vehicle)}</strong>
+          <strong className={garage.bigNum}>{vehicle.warranty.end ? warrantyRemainingDays(vehicle) : '—'}</strong>
           <span className={garage.numLabel}>
-            {vehicle.warranty.active ? '剩余天数' : '保修已结束'} · 结束日期 {vehicle.warranty.end}
+            {vehicle.warranty.end ? (vehicle.warranty.active ? '剩余天数' : '保修已结束') : '保修资格待核验'} · 结束日期 {vehicle.warranty.end || '待核验'}
           </span>
         </div>
 
@@ -27,15 +27,15 @@ export default async function VehicleWarrantyPage({ params }: { params: Promise<
         </div>
 
         <div className={garage.kv} style={{ marginTop: '22px' }}>
-          <div className={garage.kvRow}><span>开始日期</span><strong>{vehicle.warranty.start}</strong></div>
-          <div className={garage.kvRow}><span>结束日期</span><strong>{vehicle.warranty.end}</strong></div>
-          <div className={garage.kvRow}><span>状态</span><strong>{vehicle.warranty.active ? '有效' : '已过期'}</strong></div>
+          <div className={garage.kvRow}><span>开始日期</span><strong>{vehicle.warranty.start || '待核验'}</strong></div>
+          <div className={garage.kvRow}><span>结束日期</span><strong>{vehicle.warranty.end || '待核验'}</strong></div>
+          <div className={garage.kvRow}><span>状态</span><strong>{vehicle.warranty.active ? '有效' : '待核验'}</strong></div>
         </div>
       </article>
 
       <aside className={garage.panel}>
         <h2>覆盖范围</h2>
-        <p>以交付日期起算，仅覆盖下列项目。</p>
+        <p>保修条款与交付日期正在核验；以下仅展示已通过授权确认的覆盖项目。</p>
         <div className={garage.timeline}>
           {vehicle.warranty.coverage.map((item) => (
             <div className={garage.timelineItem} key={item}>
