@@ -17,6 +17,11 @@ export class PostgresIdentityRepository implements IdentityRepository {
    const r=await e.query("SELECT id FROM identity.users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",[userId]);
    return r.rowCount===1;
   }
+  async eligibleSupplierPartner(partnerId:string,e:QueryExecutor):Promise<boolean>{
+   const r=await e.query(`SELECT p.id FROM partners.partners p JOIN partners.roles r ON r.partner_id=p.id
+    WHERE p.id=$1 AND p.status='ACTIVE' AND r.enabled AND r.role IN ('SUPPLIER','FACTORY')`,[partnerId]);
+   return Boolean(r.rowCount);
+  }
   async setSupplierMembership(userId:string,partnerId:string,status:'ACTIVE'|'DISABLED',evidenceRef:string,approvedBy:string,e:QueryExecutor):Promise<void>{
    await e.query('INSERT INTO identity.supplier_memberships(user_id,partner_id,status,evidence_ref,approved_by) VALUES($1,$2,$3,$4,$5) ON CONFLICT (user_id,partner_id) DO UPDATE SET status=EXCLUDED.status,evidence_ref=EXCLUDED.evidence_ref,approved_by=EXCLUDED.approved_by,updated_at=now()',
     [userId,partnerId,status,evidenceRef,approvedBy]);
