@@ -33,7 +33,7 @@ test('My garage uses server-side owner session and no preview VIN or fixture rec
  assert.match(api,/@Controller\('v1\/my\/garage'\)/);
  assert.match(repo,/vehicle\.owner_access_events/);
  assert.match(repo,/owner\.customer_user_id=\$1/);
- assert.match(repo,/c\.created_at >= owner\.occurred_at/);
+ assert.match(read('../../../../domains/service/src/infrastructure/postgres-service-case-repository.ts'),/c\.created_at >= owner\.occurred_at/);
  assert.match(ownerSchema,/owner_access_events_immutable/);
 });
 
