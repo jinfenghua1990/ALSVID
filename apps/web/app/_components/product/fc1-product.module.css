@@ -213,3 +213,19 @@
 @media(max-width:760px){.interestConfigurator{display:flex;flex-direction:column;height:auto;min-height:0}.interestVisual{min-height:435px}.interestIntro{padding:27px 22px 0}.interestIntro h1{font-size:48px}.interestBikeStage{height:265px;min-height:265px;flex:none;margin:0 6%}.interestPreviewLabel{font-size:9px;bottom:0}.interestVisualFooter{padding:5px 20px 20px;font-size:10px}.interestControls{overflow:visible;padding:30px 22px 38px}.interestControlsHeading h2{font-size:30px}.interestSwatches{gap:9px}.interestModels button{min-height:75px}}
 @media(max-width:400px){.interestSwatches{grid-template-columns:1fr 1fr}.interestSwatches button{grid-template-columns:23px 1fr;padding:7px;column-gap:5px}.interestSwatch{width:21px;height:21px}.interestModels button{padding:10px}.interestSwatchName{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.interestBikeStage,.interestIntro,.interestControls{animation:none!important}.interestColourCanvas{transition:none!important}}
+
+
+/* Folding dimensions are drawn on the real folded photo, not shown as an unrelated number row. */
+.foldImageFrame{position:relative;display:block;width:min(100%,900px);aspect-ratio:940/724;margin:0 auto;isolation:isolate}
+.page .foldImageFrame>.foldPhoto{display:block;width:100%;height:100%;object-fit:contain}
+.foldedWithDimensions{aspect-ratio:1100/970}
+.page .foldedWithDimensions>.foldPhoto{position:absolute;top:5.5%;left:11.9%;width:76.5%;height:79.3%;object-fit:contain}
+.foldDimensionOverlay{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.foldDimensionLabels rect{fill:#f8fbfc;stroke:#cad9e1;stroke-width:2}
+.foldDimensionLabels text{fill:#23495e;font:600 39px/1 Inter,"Noto Sans SC",Arial,sans-serif;letter-spacing:-1.2px}
+.foldDimensionFootnote{order:1;max-width:540px;margin:5px auto 0;color:#718591;font-size:11px;line-height:1.6;text-align:center}
+.foldDimensionAccess{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:700px){
+  .foldImageFrame{width:100%}
+  .foldDimensionFootnote{font-size:10px;padding:0 8px}
+}
