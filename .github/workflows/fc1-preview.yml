@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/web/**'
       - 'scripts/fc1-browser-review.mjs'
+      - 'scripts/official-browser-smoke.mjs'
       - '.github/workflows/fc1-preview.yml'
   workflow_dispatch:
 permissions:
@@ -48,10 +49,11 @@ jobs:
             sleep 2
           done
           node scripts/fc1-browser-review.mjs
+          node scripts/official-browser-smoke.mjs
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: fc1-v4-browser-review
+          name: fc1-and-official-browser-review
           path: .tmp/fc1-v4-review
           retention-days: 30
           if-no-files-found: warn
