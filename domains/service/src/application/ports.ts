@@ -1,5 +1,5 @@
 import type { QueryExecutor } from '@alsvid/database';
-import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, ServiceActivity, RecordServiceActivityInput } from '../core/model.js';
+import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, OwnerServiceCase, ServiceActivity, RecordServiceActivityInput } from '../core/model.js';
 
 export interface ServiceCaseActor { userId: string; roles: readonly string[]; permissions: readonly string[] }
 export interface ServiceCaseAuditPort {
