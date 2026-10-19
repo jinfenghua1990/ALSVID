@@ -4,11 +4,14 @@ import en from './en.json';
 import fc1Zh from './fc1/zh.json';
 import fc1De from './fc1/de.json';
 import fc1En from './fc1/en.json';
+import x5Zh from './x5/zh.json';
+import x5De from './x5/de.json';
+import x5En from './x5/en.json';
 import type { Locale } from './routing';
 export type { Locale } from './routing';
-const zhCatalog = { ...zh, ...fc1Zh };
-const deCatalog = { ...de, ...fc1De };
-const enCatalog = { ...en, ...fc1En };
+const zhCatalog = { ...zh, ...fc1Zh, ...x5Zh };
+const deCatalog = { ...de, ...fc1De, ...x5De };
+const enCatalog = { ...en, ...fc1En, ...x5En };
 export type TranslationKey = keyof typeof enCatalog;
 const catalogs: Record<Locale, Record<TranslationKey, string>> = {
   zh: zhCatalog,
