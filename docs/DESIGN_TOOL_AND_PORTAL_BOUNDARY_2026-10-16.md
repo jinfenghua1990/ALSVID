@@ -1,5 +1,7 @@
 # ALSVID 设计工具、门户与 Shopify 边界 — 2026-10-16
 
+> **2026-10-19 更新：** 本文关于“Shopify 负责首期 B2C 订单、结账与支付”的旧决定由 [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md) 取代。首期改为 ALSVID 自建商城与订单流程，真实付款使用待选第三方支付机构，尚未开放。其余设计工具归属、门户权限与供应商协同原则仍按已确认条款执行。
+
 > **后续用户确认：** 对外页面由 Penpot 整合对话负责连贯设计、前端交互与链接，可使用 Figma 或 Penpot，每页保留唯一确认设计源。覆盖官网、My ALSVID、Dealer Portal、商品详情与购物袋；Admin 继续沿用 Ardot。当前代码状态、目标链路与验收见 [Penpot 对外页面整合台账](PENPOT_EXTERNAL_PORTAL_INTEGRATION.md)。下文原有 Figma 归属须结合此次补充理解，不代表必须把已确认的 Penpot 首页再迁回 Figma。
 
 > **状态：最新确认基线，后续 AI / 设计 / 开发任务必须以本文为准。**
