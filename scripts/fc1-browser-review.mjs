@@ -161,6 +161,14 @@ try {
       const galleryScale = await gallery.evaluate(node=>Number(node.style.getPropertyValue("--fc1-gallery-scale")));
       assert.ok(galleryScale >= 1 && galleryScale <= 1.32,"gallery zoom responds to real scrolling");
       assert.equal(await gallery.locator('[class*="galleryMotionImage"]').count(), 1);
+      const layout = await page.evaluate(() => {
+        const keys = ["#gallery", '#gallery [class*="galleryExperience"]', '#gallery [class*="galleryMain"]', '#gallery [class*="galleryThumbs"]', '#gallery [class*="galleryThumbs"] button'];
+        return {viewport:innerHeight,scrollY,parts:keys.map(x=>{
+          const el=document.querySelector(x),b=el?.getBoundingClientRect(),c=el?getComputedStyle(el):null;
+          return {selector:x,box:b&&{top:b.top,bottom:b.bottom,height:b.height,width:b.width},position:c?.position,overflow:c?.overflow,transform:c?.transform};
+        })};
+      });
+      console.log("Gallery layout diagnostics", JSON.stringify(layout));
       const names = ["side", "rear", "folded", "front", "shock", "chain", "controls"];
       for (const name of names) {
         await gallery.getByRole("button", { name:copy["fc1.gallery." + name], exact:true }).click();
