@@ -38,3 +38,6 @@ export interface RecordServiceActivityInput {
  clientRequestId:string; kind:ServiceActivityKind; note:string;
  laborMinutes?:number; assessment?:PreliminaryWarrantyAssessment;
 }
+
+/** Customer-submitted case intake is tied to verified current Vehicle owner access. */
+export type OwnerServiceSubmissionInput = CreateServiceCaseInput & {clientRequestId:string};
