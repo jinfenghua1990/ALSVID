@@ -98,15 +98,20 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           </div>
           <div className={styles.featureGrid}>
             {([
-              ["entry", "rear-three-quarter", "frame"],
-              ["folding", "folded", "fold"],
-              ["details", "dnm-rear-air-shock", "comfort"],
-              ["drive", "shimano-chain-drivetrain", "drive"],
-              ["battery", "side", "battery"],
-              ["safety", "hidden-carbon-front-suspension", "safety"],
-            ] as const).map(([id, photo, label], index) => (
-              <a className={styles.featureCard} href={`#${id}`} key={id}>
-                <div className={styles.featurePhoto}><img {...fc1Photos[photo]} alt="" loading="lazy" /></div>
+              { id: "entry", photos: ["rear-three-quarter"], label: "frame", featured: false },
+              { id: "folding", photos: ["side", "folded"], label: "fold", featured: true },
+              { id: "details", photos: ["dnm-rear-air-shock", "hidden-carbon-front-suspension"], label: "comfortSafety", featured: false },
+              { id: "drive", photos: ["shimano-chain-drivetrain", "side"], label: "driveBattery", featured: false },
+            ] as const).map(({ id, photos, label, featured }, index) => (
+              <a className={`${styles.featureCard} ${featured ? styles.featureCardFeatured : ""}`} href={`#${id}`} key={id}>
+                <div className={`${styles.featurePhoto} ${photos.length > 1 ? styles.featurePhotoPair : ""}`}>
+                  {photos.map((photo) => (
+                    <div className={styles.featurePhotoCell} key={photo}>
+                      <img {...fc1Photos[photo]} alt="" loading="lazy" />
+                      {id === "folding" ? <span className={styles.featurePhotoLabel}>{key(photo === "side" ? "fc1.story.state.open" : "fc1.story.state.folded")}</span> : null}
+                    </div>
+                  ))}
+                </div>
                 <div><span className={styles.featureNumber}>0{index + 1}</span><h3>{key(`fc1.story.feature.${label}`)}</h3><span aria-hidden="true">↗</span></div>
               </a>
             ))}
