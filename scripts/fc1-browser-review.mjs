@@ -86,9 +86,23 @@ try {
       assert.equal(await featureOverview.locator('[data-feature="comfort"] img').count(), 1);
       if (device === "desktop") {
         const widths = await Promise.all([heroCard, foldingCard].map((card) => card.evaluate((node) => node.getBoundingClientRect().width)));
-        assert.ok(widths[0] > widths[1] * 1.4, "the unfolded riding card must have clear primary visual hierarchy");
-        assert.equal(await heroCard.evaluate((node) => getComputedStyle(node).gridArea), "hero");
+        assert.ok(Math.abs(widths[0] - widths[1]) <= 3, "flat feature cards must have equal widths");
+        assert.equal(await featureOverview.locator('a[data-feature]').first().evaluate(node => getComputedStyle(node.parentElement).gridTemplateColumns.split(" ").length),3);
       }
+      const sideSpecs = page.locator('#configure [class*="interestSpecs"]');
+      assert.equal(await sideSpecs.locator("strong").count(), 4, "all four key specs must be inside the right configurator");
+      assert.equal(await page.locator('section[class*="stats"]').count(), 0, "no duplicate horizontal stats strip");
+      const splitSections = ["details", "rear-suspension", "drive", "battery"];
+      for (const id of splitSections) {
+        const panel=page.locator("#"+id);
+        assert.equal(await panel.locator("img").count(),1,id + " uses its own real photograph");
+        assert.equal(await panel.locator("h2").count(),1,id + " needs an independent headline");
+      }
+      const sunsetAfter=await page.locator("section[class*='sceneBand']").evaluate(node=>{
+        const faq=document.querySelector("#faq");
+        return Boolean(faq && (faq.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING));
+      });
+      assert.ok(sunsetAfter,"sunset KV belongs after the FAQ");
       await featureOverview.screenshot({ path:output + "/" + locale + "-" + device + "-feature-overview.png" });
       await page.screenshot({ path:output + "/" + locale + "-" + device + "-hero.png" });
       // Visit the complete story so lazy photography and heading reveals have been exercised.
@@ -111,7 +125,7 @@ try {
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("folded-transparent-v3.png"));
       const dimensions = fold.locator('svg[class*="foldDimensionOverlay"]');
       assert.equal(await dimensions.count(), 1, "folded state must show measurement guides over the product photo");
-      assert.deepEqual(await dimensions.locator("text").allTextContents(), ["85 cm", "69 cm", "48 cm"]);
+      assert.deepEqual(await dimensions.locator("text").allTextContents(), ["85 cm", "69 cm"]);
       const bounds = await fold.locator('[class*="foldImageFrame"]').evaluate((frame) => {
         const photo = frame.querySelector("img").getBoundingClientRect();
         const overlay = frame.querySelector("svg").getBoundingClientRect();
@@ -120,6 +134,8 @@ try {
       });
       assert.ok(bounds.imageTop >= bounds.top && bounds.imageBottom <= bounds.bottom + 1, "folded bicycle must fit inside dimension drawing area");
       assert.ok(bounds.overlayW === bounds.frameW && bounds.overlayH === bounds.frameH, "measurement layer must follow the photograph on responsive screens");
+      assert.ok(await fold.locator('[class*="foldCopyColumn"]').textContent().then(x => x?.includes("85 × 69 × 48")), "fold dimensions must appear in the right copy panel");
+      assert.equal(await fold.locator('[class*="foldImageColumn"] svg text').count(),2);
       await fold.screenshot({path:output + "/" + locale + "-" + device + "-folded-measurements.png"});
       await fold.getByRole("button", { name:copy["fc1.fold.open"], exact:true }).click();
       assert.equal(await fold.locator('svg[class*="foldDimensionOverlay"]').count(), 0, "no folded dimensions when bike is expanded");
@@ -140,6 +156,11 @@ try {
       assert.equal(preferences.at(-1).productCode, "FC1");
       assert.ok(preferences.at(-1).sessionKey);
       const gallery = page.locator("#gallery");
+      await gallery.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(150);
+      const galleryScale = await gallery.evaluate(node=>Number(node.style.getPropertyValue("--fc1-gallery-scale")));
+      assert.ok(galleryScale >= 1 && galleryScale <= 1.32,"gallery zoom responds to real scrolling");
+      assert.equal(await gallery.locator('[class*="galleryMotionImage"]').count(), 1);
       const names = ["side", "rear", "folded", "front", "shock", "chain", "controls"];
       for (const name of names) {
         await gallery.getByRole("button", { name:copy["fc1.gallery." + name], exact:true }).click();
