@@ -21,6 +21,13 @@ export class VehicleService{constructor(private readonly repository:VehicleRepos
   if(!vehicle)throw new VehicleNotFoundError('Owned vehicle not found');
   return vehicle;
  }
+ async ownerAccess(actor:VehicleActor,vehicleId:string):Promise<{vehicleId:string;status:'GRANTED'|'REVOKED'|'UNASSIGNED';customerUserId:string|null}>{
+  requireOwnerManager(actor);assertUuid(vehicleId);
+  if(!await this.repository.get(vehicleId))throw new VehicleNotFoundError('Vehicle not found');
+  const latest=await this.repository.transaction(e=>this.repository.latestOwner(vehicleId,e));
+  return {vehicleId,status:latest?.kind==='GRANTED'?'GRANTED':latest?.kind==='REVOKED'?'REVOKED':'UNASSIGNED',
+   customerUserId:latest?.kind==='GRANTED'?latest.customerUserId:null};
+ }
  async grantOwnerAccess(actor:VehicleActor,vehicleId:string,customerUserId:string,evidenceRef:string):Promise<{vehicleId:string;customerUserId:string;status:'GRANTED'}>{
   requireOwnerManager(actor);
   assertUuid(vehicleId);assertUuid(customerUserId);
