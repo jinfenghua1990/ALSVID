@@ -89,3 +89,24 @@
 - `GET /api/v1/service/cases/:id` 在历史状态旁额外返回活动证据；`/admin/after-sales` 新增录入、查看、失败重试 UI，保持 85 张 Ardot 设计图和旧业务页不变。
 - **不执行**配件出库、库存数量变化、成本/付款计算、外部经销商访问、自动邮件通知或车主所有权绑定；这些均需要各自所属领域接口与授权验收。
 - 本批只写 GitHub 分支 `feat/admin-live-operations-closure-20261019`，PR #211 保留 Draft。迁移和容器 CI 只在临时数据库执行。用户真实业务验收与生产发布尚未完成。
+
+
+## 八、第六批：可触发的跨模块业务链接（Draft，未发布）
+
+> 链接是网页导航和真实主键查询，不是数据库外键自动下单/自动修改状态。所有深链接均采用可分享的相对 URL；目标页面重新检查权限和记录是否存在，不会因为点击而写业务数据。
+
+| 来源 | 可点击动作 | 规范目标 URL | 到达行为 |
+| --- | --- | --- | --- |
+| 售后工单列表及详情 | 点击工单号 / 打开详情 | `/admin/after-sales?caseId=<case-uuid>` | 按指定工单 ID 查询真实工单、活动证据和操作历史，不默认跳到第一条 |
+| 售后工单 | 点击车架号 | `/admin/production/vin-detail?vehicleId=<vehicle-uuid>` | 通过新增 `GET /v1/vehicles/:id` 主键查询单台车，不全量加载生产、采购和供应商工作台 |
+| 车辆详情及生产车辆列表 | 点击进入售后 | `/admin/after-sales?vehicleId=<vehicle-uuid>` | 只预选真实车辆，**不会自动创建售后工单、审核保修或扣除库存** |
+| Commerce 订单列表 | 点击真实订单卡片 | `/admin/orders?orderId=<commerce-order-uuid>` | 根据已同步订单主键定位，不再用前端临时选中状态假装可分享链接 |
+| Commerce 映射客户 | 查看客户档案 | `/admin/customers?partnerId=<partner-uuid>` | 按已有 Customer Partner 角色读取档案，不代表已验证是车主 |
+| 客户中心 | 点击车辆车架号/售后 | 上述 VIN / Service URL | 独立查看车辆出生事实、按车打开售后受理 |
+
+### 技术与权限约束
+- `apps/web/app/_design/record-links.ts` 集中管理带 UUID 的记录链接；客户端从 URL 读取并保留选择目标。禁止把 URL 参数当成更新命令，也不得仅凭 URL 认为用户有查看/操作权限。
+- 新车辆详情入口复用 Admin 的顶部/左侧导航（原 VIN Ardot 设计保留在折叠预览），无需重复创建业务数据。它调用 Vehicle 原有领域新增的 `get(id)`，PostgreSQL `WHERE v.id=$1 LIMIT 1` 使用 Vehicle 主键的索引；页面只需获取一台车辆记录。
+- `service_agent` 在新迁移中额外获得 `vehicle.read`，以便可查看售后工单关联的真实车辆。依旧要满足 Service 内部账号与业务操作授权，避免外部身份因为持有链接就获取敏感数据。
+- 客户/订单/生产的跨模块访问如果目标域没有权限，接口保持 401/403，页面不能假装有数据或自动选择其他无关对象。
+- 不承诺全局“永不卡”：PostgreSQL 索引可以缩短查找成本，Cloud Run/Neon 网络和冷启动仍需上线后的性能监控。**真实环境浏览器链接逐条点击/刷新/权限/移动端验收尚未完成。**
