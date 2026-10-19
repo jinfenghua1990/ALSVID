@@ -49,7 +49,7 @@ export default async function MyVehiclesPage() {
                         <div className={garage.kvRow}><span>购买日期</span><strong>{vehicle.purchaseDate}</strong></div>
                         <div className={garage.kvRow}>
                           <span>保修状态</span>
-                          <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '已过期'}</strong>
+                          <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '待核验'}</strong>
                         </div>
                         <div className={garage.kvRow}>
                           <span>服务状态</span>
