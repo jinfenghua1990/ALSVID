@@ -224,7 +224,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
       <fieldset className={styles.interestFieldset}>
         <legend>{copy.choose}</legend>
         <div className={styles.interestSwatches}>
-          {COLOURS.map(item=><button type="button" key={item.id} aria-pressed={colour===item.id} onClick={()=>chooseColour(item.id)}>
+          {COLOURS.map(item=><button type="button" key={item.id} aria-label={t(item.key as "fc1.colours.sample")} aria-pressed={colour===item.id} onClick={()=>chooseColour(item.id)}>
             <span className={styles.interestSwatch} style={{background:item.hex}} aria-hidden="true"/>
             <span className={styles.interestSwatchName}>{t(item.key as "fc1.colours.sample")}</span>
             <small>{item.available?copy.sample:copy.soldOut}</small>
