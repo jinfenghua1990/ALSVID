@@ -24,6 +24,7 @@ function fixture() {
   get:async()=>current,
   history:async()=>logs,
   activities:async()=>activities,
+  ownerCases:async()=>[],
   vehicleExists:async id=>id===vehicleId,
   create:async(input,actor)=>{
    current={id:caseId,caseNumber:'SR-00000001',vehicleId:input.vehicleId,frameNumber:'FC1-001',sku:'FC1',
