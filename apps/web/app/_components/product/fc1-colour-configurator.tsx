@@ -53,7 +53,7 @@ const COPY = {
     title: "Make your FC1 yours",
     fineprint: "Colours are simulations based on the genuine green sample. Final finishes and availability are not confirmed.",
     summary: "Your preference",
-    delivery: "Estimated 4–6 weeks after confirmed ordering; logistics pending",
+    delivery: "Planned dispatch from China to Germany: estimated delivery 4–6 weeks after order confirmation, subject to logistics verification.",
     noPayment: "No order or payment is created. This is not a confirmed reservation.",
     saving: "Saving your colour preference…",
     saved: "Colour preference saved for this browsing session",
@@ -76,7 +76,7 @@ const COPY = {
     title: "Gestalte dein FC1",
     fineprint: "Farbansichten sind Simulationen des echten grünen Musters. Serienfarben und Verfügbarkeit sind noch nicht bestätigt.",
     summary: "Deine Präferenz",
-    delivery: "Ca. 4–6 Wochen nach bestätigter Bestellung; Logistik noch offen",
+    delivery: "Geplanter Versand aus China nach Deutschland: voraussichtlich 4–6 Wochen nach Bestellbestätigung, vorbehaltlich logistischer Prüfung.",
     noPayment: "Keine Bestellung, keine Zahlung und keine verbindliche Reservierung.",
     saving: "Farbpräferenz wird gespeichert…",
     saved: "Farbpräferenz für diese Browsersitzung gespeichert",
@@ -271,22 +271,30 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
             <small>{item==="standard"?copy.standard:copy.modelUnavailable}</small>
           </button>)}
         </div>
-        {expandedModel === "standard" ? (
-          <div id="fc1-model-details" className={styles.interestModelDetail} role="region" aria-label={t("fc1.highlights")}>
-            <div className={styles.interestSpecs} aria-label={t("fc1.highlights")}>
-                    <div><strong>40 <small>cm</small></strong><span>{t("fc1.metric.step")}</span></div>
-                    <div><strong>85 × 69 × 48 <small>cm</small></strong><span>{t("fc1.metric.folded")}</span></div>
-                    <div><strong>{new Intl.NumberFormat(locale,{minimumFractionDigits:1,maximumFractionDigits:1}).format(15.5)} <small>kg</small></strong><span>{t("fc1.metric.weight")}</span></div>
-                    <div><strong>80 <small>km¹</small></strong><span>{t("fc1.metric.range")}</span></div>
-                  </div>
-            <p className={styles.interestModelNote}>{t("fc1.selection.model_note")}</p>
-          </div>
-        ) : expandedModel === "pro" ? (
-          <div id="fc1-model-details" className={styles.interestModelDetail} role="region" aria-label={t("fc1.selection.pro_status")}>
-            <p className={styles.interestModelNote}>{t("fc1.selection.pro_status")}</p>
-            <p className={styles.interestModelNote}>{t("fc1.selection.model_note")}</p>
-          </div>
-        ) : null}
+        <div
+          id="fc1-model-details"
+          className={styles.interestModelDetail}
+          role="region"
+          aria-label={expandedModel === "pro" ? t("fc1.selection.pro_status") : t("fc1.highlights")}
+          hidden={expandedModel === null}
+        >
+          {expandedModel === "standard" ? (
+            <>
+              <div className={styles.interestSpecs} aria-label={t("fc1.highlights")}>
+                <div><strong>40 <small>cm</small></strong><span>{t("fc1.metric.step")}</span></div>
+                <div><strong>85 × 69 × 48 <small>cm</small></strong><span>{t("fc1.metric.folded")}</span></div>
+                <div><strong>{new Intl.NumberFormat(locale,{minimumFractionDigits:1,maximumFractionDigits:1}).format(15.5)} <small>kg</small></strong><span>{t("fc1.metric.weight")}</span></div>
+                <div><strong>80 <small>km¹</small></strong><span>{t("fc1.metric.range")}</span></div>
+              </div>
+              <p className={styles.interestModelNote}>{t("fc1.selection.model_note")}</p>
+            </>
+          ) : expandedModel === "pro" ? (
+            <>
+              <p className={styles.interestModelNote}>{t("fc1.selection.pro_status")}</p>
+              <p className={styles.interestModelNote}>{t("fc1.selection.model_note")}</p>
+            </>
+          ) : null}
+        </div>
       </fieldset>
       <fieldset className={styles.interestFieldset}>
         <legend>{copy.choose}</legend>
