@@ -134,3 +134,8 @@
   .header .headerActions .headerShop { max-width:112px; white-space:normal; line-height:1.35; text-align:center; }
   .batteryCards { grid-template-columns:1fr; gap:24px; }
 }
+
+
+/* Immersive configurator is shown immediately, without a blocking loader. */
+.hero:has(.interestConfigurator){padding:0;min-height:0;background:#101a23;text-align:left}
+.hero:has(.interestConfigurator)::before{display:none}
