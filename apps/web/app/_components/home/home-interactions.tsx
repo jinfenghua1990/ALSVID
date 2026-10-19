@@ -60,7 +60,6 @@ export function HomePosterHero({
   playLabel,
   conceptLabel,
   exploreLabel,
-  secondaryLabel,
   deliveryNote,
 }: {
   title: string;
@@ -77,7 +76,6 @@ export function HomePosterHero({
   playLabel: string;
   conceptLabel: string;
   exploreLabel: string;
-  secondaryLabel: string;
   deliveryNote: string;
 }) {
   const headingId = useId();
@@ -117,8 +115,7 @@ export function HomePosterHero({
           <p className={styles.posterTagline}>{active === 0 ? tagline : conceptLabel}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
           <div className={styles.posterButtons}>
-            {active === 0 ? <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}>{buyLabel}<span aria-hidden="true">↗</span></a> : <a className={styles.posterDiscover} href={slide.href}>{exploreLabel}<span aria-hidden="true">→</span></a>}
-            {active === 0 && <a className={styles.posterSecondary} href={`${modelHref}#configure`}>{secondaryLabel}</a>}
+            {active === 0 ? <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}><span className={styles.posterCtaLabel}>{buyLabel}</span><span className={styles.posterCtaArrow} aria-hidden="true">›</span></a> : <a className={styles.posterDiscover} href={slide.href}>{exploreLabel}<span aria-hidden="true">→</span></a>}
           </div>
           {active === 0 && <p className={styles.posterDelivery}>{deliveryNote}</p>}
         </div>

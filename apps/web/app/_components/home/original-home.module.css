@@ -1506,8 +1506,28 @@
 .posterButtons { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
 .posterDiscover { display: inline-flex; align-items: center; justify-content: center; gap: 18px; min-height: 40px; padding: 8px 24px; border: 1px solid #ffffffa6; border-radius: 99px; font-size: 13px; text-decoration: none; background: #ffffff0d; transition: background 160ms ease; }
 .posterDiscover:hover { background: #ffffff25; }
-.page .posterBuy { background: #fff; border-color: #fff; color: #17212b; font-weight: 600; }
-.page .posterBuy:hover { background: #e3f5c9; border-color: #e3f5c9; }
+/* FC1 CTA: preserve the poster image; reveal bright green from left only on hover. */
+.page .posterBuy {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: 42px; padding: 10px 26px;
+  border: 1px solid rgba(255,255,255,.9); border-radius: 4px;
+  background: transparent; color: #fff; font-weight: 500;
+  transition: border-color 350ms ease, transform 160ms ease;
+}
+.page .posterBuy::before {
+  content: ""; position: absolute; inset: 0; background: #acd132;
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform 350ms cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
+}
+.posterCtaLabel, .posterCtaArrow { position: relative; z-index: 1; }
+.posterCtaArrow { font-size: 22px; line-height: .7; transition: transform 350ms cubic-bezier(.22,.61,.36,1); }
+.page .posterBuy:hover, .page .posterBuy:focus-visible { background: transparent; border-color: #acd132; color: #fff; }
+.page .posterBuy:hover::before, .page .posterBuy:focus-visible::before, .page .posterBuy:active::before { transform: scaleX(1); }
+.page .posterBuy:hover .posterCtaArrow, .page .posterBuy:focus-visible .posterCtaArrow { transform: translateX(5px); }
+@media (prefers-reduced-motion: reduce) {
+  .page .posterBuy, .page .posterBuy::before, .posterCtaArrow { transition: none; }
+}
 .posterSecondary { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 24px; border: 1px solid #ffffff55; border-radius: 99px; background: #09142240; color: white; text-decoration: none; font-size: 13px; }
 .posterSecondary:hover { background: #ffffff21; }
 .page .posterDelivery { margin: 14px auto 0; max-width: 560px; color: #fff; font-size: clamp(11px,.9vw,13px); letter-spacing: .01em; line-height: 1.55; text-shadow: 0 1px 12px #0008; }
