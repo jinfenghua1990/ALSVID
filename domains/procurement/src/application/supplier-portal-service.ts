@@ -61,9 +61,16 @@ function normalizedAck(input:SupplierAcknowledgement,po:SupplierPortalOrder){
   const qty=String(l.confirmedQuantity);
   if(!/^\d+(?:\.\d{1,6})?$/.test(qty)||Number(qty)<=0||Number(qty)!==Number(row.orderedQuantity))
    throw new ProcurementValidationError('Acknowledgement quantities must equal approved purchase order quantities');
-  const confirmedDate=typeof l.confirmedDate==='string'&&l.confirmedDate.trim()?l.confirmedDate.trim():null;
-  if(confirmedDate&&!/^\d{4}-\d{2}-\d{2}$/.test(confirmedDate))
+  const proposedDate=typeof l.confirmedDate==='string'&&l.confirmedDate.trim()?l.confirmedDate.trim():null;
+  if(l.confirmedDate!==undefined&&typeof l.confirmedDate!=='string')
+   throw new ProcurementValidationError('Confirmed date must be text');
+  if(proposedDate&&!/^\d{4}-\d{2}-\d{2}$/.test(proposedDate))
    throw new ProcurementValidationError('Confirmed date must be YYYY-MM-DD');
+  // Acknowledgement confirms already-issued PO terms; any delivery-date change
+  // requires a separate proposal/approval, not a silent supplier rewrite.
+  if(proposedDate!==null&&proposedDate!==row.requestedDate)
+   throw new ProcurementValidationError('Delivery date changes require a separate approved proposal');
+  const confirmedDate=row.requestedDate;
   return {purchaseOrderLineId:lineId,confirmedQuantity:row.orderedQuantity,confirmedDate};
  }).sort((a,b)=>a.purchaseOrderLineId.localeCompare(b.purchaseOrderLineId));
  return {clientRequestId,expectedVersion:input.expectedVersion,note,lines};
