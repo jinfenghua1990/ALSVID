@@ -11,6 +11,7 @@ export interface ServiceCaseRepository {
  get(id:string,executor?:QueryExecutor):Promise<ServiceCase|null>;
  history(caseId:string):Promise<ServiceCaseHistory[]>;
  activities(caseId:string):Promise<ServiceActivity[]>;
+ ownerCases(userId:string):Promise<OwnerServiceCase[]>;
  vehicleExists(vehicleId:string,executor:QueryExecutor):Promise<boolean>;
  create(input:CreateServiceCaseInput,actorId:string,executor:QueryExecutor):Promise<ServiceCase>;
  lockedCase(id:string,executor:QueryExecutor):Promise<ServiceCase|null>;
