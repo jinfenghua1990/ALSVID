@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getVehicle } from '../../../_data/garage';
+import { getVehicle } from '../../../_data/garage-live';
 import garage from '../../../garage.module.css';
 
 const statusTone: Record<string, string> = {
