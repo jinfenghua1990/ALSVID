@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './admin-records.module.css';
 import { adminRecordHref, queryRecordId } from './record-links';
+import { OwnerAccessManager } from './owner-access-manager';
 
 type LoadState = 'loading' | 'ready' | 'unauthorized' | 'failed';
 type RemoteList<T> = { state: LoadState; items: T[]; message: string };
@@ -196,6 +197,7 @@ export function CustomerRecords() {
         ) : <p className={styles.notice}>暂无已出生车辆记录</p>
           : <StatusMessage state={vehicles.state} message={vehicles.message} />}
       </section>
+      {vehicles.state === 'ready' ? <OwnerAccessManager vehicles={vehicles.items} /> : null}
     </div>
   );
 }
