@@ -47,3 +47,14 @@
 - `/my/service/new`：原禁用表单被真实客户端提交组件替代，只允许从已授权车库车辆中选择；支持错误提示、幂等重试和成功后查看 `/my/service`。照片/附件保持明确待开放，不展示虚构上传成功。订单/保修时限未核验时不写假记录。
 - 域权限测试覆盖未授权客户、经销商角色、撤销所有权、幂等重复请求、请求 ID 冲突；页面契约测试检验真实 API、数据库范围校验及审计路径。
 - 当前仍为未合并的 Draft PR，不代表 Shopify Customer Account OAuth/PKCE 已实际联通；实体验收必须先具备真实外部身份 subject 绑定和交付核验，不得直接开放正式外网提交。供应商交期变更/发票上传等尚待后续交付。
+
+
+## 上线前代码审查修复（2026-10-19）
+
+本节记录在 Draft PR #211 上修复的可复现边界；尚未合并或在真实客户账号、供应商账号及正式域名验证。
+
+1. **My /v1/my/* API 在临时与本地域名下使用独立车主 Cookie。** 原 `apps/web/app/api/_lib/backend.ts` 仅按 hostname 挑选 Cookie，在 localhost、www 或 run.app 测试时，`/my` 页面读到 `alsvid_my_session`，但浏览器通过 `/api/control/v1/my/service/cases` 写入却可能发送 `alsvid_session` 导致 401。新增 `sessionCookieNameForApiRequest(host, apiPath)`：对精确 `/v1/my` 及 `/v1/my/` 路径使用独立车主 Cookie，不读取用户传入的 portal Header；其它请求继续原规则。测试 localhost、run.app、www、my 子域及非 My 路由。
+2. **供应商不能通过采购单确认偷偷改交期。** `SupplierPortalService.normalizedAck` 检查确认日期不得偏离已经发布的 `requestedDate`；缺失日期解释为接受原交期，原 PO 未设交期时不允许在完整确认中新增日期。交期调整需要另一个有审核的变更提案工作流；修复前的校验只要求 YYYY-MM-DD 格式，存在绕过业务审批的可能。回归测试验证不同日期被拒绝、无日期为原采购单日期。
+3. **转让车辆不暴露前车主售后自由文本。** `ownerCases` 限制只返回当前最新 GRANTED 所有权期间创建的 Service Case；跨车主的售后问题标题可能包含前一位客户的私密信息，不能直接全部显示。Admin 内部仍保留完整车辆维修事实与审计；将来要展示随车维修历史，应另建去身份化、经授权的维修摘要，而不是泄露前车主原始标题。
+
+仍需：Shopify Customer Account OAuth/PKCE 与 subject 映射、供应商外部邮箱成员邀请/激活、两账号/两组织浏览器 IDOR 与主站域名/Cookie 验证、第三方订单/库存状态一致性、库存扣减正式授权、正式保修审核、上线审批及迁移回滚方案。开发 CI 通过不代表这些真实集成已完成。
