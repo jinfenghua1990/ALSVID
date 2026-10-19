@@ -48,16 +48,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
   const t = translator(locale);
   const key = (value: string) => t(value as TranslationKey);
   const formatWeight = (value: number) => `${new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)} kg`;
-  const configuredShopUrl = process.env.ALSVID_SHOPIFY_FC1_PRODUCT_URL?.trim();
-  const fc1ShopUrl = (() => {
-    if (!configuredShopUrl) return null;
-    try {
-      const url = new URL(configuredShopUrl);
-      return url.protocol === "https:" && url.hostname === "shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : null;
-    } catch {
-      return null;
-    }
-  })();
   return (
     <Fc1ScrollStory>
     <main className={styles.page} lang={locale} data-fc1-version="4">
@@ -68,7 +58,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           <a href={`/${locale}/`}>{key("fc1.home")}</a>
           <a href="#specifications">{key("fc1.specifications")}</a>
           <a href="#faq">{key("fc1.questions")}</a>
-          <a className={styles.headerShop} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.shop" : "fc1.selection.cta_configure")} ↗</a>
+          <a className={styles.headerShop} href="#configure">{key("fc1.selection.cta_configure")} ↗</a>
           <LanguageSwitcher locale={locale} label={key("fc1.language")} variant="globe" />
         </div>
       </header>
@@ -271,8 +261,8 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href={fc1ShopUrl ?? "#configure"} target={fc1ShopUrl ? "_blank" : undefined} rel={fc1ShopUrl ? "noreferrer" : undefined}>{key(fc1ShopUrl ? "fc1.purchase.open" : "fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
-          <p className={styles.smallNote}>{key(fc1ShopUrl ? "fc1.cta.shop_note" : "fc1.selection.unavailable")}</p>
+          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <p className={styles.smallNote}>{key("fc1.selection.unavailable")} <a href={`/${locale}/checkout`}>{key("fc1.checkout.link")} ↗</a></p>
         </section>
 
         <section data-fc1-chapter className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
