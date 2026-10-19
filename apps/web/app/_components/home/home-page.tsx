@@ -1,4 +1,5 @@
 import { HomePosterHero, FoldingSteps } from "./home-interactions";
+import { Fc2LaunchCard } from "../product/fc2-product";
 import { LanguageSwitcher } from "../language-switcher";
 import { translator, type Locale } from "../../_lib/i18n";
 import styles from "./original-home.module.css";
@@ -32,7 +33,7 @@ export function HomePage({
           <span className={styles["brand-strapline"]}>{t("announcement")}</span>
         </div>
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
-          <a href="#featured" className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
+          <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
           <a href="#platforms">{t("navigation.products")}</a>
           <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
           <a href={detail("about-story")}>{t("navigation.company")}</a>
@@ -44,7 +45,7 @@ export function HomePage({
         <details className={styles.mobileNav}>
           <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
           <nav aria-label={t("navigation.primary")}>
-            <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
+            <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
             <a href="#platforms">{t("navigation.products")}</a>
             <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
             <a href={detail("about-story")}>{t("navigation.company")}</a>
@@ -216,6 +217,7 @@ export function HomePage({
           </div>
         </div>
       </section>
+      <Fc2LaunchCard locale={locale} />
       <section id="folding" className={styles["fold"]}>
         <div className={styles["inner"] + " " + styles["fold-grid"]}>
           <div className={styles["fold-copy"]}>
@@ -593,6 +595,8 @@ export function HomePage({
           </div>
           <div className={styles["footer-col"]}>
             <h4>{t("footer.bikes")}</h4>
+            <a href={detail("fc2")}>{t("fc2.model")}</a>
+            <a href={detail("fc1")}>{t("product.model_fc1")}</a>
             <a href={detail("fc")}>{t("footer.fc")}</a>
             <a href={detail("ct")}>{t("footer.ct")}</a>
             <a href={detail("ft")}>{t("footer.ft")}</a>
