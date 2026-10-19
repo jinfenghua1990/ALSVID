@@ -9,6 +9,7 @@ ON CONFLICT DO NOTHING;
 
 CREATE TABLE vehicle.owner_access_events (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ event_no bigint GENERATED ALWAYS AS IDENTITY UNIQUE,
  vehicle_id uuid NOT NULL REFERENCES vehicle.vehicles(id) ON DELETE RESTRICT,
  customer_user_id uuid NOT NULL REFERENCES identity.users(id) ON DELETE RESTRICT,
  event_kind text NOT NULL CHECK(event_kind IN ('GRANTED','REVOKED')),
@@ -16,8 +17,8 @@ CREATE TABLE vehicle.owner_access_events (
  performed_by uuid NOT NULL REFERENCES identity.users(id) ON DELETE RESTRICT,
  occurred_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX vehicle_owner_events_latest_idx ON vehicle.owner_access_events(vehicle_id,occurred_at DESC,id DESC);
-CREATE INDEX vehicle_owner_events_user_idx ON vehicle.owner_access_events(customer_user_id,occurred_at DESC);
+CREATE INDEX vehicle_owner_events_latest_idx ON vehicle.owner_access_events(vehicle_id,event_no DESC);
+CREATE INDEX vehicle_owner_events_user_idx ON vehicle.owner_access_events(customer_user_id,event_no DESC);
 CREATE OR REPLACE FUNCTION vehicle.prevent_owner_event_mutation() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN RAISE EXCEPTION 'Vehicle ownership access evidence is append-only'; END; $$;
 CREATE TRIGGER owner_access_events_immutable BEFORE UPDATE OR DELETE ON vehicle.owner_access_events
