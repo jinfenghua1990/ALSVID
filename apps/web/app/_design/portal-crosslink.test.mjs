@@ -108,3 +108,9 @@ test('My ALSVID submits real after-sales only for currently verified owner with 
  assert.match(migration,/UNIQUE\(customer_user_id,client_request_id\)/);
  assert.match(migration,/service_owner_submissions_immutable/);
 });
+
+test('supplier PO dates are returned as SQL text, without timezone conversion ambiguity',()=>{
+ const repository=read('../../../../domains/procurement/src/infrastructure/postgres-supplier-portal-repository.ts');
+ const projected=repository.match(/requested_date::text AS requested_date/g)??[];
+ assert.equal(projected.length,2,'both list and detail must preserve original published YYYY-MM-DD');
+});
