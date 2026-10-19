@@ -2,16 +2,17 @@
 
 ## Portal direction update — 2026-10-16
 
-[ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) fixes design ownership, commerce versus upstream procurement, and phased Supplier self-service. Use the [portal delivery plan](PORTAL_DELIVERY_PLAN_2026-10-16.md) for implementation evidence and next tasks. This supplements the existing modular-monolith/provider boundaries; it does not declare all portals delivered.
+[ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) fixes design ownership, upstream procurement and phased Supplier self-service. [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md) supersedes the earlier Shopify-first B2C transaction decision: ALSVID owns its first-party storefront flow and a PSP performs payment processing. Architecture decisions do not mean the capability is already delivered.
 
 ## 1. Why ALSVID Exists
 
-Modern bicycle business systems already have specialized platforms:
+ALSVID keeps explicit boundaries between its own consumer storefront, payment providers and warehouse execution:
 
-- Shopify handles ecommerce transactions.
+- ALSVID Commerce owns its own B2C storefront orders.
+- A contracted PSP performs payment processing and funds movement.
 - WMS handles warehouse execution.
 
-However, these systems do not naturally provide a complete vehicle lifecycle record.
+ALSVID does not need Shopify to own its first-release storefront transactions.
 
 ALSVID exists to create a long-term digital identity for every bicycle.
 
@@ -26,18 +27,16 @@ Core value:
 
 ---
 
-## 2. Why ALSVID Does Not Build an OMS
+## 2. Why ALSVID Does Not Build a General-Purpose OMS
 
-ALSVID intentionally does not become an Order Management System.
+ALSVID owns the narrow order lifecycle for purchases created on its own storefront, but it does not become a general-purpose OMS or marketplace aggregator.
 
-Reasons:
+- Its own consumer order and checkout records are owned by ALSVID Commerce.
+- Payment execution remains with a contracted PSP; payment/refund/settlement facts are owned by Finance.
+- WMS remains authoritative for warehouse operations and physical fulfillment.
+- Optional external sales channels require a separately approved connector and must not create dual-write authority.
 
-- Shopify already manages orders.
-- WMS already manages fulfillment execution.
-- Duplicating order logic creates unnecessary complexity.
-- Large order databases would increase maintenance cost.
-
-ALSVID stores normalized business facts needed for vehicle lifecycle services.
+This keeps the required storefront flow in ALSVID without duplicating warehouse execution or building a broad multi-channel OMS.
 
 ---
 

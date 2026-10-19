@@ -1,5 +1,9 @@
 # Current State
 
+## First-party storefront preparation — 2026-10-20
+
+ADR 0005 records the owner-approved shift to first-party ALSVID B2C storefront/checkout orchestration with a third-party payment provider rather than a required Shopify subscription. The current implementation scope is deliberately limited: FC1 product pages no longer expose the legacy environment-configured Shopify product redirect, zh/de/en copy explains that purchases are not yet available, and /{locale}/checkout is an informational, no-index checkout preview. It contains no form, order creation, stock reservation, card collection, webhook, live PSP transaction, or payment success claim. Tests cover locale copy parity and guard against accidental activation of purchase/payment affordances. This entry is a source-change record, not proof of CI, merge, production deployment or browser acceptance. Final seller, price/VAT/import treatment, PSP eligibility, settlement terms, consumer rights and regulatory review are still launch blockers. See [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md).
+
 ## Admin Ardot refinement sync — 2026-10-16
 
 Local Admin now includes the confirmed Ardot product/dealer sample labels, dealer regional-share bars and aligned table headings, and the corrected 60%/40% example sales ranking. The stale cached sales table was removed. Sixteen existing independent protected routes are mapped to the newly separated Ardot pages in `sync-manifest.json`; no duplicate Admin homepage or external Figma-owned screens were added. GitHub's current empty-state workbench remains intact. This is UI fixture synchronization, not a live business integration or evidence of Production deployment. See [ADMIN_DESIGN_SYNC.md](ADMIN_DESIGN_SYNC.md) for source and reimport limits.

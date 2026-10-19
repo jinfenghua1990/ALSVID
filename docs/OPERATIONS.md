@@ -24,7 +24,7 @@ GitHub is the software source of truth.
 | Development / CI compute | Local Docker + ephemeral GitHub runners | No active cloud Development runtime |
 | Test database | Local Docker PostgreSQL / ephemeral CI PostgreSQL | No Production credentials |
 | Test object storage | Local or explicitly isolated test bucket when required | Never assume a live Test bucket exists |
-| Commerce/order authority | Shopify | ALSVID does not become OMS |
+| Commerce/order authority | ALSVID Commerce | Owns its first-party B2C storefront order lifecycle; not a general-purpose OMS |
 | Warehouse execution | WMS | ALSVID consumes necessary status/facts |
 | Disaster recovery | Deferred | Q4 not currently part of Production DR |
 
@@ -45,7 +45,7 @@ Application rollback is performed by entering the previous known-good `main` com
 
 ## Customer-visible external data freshness
 
-ALSVID does not require permanent real-time synchronization from Shopify/WMS at the current stage.
+ALSVID does not require permanent real-time synchronization from optional external sales channels/WMS at the current stage.
 
 Default model:
 
@@ -61,7 +61,8 @@ Default model:
 
 External systems remain authoritative for their own domains:
 
-- Shopify: storefront commerce/order/payment/refund facts;
+- ALSVID Commerce: first-party storefront order/cart/checkout state;
+- Finance + PSP: payment attempts, verified payment state, refunds and settlement; PSP executes the external transaction;
 - WMS: warehouse execution, dispatch and warehouse-side fulfillment facts;
 - ALSVID: vehicle/VIN lifecycle, customer/dealer service relationship, warranty/service history and ALSVID-owned operational facts.
 
@@ -77,14 +78,14 @@ ALSVID may cache/store the external facts needed for Vehicle 360, My ALSVID and 
 
 ## Domain and provider portability
 
-Business domains must not depend directly on Google Cloud, Neon, R2, Shopify or WMS SDKs when a port/adapter boundary is appropriate.
+Business domains must not depend directly on Google Cloud, Neon, R2, payment-provider or WMS SDKs when a port/adapter boundary is appropriate.
 
 The reason is operational freedom:
 
 - Cloud Run can move to Railway/Apply.Build;
 - Neon can migrate to Supabase/another PostgreSQL provider;
 - R2 can move to another S3-compatible provider;
-- Shopify/WMS providers can evolve without rewriting Vehicle/Service core logic.
+- Payment-provider, optional sales-channel and WMS adapters can evolve without rewriting Commerce/Finance/Vehicle/Service core logic.
 
 ## Cost discipline
 

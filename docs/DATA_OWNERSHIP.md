@@ -19,9 +19,10 @@ Every business fact has exactly one write authority.
 | Inventory movement/reservation | Inventory | append-only movement ledger is quantity truth |
 | Bin/putaway/stocktake/pick-pack | Warehouse | physical warehouse execution |
 | Export shipment/customs/milestone | Logistics | transport/import/export execution truth |
-| External channel/order mapping | Commerce | Shopify/external fact mapping, not generic OMS replacement |
+| Storefront product selection/cart/checkout/order | Commerce | ALSVID first-party B2C storefront authority; not a general-purpose OMS |
+| Optional external channel/order mapping | Commerce + Integrations | external references and reconciliation only; never dual-write ALSVID storefront orders |
 | Invoice/payable/receivable | Finance | financial document/obligation truth |
-| Payment/allocation/settlement | Finance | payment and allocation are separate facts |
+| Payment attempt/verified status/refund/allocation/settlement | Finance | PSP executes external payment; payment, order and settlement states remain separate facts |
 | Vehicle ownership | Vehicle | immutable ownership history; Customer consumes view |
 | Warranty/service case/repair | Service | after-sales execution truth |
 | Communication thread/message metadata | Communication | provider-neutral normalized truth |
@@ -32,8 +33,8 @@ Every business fact has exactly one write authority.
 
 ## External systems
 
-- Shopify: external commerce/OMS. ALSVID stores normalized mappings/facts and reconciliation state.
-- Shopify B2B Company/Location/Contact identifies the buyer's commerce context; it does not replace ALSVID Supplier/Dealer membership. Upstream Supplier POs remain Procurement-owned, not a second Shopify/ALSVID dual-write master.
+- Payment service provider (PSP): external payment authentication/processing, transaction identifiers and provider-generated payment events. ALSVID verifies signatures and transaction binding before recording state; card PAN/CVV are never stored by ALSVID.
+- Optional future sales channels (including Shopify): external systems only when explicitly approved; ALSVID records required mappings and reconciles without dual-write authority for ALSVID-owned storefront orders.
 - Email provider: transport mailbox/service. ALSVID stores normalized communication state and marketing evidence.
 - R2/S3: binary object store only; not business metadata authority.
 - Carriers/customs/payment providers: external execution sources normalized through Integrations.

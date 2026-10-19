@@ -22,32 +22,22 @@ ALSVID manages:
 
 ALSVID is not:
 
-- A replacement for Shopify
-- A replacement for WMS
-- An OMS system
+- A replacement for WMS execution
+- A general-purpose OMS or marketplace aggregator
 - A full ERP replacement
+- A payment processor or acquiring bank
 
-The goal is to connect business systems and preserve important vehicle lifecycle information, not duplicate existing mature systems.
+ALSVID owns its first-party B2C storefront checkout and order records. A contracted PSP handles payment processing. Shopify is not required for the initial release; see [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md).
 
 ## Core Business Boundary
 
-Shopify owns buyer commerce:
+ALSVID Commerce owns ALSVID's own consumer storefront transactions: product/variant selection, cart, checkout orchestration, customer order records and customer-visible order status.
 
-- Ecommerce
-- Storefront catalog/pricing/selling configuration (ALSVID Product/Engineering owns internal product, SKU and BOM identity)
-- Orders
-- Payments
-- Customer purchase transactions
+Finance owns payment attempts, verified payment state, refunds, allocations and settlement facts. A PSP executes payment processing and is the source of external payment events; ALSVID validates provider signatures, order/amount/currency binding and idempotency before updating state.
 
-WMS owns:
+WMS owns physical stock and warehouse execution: picking, packing, dispatch and warehouse-side fulfillment.
 
-- Inventory
-- Warehouse operations
-- Picking
-- Shipping execution
-- Logistics execution
-
-ALSVID receives required business facts from these systems and provides vehicle lifecycle services.
+ALSVID owns storefront orders but does not replace WMS or become a general-purpose OMS.
 
 ## Core Architecture Principles
 
@@ -55,7 +45,7 @@ ALSVID receives required business facts from these systems and provides vehicle 
 2. Use PostgreSQL standards to avoid database lock-in.
 3. Keep deployment containerized and portable.
 4. Do not add complexity before business requirements require it.
-5. Preserve clear ownership boundaries between Shopify, WMS and ALSVID.
+5. Preserve clear ownership boundaries between ALSVID Commerce, Finance, external PSPs and WMS.
 6. Do not redesign confirmed architecture without reviewing existing decisions.
 
 ## Current Infrastructure Decisions
