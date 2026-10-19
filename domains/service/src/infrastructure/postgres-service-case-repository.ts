@@ -1,5 +1,5 @@
 import type { DatabasePort, QueryExecutor } from '@alsvid/database';
-import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, OwnerServiceCase, ServiceActivity, RecordServiceActivityInput, PreliminaryWarrantyAssessment, ServiceActivityKind } from '../core/model.js';
+import type { CreateServiceCaseInput, ServiceCase, ServiceCaseHistory, ServiceCaseStatus, ServiceCaseCategory, OwnerServiceCase, ServiceActivity, RecordServiceActivityInput, PreliminaryWarrantyAssessment, ServiceActivityKind } from '../core/model.js';
 import { ServiceCaseConflictError } from '../core/errors.js';
 import type { ServiceCaseRepository } from '../application/ports.js';
 
@@ -83,6 +83,29 @@ export class PostgresServiceCaseRepository implements ServiceCaseRepository {
  async vehicleExists(vehicleId:string,e:QueryExecutor):Promise<boolean>{
   const r=await e.query('SELECT id FROM vehicle.vehicles WHERE id=$1',[vehicleId]);
   return r.rowCount!==null&&r.rowCount>0;
+ }
+
+ async ownerVehicleAccessible(userId:string,vehicleId:string,e:QueryExecutor):Promise<boolean>{
+  // Vehicle row lock serializes submission with any verified owner grant/revoke.
+  // Current owner is always derived from the newest immutable Vehicle owner event.
+  const r=await e.query(`SELECT v.id FROM vehicle.vehicles v
+   JOIN LATERAL(SELECT customer_user_id,event_kind FROM vehicle.owner_access_events
+     WHERE vehicle_id=v.id ORDER BY event_no DESC LIMIT 1) owner ON true
+   JOIN identity.users u ON u.id=owner.customer_user_id AND u.status='ACTIVE'
+   WHERE v.id=$1 AND owner.event_kind='GRANTED' AND owner.customer_user_id=$2
+    AND EXISTS(SELECT 1 FROM identity.user_roles ur WHERE ur.user_id=u.id AND ur.role_id='customer_user')
+   FOR UPDATE OF v`,[vehicleId,userId]);
+  return r.rowCount===1;
+ }
+ async findOwnerSubmission(userId:string,clientRequestId:string,e:QueryExecutor):Promise<{vehicleId:string;caseId:string;category:ServiceCaseCategory;title:string;description:string}|null>{
+  const r=await e.query<{vehicle_id:string;case_id:string;payload:{category:ServiceCaseCategory;title:string;description:string}}>(
+    'SELECT vehicle_id,case_id,payload FROM service.owner_submission_requests WHERE customer_user_id=$1 AND client_request_id=$2',
+    [userId,clientRequestId]);
+  const row=r.rows[0];return row?{vehicleId:row.vehicle_id,caseId:row.case_id,category:row.payload.category,title:row.payload.title,description:row.payload.description}:null;
+ }
+ async recordOwnerSubmission(userId:string,clientRequestId:string,vehicleId:string,caseId:string,payload:{category:ServiceCaseCategory;title:string;description:string},e:QueryExecutor):Promise<void>{
+  await e.query('INSERT INTO service.owner_submission_requests(customer_user_id,client_request_id,vehicle_id,case_id,payload) VALUES($1,$2,$3,$4,$5::jsonb)',
+   [userId,clientRequestId,vehicleId,caseId,JSON.stringify(payload)]);
  }
  async create(input:CreateServiceCaseInput,actorId:string,e:QueryExecutor):Promise<ServiceCase>{
   const r=await e.query<{id:string}>('INSERT INTO service.cases(vehicle_id,category,title,description,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$5) RETURNING id',
