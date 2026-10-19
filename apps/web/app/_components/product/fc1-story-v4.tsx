@@ -96,34 +96,52 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <p className={styles.eyebrow}>ALSVID FC1</p>
             <h2 id="feature-overview-title">{key("fc1.story.overview.title")}</h2>
           </div>
+          <p className={styles.featureIntro}>{key("fc1.story.overview.subtitle")}</p>
           <div className={styles.featureGrid}>
-            <a className={`${styles.featureCard} ${styles.featureCardFrame}`} href="#entry">
-              <div className={styles.featurePhoto}><img {...fc1Photos["rear-three-quarter"]} alt="" loading="lazy" /></div>
-              <div className={styles.featureCardCopy}><span className={styles.featureNumber}>01</span><h3>{key("fc1.story.feature.frame")}</h3><span aria-hidden="true">↗</span></div>
+            <a className={`${styles.featureCard} ${styles.featureCardHero}`} href="#entry">
+              <div className={styles.featurePhoto}><img {...fc1Photos.side} alt="" loading="lazy" /></div>
+              <div className={styles.featureCardCopy}>
+                <span className={styles.featureNumber}>01 / ALSVID FC1</span>
+                <h3>{key("fc1.story.feature.ride")}</h3>
+                <p className={styles.featureDescription}>{key("fc1.story.feature.ride.body")}</p>
+                <span className={styles.featureArrow} aria-hidden="true">↗</span>
+              </div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardFold}`} href="#folding">
-              <div className={styles.featureFoldVisual}>
-                <figure>
-                  <img {...fc1Photos.side} alt="" loading="lazy" />
-                  <figcaption>{key("fc1.fold.open")}</figcaption>
-                </figure>
-                <figure>
-                  <img {...fc1Photos.folded} alt="" loading="lazy" />
-                  <figcaption>{key("fc1.fold.closed")}</figcaption>
-                </figure>
+              <div className={styles.featurePhoto}><img {...fc1Photos.folded} alt="" loading="lazy" /></div>
+              <div className={styles.featureCardCopy}>
+                <span className={styles.featureNumber}>02 / ALSVID FC1</span>
+                <h3>{key("fc1.story.feature.fold")}</h3>
+                <p className={styles.featureDescription}>{key("fc1.story.feature.fold.body")}</p>
+                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
-              <div className={styles.featureCardCopy}><span className={styles.featureNumber}>02</span><h3>{key("fc1.story.feature.fold")}</h3><span aria-hidden="true">↗</span></div>
+            </a>
+            <a className={`${styles.featureCard} ${styles.featureCardFrame}`} href="#entry">
+              <div className={styles.featurePhoto}><img {...fc1Photos["rear-three-quarter"]} alt="" loading="lazy" /></div>
+              <div className={styles.featureCardCopy}>
+                <span className={styles.featureNumber}>03 / ALSVID FC1</span>
+                <h3>{key("fc1.story.feature.frame")}</h3>
+                <p className={styles.featureDescription}>{key("fc1.story.feature.frame.body")}</p>
+                <span className={styles.featureArrow} aria-hidden="true">↗</span>
+              </div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardComfort}`} href="#details">
-              <div className={styles.featurePhotoPair}>
-                <figure><img {...fc1Photos["hidden-carbon-front-suspension"]} alt="" loading="lazy" /><figcaption>{key("fc1.hotspot.front")}</figcaption></figure>
-                <figure><img {...fc1Photos["dnm-rear-air-shock"]} alt="" loading="lazy" /><figcaption>{key("fc1.hotspot.rear")}</figcaption></figure>
+              <div className={styles.featurePhoto}><img {...fc1Photos["hidden-carbon-front-suspension"]} alt="" loading="lazy" /></div>
+              <div className={styles.featureCardCopy}>
+                <span className={styles.featureNumber}>04 / ALSVID FC1</span>
+                <h3>{key("fc1.story.feature.comfortBrakes")}</h3>
+                <p className={styles.featureDescription}>{key("fc1.story.feature.comfortBrakes.body")}</p>
+                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
-              <div className={styles.featureCardCopy}><span className={styles.featureNumber}>03</span><h3>{key("fc1.story.feature.comfortBrakes")}</h3><span aria-hidden="true">↗</span></div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardDrive}`} href="#drive">
-              <div className={styles.featurePhoto}><img {...fc1Photos.side} alt="" loading="lazy" /></div>
-              <div className={styles.featureCardCopy}><span className={styles.featureNumber}>04</span><h3>{key("fc1.story.feature.driveBattery")}</h3><span aria-hidden="true">↗</span></div>
+              <div className={styles.featurePhoto}><img {...fc1Photos["shimano-chain-drivetrain"]} alt="" loading="lazy" /></div>
+              <div className={styles.featureCardCopy}>
+                <span className={styles.featureNumber}>05 / ALSVID FC1</span>
+                <h3>{key("fc1.story.feature.driveBattery")}</h3>
+                <p className={styles.featureDescription}>{key("fc1.story.feature.driveBattery.body")}</p>
+                <span className={styles.featureArrow} aria-hidden="true">↗</span>
+              </div>
             </a>
           </div>
           <p className={styles.smallNote}>{key("fc1.photo.note")}</p>
