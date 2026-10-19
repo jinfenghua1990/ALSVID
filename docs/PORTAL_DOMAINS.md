@@ -1,6 +1,8 @@
 # ALSVID 门户地址规范
 
 > 当前使用 `chaibenn.com` 作为临时域名。`alsvid.com` 为未来品牌域名，取得后沿用同一门户结构。
+>
+> **B2C 交易方向更新（ADR 0005）：** 首期官网自行承载商城、结账准备与订单流程，支付使用待选第三方支付机构；`shop.chaibenn.com` 为历史 Shopify 规划域名，不是当前必需的付款入口，也不得声称已经接通。
 
 > 本文是 ALSVID 生产访问入口的唯一地址约定。后续页面、登录跳转、部署配置和文档统一使用以下地址，不再使用 Cloud Run `run.app` 地址作为用户入口。
 
@@ -9,7 +11,7 @@
 | 入口 | 固定地址 | 业务边界 |
 |---|---|---|
 | ALSVID WWW / Official | https://www.chaibenn.com | 品牌官网、产品展示与消费者主入口 |
-| ALSVID Shop | https://shop.chaibenn.com | Shopify 商城、商品购买、购物车与支付承载面 |
+| ALSVID Shop（历史预留） | https://shop.chaibenn.com | 历史 Shopify 规划域名，首期不依赖、不标记已上线；消费者购物体验在 WWW 自建 |
 | My ALSVID | https://my.chaibenn.com | 消费者车主中心、车辆、VIN、保修与售后 |
 | ALSVID Admin | https://admin.chaibenn.com | ALSVID 公司内部运营后台；Admin 唯一正式登录入口 |
 | ALSVID Dealer Portal | https://dealer.chaibenn.com | 经销商 / B2B 客户自助门户 |
@@ -20,7 +22,7 @@
 
 当前核心前端项目仍按既定边界管理：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID。
 
-`shop.chaibenn.com` 是 Shopify 商城正式入口，不代表必须新建第五套 ALSVID 自研前端项目；`service.chaibenn.com` 是服务入口，可根据后续实现跳转或承载独立服务界面。是否拆分独立部署，以实际实现与验收为准。
+`shop.chaibenn.com` 是历史预留域名，不再作为首期正式 Shopify 商城入口；`service.chaibenn.com` 是服务入口，可根据后续实现跳转或承载独立服务界面。是否拆分独立部署，以实际实现与验收为准。
 
 ## 3. 本地开发与历史地址
 
