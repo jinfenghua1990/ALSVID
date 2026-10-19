@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getVehicle, latestService, warrantyProgress, warrantyRemainingDays } from '../../_data/garage';
+import { latestService, warrantyProgress, warrantyRemainingDays } from '../../_data/garage';
+import { getVehicle } from '../../_data/garage-live';
 import styles from '../../owner-portal.module.css';
 import garage from '../../garage.module.css';
 
