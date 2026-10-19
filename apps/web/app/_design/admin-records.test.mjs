@@ -32,7 +32,7 @@ test('staff and audit overview relies on permissions and does not allow role wri
   assert.match(auditController, /Permission\.AuditRead/);
   assert.match(identityController, /identityService\.listUsers\(requireAuth\(request\)\)/);
   assert.match(integrated, /case '客户': return <CustomerRecords \/>/);
-  assert.match(integrated, /case '设置': return <AccessAuditRecords \/>/);
+  assert.match(integrated, /case '设置': return <><AccessAuditRecords \/><PortalBindingsAdmin \/><\/>/);
   assert.ok(!ui.includes('/v1/auth/users/roles'));
   assert.ok(!ui.includes('setUserRoles'));
   assert.ok(!ui.includes('fetch(' + "'/api/control/v1/auth/users'" + ', { method: ' + "'PUT'"));
