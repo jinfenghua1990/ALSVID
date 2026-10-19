@@ -233,3 +233,34 @@
   .foldImageFrame{width:100%}
   .foldDimensionFootnote{font-size:10px;padding:0 8px}
 }
+
+
+/* FC1: measurements belong to the configurator, not a separate horizontal banner. */
+.interestSpecs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:18px 0;border-top:1px solid #d7e0e5;border-bottom:1px solid #d7e0e5;margin:5px 0 19px}
+.interestSpecs>div{min-width:0}
+.interestSpecs strong{display:block;color:#1d3543;font-size:clamp(15px,1.2vw,19px);font-weight:630;letter-spacing:-.035em;white-space:nowrap}
+.interestSpecs strong small{font-size:.7em;font-weight:450}
+.interestSpecs span{display:block;color:#617582;font-size:10px;line-height:1.55;margin-top:4px}
+@media(max-width:760px){.interestSpecs{gap:14px 9px}.interestSpecs strong{font-size:17px}}
+
+/* Folded state: left = one real product photo with only length/height arrows; right = text and controls. */
+.foldEditorial{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr);gap:clamp(26px,4vw,75px);align-items:center;width:100%}
+.foldImageColumn{min-width:0}
+.foldImageColumn .foldImageFrame{width:100%;max-width:820px}
+.foldCopyColumn{min-width:0}
+.foldCopyColumn .eyebrow{font-size:12px;letter-spacing:.1em;color:#597b90}
+.foldCopyColumn h2{margin:14px 0 18px;color:#17232b;font-size:clamp(30px,3.3vw,50px);line-height:1.19;letter-spacing:-.045em}
+.foldCopyColumn>p:not(.eyebrow){margin:0;color:#657984;font-size:15px;line-height:1.9}
+.foldSpecOnSide{margin:30px 0 10px;padding:22px 0;border-top:1px solid #cbd8de;border-bottom:1px solid #cbd8de}
+.foldSpecOnSide>small{display:block;color:#6f8796;font-size:12px}
+.foldSpecOnSide strong{display:block;margin:8px 0;color:#1b303d;font-size:clamp(27px,3vw,42px);font-weight:550;letter-spacing:-.045em;white-space:nowrap}
+.foldSpecOnSide strong small{font-size:.45em;font-weight:400}
+.foldSpecOnSide>p{font-size:11px;line-height:1.6;color:#6c8492;margin:0}
+.foldCopyColumn .segmented{display:inline-flex;margin:24px 0 15px}
+.foldCopyColumn .foldNoteSide{font-size:12px!important;line-height:1.7!important;color:#6b8390!important}
+@media(max-width:850px){.foldEditorial{grid-template-columns:1fr;gap:10px}.foldImageColumn .foldImageFrame{max-width:650px}.foldCopyColumn{padding:8px 5px 10px}.foldCopyColumn h2{font-size:35px}.foldSpecOnSide{margin-top:24px}}
+
+/* Gallery zoom controlled by actual scroll, no replacement of the authenticated FC1 photo. */
+.galleryMotionImage{transform:scale(var(--fc1-gallery-scale,1));transform-origin:center;transition:transform .075s linear;will-change:transform}
+.galleryMotionDetails{opacity:var(--fc1-gallery-details-opacity,1);transform:translateY(var(--fc1-gallery-details-y,0px));transition:opacity .12s linear,transform .12s linear}
+@media(prefers-reduced-motion:reduce){.galleryMotionImage,.galleryMotionDetails{transform:none!important;opacity:1!important;transition:none!important}}
