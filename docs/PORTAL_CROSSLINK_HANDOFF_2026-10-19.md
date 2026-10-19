@@ -25,3 +25,14 @@
 - 持续运行 CI 的 `pnpm arch:check`、`pnpm typecheck`、`pnpm test`、`pnpm build`；容器构建、临时数据库迁移与 API 冒烟检查。
 - Supplier 至少两组织成员、停用成员、已发布/草稿 PO、越权单号、错行/错数量、重复提交验证；My 至少双客户、授权前后、撤销后、跨客户替换 VIN 路由检查。
 - 生产发布独立审批：当前 Draft PR **不得设 Ready，不得合并、不使用生产凭据运行迁移**；所有旧画面、文件和设计方案保留以备后续迭代。
+
+
+## 2026-10-19 Admin 跨门户授权安全收口（同一 Draft PR）
+
+- **唯一操作入口**：在 `/admin/settings` 的既有 `PortalBindingsAdmin` 上扩展真实状态查询；避免重复的车主授权表单散落在客户、设置多处，原客户目录只引导到设置操作。
+- **供应商当前成员关系**：增加 `GET /v1/auth/supplier-memberships/:userId/:partnerId`（`IdentityService.supplierMembershipStatus`）。仅 `system_admin` + `identity.role.manage` 可查询指定账号与指定上游 Partner 的当前 ACTIVE / DISABLED / UNASSIGNED 状态；只返回状态和更新时间，不因为没有关系而暗示已启用。更新后从数据库重新读取，禁用无意义的“重复启用/无授权却停用”操作。
+- **车辆当前车主关系**：增加 `GET /v1/vehicles/:id/owner-access`。仅 `system_admin` + `vehicle.owner.manage` 可读取当前 GRANTED / REVOKED / UNASSIGNED 和当前授权账号 UUID；已撤销不再返回前车主 UUID。结合已存在 GRANT/REVOKE 事务，Admin 先读实际状态再决定可否操作。
+- **二次确认**：供应商关系和车辆归属变更都增加人工核验确认复选框、必须提供可追溯的审核/交付证据编号；未能读取当前关系或没有权限时，前端禁用写入按钮。后端仍执行正式权限/状态校验，前端状态不构成最终授权。
+- **回归**：增加 Identity 查询权限测试、Vehicle 非管理员读取/撤销脱敏测试、Web 授权状态接线契约测试；测试与 CI 结果须以本 PR **最新 head** 为准。
+
+**尚未完成且不得声称完成**：Supplier 企业级自助邀请/续权、PO 交期变更/发货/附件；Shopify Customer Account OAuth/PKCE 实际 subject 绑定、Shopify 已付款/交付核验与自动车主激活、客户主动提起售后、真实供应商和车主账号浏览器全流程测试。审核凭证目前由管理员人工核对，并不是由 Provider 自动验证。此 PR 不合并、不发布正式、不触碰生产库。
