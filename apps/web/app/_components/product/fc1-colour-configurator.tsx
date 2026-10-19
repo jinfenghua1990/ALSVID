@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { translator, type Locale } from "../../_lib/i18n";
 import { fc1Photos } from "./fc1-photos";
 import styles from "./fc1-product.module.css";
+import { Fc1ThreeDViewer } from "./fc1-three-d-viewer";
 
 type ColourId = "sample" | "black" | "blue" | "silver";
 type ModelId = "standard" | "pro";
+
+// Deploy the verified FC1 GLB at this static path, or set the public R2 URL at build time.
+// Until it exists, the selector remains photo-only: a 2D image is never presented as real 3D.
+const FC1_MODEL_URL = process.env.NEXT_PUBLIC_FC1_3D_MODEL_URL?.trim() || "/products/fc1/ALSVID_FC1_unfolded_review_v10.glb";
 
 const COLOURS: {id: ColourId; key: string; hex: string; available: boolean}[] = [
   { id: "sample", key: "fc1.colours.sample", hex: "#2d5850", available: true },
@@ -34,6 +39,10 @@ const COPY = {
     how: "了解 FC1 技术",
     preview: "颜色效果模拟 · 非量产实拍",
     standard: "参考配置",
+    photoMode: "实拍",
+    threeDMode: "3D 查看",
+    threeDLoading: "正在载入三维模型…",
+    threeDNote: "3D 为外观核对模型，部分结构尚未实物验收；以真实车辆图片为准。拖动旋转，双指缩放。",
   },
   en: {
     modelUnavailable: "Not available to order",
@@ -53,6 +62,10 @@ const COPY = {
     how: "Explore FC1 technology",
     preview: "Simulated colour · not a production photo",
     standard: "Reference specification",
+    photoMode: "Photo",
+    threeDMode: "3D view",
+    threeDLoading: "Loading the 3D model…",
+    threeDNote: "This is an appearance review model, not verified production geometry. Refer to actual bike photography. Drag to rotate or pinch to zoom.",
   },
   de: {
     modelUnavailable: "Derzeit nicht bestellbar",
@@ -72,6 +85,10 @@ const COPY = {
     how: "FC1 Technik entdecken",
     preview: "Farb-Simulation · kein Serienfoto",
     standard: "Referenzkonfiguration",
+    photoMode: "Foto",
+    threeDMode: "3D-Ansicht",
+    threeDLoading: "3D-Modell wird geladen…",
+    threeDNote: "Dieses Anschauungsmodell ist keine geprüfte Seriengeometrie. Maßgeblich sind die echten Fahrzeugfotos. Drehen durch Ziehen, zoomen mit zwei Fingern.",
   },
 } satisfies Record<Locale, Record<string, string>>;
 
@@ -110,7 +127,7 @@ function recolourPixels(base: ImageData, colour: Exclude<ColourId, "sample">): I
   return new ImageData(bytes, base.width, base.height);
 }
 
-function ColourBike({ locale, colour }: { locale: Locale; colour: ColourId }) {
+function ColourBike({ locale, colour, modelUrl, onModelFailure }: { locale: Locale; colour: ColourId; modelUrl: string | null; onModelFailure: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const baseRef = useRef<ImageData | null>(null);
   const [ready, setReady] = useState(0);
@@ -150,10 +167,17 @@ function ColourBike({ locale, colour }: { locale: Locale; colour: ColourId }) {
     setDrawn(colour);
   }, [colour, ready]);
 
-  return <div className={styles.interestBikeStage}>
+  return <div className={styles.interestBikeStage} data-3d-active={Boolean(modelUrl)}>
     <img {...fc1Photos.side} className={styles.interestOriginalBike} alt={translator(locale)("fc1.photo.alt")} fetchPriority="high" />
     <canvas ref={canvasRef} className={styles.interestColourCanvas} data-visible={colour !== "sample" && drawn === colour} aria-hidden="true" />
-    <p className={styles.interestPreviewLabel}>{copy.preview}</p>
+    {modelUrl ? <Fc1ThreeDViewer
+      url={modelUrl}
+      colour={colour}
+      alt={translator(locale)("fc1.photo.alt")}
+      note={copy.threeDNote}
+      loadingText={copy.threeDLoading}
+      onFailure={onModelFailure}
+    /> : <p className={styles.interestPreviewLabel}>{copy.preview}</p>}
   </div>;
 }
 
@@ -164,6 +188,28 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const [colour, setColour] = useState<ColourId>("sample");
   const [touched, setTouched] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const [modelAvailable, setModelAvailable] = useState(false);
+  const [visualMode, setVisualMode] = useState<"photo" | "3d">("photo");
+
+  const onModelFailure = useCallback(() => {
+    setVisualMode("photo");
+    setModelAvailable(false);
+  }, []);
+
+  useEffect(() => {
+    // HEAD avoids fetching the 35 MB GLB until the user actually opens 3D.
+    // Reject Next.js HTML fallbacks and misconfigured R2 URLs.
+    const controller = new AbortController();
+    fetch(FC1_MODEL_URL, { method:"HEAD", signal:controller.signal, cache:"no-store" })
+      .then(response => {
+        const mime = response.headers.get("content-type") || "";
+        if (response.ok && !mime.includes("text/html") && !mime.includes("application/json")) {
+          setModelAvailable(true);
+        }
+      })
+      .catch(() => { /* Static photography remains available. */ });
+    return () => controller.abort();
+  }, []);
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const preferenceSession = useRef<string | null>(null);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
@@ -207,8 +253,12 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         <h1>ALSVID FC1</h1>
         <p>{t("fc1.heading")}</p>
       </div>
-      <ColourBike locale={locale} colour={colour}/>
-      <div className={styles.interestVisualFooter}><span>{copy.preview}</span><span>FC1 / {current.key ? t(current.key as "fc1.colours.sample") : ""}</span></div>
+      <div className={styles.interestViewModes} role="group" aria-label={copy.threeDMode}>
+        <button type="button" aria-pressed={visualMode === "photo"} onClick={() => setVisualMode("photo")}>{copy.photoMode}</button>
+        {modelAvailable ? <button type="button" aria-pressed={visualMode === "3d"} onClick={() => setVisualMode("3d")}>{copy.threeDMode}</button> : null}
+      </div>
+      <ColourBike locale={locale} colour={colour} modelUrl={modelAvailable && visualMode === "3d" ? FC1_MODEL_URL : null} onModelFailure={onModelFailure}/>
+      <div className={styles.interestVisualFooter}><span>{visualMode === "3d" ? copy.threeDMode : copy.preview}</span><span>FC1 / {current.key ? t(current.key as "fc1.colours.sample") : ""}</span></div>
     </div>
     <aside className={styles.interestControls} aria-label={copy.title}>
       <div className={styles.interestControlsHeading}><span>ALSVID FC1 / CONFIGURE</span><h2>{copy.title}</h2><p>{t("fc1.intro")}</p></div>
