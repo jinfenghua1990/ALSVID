@@ -73,7 +73,18 @@ try {
       assert.equal(response.status(), 200);
       await page.locator('[data-fc1-version="4"]').waitFor();
       await page.locator('[data-fc1-motion="ready"]').waitFor();
-      assert.equal(await page.locator('[aria-labelledby="feature-overview-title"] a').count(), 6);
+      const featureOverview = page.locator('[aria-labelledby="feature-overview-title"]');
+      assert.equal(await featureOverview.locator("a").count(), 4, locale + " must show four grouped feature cards");
+      assert.equal(await featureOverview.locator("h3").count(), 4, locale + " must show one heading per feature card");
+      const foldingCard = featureOverview.locator('a[href="#folding"]');
+      assert.equal(await foldingCard.locator("figure").count(), 2, locale + " folding hero must show unfolded and folded states");
+      assert.equal(await featureOverview.locator('a[href="#details"] img').count(), 2, locale + " comfort/brakes card must show both suspension details");
+      if (device === "desktop") {
+        const foldGrid = await foldingCard.evaluate((node) => ({ rowEnd:getComputedStyle(node).gridRowEnd, column:getComputedStyle(node).gridColumnStart }));
+        assert.equal(foldGrid.rowEnd, "span 3", "folding card must be the tall visual feature");
+        assert.equal(foldGrid.column, "2", "folding card must occupy the right column");
+      }
+      await featureOverview.screenshot({ path:output + "/" + locale + "-" + device + "-feature-overview.png" });
       await page.screenshot({ path:output + "/" + locale + "-" + device + "-hero.png" });
       // Visit the complete story so lazy photography and heading reveals have been exercised.
       const sections = page.locator("[data-fc1-chapter]");
@@ -172,7 +183,7 @@ try {
   const fallback = await plain.newPage();
   await fallback.goto(base + "/en/explore/fc1");
   assert.equal(await fallback.locator("h1").innerText(), "ALSVID FC1");
-  assert.equal(await fallback.locator('[aria-labelledby="feature-overview-title"] a').count(), 6);
+  assert.equal(await fallback.locator('[aria-labelledby="feature-overview-title"] a').count(), 4);
   assert.equal(await fallback.locator("[data-fc1-motion]").count(), 0);
   assert.equal(await fallback.locator("#specifications tbody tr").count(), 20);
   await fallback.screenshot({ path:output + "/en-no-javascript.png", fullPage:true });
