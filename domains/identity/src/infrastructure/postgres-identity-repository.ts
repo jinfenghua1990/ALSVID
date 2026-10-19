@@ -13,6 +13,14 @@ const contextSql=`SELECT u.id,u.email,u.display_name,u.password_hash,u.password_
 export class PostgresIdentityRepository implements IdentityRepository {
   constructor(private readonly database: DatabasePort) {}
   transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>{return this.database.transaction(work);}
+  async eligibleSupplierAccount(userId:string,e:QueryExecutor):Promise<boolean>{
+   const r=await e.query("SELECT id FROM identity.users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",[userId]);
+   return r.rowCount===1;
+  }
+  async setSupplierMembership(userId:string,partnerId:string,status:'ACTIVE'|'DISABLED',evidenceRef:string,approvedBy:string,e:QueryExecutor):Promise<void>{
+   await e.query('INSERT INTO identity.supplier_memberships(user_id,partner_id,status,evidence_ref,approved_by) VALUES($1,$2,$3,$4,$5) ON CONFLICT (user_id,partner_id) DO UPDATE SET status=EXCLUDED.status,evidence_ref=EXCLUDED.evidence_ref,approved_by=EXCLUDED.approved_by,updated_at=now()',
+    [userId,partnerId,status,evidenceRef,approvedBy]);
+  }
   async findUserIdByEmail(email:string,executor:QueryExecutor=this.database):Promise<string|null>{const r=await executor.query<{id:string}>('SELECT id FROM identity.users WHERE email=$1',[email]);return r.rows[0]?.id??null;}
   async createUser(email:string,displayName:string,passwordHash:string|null,emailVerifiedAt:Date|null,executor:QueryExecutor=this.database):Promise<string>{const r=await executor.query<{id:string}>("INSERT INTO identity.users(email,display_name,password_hash,password_state,email_verified_at) VALUES ($1,$2,$3,$4,$5) RETURNING id",[email,displayName,passwordHash,passwordHash?'INITIAL':'UNSET',emailVerifiedAt]);return r.rows[0]!.id;}
   async updateBootstrapUser(userId:string,displayName:string,passwordHash:string,executor:QueryExecutor=this.database):Promise<void>{await executor.query("UPDATE identity.users SET display_name=$2,password_hash=$3,password_state='INITIAL',password_changed_at=NULL,email_verified_at=COALESCE(email_verified_at,now()),status='ACTIVE',updated_at=now() WHERE id=$1",[userId,displayName,passwordHash]);}
