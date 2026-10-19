@@ -469,8 +469,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
-              <h1 className="av-pagetitle">{screen.title}</h1>
-              <p className="av-pagesub">{screen.subtitle}</p>
+              <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
+              <p className="av-pagesub">{isVehicleDetail ? '真实车辆主键查询与售后导航；未确认的客户归属不在这里自动生成。' : screen.subtitle}</p>
             </div>
             {actions.length > 0 && !isIntegratedOverview && !isVehicleDetail ? (
               <div className="av-pageactions">
@@ -493,7 +493,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             ) : null}
           </div>
 
-          {screen.steps && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
+          {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
           {screen.id === 'workbench' ? (
             <>
               <LiveWorkbench />
