@@ -398,18 +398,21 @@ jobs:
             --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},ALSVID_API_BASE_URL=${API_URL}/api,AUTH_BASE_URL=${AUTH_BASE_URL}" \
             --quiet
 
-      - name: Verify Web and record deployed release
+      - name: Verify public website and admin, record deployed release
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PUBLIC_SITE_URL: https://www.alsvid.com/zh/explore/fc1
           AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
         run: |
           set -euo pipefail
+          curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$PUBLIC_SITE_URL" >/dev/null
           curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$AUTH_BASE_URL" >/dev/null
           {
             echo "### ALSVID production deployment"
             echo "- Release: $RELEASE_SHA"
+            echo "- Public site: $PUBLIC_SITE_URL"
             echo "- Admin: $AUTH_BASE_URL"
             echo "- Worker pool: $WORKER_POOL (instances: $WORKER_INSTANCES)"
             echo "- Email verification: resend"
