@@ -89,9 +89,18 @@ try {
       const columns = await featureOverview.locator('a[data-feature="hero"]').evaluate((node) => getComputedStyle(node.parentElement).gridTemplateColumns.split(" ").length);
       assert.equal(columns, device === "desktop" ? 3 : 1, "feature layout must use three desktop columns and one mobile column");
       assert.equal(await page.locator("section[class*=\"stats\"]").count(), 0, "large horizontal metrics strip must be removed");
-      const sideSpecs = page.locator("#configure [class*='interestSpecs']");
-      assert.equal(await sideSpecs.locator(":scope > div").count(), 4, "four reference figures belong in the right configurator");
+      const configure = page.locator("#configure");
+      const sideSpecs = configure.locator('[class*="interestSpecs"]');
+      assert.equal(await sideSpecs.count(), 0, "compact metrics stay hidden until a model is opened");
+      const standard = configure.getByRole("button", { name:/FC1 Standard/ });
+      await standard.click();
+      assert.equal(await standard.getAttribute("aria-expanded"), "true", "Standard details should expand on selection");
+      assert.equal(await sideSpecs.locator(":scope > div").count(), 4, "the four reference figures open directly below Standard");
       assert.equal(await sideSpecs.getByText("85 × 69 × 48", {exact:false}).count(), 1);
+      await standard.click();
+      assert.equal(await standard.getAttribute("aria-expanded"), "false", "selecting Standard again closes its details");
+      assert.equal(await sideSpecs.count(), 0);
+      assert.equal(await configure.locator('[class*="interestMore"]').count(), 0, "removed redundant technology link must not return");
       assert.equal(await page.locator("#details [class*=\"narrativeMedia\"] img").count(), 1);
       assert.equal(await page.locator("#details-rear [class*=\"narrativeMedia\"] img").count(), 1);
       for (const id of ["drive", "battery"]) {
@@ -139,7 +148,6 @@ try {
       await fold.getByRole("button", { name:copy["fc1.fold.open"], exact:true }).click();
       assert.equal(await fold.locator('svg[class*="foldDimensionOverlay"]').count(), 0, "no folded dimensions when bike is expanded");
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("side-transparent-v3.png"));
-      const configure = page.locator("#configure");
       // Until the exact reviewed GLB is hosted, the original photo is mandatory.
       // A 2D CSS/canvas effect must not appear as a fake functional 3D mode.
       await page.waitForFunction(() => !document.querySelector('#configure [data-fc1-model-viewer]'));
@@ -148,6 +156,9 @@ try {
       const pro = configure.getByRole("button", { name:/FC1 Pro/ });
       await pro.click();
       assert.equal(await pro.getAttribute("aria-pressed"), "true");
+      assert.equal(await pro.getAttribute("aria-expanded"), "true");
+      assert.equal(await sideSpecs.count(), 0, "unreleased Pro must not claim Standard reference figures");
+      assert.ok((await configure.locator("#fc1-model-details").innerText()).includes(copy["fc1.selection.pro_status"]), "Pro must show its unavailable status");
       const colour = configure.getByRole("button", { name:copy["fc1.colours.blue"], exact:true });
       await colour.click();
       assert.equal(await colour.getAttribute("aria-pressed"), "true");
