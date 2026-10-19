@@ -56,11 +56,14 @@ export class PostgresServiceCaseRepository implements ServiceCaseRepository {
     created_at:Date;updated_at:Date;
    }>(`SELECT c.id,c.case_number,c.vehicle_id,c.title,c.status,c.created_at,c.updated_at
      FROM service.cases c JOIN LATERAL (
-       SELECT customer_user_id,event_kind FROM vehicle.owner_access_events
+       SELECT customer_user_id,event_kind,occurred_at FROM vehicle.owner_access_events
        WHERE vehicle_id=c.vehicle_id ORDER BY event_no DESC LIMIT 1
      ) owner ON true
      JOIN identity.users u ON u.id=owner.customer_user_id AND u.status='ACTIVE'
      WHERE owner.event_kind='GRANTED' AND owner.customer_user_id=$1
+       -- Free-text service titles can include previous owners' private details.
+       -- New owners see cases from their *current* grant period only.
+       AND c.created_at >= owner.occurred_at
        AND EXISTS(SELECT 1 FROM identity.user_roles ur WHERE ur.user_id=u.id AND ur.role_id='customer_user')
      ORDER BY c.created_at DESC,c.id DESC LIMIT 200`,[userId]);
   return r.rows.map(row=>({id:row.id,caseNumber:row.case_number,vehicleId:row.vehicle_id,
