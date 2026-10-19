@@ -5,6 +5,7 @@ import { AuditController } from './audit.controller.js';
 import { AuthController } from './auth.controller.js';
 import { AuthGuard } from './auth.guard.js';
 import { CommerceController } from './commerce.controller.js';
+import { ColourInterestController } from './colour-interest.controller.js';
 import { DealerController } from './dealer.controller.js';
 import { EngineeringController } from './engineering.controller.js';
 import { FinanceController } from './finance.controller.js';
@@ -38,6 +39,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     LogisticsController,
     DealerController,
     CommerceController,
+    ColourInterestController,
     IntegrationsController,
     FinanceController,
   ],

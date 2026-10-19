@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { LanguageSwitcher } from "../language-switcher";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
-import { ProductGallery, ProductConfigurator, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
+import { ProductGallery, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
 import baseStyles from "./fc1-product.module.css";
 import storyStyles from "./fc1-story-v4.module.css";
 import { Fc1ScrollStory } from "./fc1-scroll-story";
+import { Fc1ColourConfigurator } from "./fc1-colour-configurator";
 
 const styles: Record<string, string> = Object.fromEntries(
   [...new Set([...Object.keys(baseStyles), ...Object.keys(storyStyles)])].map((name) =>
@@ -72,19 +73,8 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         </div>
       </header>
       <div className={styles.main}>
-        <section id="overview" className={styles.hero} data-fc1-chapter>
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>{key("fc1.eyebrow")}</p>
-            <h1>ALSVID FC1</h1>
-            <p className={styles.heroTagline}>{key("fc1.heading")}</p>
-            <p className={styles.heroDescription}>{key("fc1.intro")}</p>
-            <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
-            <div className={styles.heroCtas}>
-              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↘</span></a>
-              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
-            </div>
-          </div>
-          <img className={styles.heroProduct} {...fc1Photos.side} alt={key("fc1.photo.alt")} fetchPriority="high" />
+        <section id="overview" className={`${styles.hero} ${styles.interestHero}`} data-fc1-chapter>
+          <Fc1ColourConfigurator locale={locale} />
         </section>
         <section className={styles.stats} aria-label={key("fc1.highlights")}>
           <div><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
@@ -216,14 +206,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
               <a className={styles.buttonDark} href="#specifications">{key("fc1.selection.cta")} <span aria-hidden="true">↗</span></a>
             </div>
           </div>
-        </section>
-        <section data-fc1-chapter id="configure" className={styles.colourBand}>
-          <div>
-            <p className={styles.eyebrow}>{key("fc1.selection.kicker")}</p>
-            <h2 id="colours">{key("fc1.selection.title")}</h2>
-            <p>{key("fc1.selection.body")}</p>
-          </div>
-          <ProductConfigurator locale={locale} />
         </section>
         <section data-fc1-chapter id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
           <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>

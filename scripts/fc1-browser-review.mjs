@@ -16,7 +16,12 @@ try {
       const context = await browser.newContext({ viewport });
       const page = await context.newPage();
       const failures = [];
+      const preferences = [];
       page.on("pageerror", (error) => failures.push(error.message));
+      await page.route("**/api/public/fc1-colour-interest", async (route) => {
+        preferences.push(JSON.parse(route.request().postData() || "{}"));
+        await route.fulfill({ status:200, contentType:"application/json", body:'{"saved":true}' });
+      });
       const response = await page.goto(base + "/" + locale + "/explore/fc1", { waitUntil:"networkidle" });
       assert.equal(response.status(), 200);
       await page.locator('[data-fc1-version="4"]').waitFor();
@@ -50,6 +55,14 @@ try {
       const colour = configure.getByRole("button", { name:copy["fc1.colours.blue"], exact:true });
       await colour.click();
       assert.equal(await colour.getAttribute("aria-pressed"), "true");
+      await page.locator('#overview canvas[data-visible="true"]').waitFor();
+      await page.waitForFunction(() => document.querySelector('#configure [aria-live="polite"]')?.textContent?.length > 5);
+      await page.waitForTimeout(700);
+      assert.ok(preferences.length > 0, "user-initiated colour selection records a preference");
+      assert.equal(preferences.at(-1).colourCode, "blue");
+      assert.equal(preferences.at(-1).modelCode, "pro");
+      assert.equal(preferences.at(-1).productCode, "FC1");
+      assert.ok(preferences.at(-1).sessionKey);
       const gallery = page.locator("#gallery");
       const names = ["side", "rear", "folded", "front", "shock", "chain", "controls"];
       for (const name of names) {
@@ -85,7 +98,7 @@ try {
   const page = await context.newPage();
   await page.goto(base + "/de/explore/fc1", { waitUntil:"networkidle" });
   assert.equal(await page.locator("[data-fc1-motion]").count(), 0);
-  assert.equal(await page.locator("#overview > img").evaluate((img) => getComputedStyle(img).transform), "none");
+  assert.equal(await page.locator('#overview [class*="interestBikeStage"]').evaluate((node) => getComputedStyle(node).animationName), "none");
   await page.screenshot({ path:output + "/de-narrow-reduced-motion.png", fullPage:true });
   const overflow = await page.evaluate(() => Array.from(document.querySelectorAll("body *")).filter((node) => { const r=node.getBoundingClientRect(); return r.right > innerWidth+1 && r.width > 0 && !node.closest("table"); }).map((node) => ({ tag:node.tagName, class:node.className, right:node.getBoundingClientRect().right })).slice(0,20));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, JSON.stringify(overflow));
