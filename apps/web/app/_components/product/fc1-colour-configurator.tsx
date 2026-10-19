@@ -86,7 +86,7 @@ function recolourPixels(base: ImageData, colour: Exclude<ColourId, "sample">): I
     silver: [164, 179, 185],
   }[colour];
   for (let i = 0; i < bytes.length; i += 4) {
-    if (bytes[i + 3] < 12) continue;
+    if (bytes[i + 3]! < 12) continue;
     const r = bytes[i]!, g = bytes[i + 1]!, b = bytes[i + 2]!;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     const range = max - min;
