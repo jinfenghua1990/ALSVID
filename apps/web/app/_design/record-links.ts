@@ -15,7 +15,7 @@ export function adminRecordHref(
 ): string {
   if (!recordId(id)) throw new Error('Valid business record ID required');
   const routes = {
-    vehicle: ['/admin/production', 'vehicleId'],
+    vehicle: ['/admin/production/vin-detail', 'vehicleId'],
     service: ['/admin/after-sales', 'caseId'],
     'service-intake': ['/admin/after-sales', 'vehicleId'],
     order: ['/admin/orders', 'orderId'],
