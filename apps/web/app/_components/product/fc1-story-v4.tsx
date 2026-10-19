@@ -98,7 +98,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           </div>
           <p className={styles.featureIntro}>{key("fc1.story.overview.subtitle")}</p>
           <div className={styles.featureGrid}>
-            <a className={`${styles.featureCard} ${styles.featureCardHero}`} href="#entry">
+            <a className={`${styles.featureCard} ${styles.featureCardHero}`} href="#entry" data-feature="hero">
               <div className={styles.featurePhoto}><img {...fc1Photos.side} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
                 <span className={styles.featureNumber}>01 / ALSVID FC1</span>
@@ -107,7 +107,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
-            <a className={`${styles.featureCard} ${styles.featureCardFold}`} href="#folding">
+            <a className={`${styles.featureCard} ${styles.featureCardFold}`} href="#folding" data-feature="fold">
               <div className={styles.featurePhoto}><img {...fc1Photos.folded} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
                 <span className={styles.featureNumber}>02 / ALSVID FC1</span>
@@ -116,7 +116,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
-            <a className={`${styles.featureCard} ${styles.featureCardFrame}`} href="#entry">
+            <a className={`${styles.featureCard} ${styles.featureCardFrame}`} href="#entry" data-feature="frame">
               <div className={styles.featurePhoto}><img {...fc1Photos["rear-three-quarter"]} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
                 <span className={styles.featureNumber}>03 / ALSVID FC1</span>
@@ -125,7 +125,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
-            <a className={`${styles.featureCard} ${styles.featureCardComfort}`} href="#details">
+            <a className={`${styles.featureCard} ${styles.featureCardComfort}`} href="#details" data-feature="comfort">
               <div className={styles.featurePhoto}><img {...fc1Photos["hidden-carbon-front-suspension"]} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
                 <span className={styles.featureNumber}>04 / ALSVID FC1</span>
@@ -134,7 +134,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
-            <a className={`${styles.featureCard} ${styles.featureCardDrive}`} href="#drive">
+            <a className={`${styles.featureCard} ${styles.featureCardDrive}`} href="#drive" data-feature="drive">
               <div className={styles.featurePhoto}><img {...fc1Photos["shimano-chain-drivetrain"]} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
                 <span className={styles.featureNumber}>05 / ALSVID FC1</span>
