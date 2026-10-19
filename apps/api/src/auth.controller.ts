@@ -102,6 +102,12 @@ export class AuthController {
     }
   }
 
+  @Get('supplier-memberships/:userId/:partnerId')
+  async supplierMembershipStatus(@Req() request:AuthenticatedRequest,
+   @Param('userId') userId:string,@Param('partnerId') partnerId:string){
+   return {data:await identityService.supplierMembershipStatus(requireAuth(request),userId,partnerId)};
+  }
+
   @Post('supplier-memberships')
   async manageSupplierMembership(@Req() request:AuthenticatedRequest,@Body() input:{
    userId:string;partnerId:string;status:'ACTIVE'|'DISABLED';evidenceRef:string;
