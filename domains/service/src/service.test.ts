@@ -11,11 +11,15 @@ const viewer:ServiceCaseActor={...internal,permissions:['service.read']};
 const outside:ServiceCaseActor={...internal,roles:['dealer_user']};
 const vehicleId='22222222-2222-4222-8222-222222222222';
 const caseId='33333333-3333-4333-8333-333333333333';
+const ownerUser='aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const ownerActor:ServiceCaseActor={userId:ownerUser,roles:['customer_user'],permissions:[]};
 
 function fixture() {
  let current:ServiceCase|null=null;
  const logs:ServiceCaseHistory[]=[];
  const activities:ServiceActivity[]=[];
+ const submissions=new Map<string,{vehicleId:string;caseId:string;category:'ISSUE'|'WARRANTY_REVIEW'|'REPAIR_REQUEST';title:string;description:string}>();
+ let ownerEnabled=true;
  const audits:string[]=[];
  const executor={} as QueryExecutor;
  const repo:ServiceCaseRepository={
@@ -26,10 +30,13 @@ function fixture() {
   activities:async()=>activities,
   ownerCases:async()=>[],
   vehicleExists:async id=>id===vehicleId,
+  ownerVehicleAccessible:async(user,id)=>ownerEnabled&&user===ownerUser&&id===vehicleId,
+  findOwnerSubmission:async(user,requestId)=>submissions.get(user+':'+requestId)??null,
+  recordOwnerSubmission:async(user,requestId,id,cid,payload)=>{submissions.set(user+':'+requestId,{vehicleId:id,caseId:cid,...payload});},
   create:async(input,actor)=>{
    current={id:caseId,caseNumber:'SR-00000001',vehicleId:input.vehicleId,frameNumber:'FC1-001',sku:'FC1',
     category:input.category,title:input.title,description:input.description??'',status:'NEW',version:1,createdAt:'2026-10-01T00:00:00Z',updatedAt:'2026-10-01T00:00:00Z'};
-   assert.equal(actor,internal.userId);
+   assert.ok(actor===internal.userId||actor===ownerUser);
    return current;
   },
   lockedCase:async()=>current,
@@ -54,7 +61,7 @@ function fixture() {
   },
  };
  const audit:ServiceCaseAuditPort={record:async row=>{audits.push(row.action);}};
- return {service:new ServiceCaseService(repo,audit),logs,audits,activities};
+ return {service:new ServiceCaseService(repo,audit),logs,audits,activities,submissions,disableOwner:()=>{ownerEnabled=false;}};
 }
 const input={vehicleId,category:'ISSUE' as const,title:'刹车存在持续异响',description:'等待技术检查'};
 test('internal agent creates service case with immutable first history and audit',async()=>{
@@ -145,4 +152,30 @@ test('preliminary warranty assessment requires separate permission and cannot ap
   ...sample,clientRequestId:'99999999-9999-4999-8999-999999999999',assessment:'APPROVED' as never,
  }),ServiceCaseValidationError);
  await assert.rejects(f.service.recordActivity(outside,caseId,sample),{code:'SERVICE_CASE_INTERNAL_ONLY'});
+});
+
+test('verified owner can submit case and retry same request without double-writing or audit',async()=>{
+ const f=fixture();
+ const input={vehicleId,clientRequestId:'88888888-8888-4888-8888-888888888888',category:'ISSUE' as const,
+  title:'车辆制动检查申请',description:'后制动发生间歇异响'};
+ const first=await f.service.ownerCreateCase(ownerActor,input);
+ assert.deepEqual(first,{id:caseId,caseNumber:'SR-00000001',vehicleId,status:'NEW'});
+ assert.equal(f.submissions.size,1);
+ assert.equal(f.audits.filter(a=>a==='service.owner_case_created').length,1);
+ const retry=await f.service.ownerCreateCase(ownerActor,input);
+ assert.deepEqual(retry,first);
+ assert.equal(f.audits.filter(a=>a==='service.owner_case_created').length,1);
+ await assert.rejects(f.service.ownerCreateCase(ownerActor,{...input,title:'另一份售后申请'}),ServiceCaseConflictError);
+});
+
+test('owner submissions reject unowned VIN, dealer role and revoked access',async()=>{
+ const f=fixture();
+ const input={vehicleId,clientRequestId:'88888888-8888-4888-8888-888888888888',category:'REPAIR_REQUEST' as const,
+  title:'车架部分需要检修'};
+ await assert.rejects(f.service.ownerCreateCase({...ownerActor,userId:'bbbbbbb1-bbbb-4bbb-8bbb-bbbbbbbbbbbb'},input),ServiceCaseNotFoundError);
+ await assert.rejects(f.service.ownerCreateCase({...ownerActor,roles:['dealer_user']},input),{code:'MY_SERVICE_FORBIDDEN'});
+ f.disableOwner();
+ await assert.rejects(f.service.ownerCreateCase(ownerActor,input),ServiceCaseNotFoundError);
+ assert.equal(f.submissions.size,0);
+ assert.equal(f.audits.length,0);
 });
