@@ -90,7 +90,7 @@ try {
       assert.equal(columns, device === "desktop" ? 3 : 1, "feature layout must use three desktop columns and one mobile column");
       assert.equal(await page.locator("section.stats").count(), 0, "large horizontal metrics strip must be removed");
       const sideSpecs = page.locator("#configure [class*='interestSpecs']");
-      assert.equal(await sideSpecs.locator("> div").count(), 4, "four reference figures belong in the right configurator");
+      assert.equal(await sideSpecs.locator(":scope > div").count(), 4, "four reference figures belong in the right configurator");
       assert.equal(await sideSpecs.getByText("85 × 69 × 48", {exact:false}).count(), 1);
       assert.equal(await page.locator("#details .narrativeMedia img").count(), 1);
       assert.equal(await page.locator("#details-rear .narrativeMedia img").count(), 1);
