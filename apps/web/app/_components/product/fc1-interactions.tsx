@@ -158,7 +158,7 @@ export function FoldStatePreview({ locale }: { locale: Locale }) {
         <h2>{t("fc1.section.fold.title")}</h2>
         <p>{t("fc1.section.fold.body")}</p>
         <div className={styles.foldStorySpecs}><small>{t("fc1.spec.folded.label")}</small><strong>85 × 69 × 48 <small>cm</small></strong></div>
-        <p className={styles.foldStoryNote}>{t("fc1.spec.folded.value")}</p>
+        <p className={styles.foldStoryNote}>{t("fc1.fold.tolerance")}</p>
         <p className={styles.foldStoryNote}>{t("fc1.fold.caption")}</p>
         <div className={styles.segmented} role="group" aria-label={t("fc1.section.fold.title")}>
           <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
