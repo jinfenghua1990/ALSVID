@@ -10,6 +10,15 @@ export function sessionCookieNameForHost(host: string, portal?: string): 'alsvid
   return portal === 'my' || normalizedHost.split('.')[0] === 'my' ? 'alsvid_my_session' : 'alsvid_session';
 }
 
+/** API /v1/my/* has a dedicated owner session even on localhost/run.app/preview hosts.
+ * Routing is a trusted, server-defined endpoint; never accept a browser-selected portal header.
+ */
+export function sessionCookieNameForApiRequest(host: string, apiPath: string): 'alsvid_session' | 'alsvid_my_session' {
+  const pathname = apiPath.split('?')[0] ?? '';
+  if (pathname === '/v1/my' || pathname.startsWith('/v1/my/')) return 'alsvid_my_session';
+  return sessionCookieNameForHost(host);
+}
+
 export function sessionCookieNameForPortal(portal: string): 'alsvid_session' | 'alsvid_my_session' {
   return portal === 'my' ? 'alsvid_my_session' : 'alsvid_session';
 }
