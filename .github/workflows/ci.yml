@@ -79,6 +79,8 @@ jobs:
         run: |
           bash -n infra/gcp/bootstrap-production.sh
           bash -n .devcontainer/setup.sh
+          bash -n scripts/setup-optional-dev-tools.sh
+          node --check scripts/official-browser-smoke.mjs
           python3 -m json.tool .devcontainer/devcontainer.json >/dev/null
       - uses: pnpm/action-setup@v6
         if: steps.scope.outputs.docs_only != 'true'
