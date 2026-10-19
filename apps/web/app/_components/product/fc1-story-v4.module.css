@@ -137,5 +137,5 @@
 
 
 /* Immersive configurator is shown immediately, without a blocking loader. */
-.hero:has(.interestConfigurator){padding:0;min-height:0;background:#101a23;text-align:left}
-.hero:has(.interestConfigurator)::before{display:none}
+.interestHero{padding:0;min-height:0;background:#101a23;text-align:left}
+.interestHero::before{display:none}
