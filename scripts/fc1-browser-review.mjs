@@ -74,15 +74,20 @@ try {
       await page.locator('[data-fc1-version="4"]').waitFor();
       await page.locator('[data-fc1-motion="ready"]').waitFor();
       const featureOverview = page.locator('[aria-labelledby="feature-overview-title"]');
-      assert.equal(await featureOverview.locator("a").count(), 4, locale + " must show four grouped feature cards");
-      assert.equal(await featureOverview.locator("h3").count(), 4, locale + " must show one heading per feature card");
-      const foldingCard = featureOverview.locator('a[href="#folding"]');
-      assert.equal(await foldingCard.locator("figure").count(), 2, locale + " folding hero must show unfolded and folded states");
-      assert.equal(await featureOverview.locator('a[href="#details"] img').count(), 2, locale + " comfort/brakes card must show both suspension details");
+      const featureCards = featureOverview.locator("a[data-feature]");
+      assert.equal(await featureCards.count(), 5, locale + " must show five premium feature cards");
+      assert.equal(await featureOverview.locator("h3").count(), 5, locale + " must show one heading per feature card");
+      assert.equal(await featureCards.evaluateAll((cards) => cards.every((card) => card.querySelectorAll("img").length === 1)), true, locale + " every feature card must use exactly one real product image");
+      assert.equal(await featureOverview.locator("figure").count(), 0, locale + " feature cards must not collage multiple images inside one frame");
+      const heroCard = featureOverview.locator('[data-feature="hero"]');
+      const foldingCard = featureOverview.locator('[data-feature="fold"]');
+      assert.equal(await heroCard.locator("img").count(), 1);
+      assert.equal(await foldingCard.locator("img").count(), 1, locale + " folding card must show only the authentic folded-bike image");
+      assert.equal(await featureOverview.locator('[data-feature="comfort"] img').count(), 1);
       if (device === "desktop") {
-        const foldGrid = await foldingCard.evaluate((node) => ({ rowEnd:getComputedStyle(node).gridRowEnd, column:getComputedStyle(node).gridColumnStart }));
-        assert.equal(foldGrid.rowEnd, "span 3", "folding card must be the tall visual feature");
-        assert.equal(foldGrid.column, "2", "folding card must occupy the right column");
+        const widths = await Promise.all([heroCard, foldingCard].map((card) => card.evaluate((node) => node.getBoundingClientRect().width)));
+        assert.ok(widths[0] > widths[1] * 1.4, "the unfolded riding card must have clear primary visual hierarchy");
+        assert.equal(await heroCard.evaluate((node) => getComputedStyle(node).gridArea), "hero");
       }
       await featureOverview.screenshot({ path:output + "/" + locale + "-" + device + "-feature-overview.png" });
       await page.screenshot({ path:output + "/" + locale + "-" + device + "-hero.png" });
@@ -183,7 +188,7 @@ try {
   const fallback = await plain.newPage();
   await fallback.goto(base + "/en/explore/fc1");
   assert.equal(await fallback.locator("h1").innerText(), "ALSVID FC1");
-  assert.equal(await fallback.locator('[aria-labelledby="feature-overview-title"] a').count(), 4);
+  assert.equal(await fallback.locator('[aria-labelledby="feature-overview-title"] a[data-feature]').count(), 5);
   assert.equal(await fallback.locator("[data-fc1-motion]").count(), 0);
   assert.equal(await fallback.locator("#specifications tbody tr").count(), 20);
   await fallback.screenshot({ path:output + "/en-no-javascript.png", fullPage:true });
