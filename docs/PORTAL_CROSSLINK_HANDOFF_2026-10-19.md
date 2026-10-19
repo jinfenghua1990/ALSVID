@@ -16,8 +16,9 @@
 2. **内部交付**：`POST /v1/vehicles/:id/owner-access/grant` 提交已完成核验的客户账号 UUID + 交付/订单/人工审核证据编号；需要 `system_admin` + `vehicle.owner.manage`，目标账号必须 ACTIVE、邮箱已核验且具有 `customer_user` 角色。存在活动车主时不能直接覆盖，必须先撤销旧关系。撤销接口 `POST /v1/vehicles/:id/owner-access/revoke`。
 3. **My 真实读取**：`GET /v1/my/garage`、`GET /v1/my/garage/:id` 的全部查询从当前用户会话读取 userId，SQL 查询该车辆最新 GRANTED 事件，禁止 ID 替换越权与撤销后继续访问。查询结果仅包含真实出生车辆及 SKU/Frame；不把 Owner 登录、同邮箱、VIN 文本或 Admin 角色当作所有权。
 4. **真实 UI 替换**：`apps/web/app/my/_data/garage-live.ts` 服务端使用独立 My Session 调用授权 API；`garage.ts` 保留纯 UI 类型、工具函数但删去全部演示 VIN、虚构购买、保修及维修数据。My 主页、车辆详情、服务、账户、手册、配件等页面读同一真实授权层。缺交付/保修/颜色/文件数据明确显示“待核验”；空/未授权车库为空，不产生模拟成功。
-5. **尚未完成**：Shopify Customer Account OAuth/PKCE 实际回调、subject 映射及账号激活，Shopify 付款/订单 → 已验证交付 → Customer 归属自动核验、车主自助 VIN 核验、My 申请售后写入、Service 与 Customer 双向受控读取、经销商交付协作、保修凭据起止/配件与附件权限、真实双账号 IDOR/浏览器上线验收。因此 #30/#48/#50/#57/#31/#212 **保持开放**。
-6. **重要边界**：上述管理员人工审核授权只说明内部证据已经核验，不等于 Shopify 用户身份已经通过 OAuth 验证。正式对消费者开放前必须完善 OAuth 和门户 Host/Cookie 信任。
+5. **售后状态回显**：`GET /v1/my/service/cases` 只返回当前已核验车主所拥有车辆的工单号、标题、状态及时间；按最新 Owner 事件限定范围，不返回内部诊断详情、员工备注、保修初评与审计。My 车辆维修/售后列表只显示这些真实状态，不产生模拟工单或写入。
+6. **尚未完成**：Shopify Customer Account OAuth/PKCE 实际回调、subject 映射及账号激活，Shopify 付款/订单 → 已验证交付 → Customer 归属自动核验、车主自助 VIN 核验、My 申请售后写入、Service 与 Customer 双向受控读取、经销商交付协作、保修凭据起止/配件与附件权限、真实双账号 IDOR/浏览器上线验收。因此 #30/#48/#50/#57/#31/#212 **保持开放**。
+7. **重要边界**：上述管理员人工审核授权只说明内部证据已经核验，不等于 Shopify 用户身份已经通过 OAuth 验证。正式对消费者开放前必须完善 OAuth 和门户 Host/Cookie 信任。
 
 ## 验证计划
 
