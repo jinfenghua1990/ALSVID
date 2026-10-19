@@ -29,29 +29,13 @@ ALSVID is not designed to replace every existing business system.
 
 # 2. What ALSVID Is Not
 
-## Not an E-commerce Platform
+## First-party B2C storefront, not a general-purpose OMS
 
-Shopify already provides mature B2C commerce capabilities:
+ALSVID owns the initial consumer storefront transaction flow: product/variant selection, cart, checkout orchestration, ALSVID storefront order creation, customer-visible order state and customer support entry points.
 
-- Product catalog
-- Shopping cart
-- Payment
-- Customer checkout
-- Order creation
+A separately contracted payment service provider (PSP) performs payment authentication, processing, refunds and settlement execution. ALSVID must not store full card numbers or card security codes.
 
-ALSVID does not rebuild these functions.
-
-## Not an OMS
-
-ALSVID does not become an Order Management System.
-
-Reason:
-
-- Shopify already manages commercial orders.
-- WMS already manages warehouse execution.
-- Building OMS logic inside ALSVID would create duplicate order processing, unnecessary complexity and large amounts of transactional data.
-
-ALSVID stores only the business facts required for vehicle lifecycle, customer service and after-sales.
+This limited storefront scope does not turn ALSVID into a general-purpose OMS. ALSVID does not become a marketplace aggregator, warehouse execution system, or replacement for WMS. It owns only B2C orders created through its own storefront; optional external-channel orders require a separately approved connector and explicit data boundary.
 
 ## Not a WMS
 
@@ -67,26 +51,13 @@ ALSVID consumes necessary fulfillment information but does not replace warehouse
 
 ---
 
-# 3. Shopify Responsibility
+# 3. Payment provider and optional external channels
 
-Shopify's buyer-commerce ownership is separate from ALSVID's upstream procurement. Supplier self-service is a confirmed phased ALSVID portal: suppliers may submit quotations/proposals and PO commitments, while Procurement owns formal POs and authorized internal processes own approval, receiving/QC and payment. A Supplier that also buys from ALSVID has a separate Shopify B2B buyer relationship. See [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md) and the [implementation/action matrix](PORTAL_DELIVERY_PLAN_2026-10-16.md).
+The first release does not depend on Shopify. ALSVID Commerce owns its own storefront orders; Finance owns payment/refund/settlement facts; Integrations verifies and records PSP events. The PSP is the external execution authority for card processing and funds movement. See [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md).
 
-Shopify remains responsible for:
+Shopify or another sales channel may be evaluated later only after a separate owner decision. Any future connector must define the external facts ALSVID consumes and must not create dual-write authority for ALSVID storefront orders.
 
-- Storefront product/catalog, pricing and selling configuration (ALSVID Product/Engineering owns internal SKU/build/BOM identity)
-- Orders
-- Payments
-- Refunds
-- Customer purchase transactions
-
-ALSVID receives required normalized business facts from Shopify, including:
-
-- Customer information
-- Order reference
-- Purchased product information
-- Transaction relationship needed for vehicle ownership
-
-ALSVID does not copy the entire Shopify database.
+Supplier self-service remains separate from buyer commerce: suppliers submit proposals and PO commitments through the ALSVID Supplier direction; Procurement owns formal PO issue, approvals, receiving/QC and supplier payment. Supplier identity does not grant consumer checkout or dealer permissions. See [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md).
 
 ---
 
@@ -148,4 +119,4 @@ ALSVID manages the lifecycle record, not warehouse execution.
 
 ALSVID connects existing business systems and creates vehicle lifecycle value.
 
-It should avoid becoming a replacement for Shopify, WMS or OMS platforms.
+It should avoid becoming a replacement for WMS, a full ERP, or a general-purpose OMS. The ALSVID consumer storefront is first-party and provider-neutral; Shopify is optional, not a launch dependency.
