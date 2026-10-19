@@ -66,23 +66,19 @@ Dealer order/allocation
 -> dealer receipt
 -> dealer inventory / handover availability
 
-## 6. Commerce, Shopify, WMS and customer-visible status
+## 6. ALSVID storefront, payment provider, WMS and customer-visible status
 
-Shopify remains the external commerce/order authority for storefront order operations. WMS remains the external warehouse execution authority for receiving, picking, packing, dispatch and warehouse-side fulfillment facts.
+ALSVID Commerce owns the order lifecycle for purchases created on the ALSVID consumer storefront. The customer-facing flow is product/variant selection → cart → checkout review → payment attempt → verified payment result → order confirmation/status. No real checkout or payment is enabled in the current preview phase.
 
-ALSVID does not copy the complete Shopify or WMS databases. It stores only the business facts needed for Vehicle 360, customer/dealer views, warranty, service, after-sales and operational reconciliation, such as external order references, customer/SKU links, purchase and delivery dates, fulfillment status, carrier/tracking references and Vehicle/VIN associations.
+A contracted PSP performs payment authentication and processing. Finance keeps payment attempts, refunds, allocations and settlement facts separate from the Commerce order state. A browser redirect or client-side success message is never sufficient proof of payment. Provider events must have a verified signature, valid order/amount/currency binding, event idempotency and replay protection before they change payment/order state. Duplicate submissions or uncertain provider results must not create a second charge; check the original transaction before offering another attempt.
 
-The default synchronization model is intentionally not real-time:
+WMS remains authoritative for physical stock and warehouse execution (receiving, picking, packing, dispatch and warehouse-side fulfillment). ALSVID storefront order records do not replace WMS inventory/fulfillment execution or create a general-purpose OMS.
 
-- ALSVID performs a scheduled synchronization/reconciliation at least once per day.
-- Customer and staff pages normally read the latest successfully cached ALSVID facts rather than querying Shopify/WMS on every page load.
-- My ALSVID / after-sales pages provide an explicit **Refresh latest status** action.
-- When the user requests a refresh, ALSVID queries the relevant Shopify and/or WMS connector, refreshes only the facts needed for that view, and updates the local cache.
-- The UI shows the **last successful update time** and an **estimated refresh time** so the customer understands data freshness.
-- Manual refresh is rate-limited with a short cooldown to avoid repeated external requests.
-- Real-time webhooks are an optional future optimization only when a real business need justifies the added complexity.
+Customer-facing purchase terms must clearly state the legal seller, selected model/variant, final total and applicable taxes/shipping, delivery estimate and uncertainty, payment obligation, cancellation/withdrawal rights, refund process, privacy information and support contact before the customer commits. German/Austrian legal copy and the checkout button must be reviewed before launch; disclaimers cannot remove mandatory consumer rights.
 
-Provider IDs remain external identifiers, never internal primary keys. API ingestion and refresh operations must be idempotent.
+Current phase: preview only. No PSP is selected or connected, no live card collection exists, and the site must not claim that an order has been placed or payment received. Live checkout remains blocked until the acceptance checklist in [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md) is passed.
+
+Optional external-channel integrations may be reconciled only after an explicit owner decision. Provider IDs remain external identifiers, never internal primary keys. All provider event ingestion must be idempotent.
 
 ## 7. Finance
 
