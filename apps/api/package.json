@@ -29,6 +29,7 @@
     "@alsvid/procurement": "workspace:*",
     "@alsvid/product": "workspace:*",
     "@alsvid/production": "workspace:*",
+    "@alsvid/service": "workspace:*",
     "@alsvid/vehicle": "workspace:*",
     "@alsvid/warehouse": "workspace:*",
     "@nestjs/common": "^12.0.0",

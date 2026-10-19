@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { requirePortalSession } from '../../_lib/portal-access';
 import { OwnerShell } from '../../_components/owner-shell';
 import { BikeVisual } from '../_components/bike-visual';
-import { getOwnerGarage, latestService, warrantyRemainingDays } from '../_data/garage';
+import { latestService, warrantyRemainingDays } from '../_data/garage';
+import { getOwnerGarage } from '../_data/garage-live';
 import styles from '../owner-portal.module.css';
 import garage from '../garage.module.css';
 
@@ -48,7 +49,7 @@ export default async function MyVehiclesPage() {
                         <div className={garage.kvRow}><span>购买日期</span><strong>{vehicle.purchaseDate}</strong></div>
                         <div className={garage.kvRow}>
                           <span>保修状态</span>
-                          <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '已过期'}</strong>
+                          <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '待核验'}</strong>
                         </div>
                         <div className={garage.kvRow}>
                           <span>服务状态</span>

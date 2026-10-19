@@ -1,10 +1,11 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
+import { OperationsFrame } from '../_components/operations-frame';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { navigationFor } from '../app-navigation';
+
 import styles from './commerce.module.css';
+import { adminRecordHref, queryRecordId } from '../_design/record-links';
 
 type Partner = { id: string; partnerCode: string; displayName: string; roles: string[] };
 type Sku = { id: string; sku: string; name: string };
@@ -37,7 +38,7 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
-export default function CommerceClient() {
+export default function CommerceClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [commerce, setCommerce] = useState<CommerceSummary>(emptyCommerce);
   const [integrations, setIntegrations] = useState<IntegrationSummary>(emptyIntegrations);
@@ -45,6 +46,7 @@ export default function CommerceClient() {
   const [skus, setSkus] = useState<Sku[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState('');
+  const [linkedOrderId, setLinkedOrderId] = useState<string|null>(null);
   const [message, setMessage] = useState('');
 
   async function api(path: string, init?: RequestInit) {
@@ -70,17 +72,17 @@ export default function CommerceClient() {
       setPartners(nextPartners);
       setSkus(product.skus ?? []);
       setShipments(logistics.shipments ?? []);
-      setSelectedOrderId((current) => current || nextCommerce.orders[0]?.id || '');
+      setSelectedOrderId((current) => current || queryRecordId('orderId') || nextCommerce.orders[0]?.id || '');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '无法加载电商渠道工作台');
     }
   }
 
-  useEffect(() => { void reload(); }, []);
+  useEffect(() => { setLinkedOrderId(queryRecordId('orderId')); void reload(); }, []);
 
   const dealerPartners = partners.filter((item) => item.roles.includes('DEALER'));
   const customerPartners = partners.filter((item) => item.roles.includes('CUSTOMER'));
-  const selectedOrder = commerce.orders.find((item) => item.id === selectedOrderId) ?? commerce.orders[0] ?? null;
+  const selectedOrder = commerce.orders.find((item) => item.id === selectedOrderId) ?? (linkedOrderId ? null : commerce.orders[0] ?? null);
   const orderLines = selectedOrder ? commerce.lines.filter((item) => item.order_id === selectedOrder.id) : [];
   const orderFulfillments = selectedOrder ? commerce.fulfillments.filter((item) => item.order_id === selectedOrder.id) : [];
   const openExceptions = commerce.exceptions.filter((item) => item.status === 'OPEN');
@@ -194,7 +196,7 @@ export default function CommerceClient() {
   }
 
   return (
-    <AppShell navigation={navigationFor('/commerce')} footer="Commerce / 外部渠道 / 对账">
+    <OperationsFrame embedded={embedded} area="commerce" footer="Commerce / 外部渠道 / 对账">
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>电商渠道 / Commerce</div>
@@ -283,16 +285,19 @@ export default function CommerceClient() {
         <div className={styles.orderList}>
           {commerce.orders.map((item) => {
             const channel = channelFor(item.channel_id);
-            return <button key={item.id} className={selectedOrder?.id === item.id ? styles.selected : ''} onClick={() => setSelectedOrderId(item.id)}>
+            return <a key={item.id} href={adminRecordHref('order',item.id)} className={selectedOrder?.id === item.id ? styles.selected : ''}>
               <span>{providerLabel(channel?.provider ?? 'OTHER')} · {item.channel_key} · {statusLabel(item.order_status)}</span>
               <b>{item.external_order_name ?? item.external_order_id}</b>
               <small>{item.total_amount} {item.currency} · {statusLabel(item.fulfillment_status)}</small>
-            </button>;
+            </a>;
           })}
           {!commerce.orders.length ? <p className={styles.empty}>还没有同步进来的规范化订单。</p> : null}
         </div>
         {selectedOrder ? <div className={styles.detail}>
-          <div className={styles.sectionHead}><span>外部订单事实</span><h2>{selectedOrder.external_order_name ?? selectedOrder.external_order_id}</h2><p>{selectedOrder.channel_name} · 来源更新时间 {selectedOrder.source_updated_at ? new Date(selectedOrder.source_updated_at).toLocaleString() : '—'}</p></div>
+          <div className={styles.sectionHead}><span>外部订单事实</span><h2>{selectedOrder.external_order_name ?? selectedOrder.external_order_id}</h2>
+             <p><a href={adminRecordHref('order',selectedOrder.id)}>打开此订单专属链接 →</a>
+               {selectedOrder.customer_partner_id ? <> · <a href={adminRecordHref('customer',selectedOrder.customer_partner_id)}>查看映射客户档案 →</a></> : null}
+             </p><p>{selectedOrder.channel_name} · 来源更新时间 {selectedOrder.source_updated_at ? new Date(selectedOrder.source_updated_at).toLocaleString() : '—'}</p></div>
           <div className={styles.factGrid}>
             <div><span>订单</span><b>{statusLabel(selectedOrder.order_status)}</b></div><div><span>财务状态</span><b>{statusLabel(selectedOrder.financial_status)}</b></div><div><span>履约状态</span><b>{statusLabel(selectedOrder.fulfillment_status)}</b></div><div><span>经销商</span><b>{selectedOrder.dealer_name ?? '未映射'}</b></div><div><span>客户</span><b>{selectedOrder.customer_name ?? '未映射'}</b></div><div><span>金额</span><b>{selectedOrder.total_amount} {selectedOrder.currency}</b></div>
           </div>
@@ -303,7 +308,7 @@ export default function CommerceClient() {
           </form>
           <div className={styles.lines}><span>订单明细</span>{orderLines.map((line) => <article key={line.id}><div><b>{line.title || line.external_line_id}</b><small>商品 {line.external_product_id ?? '—'} · 映射键 {line.external_variant_id ?? '—'} · {line.external_sku ?? '无外部 SKU'}</small></div><div><b>{line.quantity} × {line.unit_price} {line.currency}</b><small>{line.mapped_sku ? `${line.mapped_sku} · ${statusLabel(line.mapping_source)}` : '未映射'}</small></div></article>)}</div>
           <div className={styles.lines}><span>履约事实</span>{orderFulfillments.map((fulfillment) => <article key={fulfillment.id}><div><b>{fulfillment.external_fulfillment_id} · {statusLabel(fulfillment.fulfillment_status)}</b><small>{fulfillment.tracking_company ?? ''} {fulfillment.tracking_number ?? ''}</small></div><form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void action(`/v1/commerce/fulfillments/${fulfillment.id}/shipment`, { shipmentId: data.get('shipmentId') || null }); }}><select name="shipmentId" defaultValue={fulfillment.logistics_shipment_id ?? ''}><option value="">不关联 ALSVID Shipment</option>{shipments.map((shipment) => <option key={shipment.id} value={shipment.id}>{shipment.shipment_number} · {shipment.status}</option>)}</select><button>映射</button></form></article>)}</div>
-        </div> : <div className={styles.detail}><p className={styles.empty}>选择一个订单查看详情。</p></div>}
+        </div> : <div className={styles.detail}><p className={styles.empty}>{linkedOrderId ? '链接指定的订单不在当前已授权的订单数据中，请核对订单 ID 或刷新。' : '选择一个订单查看详情。'}</p></div>}
       </section>
 
       <section className={styles.bottomGrid}>
@@ -318,6 +323,6 @@ export default function CommerceClient() {
           {!integrations.receipts.length ? <p className={styles.empty}>还没有保留的集成证据。</p> : null}
         </div>
       </section>
-    </AppShell>
+    </OperationsFrame>
   );
 }

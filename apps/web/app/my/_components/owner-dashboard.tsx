@@ -118,7 +118,7 @@ export function OwnerDashboard({ displayName, userKey, updatedAt, vehicles }: { 
               </div>
               <div className={garage.specCell}>
                 <span>Warranty</span>
-                <strong>{warrantyRemainingDays(primary)} 天</strong>
+                <strong>{primary.warranty.end ? `${warrantyRemainingDays(primary)} 天` : '待核验'}</strong>
               </div>
             </div>
           </section>
@@ -201,7 +201,7 @@ export function OwnerDashboard({ displayName, userKey, updatedAt, vehicles }: { 
                       <div className={garage.kvRow}><span>VIN</span><strong>{vehicle.vin}</strong></div>
                       <div className={garage.kvRow}>
                         <span>保修</span>
-                        <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '已过期'}</strong>
+                        <strong>{vehicle.warranty.active ? `有效 · 剩 ${warrantyRemainingDays(vehicle)} 天` : '待核验'}</strong>
                       </div>
                     </div>
                   </div>
@@ -253,7 +253,7 @@ export function OwnerDashboard({ displayName, userKey, updatedAt, vehicles }: { 
         </section>
 
         <div className={garage.previewNotice}>
-          当前展示为 UI 预览数据，用于页面评审。车辆识别与所有权核验接口接入后，这里只会显示通过核验的真实车辆。
+          当前车库通过 ALSVID 授权接口读取。未核验的交付、保修、VIN 和颜色资料标记为待核验，不以示例数据代替真实记录。
         </div>
       </div>
   );

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { requirePortalSession } from '../../_lib/portal-access';
 import { OwnerShell } from '../../_components/owner-shell';
-import { getOwnerGarage } from '../_data/garage';
+import { getOwnerGarage } from '../_data/garage-live';
 import styles from '../owner-portal.module.css';
 import garage from '../garage.module.css';
 

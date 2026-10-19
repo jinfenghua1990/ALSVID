@@ -1,10 +1,11 @@
-export type PortalId = 'www' | 'admin' | 'dealer' | 'my';
+export type PortalId = 'www' | 'admin' | 'dealer' | 'supplier' | 'my';
 export type ProtectedPortalId = Exclude<PortalId, 'www'>;
 
 export const portalDefinitions: Record<PortalId, { label: string; homePath: string; hostnamePrefix: string }> = {
   www: { label: 'ALSVID 官网', homePath: '/', hostnamePrefix: 'www' },
   admin: { label: 'ALSVID Admin', homePath: '/admin', hostnamePrefix: 'admin' },
   dealer: { label: 'Dealer Portal', homePath: '/dealer', hostnamePrefix: 'dealer' },
+  supplier: { label: 'Supplier Portal', homePath: '/supplier', hostnamePrefix: 'supplier' },
   my: { label: 'My ALSVID', homePath: '/my', hostnamePrefix: 'my' },
 };
 
@@ -18,6 +19,7 @@ export function portalFromHost(host: string): PortalId {
   if (firstLabel === 'www') return 'www';
   if (firstLabel === 'admin') return 'admin';
   if (firstLabel === 'dealer') return 'dealer';
+  if (firstLabel === 'supplier') return 'supplier';
   if (firstLabel === 'my') return 'my';
   // The temporary Cloud Run hostname is still the internal Admin preview.
   return 'admin';

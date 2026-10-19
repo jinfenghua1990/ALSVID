@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
   const hostPortal = portalFromHost(requestHeaders.get('host') ?? '');
   const params = searchParams ? await searchParams : {};
   const requestedPortal = firstValue(params.portal);
-  const portal: ProtectedPortalId = requestedPortal === 'my' || requestedPortal === 'dealer' || requestedPortal === 'admin'
+  const portal: ProtectedPortalId = requestedPortal === 'my' || requestedPortal === 'dealer' || requestedPortal === 'supplier' || requestedPortal === 'admin'
     ? requestedPortal
     : hostPortal === 'www' ? 'admin' : hostPortal;
   if (hostPortal === 'www') redirect('/');
@@ -37,6 +37,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
       portal={portal}
       authenticated={portalAuthenticated}
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
+      passwordLoginEnabled={process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'}
       redirectTo={redirectTo}
       shopifyLoginUrl={process.env.ALSVID_SHOPIFY_CUSTOMER_LOGIN_URL?.trim() ?? ''}
     >

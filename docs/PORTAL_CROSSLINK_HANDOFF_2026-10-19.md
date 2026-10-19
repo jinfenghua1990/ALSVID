@@ -1,0 +1,60 @@
+# ALSVID 跨门户最小真实链路交接 — 2026-10-19
+
+> 本文是 Draft PR #211 代码证据，不是正式环境已发布或 Shopify 已授权声明。原 Admin Ardot、My Figma、Supplier/Dealer Figma 来源与交互资料全部保留。
+
+## 供应商 → Admin 采购
+
+1. **Identity 权威**：`identity.supplier_memberships` 把已验证账号绑定到指定上游 Partner；状态 ACTIVE/DISABLED；审核凭证、审核员工和时间保存在正式关系表中。启用同时赋予 `supplier_user` 角色，停用后所有该 Partner 的供应商数据即时失效。仅 `system_admin` + `identity.role.manage` 能通过 `POST /v1/auth/supplier-memberships` 创建或停用。
+2. **Supplier 门户**：`/supplier` 独立路由，需 Supplier 登录和供应商角色，`GET /v1/supplier/purchase-orders` / `GET /v1/supplier/purchase-orders/:id` 由服务端会话取 userId，用 `identity.supplier_memberships`、启用的 Supplier/Factory Partner、用户 ACTIVE 检查每条记录。不能靠前端 Partner ID 绕过范围；草稿单不公开。
+3. **确认采购单**：`POST /v1/supplier/purchase-orders/:id/acknowledge` 只接受已发布且版本未变的原采购单、全量等价确认的行 ID/数量及备注。不同组织 PO、错行、篡改数量、跳过版本均拒绝。历史 `procurement.supplier_confirmations` 与原 PO 状态变更仍是单一 Procurement 权威；`procurement.supplier_po_acknowledgements` 是不可变提交凭证。幂等键 `clientRequestId` 及校验载荷阻止重复确认，同事务写审计。审核/发货/部分交付、变更提案和真实仓库收货仍未开放。
+4. **运营界面**：`/admin/settings` 的“跨门户授权与交付核验”提供已注册用户 ↔ 启用供应商 Partner 的明确绑定/停用；不可只根据邮箱相等自动授权。
+5. **尚未完成**：外部邮箱供应商邀请/激活、权限独立邀请流程、报价提案、部分交付、交期变更、发货通知、发票/文件上传、组织附件授权、邮件通知、实际供应商 DNS/浏览器/生产业务验收。因此 Issue #185 **不能关闭**。目前已有身份系统对新用户使用公司邮箱/邀请策略，不能未经专门验证就声称任意外部供应商邮箱均可注册。
+
+## Admin → My ALSVID 我的车库
+
+1. **Vehicle 权威**：迁移 `0028_vehicle_owner_access_events.sql` 将员工核验的车辆 ↔ 客户账号关系记为不可修改的 GRANTED/REVOKED 事实，按递增事件序号判定当前访问权；授予/撤销用车辆行锁，同事务记 Audit。
+2. **内部交付**：`POST /v1/vehicles/:id/owner-access/grant` 提交已完成核验的客户账号 UUID + 交付/订单/人工审核证据编号；需要 `system_admin` + `vehicle.owner.manage`，目标账号必须 ACTIVE、邮箱已核验且具有 `customer_user` 角色。存在活动车主时不能直接覆盖，必须先撤销旧关系。撤销接口 `POST /v1/vehicles/:id/owner-access/revoke`。
+3. **My 真实读取**：`GET /v1/my/garage`、`GET /v1/my/garage/:id` 的全部查询从当前用户会话读取 userId，SQL 查询该车辆最新 GRANTED 事件，禁止 ID 替换越权与撤销后继续访问。查询结果仅包含真实出生车辆及 SKU/Frame；不把 Owner 登录、同邮箱、VIN 文本或 Admin 角色当作所有权。
+4. **真实 UI 替换**：`apps/web/app/my/_data/garage-live.ts` 服务端使用独立 My Session 调用授权 API；`garage.ts` 保留纯 UI 类型、工具函数但删去全部演示 VIN、虚构购买、保修及维修数据。My 主页、车辆详情、服务、账户、手册、配件等页面读同一真实授权层。缺交付/保修/颜色/文件数据明确显示“待核验”；空/未授权车库为空，不产生模拟成功。
+5. **售后状态回显**：`GET /v1/my/service/cases` 只返回当前已核验车主所拥有车辆的工单号、标题、状态及时间；按最新 Owner 事件限定范围，不返回内部诊断详情、员工备注、保修初评与审计。My 车辆维修/售后列表只显示这些真实状态，不产生模拟工单或写入。
+6. **尚未完成**：Shopify Customer Account OAuth/PKCE 实际回调、subject 映射及账号激活，Shopify 付款/订单 → 已验证交付 → Customer 归属自动核验、车主自助 VIN 核验、My 申请售后写入、Service 与 Customer 双向受控读取、经销商交付协作、保修凭据起止/配件与附件权限、真实双账号 IDOR/浏览器上线验收。因此 #30/#48/#50/#57/#31/#212 **保持开放**。
+7. **重要边界**：上述管理员人工审核授权只说明内部证据已经核验，不等于 Shopify 用户身份已经通过 OAuth 验证。正式对消费者开放前必须完善 OAuth 和门户 Host/Cookie 信任。
+
+## 验证计划
+
+- 持续运行 CI 的 `pnpm arch:check`、`pnpm typecheck`、`pnpm test`、`pnpm build`；容器构建、临时数据库迁移与 API 冒烟检查。
+- Supplier 至少两组织成员、停用成员、已发布/草稿 PO、越权单号、错行/错数量、重复提交验证；My 至少双客户、授权前后、撤销后、跨客户替换 VIN 路由检查。
+- 生产发布独立审批：当前 Draft PR **不得设 Ready，不得合并、不使用生产凭据运行迁移**；所有旧画面、文件和设计方案保留以备后续迭代。
+
+
+## 2026-10-19 Admin 跨门户授权安全收口（同一 Draft PR）
+
+- **唯一操作入口**：在 `/admin/settings` 的既有 `PortalBindingsAdmin` 上扩展真实状态查询；避免重复的车主授权表单散落在客户、设置多处，原客户目录只引导到设置操作。
+- **供应商当前成员关系**：增加 `GET /v1/auth/supplier-memberships/:userId/:partnerId`（`IdentityService.supplierMembershipStatus`）。仅 `system_admin` + `identity.role.manage` 可查询指定账号与指定上游 Partner 的当前 ACTIVE / DISABLED / UNASSIGNED 状态；只返回状态和更新时间，不因为没有关系而暗示已启用。更新后从数据库重新读取，禁用无意义的“重复启用/无授权却停用”操作。
+- **车辆当前车主关系**：增加 `GET /v1/vehicles/:id/owner-access`。仅 `system_admin` + `vehicle.owner.manage` 可读取当前 GRANTED / REVOKED / UNASSIGNED 和当前授权账号 UUID；已撤销不再返回前车主 UUID。结合已存在 GRANT/REVOKE 事务，Admin 先读实际状态再决定可否操作。
+- **二次确认**：供应商关系和车辆归属变更都增加人工核验确认复选框、必须提供可追溯的审核/交付证据编号；未能读取当前关系或没有权限时，前端禁用写入按钮。后端仍执行正式权限/状态校验，前端状态不构成最终授权。
+- **回归**：增加 Identity 查询权限测试、Vehicle 非管理员读取/撤销脱敏测试、Web 授权状态接线契约测试；测试与 CI 结果须以本 PR **最新 head** 为准。
+
+**尚未完成且不得声称完成**：Supplier 企业级自助邀请/续权、PO 交期变更/发货/附件；Shopify Customer Account OAuth/PKCE 实际 subject 绑定、Shopify 已付款/交付核验与自动车主激活、客户主动提起售后、真实供应商和车主账号浏览器全流程测试。审核凭证目前由管理员人工核对，并不是由 Provider 自动验证。此 PR 不合并、不发布正式、不触碰生产库。
+
+
+## 2026-10-19 My → Admin 售后真实提交（同一 Draft PR，待验收）
+
+- `POST /v1/my/service/cases`：仅限当前带有 `customer_user` 角色的 My ALSVID 账号。接收当前车库中的真实 Vehicle UUID、业务分类、标题、描述和 `clientRequestId`，调用 Service 独立的 `ownerCreateCase` 方法。
+- Service 在**同一数据库事务**中读取 Vehicle 的最新、仍为 GRANTED 的车主身份授权事件；锁定 Vehicle 行，和管理员所有权 GRANT/REVOKE 操作序列化。既不按邮箱猜测归属，也不从浏览器接受客户 userId。非车主 / 已撤销 / 无车辆时拒绝提交，不能探测其他人的售后数据。
+- `0029_owner_service_intake.sql`：用不可变 `service.owner_submission_requests` 记录客户 ID、请求幂等 UUID、关联 Vehicle / Service Case 和经过规范化的表单载荷；`(customer_user_id,client_request_id)` 唯一。重试相同请求 ID + 同内容返回同工单，换内容冲突，防重复。
+- 事务内复用已有 `service.cases`、`service.case_history`、`audit.events`，管理员在同一 `/admin/after-sales` 工单列表看到新申请；状态从 NEW 开始，**不会自动批准保修**、发货或扣库存。
+- `/my/service/new`：原禁用表单被真实客户端提交组件替代，只允许从已授权车库车辆中选择；支持错误提示、幂等重试和成功后查看 `/my/service`。照片/附件保持明确待开放，不展示虚构上传成功。订单/保修时限未核验时不写假记录。
+- 域权限测试覆盖未授权客户、经销商角色、撤销所有权、幂等重复请求、请求 ID 冲突；页面契约测试检验真实 API、数据库范围校验及审计路径。
+- 当前仍为未合并的 Draft PR，不代表 Shopify Customer Account OAuth/PKCE 已实际联通；实体验收必须先具备真实外部身份 subject 绑定和交付核验，不得直接开放正式外网提交。供应商交期变更/发票上传等尚待后续交付。
+
+
+## 上线前代码审查修复（2026-10-19）
+
+本节记录在 Draft PR #211 上修复的可复现边界；尚未合并或在真实客户账号、供应商账号及正式域名验证。
+
+1. **My /v1/my/* API 在临时与本地域名下使用独立车主 Cookie。** 原 `apps/web/app/api/_lib/backend.ts` 仅按 hostname 挑选 Cookie，在 localhost、www 或 run.app 测试时，`/my` 页面读到 `alsvid_my_session`，但浏览器通过 `/api/control/v1/my/service/cases` 写入却可能发送 `alsvid_session` 导致 401。新增 `sessionCookieNameForApiRequest(host, apiPath)`：对精确 `/v1/my` 及 `/v1/my/` 路径使用独立车主 Cookie，不读取用户传入的 portal Header；其它请求继续原规则。测试 localhost、run.app、www、my 子域及非 My 路由。
+2. **供应商不能通过采购单确认偷偷改交期。** `SupplierPortalService.normalizedAck` 检查确认日期不得偏离已经发布的 `requestedDate`；缺失日期解释为接受原交期，原 PO 未设交期时不允许在完整确认中新增日期。交期调整需要另一个有审核的变更提案工作流；修复前的校验只要求 YYYY-MM-DD 格式，存在绕过业务审批的可能。回归测试验证不同日期被拒绝、无日期为原采购单日期。
+3. **转让车辆不暴露前车主售后自由文本。** `ownerCases` 限制只返回当前最新 GRANTED 所有权期间创建的 Service Case；跨车主的售后问题标题可能包含前一位客户的私密信息，不能直接全部显示。Admin 内部仍保留完整车辆维修事实与审计；将来要展示随车维修历史，应另建去身份化、经授权的维修摘要，而不是泄露前车主原始标题。
+
+仍需：Shopify Customer Account OAuth/PKCE 与 subject 映射、供应商外部邮箱成员邀请/激活、两账号/两组织浏览器 IDOR 与主站域名/Cookie 验证、第三方订单/库存状态一致性、库存扣减正式授权、正式保修审核、上线审批及迁移回滚方案。开发 CI 通过不代表这些真实集成已完成。

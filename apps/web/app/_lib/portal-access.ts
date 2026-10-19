@@ -19,7 +19,8 @@ const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 export function canAccessPortal(portal: ProtectedPortalId, session: PortalSession): boolean {
   if (portal === 'admin') return session.roles.includes('system_admin');
   if (portal === 'dealer') return session.roles.includes('system_admin') || session.roles.includes('dealer_user') || session.roles.includes('dealer_manager');
-  return session.roles.includes('system_admin') || session.roles.includes('internal_user') || session.roles.includes('customer_user');
+  if (portal === 'supplier') return session.roles.includes('supplier_user');
+  return session.roles.includes('customer_user');
 }
 
 function loginRedirect(portal: ProtectedPortalId, returnTo: string, reason?: string): never {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
@@ -9,6 +9,12 @@ export class VehicleController {
   @Get()
   async list(@Req() request: AuthenticatedRequest) {
     try { return { data: await vehicleService.list(requireAuth(request)) }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Get(':id')
+  async get(@Req() request: AuthenticatedRequest, @Param('id') id: string) {
+    try { return { data: await vehicleService.get(requireAuth(request), id) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getVehicle } from '../../../_data/garage';
+import { getVehicle } from '../../../_data/garage-live';
 import styles from '../../../owner-portal.module.css';
 import garage from '../../../garage.module.css';
 

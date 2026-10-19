@@ -4,6 +4,9 @@ import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
+import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
+import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
+import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
 
 const AREAS: readonly { label: string; href: string }[] = [
@@ -380,6 +383,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
+  const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
+  const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
 
   return (
     <div className="av av-ambient" data-theme={theme}>
@@ -409,15 +414,16 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </span>
             ))}
           </div>
-          <button className="av-iconbtn" type="button" aria-label="搜索">
+          <button className="av-iconbtn" type="button" aria-label="搜索尚未接入" title="全局搜索尚未接入" disabled>
             ⌕
           </button>
-          <button className="av-iconbtn" type="button" aria-label="通知">
+          <button className="av-iconbtn" type="button" aria-label="通知尚未接入" title="通知中心尚未接入" disabled>
             ◔
           </button>
-          <button className="av-iconbtn" type="button" aria-label="主题">
+          <button className="av-iconbtn" type="button" aria-label="主题切换尚未接入" title="主题切换尚未接入" disabled>
             ◐
           </button>
+          <AdminLogout />
           <div className="av-user">
             <span className="av-avatar" aria-hidden="true">
               A
@@ -450,7 +456,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </div>
             ))}
             <div className="av-railgroup">
-              <div className="av-railtitle">页面与流程 · {moduleScreens.length}</div>
+              <div className="av-railtitle">设计页面与流程 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div>
           </aside>
@@ -459,17 +465,18 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         )}
 
         <main className="av-workspace">
-          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台结构预览 · 指标与业务动态仅显示已接入数据；当前未接入项以空状态或「—」显示。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
-              <h1 className="av-pagetitle">{screen.title}</h1>
-              <p className="av-pagesub">{screen.subtitle}</p>
+              <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
+              <p className="av-pagesub">{isVehicleDetail ? '真实车辆主键查询与售后导航；未确认的客户归属不在这里自动生成。' : screen.subtitle}</p>
             </div>
-            {actions.length > 0 ? (
+            {actions.length > 0 && !isIntegratedOverview && !isVehicleDetail ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
-                  const targets: Record<string, string> = { '新建型号':'/admin/product/new/platform','新建订单':'/admin/orders/new','新建生产计划':'/admin/production/new/model','新建调拨':'/admin/inventory/transfers/new' };
+                  // Only route business actions to real persisted workflows. Design-state pages remain accessible as previews.
+                  const targets: Record<string, string> = { '新建型号': '/product', '新建生产计划': '/production' };
                   const href = targets[action.replace(/^[+＋↓\s]+/g,'')];
                   return href ? <a key={action} className="av-btn" data-variant="primary" href={href}>{action}</a> : <button
                     className="av-btn"
@@ -477,7 +484,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                     key={action}
                     data-variant={index === actions.length - 1 ? 'primary' : undefined}
                     disabled
-                    title="此业务操作尚未接入服务"
+                    title="此操作尚无可保存的真实业务流程；请使用下方已接入业务工作台"
                   >
                     {action}
                   </button>;
@@ -486,8 +493,36 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             ) : null}
           </div>
 
-          {screen.steps && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
-          <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
+          {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
+          {screen.id === 'workbench' ? (
+            <>
+              <LiveWorkbench />
+              <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
+            </>
+          ) : isVehicleDetail ? (
+            <>
+              <VehicleRecordDetail />
+              <details className="av-card av-design-archive">
+                <summary>原 VIN 详情设计图（仅设计预览）</summary>
+                <Blocks blocks={screen.blocks} stacked />
+              </details>
+            </>
+          ) : isIntegratedOverview ? (
+            <>
+              <IntegratedOperations area={screen.area} />
+              <details className="av-card av-design-archive">
+                <summary>查看原 Ardot 页面示例（仅设计预览，不保存）</summary>
+                <Blocks blocks={screen.blocks} stacked />
+              </details>
+            </>
+          ) : (
+            <>
+              {screen.sourceNode && screen.route.split('/').length === 3
+                ? <LiveOperationEntry area={screen.area} />
+                : null}
+              <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
+            </>
+          )}
           {moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>

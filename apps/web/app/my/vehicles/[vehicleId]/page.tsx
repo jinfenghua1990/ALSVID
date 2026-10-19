@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getVehicle, latestService, warrantyProgress, warrantyRemainingDays } from '../../_data/garage';
+import { latestService, warrantyProgress, warrantyRemainingDays } from '../../_data/garage';
+import { getVehicle } from '../../_data/garage-live';
 import styles from '../../owner-portal.module.css';
 import garage from '../../garage.module.css';
 
@@ -34,8 +35,8 @@ export default async function VehicleOverviewPage({ params }: { params: Promise<
           <h2>保修</h2>
           <p>{vehicle.warranty.plan}</p>
           <div className={garage.warrantyHero}>
-            <strong className={garage.bigNum}>{warrantyRemainingDays(vehicle)}</strong>
-            <span className={garage.numLabel}>剩余天数 · 至 {vehicle.warranty.end}</span>
+            <strong className={garage.bigNum}>{vehicle.warranty.end ? warrantyRemainingDays(vehicle) : '—'}</strong>
+            <span className={garage.numLabel}>{vehicle.warranty.end ? `剩余天数 · 至 ${vehicle.warranty.end}` : '保修起止日期尚待核验'}</span>
           </div>
           <div className={garage.track}>
             <div className={garage.trackFill} style={{ width: `${warrantyProgress(vehicle)}%` }} />

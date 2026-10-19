@@ -1,9 +1,9 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
+import { OperationsFrame } from '../_components/operations-frame';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { navigationFor } from '../app-navigation';
+
 import styles from './product.module.css';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
@@ -33,7 +33,7 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
-export default function ProductClient() {
+export default function ProductClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
   const [engineering, setEngineering] = useState<Engineering>(emptyEngineering);
@@ -123,7 +123,7 @@ export default function ProductClient() {
   }
 
   return (
-    <AppShell navigation={navigationFor('/product')} footer="产品 / 工程 / 资产">
+    <OperationsFrame embedded={embedded} area="product" footer="产品 / 工程 / 资产">
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>ALSVID PRODUCT CENTER</div>
@@ -318,6 +318,6 @@ export default function ProductClient() {
           </form>
         </div>
       ) : null}
-    </AppShell>
+    </OperationsFrame>
   );
 }

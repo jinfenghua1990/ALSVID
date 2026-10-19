@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { requirePortalSession } from '../../../_lib/portal-access';
 import { OwnerShell } from '../../../_components/owner-shell';
 import { BikeVisual } from '../../_components/bike-visual';
-import { getVehicle } from '../../_data/garage';
+import { getVehicle } from '../../_data/garage-live';
 import { VehicleTabs } from './_components/vehicle-tabs';
 import styles from '../../owner-portal.module.css';
 import garage from '../../garage.module.css';

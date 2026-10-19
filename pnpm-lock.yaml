@@ -59,6 +59,9 @@ importers:
       '@alsvid/procurement':
         specifier: workspace:*
         version: link:../../domains/procurement
+      '@alsvid/service':
+        specifier: workspace:*
+        version: link:../../domains/service
       '@alsvid/product':
         specifier: workspace:*
         version: link:../../domains/product
@@ -395,6 +398,25 @@ importers:
         version: 6.0.3
 
   domains/production:
+    dependencies:
+      '@alsvid/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@alsvid/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.19.1
+      tsx:
+        specifier: ^4.20.0
+        version: 4.23.15
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+
+  domains/service:
     dependencies:
       '@alsvid/database':
         specifier: workspace:*
