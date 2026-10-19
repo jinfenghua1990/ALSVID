@@ -36,12 +36,12 @@ export function ProductGallery({ locale }: { locale: Locale }) {
           aria-label={t("fc1.open_photo")}
           onClick={() => dialog.current?.showModal()}
         >
-          <img {...fc1Photos[image[0]]} alt={t(image[2])} fetchPriority="high" />
+          <img {...fc1Photos[image[0]]} className={styles.galleryMotionImage} alt={t(image[2])} fetchPriority="high" />
           <span aria-hidden="true">↗</span>
         </button>
         <p className={styles.photoCaption}>{t("fc1.photo.note")}</p>
       </div>
-      <div className={styles.galleryThumbs} role="group" aria-label={t("fc1.gallery")}>
+      <div className={`${styles.galleryThumbs} ${styles.galleryMotionDetails}`} role="group" aria-label={t("fc1.gallery")}>
         {gallery.map(([id, label]) => (
           <button
             key={id}
@@ -159,7 +159,7 @@ export function FoldStatePreview({ locale }: { locale: Locale }) {
         <div className={styles.foldSpecOnSide}>
           <small>{t("fc1.spec.folded.label")}</small>
           <strong>85 × 69 × 48 <small>cm</small></strong>
-          <p>{t("fc1.spec.folded.value")}</p>
+          <p>{t("fc1.fold.dimension_note")}</p>
         </div>
         <div className={styles.segmented} role="group" aria-label={t("fc1.section.fold.title")}>
           <button type="button" aria-pressed={!folded} onClick={() => setFolded(false)}>{t("fc1.fold.open")}</button>
