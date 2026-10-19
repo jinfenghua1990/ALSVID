@@ -37,6 +37,32 @@ export class IdentityService {
     private readonly clock: Clock = systemClock,
   ) {}
 
+  async manageSupplierMembership(actor:AuthContext,input:{
+   userId:string;partnerId:string;status:'ACTIVE'|'DISABLED';evidenceRef:string;
+  }):Promise<{userId:string;partnerId:string;status:'ACTIVE'|'DISABLED'}>{
+   if(!actor.roles.includes('system_admin')||!actor.permissions.includes('identity.role.manage'))
+    throw new IdentityValidationError('Only authorized Admin can manage supplier membership');
+   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+   if(!input||typeof input.userId!=='string'||!uuid.test(input.userId)
+     ||typeof input.partnerId!=='string'||!uuid.test(input.partnerId)
+     ||!['ACTIVE','DISABLED'].includes(input.status))
+    throw new IdentityValidationError('Valid supplier member, Partner and status required');
+   const evidence=typeof input.evidenceRef==='string'?input.evidenceRef.trim():'';
+   if(evidence.length<8||evidence.length>200)
+    throw new IdentityValidationError('Membership evidence reference must contain 8-200 characters');
+   return this.repository.transaction(async e=>{
+    if(!await this.repository.eligibleSupplierAccount(input.userId,e))
+     throw new IdentityValidationError('Target user must be active and email verified');
+    if(!await this.repository.eligibleSupplierPartner(input.partnerId,e))
+     throw new IdentityValidationError('Partner must be active with SUPPLIER or FACTORY role');
+    if(input.status==='ACTIVE')await this.repository.ensureUserRole(input.userId,'supplier_user',e);
+    await this.repository.setSupplierMembership(input.userId,input.partnerId,input.status,evidence,actor.userId,e);
+    await this.audit.record({actorUserId:actor.userId,action:'identity.supplier_membership_'+input.status.toLowerCase(),
+      targetType:'supplier_membership',targetId:input.partnerId,metadata:{userId:input.userId,evidenceRef:evidence}},e);
+    return {userId:input.userId,partnerId:input.partnerId,status:input.status};
+   });
+  }
+
   async bootstrapAdmin(email: string, password: string, displayName = 'ALSVID Administrator'): Promise<string> {
     const normalizedEmail = normalizeEmail(email);
     assertPasswordPolicy(password);
