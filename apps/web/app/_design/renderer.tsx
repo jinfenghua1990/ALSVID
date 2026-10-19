@@ -6,6 +6,7 @@ import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
 import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
+import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
 
 const AREAS: readonly { label: string; href: string }[] = [
@@ -383,6 +384,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
   const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
+  const isVehicleDetail = screen.route === '/admin/production/vin-detail';
 
   return (
     <div className="av av-ambient" data-theme={theme}>
@@ -463,14 +465,14 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         )}
 
         <main className="av-workspace">
-          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : isIntegratedOverview ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{screen.title}</h1>
               <p className="av-pagesub">{screen.subtitle}</p>
             </div>
-            {actions.length > 0 && !isIntegratedOverview ? (
+            {actions.length > 0 && !isIntegratedOverview && !isVehicleDetail ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
                   // Only route business actions to real persisted workflows. Design-state pages remain accessible as previews.
@@ -496,6 +498,14 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             <>
               <LiveWorkbench />
               <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
+            </>
+          ) : isVehicleDetail ? (
+            <>
+              <VehicleRecordDetail />
+              <details className="av-card av-design-archive">
+                <summary>原 VIN 详情设计图（仅设计预览）</summary>
+                <Blocks blocks={screen.blocks} stacked />
+              </details>
             </>
           ) : isIntegratedOverview ? (
             <>
