@@ -18,6 +18,7 @@ import { SupplierPortalController } from './supplier-portal.controller.js';
 import { ProductController } from './product.controller.js';
 import { ProductionController } from './production.controller.js';
 import { VehicleController } from './vehicle.controller.js';
+import { OwnerGarageController, VehicleOwnerAccessController } from './owner-garage.controller.js';
 import { ServiceCasesController } from './service-cases.controller.js';
 import { WarehouseController } from './warehouse.controller.js';
 import { DomainExceptionFilter } from './platform/domain-exception.filter.js';
@@ -36,6 +37,8 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     SupplierPortalController,
     ProductionController,
     VehicleController,
+    OwnerGarageController,
+    VehicleOwnerAccessController,
     ServiceCasesController,
     InventoryController,
     WarehouseController,
