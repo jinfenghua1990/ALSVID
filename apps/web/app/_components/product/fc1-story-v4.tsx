@@ -76,12 +76,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         <section id="overview" className={`${styles.hero} ${styles.interestHero}`} data-fc1-chapter>
           <Fc1ColourConfigurator locale={locale} />
         </section>
-        <section className={styles.stats} aria-label={key("fc1.highlights")}>
-          <div><strong>40 <small>cm</small></strong><span>{key("fc1.metric.step")}</span></div>
-          <div><strong>85 × 69 × 48</strong><span>{key("fc1.metric.folded")}</span></div>
-          <div><strong>{new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(15.5)} <small>kg</small></strong><span>{key("fc1.metric.weight")}</span></div>
-          <div><strong>80 <small>km¹</small></strong><span>{key("fc1.metric.range")}</span></div>
-        </section>
 
         <nav className={styles.chapterNav} aria-label={key("fc1.highlights")}>
           <a href="#entry">{key("fc1.story.nav.frame")}</a>
