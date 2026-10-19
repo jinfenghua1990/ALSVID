@@ -232,6 +232,12 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         </div>
         <p className={styles.interestHint}>{copy.interest}</p>
       </fieldset>
+      <div className={styles.interestSpecs} aria-label={t("fc1.highlights")}>
+        <div><strong>40 <small>cm</small></strong><span>{t("fc1.metric.step")}</span></div>
+        <div><strong>85 × 69 × 48 <small>cm</small></strong><span>{t("fc1.metric.folded")}</span></div>
+        <div><strong>{new Intl.NumberFormat(locale, {minimumFractionDigits:1,maximumFractionDigits:1}).format(15.5)} <small>kg</small></strong><span>{t("fc1.metric.weight")}</span></div>
+        <div><strong>80 <small>km¹</small></strong><span>{t("fc1.metric.range")}</span></div>
+      </div>
       <div className={styles.interestSummary}>
         <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
         <p aria-live="polite" className={styles.interestFeedback}>
