@@ -5,6 +5,7 @@ import {
   EmailVerificationRateLimitError,
   IdentityMailUnavailableError,
   IdentityValidationError,
+  PermissionDeniedError,
   InternalRegistrationDeniedError,
   InvalidCredentialsError,
   InvalidEmailCodeError,
@@ -39,7 +40,7 @@ export class IdentityService {
 
   async supplierMembershipStatus(actor:AuthContext,userId:string,partnerId:string){
    if(!actor.roles.includes('system_admin')||!actor.permissions.includes('identity.role.manage'))
-    throw new IdentityValidationError('Only authorized Admin can inspect supplier membership');
+    throw new PermissionDeniedError('identity.role.manage');
    const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
    if(!uuid.test(userId)||!uuid.test(partnerId))throw new IdentityValidationError('Valid user and supplier Partner IDs required');
    const row=await this.repository.getSupplierMembership(userId,partnerId);
@@ -50,7 +51,7 @@ export class IdentityService {
    userId:string;partnerId:string;status:'ACTIVE'|'DISABLED';evidenceRef:string;
   }):Promise<{userId:string;partnerId:string;status:'ACTIVE'|'DISABLED'}>{
    if(!actor.roles.includes('system_admin')||!actor.permissions.includes('identity.role.manage'))
-    throw new IdentityValidationError('Only authorized Admin can manage supplier membership');
+    throw new PermissionDeniedError('identity.role.manage');
    const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
    if(!input||typeof input.userId!=='string'||!uuid.test(input.userId)
      ||typeof input.partnerId!=='string'||!uuid.test(input.partnerId)
