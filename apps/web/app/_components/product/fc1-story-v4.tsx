@@ -234,8 +234,10 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           </div>
         </section>
         <section data-fc1-chapter id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
-          <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
-          <div className={styles.galleryPin}><ProductGallery locale={locale} /></div>
+          <div className={styles.galleryPin}>
+            <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
+            <ProductGallery locale={locale} />
+          </div>
         </section>
         <section data-fc1-chapter id="specifications" className={`${styles.section} ${styles.specSection}`}>
           <div className={styles.sectionHeader}>
