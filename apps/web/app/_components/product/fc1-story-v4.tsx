@@ -73,7 +73,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         </div>
       </header>
       <div className={styles.main}>
-        <section id="overview" className={styles.hero} data-fc1-chapter>
+        <section id="overview" className={`${styles.hero} ${styles.interestHero}`} data-fc1-chapter>
           <Fc1ColourConfigurator locale={locale} />
         </section>
         <section className={styles.stats} aria-label={key("fc1.highlights")}>
