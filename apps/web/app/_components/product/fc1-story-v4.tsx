@@ -96,19 +96,19 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <p className={styles.eyebrow}>ALSVID FC1</p>
             <h2 id="feature-overview-title">{key("fc1.story.overview.title")}</h2>
           </div>
-          <div className={styles.featureGrid}>
+          <div className={styles.featureGrid} data-fc1-feature-grid>
             {([
               { id: "entry", photos: ["rear-three-quarter"], label: "frame", featured: false },
               { id: "folding", photos: ["side", "folded"], label: "fold", featured: true },
               { id: "details", photos: ["dnm-rear-air-shock", "hidden-carbon-front-suspension"], label: "comfortSafety", featured: false },
               { id: "drive", photos: ["shimano-chain-drivetrain", "side"], label: "driveBattery", featured: false },
             ] as const).map(({ id, photos, label, featured }, index) => (
-              <a className={`${styles.featureCard} ${featured ? styles.featureCardFeatured : ""}`} href={`#${id}`} key={id}>
-                <div className={`${styles.featurePhoto} ${photos.length > 1 ? styles.featurePhotoPair : ""}`}>
+              <a className={`${styles.featureCard} ${featured ? styles.featureCardFeatured : ""}`} href={`#${id}`} key={id} data-fc1-featured-card={featured ? "true" : undefined}>
+                <div className={`${styles.featurePhoto} ${photos.length > 1 ? styles.featurePhotoPair : ""}`} data-fc1-feature-pair={photos.length > 1 ? "true" : undefined}>
                   {photos.map((photo) => (
                     <div className={styles.featurePhotoCell} key={photo}>
                       <img {...fc1Photos[photo]} alt="" loading="lazy" />
-                      {id === "folding" ? <span className={styles.featurePhotoLabel}>{key(photo === "side" ? "fc1.story.state.open" : "fc1.story.state.folded")}</span> : null}
+                      {id === "folding" ? <span className={styles.featurePhotoLabel} data-fc1-feature-photo-label>{key(photo === "side" ? "fc1.story.state.open" : "fc1.story.state.folded")}</span> : null}
                     </div>
                   ))}
                 </div>
