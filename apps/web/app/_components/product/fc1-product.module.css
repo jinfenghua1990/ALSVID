@@ -265,7 +265,3 @@
 .galleryMotionDetails{opacity:var(--fc1-gallery-details-opacity,1);transform:translateY(var(--fc1-gallery-details-y,0px));transition:opacity .12s linear,transform .12s linear}
 @media(prefers-reduced-motion:reduce){.galleryMotionImage,.galleryMotionDetails{transform:none!important;opacity:1!important;transition:none!important}}
 
-
-/* Keep gallery thumbnail controls in the viewport while the scroll story is temporarily sticky. */
-.gallery{min-height:0;height:clamp(360px,54svh,600px);aspect-ratio:auto}
-@media(max-width:700px){.gallery{min-height:0;height:clamp(365px,96vw,520px);aspect-ratio:auto}}
