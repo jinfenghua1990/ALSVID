@@ -14,6 +14,7 @@ ON CONFLICT(id) DO NOTHING;
 INSERT INTO identity.role_permissions(role_id,permission_id) VALUES
  ('service_agent','service.read'),
  ('service_agent','service.write'),
+ ('service_agent','vehicle.read'),
  ('system_admin','service.read'),
  ('system_admin','service.write')
 ON CONFLICT DO NOTHING;
