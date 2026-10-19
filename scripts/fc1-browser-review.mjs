@@ -73,13 +73,13 @@ try {
       assert.equal(response.status(), 200);
       await page.locator('[data-fc1-version="4"]').waitFor();
       await page.locator('[data-fc1-motion="ready"]').waitFor();
-      const featureGrid = page.locator('[aria-labelledby="feature-overview-title"] .featureGrid');
-      assert.equal(await featureGrid.locator('a.featureCard').count(), 4, "overview should show four larger feature cards");
+      const featureGrid = page.locator('[aria-labelledby="feature-overview-title"] [data-fc1-feature-grid]');
+      assert.equal(await featureGrid.locator('a').count(), 4, "overview should show four larger feature cards");
       const featureColumns = await featureGrid.evaluate((node) => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
       assert.equal(featureColumns, device === "desktop" ? 2 : 1, locale + " " + device + " feature card columns");
-      assert.equal(await featureGrid.locator('.featureCardFeatured').count(), 1, "folding card should be visually featured");
-      assert.deepEqual(await featureGrid.locator('.featureCardFeatured .featurePhotoLabel').allTextContents(), [copy["fc1.story.state.open"], copy["fc1.story.state.folded"]]);
-      assert.equal(await featureGrid.locator('.featurePhotoPair').count(), 3, "combined detail cards should use paired real photos");
+      assert.equal(await featureGrid.locator('[data-fc1-featured-card="true"]').count(), 1, "folding card should be visually featured");
+      assert.deepEqual(await featureGrid.locator('[data-fc1-featured-card="true"] [data-fc1-feature-photo-label]').allTextContents(), [copy["fc1.story.state.open"], copy["fc1.story.state.folded"]]);
+      assert.equal(await featureGrid.locator('[data-fc1-feature-pair="true"]').count(), 3, "combined detail cards should use paired real photos");
       await page.screenshot({ path:output + "/" + locale + "-" + device + "-hero.png" });
       await featureGrid.scrollIntoViewIfNeeded();
       await page.screenshot({ path:output + "/" + locale + "-" + device + "-feature-cards.png" });
