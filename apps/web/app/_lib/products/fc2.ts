@@ -1,7 +1,7 @@
-// Public reference data supplied for the X5 model presentation.
+// Public reference data supplied for the FC2 model presentation.
 // Retail configuration, availability and compliance are not inferred from this record.
-export const x5Reference = {
-  model: "X5",
+export const fc2Reference = {
+  model: "FC2",
   sourceUrl: "https://naicisports.com/de/produkt/pilot-x5-faltbares-e-bike-aus-kohlefaser-leichtes-pendlerrad/",
   reviewedOn: "2026-10-20",
   wheelInches: 20,

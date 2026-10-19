@@ -34,7 +34,7 @@ try {
         await tabs.nth(1).click();
         assert.equal(await tabs.nth(1).getAttribute('aria-pressed'), 'true', 'Manual platform selection works');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'false', 'Previous scene is deselected');
-        assert.ok(await root.locator('[data-x5-launch] a[href="/' + locale + '/explore/x5"]').count() > 0, 'New model is discoverable from homepage');
+        assert.ok(await root.locator('[data-fc2-launch] a[href="/' + locale + '/explore/fc2"]').count() > 0, 'New model is discoverable from homepage');
         const title = hero.locator('h1');
         assert.ok((await title.innerText()).trim().length > 0, 'Hero retains readable headline');
         await page.screenshot({ path: output + '/official-' + locale + '-' + device + '.png' });
@@ -53,16 +53,16 @@ try {
         const page=await context.newPage();
         const errors=[];
         page.on('pageerror',error=>errors.push(error.message));
-        const response=await page.goto(base+'/'+locale+'/explore/x5',{waitUntil:'domcontentloaded'});
+        const response=await page.goto(base+'/'+locale+'/explore/fc2',{waitUntil:'domcontentloaded'});
         assert.equal(response?.status(),200);
-        const product=page.locator('main[data-x5-product]');
+        const product=page.locator('main[data-fc2-product]');
         await product.waitFor({state:'visible'});
-        assert.match(await product.locator('h1').innerText(),/X5/);
-        await page.waitForFunction(()=>{const image=document.querySelector('[data-x5-gallery] img');return image?.complete&&image.naturalWidth>0;});
-        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'X5 must fit '+device+' viewport');
-        assert.ok(await page.locator('link[rel="canonical"]').getAttribute('href')=== 'https://www.chaibenn.com/'+locale+'/explore/x5');
-        await page.screenshot({path:output+'/x5-'+locale+'-'+device+'.png',fullPage:true});
-        const gallery=product.locator('[data-x5-gallery]');
+        assert.match(await product.locator('h1').innerText(),/FC2/);
+        await page.waitForFunction(()=>{const image=document.querySelector('[data-fc2-gallery] img');return image?.complete&&image.naturalWidth>0;});
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'FC2 must fit '+device+' viewport');
+        assert.ok(await page.locator('link[rel="canonical"]').getAttribute('href')=== 'https://www.chaibenn.com/'+locale+'/explore/fc2');
+        await page.screenshot({path:output+'/fc2-'+locale+'-'+device+'.png',fullPage:true});
+        const gallery=product.locator('[data-fc2-gallery]');
         const controls=gallery.locator('button');
         await controls.nth(1).click();
         assert.equal(await controls.nth(1).getAttribute('aria-pressed'),'true');
@@ -77,12 +77,12 @@ try {
         const target=locale==='en'?'de':'en';
         await product.locator('header details summary').click();
         const languageLink=product.locator('header details a[hreflang="'+target+'"]');
-        assert.equal(await languageLink.getAttribute('href'),'/'+target+'/explore/x5');
+        assert.equal(await languageLink.getAttribute('href'),'/'+target+'/explore/fc2');
         await languageLink.click();
-        await page.waitForURL('**/'+target+'/explore/x5');
+        await page.waitForURL('**/'+target+'/explore/fc2');
         assert.ok((await context.cookies()).some(cookie=>cookie.name==='alsvid-locale'&&cookie.value===target));
         assert.deepEqual(errors,[]);
-        report.checks.push(locale+' '+device+': X5 route, optimized images, responsive width, gallery click and keyboard, FAQ, canonical and preserved language route');
+        report.checks.push(locale+' '+device+': FC2 route, optimized images, responsive width, gallery click and keyboard, FAQ, canonical and preserved language route');
       } finally { await context.close(); }
     }
   }
