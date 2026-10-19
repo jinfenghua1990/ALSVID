@@ -11,11 +11,12 @@ interface AuthResponse {
 }
 
 type LoginMethod = 'email' | 'password' | 'setup';
-type LoginPortal = 'admin' | 'dealer' | 'my';
+type LoginPortal = 'admin' | 'dealer' | 'supplier' | 'my';
 
 const portalCopy: Record<LoginPortal, { emailLabel: string; emailHelp: string; codeNotice: string; lead: string; passwordPlaceholder: string }> = {
   admin: { emailLabel: '公司邮箱', emailHelp: '使用已获准的公司邮箱完成身份验证。', codeNotice: '验证码已发送到你的公司邮箱，请在 10 分钟内完成验证。', lead: '使用公司邮箱完成身份验证。正常登录成功后，系统会保持会话；仅账号安全或高风险操作需要额外验证。', passwordPlaceholder: 'name@company.com' },
   dealer: { emailLabel: '经销商工作邮箱', emailHelp: '使用经销商邀请的业务邮箱完成身份验证。', codeNotice: '验证码已发送到你的经销商工作邮箱，请在 10 分钟内完成验证。', lead: '使用经销商工作邮箱登录。系统只会展示该经销商被授权的公司、订单、车辆和售后数据。', passwordPlaceholder: 'name@dealer.com' },
+  supplier: { emailLabel: '供应商登录邮箱', emailHelp: '仅已获准并绑定供应商组织的用户可查看本组织采购单。', codeNotice: '验证码已发送到已登记的邮箱。', lead: '供应商登录后只允许查看和确认属于自己组织的已发布采购单；库存收货仍由 ALSVID 负责。', passwordPlaceholder: 'name@supplier.com' },
   my: { emailLabel: 'Shopify 客户账户', emailHelp: '客户身份由 Shopify 客户账户验证，ALSVID 不直接创建客户邮箱账号。', codeNotice: '将跳转到 Shopify 完成客户身份验证。', lead: '使用 Shopify 客户账户登录 My ALSVID。验证成功后，ALSVID 只同步与你本人建立了真实关系的客户和车辆数据。', passwordPlaceholder: 'name@example.com' },
 };
 
