@@ -16,6 +16,10 @@ export class OwnerGarageController {
 
 @Controller('v1/vehicles')
 export class VehicleOwnerAccessController {
+ @Get(':id/owner-access')
+ status(@Req() request:AuthenticatedRequest,@Param('id') id:string){
+  return vehicleService.ownerAccess(requireAuth(request),id).then(data=>({data}));
+ }
  @Post(':id/owner-access/grant')
  grant(@Req() request:AuthenticatedRequest,@Param('id') id:string,
   @Body() input:{customerUserId:string;evidenceRef:string}) {
