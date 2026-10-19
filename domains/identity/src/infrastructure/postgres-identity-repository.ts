@@ -22,6 +22,11 @@ export class PostgresIdentityRepository implements IdentityRepository {
     WHERE p.id=$1 AND p.status='ACTIVE' AND r.enabled AND r.role IN ('SUPPLIER','FACTORY')`,[partnerId]);
    return Boolean(r.rowCount);
   }
+  async getSupplierMembership(userId:string,partnerId:string):Promise<{status:'ACTIVE'|'DISABLED';updatedAt:string}|null>{
+   const r=await this.database.query<{status:'ACTIVE'|'DISABLED';updated_at:Date}>(
+    'SELECT status,updated_at FROM identity.supplier_memberships WHERE user_id=$1 AND partner_id=$2',[userId,partnerId]);
+   const row=r.rows[0];return row?{status:row.status,updatedAt:row.updated_at.toISOString()}:null;
+  }
   async setSupplierMembership(userId:string,partnerId:string,status:'ACTIVE'|'DISABLED',evidenceRef:string,approvedBy:string,e:QueryExecutor):Promise<void>{
    await e.query('INSERT INTO identity.supplier_memberships(user_id,partner_id,status,evidence_ref,approved_by) VALUES($1,$2,$3,$4,$5) ON CONFLICT (user_id,partner_id) DO UPDATE SET status=EXCLUDED.status,evidence_ref=EXCLUDED.evidence_ref,approved_by=EXCLUDED.approved_by,updated_at=now()',
     [userId,partnerId,status,evidenceRef,approvedBy]);
