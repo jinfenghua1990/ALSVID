@@ -93,7 +93,20 @@ try {
       const fold = page.locator("#folding");
       await fold.getByRole("button", { name:copy["fc1.fold.closed"], exact:true }).click();
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("folded-transparent-v3.png"));
+      const dimensions = fold.locator('svg[class*="foldDimensionOverlay"]');
+      assert.equal(await dimensions.count(), 1, "folded state must show measurement guides over the product photo");
+      assert.deepEqual(await dimensions.locator("text").allTextContents(), ["85 cm", "69 cm", "48 cm"]);
+      const bounds = await fold.locator('[class*="foldImageFrame"]').evaluate((frame) => {
+        const photo = frame.querySelector("img").getBoundingClientRect();
+        const overlay = frame.querySelector("svg").getBoundingClientRect();
+        const container = frame.getBoundingClientRect();
+        return { frameW:container.width, frameH:container.height, imageW:photo.width, imageH:photo.height, imageTop:photo.top, imageBottom:photo.bottom, top:container.top, bottom:container.bottom, overlayW:overlay.width, overlayH:overlay.height };
+      });
+      assert.ok(bounds.imageTop >= bounds.top && bounds.imageBottom <= bounds.bottom + 1, "folded bicycle must fit inside dimension drawing area");
+      assert.ok(bounds.overlayW === bounds.frameW && bounds.overlayH === bounds.frameH, "measurement layer must follow the photograph on responsive screens");
+      await fold.screenshot({path:output + "/" + locale + "-" + device + "-folded-measurements.png"});
       await fold.getByRole("button", { name:copy["fc1.fold.open"], exact:true }).click();
+      assert.equal(await fold.locator('svg[class*="foldDimensionOverlay"]').count(), 0, "no folded dimensions when bike is expanded");
       await page.waitForFunction(() => document.querySelector('#folding img')?.getAttribute("src")?.includes("side-transparent-v3.png"));
       const configure = page.locator("#configure");
       const pro = configure.getByRole("button", { name:/FC1 Pro/ });
