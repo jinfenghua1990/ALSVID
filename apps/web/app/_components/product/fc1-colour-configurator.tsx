@@ -30,7 +30,7 @@ const COPY = {
     title: "选择你的 FC1",
     fineprint: "颜色为基于绿色实拍车的模拟效果，量产色号与可售状态以正式公布为准。",
     summary: "当前偏好",
-    delivery: "预计交付 4–6 周，具体时间待物流确认",
+    delivery: "计划正式开放并确认订单后，由中国发往德国预计交付 4–6 周；实际时间待物流确认。",
     noPayment: "不产生订单，不收取费用，也不代表预订成功。",
     saving: "正在记录颜色偏好…",
     saved: "已保存本次浏览的颜色偏好",
@@ -185,6 +185,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const t = translator(locale);
   const copy = COPY[locale];
   const [model, setModel] = useState<ModelId>("standard");
+  const [expandedModel, setExpandedModel] = useState<ModelId | null>(null);
   const [colour, setColour] = useState<ColourId>("sample");
   const [touched, setTouched] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
@@ -245,7 +246,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   }, [colour, model, locale, touched]);
 
   const chooseColour = (next: ColourId) => { setColour(next); setTouched(value=>value+1); };
-  const chooseModel = (next: ModelId) => { setModel(next); setTouched(value=>value+1); };
+  const chooseModel = (next: ModelId) => { setModel(next); setExpandedModel(previous => previous === next ? null : next); setTouched(value=>value+1); };
   return <div id="configure" className={styles.interestConfigurator}>
     <div className={styles.interestVisual}>
       <div className={styles.interestIntro}>
@@ -265,11 +266,27 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
       <fieldset className={styles.interestFieldset}>
         <legend>{t("fc1.selection.model")}</legend>
         <div className={styles.interestModels}>
-          {(["standard","pro"] as const).map(item=><button type="button" key={item} aria-pressed={model===item} onClick={()=>chooseModel(item)}>
+          {(["standard","pro"] as const).map(item=><button type="button" key={item} aria-pressed={model===item} aria-expanded={expandedModel===item} aria-controls="fc1-model-details" onClick={()=>chooseModel(item)}>
             <strong>FC1 {item==="standard"?"Standard":"Pro"}</strong>
             <small>{item==="standard"?copy.standard:copy.modelUnavailable}</small>
           </button>)}
         </div>
+        {expandedModel === "standard" ? (
+          <div id="fc1-model-details" className={styles.interestModelDetail} role="region" aria-label={t("fc1.highlights")}>
+            <div className={styles.interestSpecs} aria-label={t("fc1.highlights")}>
+                    <div><strong>40 <small>cm</small></strong><span>{t("fc1.metric.step")}</span></div>
+                    <div><strong>85 × 69 × 48 <small>cm</small></strong><span>{t("fc1.metric.folded")}</span></div>
+                    <div><strong>{new Intl.NumberFormat(locale,{minimumFractionDigits:1,maximumFractionDigits:1}).format(15.5)} <small>kg</small></strong><span>{t("fc1.metric.weight")}</span></div>
+                    <div><strong>80 <small>km¹</small></strong><span>{t("fc1.metric.range")}</span></div>
+                  </div>
+            <p className={styles.interestModelNote}>{t("fc1.selection.model_note")}</p>
+          </div>
+        ) : expandedModel === "pro" ? (
+          <div id="fc1-model-details" className={styles.interestModelDetail} role="region" aria-label={t("fc1.selection.pro_status")}>
+            <p className={styles.interestModelNote}>{t("fc1.selection.pro_status")}</p>
+            <p className={styles.interestModelNote}>{t("fc1.selection.model_note")}</p>
+          </div>
+        ) : null}
       </fieldset>
       <fieldset className={styles.interestFieldset}>
         <legend>{copy.choose}</legend>
@@ -282,21 +299,15 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         </div>
         <p className={styles.interestHint}>{copy.interest}</p>
       </fieldset>
-      <div className={styles.interestSpecs} aria-label={t("fc1.highlights")}>
-        <div><strong>40 <small>cm</small></strong><span>{t("fc1.metric.step")}</span></div>
-        <div><strong>85 × 69 × 48 <small>cm</small></strong><span>{t("fc1.metric.folded")}</span></div>
-        <div><strong>{new Intl.NumberFormat(locale,{minimumFractionDigits:1,maximumFractionDigits:1}).format(15.5)} <small>kg</small></strong><span>{t("fc1.metric.weight")}</span></div>
-        <div><strong>80 <small>km¹</small></strong><span>{t("fc1.metric.range")}</span></div>
-      </div>
       <div className={styles.interestSummary}>
         <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
         <p aria-live="polite" className={styles.interestFeedback}>
           {saveState==="idle"?copy.click:saveState==="saving"?copy.saving:saveState==="saved"?copy.saved:copy.retry}
         </p>
         <p>{copy.fineprint}</p>
+        <p className={styles.interestDelivery}>{copy.delivery}</p>
         <p>{copy.noPayment}</p>
       </div>
-      <a className={styles.interestMore} href="#entry">{copy.how}<span aria-hidden="true">↗</span></a>
     </aside>
   </div>;
 }
