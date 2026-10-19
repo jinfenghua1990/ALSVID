@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
-import { getVehicle, warrantyProgress, warrantyRemainingDays } from '../../../_data/garage';
+import { warrantyProgress, warrantyRemainingDays } from '../../../_data/garage';
+import { getVehicle } from '../../../_data/garage-live';
 import garage from '../../../garage.module.css';
 
 export default async function VehicleWarrantyPage({ params }: { params: Promise<{ vehicleId: string }> }) {
