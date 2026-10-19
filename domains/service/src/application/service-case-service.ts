@@ -25,6 +25,10 @@ function validId(value:unknown):string {
 export class ServiceCaseService {
  constructor(private readonly repo:ServiceCaseRepository,private readonly audit:ServiceCaseAuditPort){}
  async list(actor:ServiceCaseActor) { authorize(actor,ServiceCaseCapabilities.Read); return this.repo.list(); }
+ async ownerCases(actor:ServiceCaseActor) {
+  if(!actor.roles.includes('customer_user'))throw new ForbiddenError('MY_SERVICE_FORBIDDEN','Customer identity required');
+  return this.repo.ownerCases(actor.userId);
+ }
  async detail(actor:ServiceCaseActor,id:string) {
   authorize(actor,ServiceCaseCapabilities.Read);
   const caseId=validId(id);
