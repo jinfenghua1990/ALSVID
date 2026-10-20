@@ -197,6 +197,8 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
     return () => controller.abort();
   }, []);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
+  const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
+  const reservationEmailConfigured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationEmail);
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
   const submitReservation = async (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); setReservationState("sending"); try { const response = await fetch("/api/public/fc1-reservation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, model: modelLabel, colour: colourLabel, locale }) }); if (!response.ok) throw new Error("send failed"); setReservationState("sent"); } catch { setReservationState("failed"); } };
@@ -269,7 +271,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
       </fieldset>
       <div className={styles.interestSummary}>
         <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
-        <form className={styles.interestReservationActions} onSubmit={submitReservation}><label htmlFor="fc1-reservation-email">{t("fc1.reservation.cta")}</label><input id="fc1-reservation-email" type="email" required autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} placeholder="you@example.com" /><button className={styles.interestReservationButton} type="submit" disabled={reservationState === "sending"}>{reservationState === "sent" ? "✓" : reservationState === "sending" ? "…" : t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></button><p className={styles.interestReservationPending} role="status">{reservationState === "sent" ? t("fc1.reservation.sent") : reservationState === "failed" ? t("fc1.reservation.failed") : t("fc1.reservation.note")}</p></form>
+        <form className={styles.interestReservationActions} onSubmit={submitReservation}><label htmlFor="fc1-reservation-email">{t("fc1.reservation.cta")}</label><input id="fc1-reservation-email" type="email" required autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} placeholder="you@example.com" disabled={!reservationEmailConfigured} /><button className={styles.interestReservationButton} type={reservationEmailConfigured ? "submit" : "button"} disabled={!reservationEmailConfigured || reservationState === "sending"}>{reservationState === "sent" ? "✓" : reservationState === "sending" ? "…" : t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></button><p className={styles.interestReservationPending} role="status">{reservationState === "sent" ? t("fc1.reservation.sent") : reservationState === "failed" ? t("fc1.reservation.failed") : reservationEmailConfigured ? t("fc1.reservation.note") : t("fc1.reservation.pending")}</p></form>
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
         <p>{copy.noPayment}</p>
