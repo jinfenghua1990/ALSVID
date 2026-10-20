@@ -68,7 +68,7 @@ test("FC1 story and product layouts contain no cart or checkout CTA", async () =
 test("legacy cart and checkout URLs redirect back to FC1 reservation configuration", async () => {
   const cart = await readFile(path.join(directory, "../../../[locale]/cart/page.tsx"), "utf8");
   const checkout = await readFile(path.join(directory, "../../../[locale]/checkout/page.tsx"), "utf8");
-  assert.match(cart, /redirect\(\`\/\$\{locale\}\/explore\/fc1#configure\`\)/);
-  assert.match(checkout, /redirect\(\`\/\$\{locale\}\/explore\/fc1#configure\`\)/);
+  assert.ok(cart.includes("redirect(`/${locale}/explore/fc1#configure`)"));
+  assert.ok(checkout.includes("redirect(`/${locale}/explore/fc1#configure`)"));
   assert.doesNotMatch(cart + checkout, /Fc1PreviewCartPanel|paymentIntent|createOrder|onSubmit|<form/);
 });
