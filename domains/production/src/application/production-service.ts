@@ -9,6 +9,7 @@ export class ProductionService{
   if(!actor.permissions.includes('commerce.storefront.production'))throw new ForbiddenError('PRODUCTION_FORBIDDEN','Missing permission: commerce.storefront.production');
   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if(!uuid.test(orderId)||!uuid.test(factoryPartnerId))throw new ProductionValidationError('A valid storefront order ID and factory Partner ID are required');
+  orderId=orderId.toLowerCase();factoryPartnerId=factoryPartnerId.toLowerCase();
   return this.repository.transaction(async executor=>{
    const context=await this.repository.getStorefrontOrderProductionContext(orderId,factoryPartnerId,executor);
    const order=context.order;
