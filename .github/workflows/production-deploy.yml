@@ -210,7 +210,9 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.release.outputs.sha }}
-          build-args: ALSVID_ENV=production
+          build-args: |
+            ALSVID_ENV=production
+            NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
           cache-from: type=gha,scope=alsvid-production-web
           cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
 
