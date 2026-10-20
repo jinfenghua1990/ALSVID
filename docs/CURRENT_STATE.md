@@ -216,7 +216,7 @@ Neon PostgreSQL
 - Passwords and configuration — Google Cloud Secret Manager
 - Logs — Google Cloud Logging
 - Backup — GitHub + Neon/PostgreSQL backup + R2 + Q4
-- Mail — Resend transactional delivery is wired for verification and password reset; Development requires its own `alsvid-mail-api-key` secret and Production uses the verified `chaibenn.com` sender
+- Mail — Resend transactional delivery is wired for verification and password reset; Production still uses the verified `chaibenn.com` sender. The `alsvid.com` sender domain currently fails verification, so do not switch production email until its DNS records are corrected and Resend reports verified.
 - AI — provider-neutral; concrete production provider/model not selected yet
 
 Provider choices above are architecture decisions, not claims that live account resources already exist. Issue #34 remains open until the real Neon, R2 and Google Cloud resources are provisioned, the first production release succeeds, and backup/restore is demonstrated.
