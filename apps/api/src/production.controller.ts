@@ -19,6 +19,12 @@ export class ProductionController {
     catch (error) { return throwHttpDomainError(error); }
   }
 
+  @Post('orders/from-storefront/:id')
+  async createFromStorefront(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: { factoryPartnerId: string }) {
+    try { return { data: await productionService.createFromStorefrontOrder(requireAuth(request), id, input?.factoryPartnerId ?? '') }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
   @Post('orders/:id/release')
   async release(@Req() request: AuthenticatedRequest, @Param('id') id: string) {
     try { return { data: await productionService.releaseOrder(requireAuth(request), id) }; }
