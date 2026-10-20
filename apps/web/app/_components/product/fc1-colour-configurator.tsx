@@ -22,7 +22,7 @@ const COLOURS: {id: ColourId; key: string; hex: string; available: boolean}[] = 
 
 const COPY = {
   zh: {
-    modelUnavailable: "暂不可订",
+    modelUnavailable: "规划版本 · 待确认",
     sample: "样车展示",
     proposal: "颜色提案 · 待确认",
     choose: "选择你喜欢的颜色",
@@ -32,7 +32,6 @@ const COPY = {
     summary: "当前预览",
     delivery: "计划从中国发往德国，预计交付 4–6 周；具体时间待物流确认。当前仅收集邮件预约意向。",
     noPayment: "邮件仅用于表达预约意向，不代表订单成立，也不会产生付款。",
-    how: "了解 FC1 技术",
     preview: "颜色效果模拟 · 非量产实拍",
     standard: "参考配置",
     photoMode: "实拍",
@@ -41,7 +40,7 @@ const COPY = {
     threeDNote: "3D 为外观核对模型，部分结构尚未实物验收；以真实车辆图片为准。拖动旋转，双指缩放。",
   },
   en: {
-    modelUnavailable: "Not available to order",
+    modelUnavailable: "Planned · unconfirmed",
     sample: "Reference sample",
     proposal: "Colour proposal · unconfirmed",
     choose: "Choose your favourite colour",
@@ -51,7 +50,6 @@ const COPY = {
     summary: "Your preview",
     delivery: "Shipping from China to Germany is planned, with an estimated 4–6 week delivery window subject to logistics confirmation. At this stage, only email reservation enquiries are accepted.",
     noPayment: "The email expresses interest only; it does not create an order or trigger payment.",
-    how: "Explore FC1 technology",
     preview: "Simulated colour · not a production photo",
     standard: "Reference specification",
     photoMode: "Photo",
@@ -60,7 +58,7 @@ const COPY = {
     threeDNote: "This is an appearance review model, not verified production geometry. Refer to actual bike photography. Drag to rotate or pinch to zoom.",
   },
   de: {
-    modelUnavailable: "Derzeit nicht bestellbar",
+    modelUnavailable: "In Planung · noch offen",
     sample: "Referenzmuster",
     proposal: "Farbvorschlag · noch offen",
     choose: "Wähle deine Lieblingsfarbe",
@@ -70,7 +68,6 @@ const COPY = {
     summary: "Deine Vorschau",
     delivery: "Der Versand aus China nach Deutschland ist mit einer geschätzten Lieferzeit von 4–6 Wochen geplant; die Logistik muss dies noch bestätigen. Derzeit sind nur Reservierungsanfragen per E-Mail vorgesehen.",
     noPayment: "Die E-Mail bekundet nur Interesse; sie begründet keine Bestellung und löst keine Zahlung aus.",
-    how: "FC1 Technik entdecken",
     preview: "Farb-Simulation · kein Serienfoto",
     standard: "Referenzkonfiguration",
     photoMode: "Foto",
