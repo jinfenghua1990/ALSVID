@@ -24,18 +24,14 @@ const COPY = {
   zh: {
     modelUnavailable: "暂不可订",
     sample: "样车展示",
-    soldOut: "缺货",
+    proposal: "颜色提案 · 待确认",
     choose: "选择你喜欢的颜色",
-    interest: "即使缺货也可选择；选择仅用于了解颜色偏好。",
+    interest: "颜色仅用于外观参考，不代表现货或量产色号。",
     title: "选择你的 FC1",
     fineprint: "颜色为基于绿色实拍车的模拟效果，量产色号与可售状态以正式公布为准。",
-    summary: "当前偏好",
+    summary: "当前预览",
     delivery: "计划从中国发往德国，预计交付 4–6 周；具体时间待物流确认。当前仅收集邮件预约意向。",
     noPayment: "邮件仅用于表达预约意向，不代表订单成立，也不会产生付款。",
-    saving: "正在记录颜色偏好…",
-    saved: "已保存本次浏览的颜色偏好",
-    retry: "暂未保存偏好，可再次点击颜色重试",
-    click: "点击颜色即可登记偏好",
     how: "了解 FC1 技术",
     preview: "颜色效果模拟 · 非量产实拍",
     standard: "参考配置",
@@ -47,18 +43,14 @@ const COPY = {
   en: {
     modelUnavailable: "Not available to order",
     sample: "Reference sample",
-    soldOut: "Out of stock",
+    proposal: "Colour proposal · unconfirmed",
     choose: "Choose your favourite colour",
-    interest: "Even out-of-stock colours can be selected for demand research.",
+    interest: "Colours are appearance proposals, not confirmed stock or production finishes.",
     title: "Make your FC1 yours",
     fineprint: "Colours are simulations based on the genuine green sample. Final finishes and availability are not confirmed.",
-    summary: "Your preference",
+    summary: "Your preview",
     delivery: "Shipping from China to Germany is planned, with an estimated 4–6 week delivery window subject to logistics confirmation. At this stage, only email reservation enquiries are accepted.",
     noPayment: "The email expresses interest only; it does not create an order or trigger payment.",
-    saving: "Saving your colour preference…",
-    saved: "Colour preference saved for this browsing session",
-    retry: "Could not save. Select a colour again to retry.",
-    click: "Select a colour to register your preference",
     how: "Explore FC1 technology",
     preview: "Simulated colour · not a production photo",
     standard: "Reference specification",
@@ -70,18 +62,14 @@ const COPY = {
   de: {
     modelUnavailable: "Derzeit nicht bestellbar",
     sample: "Referenzmuster",
-    soldOut: "Nicht auf Lager",
+    proposal: "Farbvorschlag · noch offen",
     choose: "Wähle deine Lieblingsfarbe",
-    interest: "Auch nicht lieferbare Farben können zur Nachfrageanalyse ausgewählt werden.",
+    interest: "Farben sind Designvorschläge, keine bestätigten Serienfarben oder Lagerbestände.",
     title: "Gestalte dein FC1",
     fineprint: "Farbansichten sind Simulationen des echten grünen Musters. Serienfarben und Verfügbarkeit sind noch nicht bestätigt.",
-    summary: "Deine Präferenz",
+    summary: "Deine Vorschau",
     delivery: "Der Versand aus China nach Deutschland ist mit einer geschätzten Lieferzeit von 4–6 Wochen geplant; die Logistik muss dies noch bestätigen. Derzeit sind nur Reservierungsanfragen per E-Mail vorgesehen.",
     noPayment: "Die E-Mail bekundet nur Interesse; sie begründet keine Bestellung und löst keine Zahlung aus.",
-    saving: "Farbpräferenz wird gespeichert…",
-    saved: "Farbpräferenz für diese Browsersitzung gespeichert",
-    retry: "Speichern fehlgeschlagen. Bitte Farbe erneut wählen.",
-    click: "Farbe auswählen, um dein Interesse zu registrieren",
     how: "FC1 Technik entdecken",
     preview: "Farb-Simulation · kein Serienfoto",
     standard: "Referenzkonfiguration",
@@ -187,8 +175,6 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const [model, setModel] = useState<ModelId>("standard");
   const [expandedModel, setExpandedModel] = useState<ModelId | null>(null);
   const [colour, setColour] = useState<ColourId>("sample");
-  const [touched, setTouched] = useState(0);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [modelAvailable, setModelAvailable] = useState(false);
   const [visualMode, setVisualMode] = useState<"photo" | "3d">("photo");
 
@@ -211,11 +197,9 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
       .catch(() => { /* Static photography remains available. */ });
     return () => controller.abort();
   }, []);
-  const queueRef = useRef<Promise<void>>(Promise.resolve());
-  const preferenceSession = useRef<string | null>(null);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
   const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
-  const reservationEmailConfigured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationEmail);
+  const reservationEmailConfigured = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(reservationEmail);
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
   const emailSubject = t("fc1.reservation.email_subject");
@@ -224,38 +208,12 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
     ? `mailto:${reservationEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
     : null;
 
-  useEffect(() => {
-    if (touched < 1) return;
-    setSaveState("saving");
-    const wait = window.setTimeout(() => {
-      // A short-lived, session-scoped random key avoids counting every click as a new customer.
-      try {
-        if (!preferenceSession.current) {
-          let key = sessionStorage.getItem("alsvid_fc1_colour_session");
-          if (!key) {
-            key = crypto.randomUUID();
-            sessionStorage.setItem("alsvid_fc1_colour_session", key);
-          }
-          preferenceSession.current = key;
-        }
-        const sessionKey = preferenceSession.current;
-        queueRef.current = queueRef.current.catch(() => {}).then(async () => {
-          const response = await fetch("/api/public/fc1-colour-interest", {
-            method: "POST",
-            headers: {"content-type": "application/json"},
-            body: JSON.stringify({productCode: "FC1", sessionKey, modelCode: model, colourCode: colour, locale}),
-            keepalive: true,
-          });
-          if (!response.ok) throw new Error("Unable to save preference");
-        });
-        queueRef.current.then(() => setSaveState("saved")).catch(() => setSaveState("failed"));
-      } catch { setSaveState("failed"); }
-    }, 450);
-    return () => window.clearTimeout(wait);
-  }, [colour, model, locale, touched]);
-
-  const chooseColour = (next: ColourId) => { setColour(next); setTouched(value=>value+1); };
-  const chooseModel = (next: ModelId) => { setModel(next); setExpandedModel(previous => previous === next ? null : next); setTouched(value=>value+1); };
+  // Preview choices are local UI state. Only sending an email expresses reservation interest.
+  const chooseColour = (next: ColourId) => setColour(next);
+  const chooseModel = (next: ModelId) => {
+    setModel(next);
+    setExpandedModel(previous => previous === next ? null : next);
+  };
   return <div id="configure" className={styles.interestConfigurator}>
     <div className={styles.interestVisual}>
       <div className={styles.interestIntro}>
@@ -311,16 +269,13 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
           {COLOURS.map(item=><button type="button" key={item.id} aria-label={t(item.key as "fc1.colours.sample")} aria-pressed={colour===item.id} onClick={()=>chooseColour(item.id)}>
             <span className={styles.interestSwatch} style={{background:item.hex}} aria-hidden="true"/>
             <span className={styles.interestSwatchName}>{t(item.key as "fc1.colours.sample")}</span>
-            <small>{item.available?copy.sample:copy.soldOut}</small>
+            <small>{item.available?copy.sample:copy.proposal}</small>
           </button>)}
         </div>
         <p className={styles.interestHint}>{copy.interest}</p>
       </fieldset>
       <div className={styles.interestSummary}>
         <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
-        <p aria-live="polite" className={styles.interestFeedback}>
-          {saveState==="idle"?copy.click:saveState==="saving"?copy.saving:saveState==="saved"?copy.saved:copy.retry}
-        </p>
         <div className={styles.interestReservationActions}>
           {reservationHref ? (
             <a className={styles.interestReservationButton} href={reservationHref}>{t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></a>
