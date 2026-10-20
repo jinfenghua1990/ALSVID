@@ -86,7 +86,7 @@ CREATE TABLE commerce.storefront_orders (
  currency char(3) NOT NULL DEFAULT 'EUR' CHECK(currency='EUR'),
  status text NOT NULL DEFAULT 'DRAFT' CHECK(status IN ('DRAFT','AWAITING_PAYMENT','PAYMENT_PENDING','PAYMENT_VERIFIED','FULFILLMENT_PENDING','IN_PRODUCTION','FULFILLED','CLOSED','CANCELLED')),
  payment_status text NOT NULL DEFAULT 'NOT_CONFIGURED' CHECK(payment_status IN ('NOT_CONFIGURED','PENDING','VERIFIED','FAILED','UNKNOWN')),
- tax_configuration_status text NOT NULL DEFAULT 'ADMIN_CONFIGURED_UNVERIFIED' CHECK(tax_configuration_status='ADMIN_CONFIGURED_UNVERIFIED'),
+ tax_configuration_status text NOT NULL DEFAULT 'ADMIN_CONFIGURED_UNVERIFIED' CHECK(tax_configuration_status IN ('ADMIN_CONFIGURED_UNVERIFIED','VERIFIED')),
  total_net_amount numeric(18,2) NOT NULL CHECK(total_net_amount>=0),
  total_tax_amount numeric(18,2) NOT NULL CHECK(total_tax_amount>=0),
  total_gross_amount numeric(18,2) NOT NULL CHECK(total_gross_amount>0),
@@ -181,8 +181,8 @@ LANGUAGE plpgsql AS $$
 DECLARE has_verified_evidence boolean;
 BEGIN
  IF TG_OP='INSERT' THEN
-  IF NEW.status<>'DRAFT' OR NEW.payment_status<>'NOT_CONFIGURED' THEN
-   RAISE EXCEPTION 'First-party storefront orders must start as unpaid drafts';
+  IF NEW.status<>'DRAFT' OR NEW.payment_status<>'NOT_CONFIGURED' OR NEW.tax_configuration_status<>'ADMIN_CONFIGURED_UNVERIFIED' THEN
+   RAISE EXCEPTION 'First-party storefront orders must start as unpaid drafts with unverified tax configuration';
   END IF;
   RETURN NEW;
  END IF;
@@ -207,7 +207,7 @@ BEGIN
    WHERE v.order_id=NEW.id AND v.amount=NEW.total_gross_amount AND v.currency=NEW.currency
     AND v.provider_status='SUCCEEDED' AND v.signature_verified_at IS NOT NULL AND v.order_binding_verified_at IS NOT NULL)
    INTO has_verified_evidence;
-  IF NOT has_verified_evidence THEN RAISE EXCEPTION 'Payment verification evidence is required before marking order paid'; END IF;
+  IF NOT has_verified_evidence OR NEW.tax_configuration_status<>'VERIFIED' THEN RAISE EXCEPTION 'Verified PSP evidence and approved tax configuration are required before marking order paid'; END IF;
  ELSIF OLD.status='PAYMENT_VERIFIED' AND NEW.status='FULFILLMENT_PENDING' AND NEW.payment_status='VERIFIED' THEN
   SELECT EXISTS(SELECT 1 FROM commerce.storefront_payment_verifications v
    WHERE v.order_id=NEW.id AND v.amount=NEW.total_gross_amount AND v.currency=NEW.currency)
@@ -244,8 +244,8 @@ BEGIN
  IF TG_OP<>'INSERT' THEN RAISE EXCEPTION 'Payment verification evidence is append-only'; END IF;
  SELECT * INTO order_row FROM commerce.storefront_orders WHERE id=NEW.order_id FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Storefront order does not exist'; END IF;
- IF order_row.status<>'PAYMENT_PENDING' OR order_row.payment_status NOT IN ('PENDING','UNKNOWN') THEN
-  RAISE EXCEPTION 'Only a pending payment attempt may be verified';
+ IF order_row.status<>'PAYMENT_PENDING' OR order_row.payment_status NOT IN ('PENDING','UNKNOWN') OR order_row.tax_configuration_status<>'VERIFIED' THEN
+  RAISE EXCEPTION 'Only a pending payment attempt with approved tax configuration may be verified';
  END IF;
  IF NEW.amount<>order_row.total_gross_amount OR NEW.currency<>order_row.currency THEN
   RAISE EXCEPTION 'Verified PSP amount and currency must match the immutable order total';
@@ -300,7 +300,7 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'Storefront order line not found'; END IF;
  SELECT o.* INTO order_row FROM commerce.storefront_orders o WHERE o.id=line_row.order_id FOR UPDATE;
  IF order_row.status NOT IN ('PAYMENT_VERIFIED','FULFILLMENT_PENDING','IN_PRODUCTION')
-    OR order_row.payment_status<>'VERIFIED' THEN
+    OR order_row.payment_status<>'VERIFIED' OR order_row.tax_configuration_status<>'VERIFIED' THEN
   RAISE EXCEPTION 'Production demand requires a payment-verified first-party order';
  END IF;
  IF NOT EXISTS(SELECT 1 FROM commerce.storefront_payment_verifications v
@@ -371,8 +371,8 @@ DECLARE
  line_tax numeric(18,2);
  line_gross numeric(18,2);
 BEGIN
- IF TG_TABLE_NAME='storefront_orders' THEN target_order_id:=NEW.id;
- ELSE target_order_id:=NEW.order_id;
+ IF TG_TABLE_NAME='storefront_orders' THEN target_order_id:=(to_jsonb(NEW)->>'id')::uuid;
+ ELSE target_order_id:=(to_jsonb(NEW)->>'order_id')::uuid;
  END IF;
  SELECT * INTO order_row FROM commerce.storefront_orders WHERE id=target_order_id;
  IF NOT FOUND THEN RAISE EXCEPTION 'Storefront order was removed unexpectedly'; END IF;
