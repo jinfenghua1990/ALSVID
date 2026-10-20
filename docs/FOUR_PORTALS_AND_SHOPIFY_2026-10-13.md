@@ -2,11 +2,13 @@
 
 > **状态：业务规划已确认；不代表功能已开发或域名已部署。** 本文件是后续 AI / 开发人员的跨会话交接基准。不得把 Shopify Shop 误拆成独立公开站点。代码现状以 CURRENT_STATE.md 和实际代码为准。
 
+> **域名规范更新（2026-10-20）：** 新生成的门户链接统一使用 `*.alsvidbike.com`；DNS、TLS、生产环境变量和实际服务绑定须单独验收，不能将目标地址当成已上线证据。旧 `chaibenn.com` 仅作为迁移/历史域名。
+
 > 2026-10-16 执行修订：设计/供应商目标以[设计边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)和 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)为准；代码证据与后续任务统一维护在[实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md)。保留四核心产品，Supplier 自助是已确认的后续目标；共享云端 Development 已退役。
 
 ## 0. 不能重新讨论的已确认边界
 - **四个独立开发工作流/门户**：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
-- **www.chaibenn.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.chaibenn.com 作为独立公开商城入口**。
+- **www.alsvidbike.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.alsvidbike.com 作为独立公开商城入口**。
 - Admin 是员工内部运营系统；Dealer 是经销商 B2B 门户；My 是车主会员/车辆生命周期门户。官网的会员、经销商入口可以导航至对应门户，但不复制其后台业务逻辑。
 - **2026-10-16 更新：** Supplier Portal 作为未来第五个外部业务门户正式预留。它不改变当前“四个核心项目”的定义；其目标是让 ALSVID 上游供应商自助确认 PO、交期、生产进度、发货和文件，而不是把供应商协同硬塞进 Shopify。
 - Portal Launcher 仅用于内部身份/角色切换，不作为公开官网首页，也不在用户访问首页时增加无意义中间跳转。
@@ -16,11 +18,11 @@
 ## 1. 门户及域名矩阵
 | 工作流 | Production 地址规范 | 核心受众 |
 | --- | --- | --- |
-| ALSVID Official / ALSVID 官网 | www.chaibenn.com | 全球访客、潜在消费者、购车客户 |
-| ALSVID Admin / 内部运营中心 | admin.chaibenn.com | 员工、管理层 |
-| ALSVID Dealer Portal | dealer.chaibenn.com | 授权经销商 |
-| My ALSVID | my.chaibenn.com | 车主、会员 |
-| Supplier Portal（后续目标） | supplier.chaibenn.com | 上游供应商成员 |
+| ALSVID Official / ALSVID 官网 | www.alsvidbike.com | 全球访客、潜在消费者、购车客户 |
+| ALSVID Admin / 内部运营中心 | admin.alsvidbike.com | 员工、管理层 |
+| ALSVID Dealer Portal | dealer.alsvidbike.com | 授权经销商 |
+| My ALSVID | my.alsvidbike.com | 车主、会员 |
+| Supplier Portal（后续目标） | supplier.alsvidbike.com | 上游供应商成员 |
 
 开发在本地、CI 使用临时资源；旧 `*.dev.chaibenn.com` 是历史命名，不是当前运行环境。测试身份、数据与凭据隔离，不能把测试数据迁到 Production；按 exact-commit CI/PR 发布规则执行。
 
@@ -103,7 +105,7 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 8. **2026-10-16 最新设计与供应商边界**必须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 只负责 Admin 内部运营设计/原型；Figma 负责所有对外门户最终 UI；Supplier Portal 作为未来第五个外部业务门户预留；Shopify 负责 B2C/B2B 商业交易，不替代上游供应商协同门户。
 
 
-> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
+> 当前域名说明：新生成的门户链接统一以 `alsvidbike.com` 为规范目标；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run、认证与邮件配置仍须独立验收，不能将规范地址当成已上线证据。
 
 ## 8. 独立项目入口确认 — 2026-10-14
 

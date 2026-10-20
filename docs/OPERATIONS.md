@@ -98,7 +98,7 @@ ALSVID currently prefers low fixed cost and low operational burden over prematur
 
 ## Domain / custom URL
 
-Admin's canonical Production entry is `https://admin.chaibenn.com`; its default Web `run.app` URLs are disabled. Production authentication/email links use configured canonical domains, not request-host inference or technical service aliases. API service URLs remain backend communication endpoints. Other portals and any future domain migration require separate DNS/TLS, identity and business acceptance; see `docs/PORTAL_DOMAINS.md`.
+Admin's canonical target entry is `https://admin.alsvidbike.com`; the old `chaibenn.com` domain is legacy and must not be generated for new cross-portal links. Production authentication/email links use the configured canonical domain, not request-host inference or technical service aliases. Before release, verify DNS/TLS, Cloud Run custom-domain binding, `AUTH_BASE_URL`, verified mail sender domain, identity callbacks and browser flows as listed in `docs/PORTAL_DOMAINS.md`. This target mapping is not proof that the production domain migration has completed.
 
 ## Q4 / backup / DR
 

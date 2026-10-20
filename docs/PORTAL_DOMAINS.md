@@ -1,67 +1,43 @@
 # ALSVID 门户地址规范
 
-> 当前使用 `chaibenn.com` 作为临时域名。`alsvid.com` 为未来品牌域名，取得后沿用同一门户结构。
+> **正式域名规范：** 新的生产跨门户链接统一使用 `alsvidbike.com`。旧 `chaibenn.com` 仅作为历史/迁移域名，不再由生产页面为新链接生成。
 >
-> **B2C 交易方向更新（ADR 0005）：** 首期官网自行承载商城、结账准备与订单流程，支付使用待选第三方支付机构；`shop.chaibenn.com` 为历史 Shopify 规划域名，不是当前必需的付款入口，也不得声称已经接通。
+> **上线状态说明：** 本次修复统一代码路由和文档目标；DNS、TLS 证书、Cloud Run 自定义域名绑定、生产环境变量及邮件发件域名尚需通过实际配置与浏览器检查确认。文档中的目标地址不等于已经完成生产切换。
 
-> 本文是 ALSVID 生产访问入口的唯一地址约定。后续页面、登录跳转、部署配置和文档统一使用以下地址，不再使用 Cloud Run `run.app` 地址作为用户入口。
+## 1. 正式门户地址
 
-## 1. 生产环境固定入口
-
-| 入口 | 固定地址 | 业务边界 |
+| 入口 | 规范地址 | 业务边界 |
 |---|---|---|
-| ALSVID WWW / Official | https://www.chaibenn.com | 品牌官网、产品展示与消费者主入口 |
-| ALSVID Shop（历史预留） | https://shop.chaibenn.com | 历史 Shopify 规划域名，首期不依赖、不标记已上线；消费者购物体验在 WWW 自建 |
-| My ALSVID | https://my.chaibenn.com | 消费者车主中心、车辆、VIN、保修与售后 |
-| ALSVID Admin | https://admin.chaibenn.com | ALSVID 公司内部运营后台；Admin 唯一正式登录入口 |
-| ALSVID Dealer Portal | https://dealer.chaibenn.com | 经销商 / B2B 客户自助门户 |
-| ALSVID Service | https://service.chaibenn.com | 售后、维修、保修与服务入口 |
-| Supplier Portal（尚未交付） | https://supplier.chaibenn.com | 供应商自助协同，按 #185 分阶段启用 |
+| ALSVID Official / 官网 | https://www.alsvidbike.com | 品牌官网、产品展示和消费者入口 |
+| My ALSVID / 车主中心 | https://my.alsvidbike.com | 车主账户、车辆、VIN、保修与售后 |
+| ALSVID Admin | https://admin.alsvidbike.com | 公司内部运营后台 |
+| ALSVID Dealer Portal | https://dealer.alsvidbike.com | 经销商 / B2B 客户自助门户 |
+| ALSVID Service | https://service.alsvidbike.com | 售后、维修、保修与服务入口 |
+| Supplier Portal | https://supplier.alsvidbike.com | 供应商自助协同；完成独立交付与验收后再开放 |
+| Shop 子域 | 暂不作为独立公开入口 | 当前官网商城/支付路线按最新商务决策执行，不因保留历史 Shopify 规划而自动启用独立 Shop 站点 |
 
-## 2. 项目与入口关系
+## 2. 路由规则
 
-当前核心前端项目仍按既定边界管理：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID。
+- 官网、车主中心、管理后台、经销商门户和售后入口的正式主域统一为 `alsvidbike.com`。
+- 即使访客从旧 `chaibenn.com` 域名进入，生产页面生成的新跨门户链接也应指向对应的 `*.alsvidbike.com` 地址。
+- 本地开发使用当前应用的本地主机地址和路径，不把本地导航送到旧生产域名或不相关的生产门户。
+- 历史 `*.dev.chaibenn.com` 仅用于解释旧记录；共享云端 Development/Test 已退役，不据此创建或恢复资源。
+- Cloud Run 的 `*.run.app` 地址是技术服务地址，不作为正式用户登录、密码重置、邀请邮件或跨门户导航入口。
+- `chaibenn.com` 如需继续保留，应由域名/边缘层配置旧地址到新地址的 HTTPS 301 跳转；该跳转不由本次前端链接修复自动建立。
 
-`shop.chaibenn.com` 是历史预留域名，不再作为首期正式 Shopify 商城入口；`service.chaibenn.com` 是服务入口，可根据后续实现跳转或承载独立服务界面。是否拆分独立部署，以实际实现与验收为准。
+## 3. 正式切换前必须验证的外部配置
 
-## 3. 本地开发与历史地址
+1. 为 `www`、`my`、`admin`、`dealer` 和实际启用的 `service` 子域配置 DNS。
+2. 将每个实际启用的主机名绑定到正确的 Cloud Run 服务，并确认 TLS 证书签发、HTTPS 可访问和健康检查正常。
+3. 将生产 `AUTH_BASE_URL` 改为 `https://admin.alsvidbike.com`，并验证登录、密码重置、邀请及回调地址。
+4. 在邮件服务验证 `alsvidbike.com` 发件域后，再把 `MAIL_FROM_ADDRESS` 切换为已验证的 `@alsvidbike.com` 地址。
+5. 检查身份提供方的允许回调地址、Cookie 域策略和退出登录行为。旧域与新域之间不会自动共享 Host-only Cookie；切换后用户可能需要重新登录。
+6. 在真实浏览器分别检查官网到 My、Dealer、Admin 的入口，确认不会回跳旧域、出现证书警告或登录循环。
+7. 确认旧域跳转策略和回滚方式后，才把新域切换视为生产完成。
 
-开发在本地，CI 使用临时容器/数据库，不维持共享云端 Development/Test。旧 `www.dev`、`admin.dev`、`dealer.dev`、`my.dev.chaibenn.com` 仅为历史命名，不是现行测试入口，不据此恢复资源。
+## 4. 当前状态
 
-Cloud Run 的 `*.run.app` 地址属于技术服务地址，不作为正式用户登录、密码重置、邀请邮件或跨门户导航地址。
-
-## 4. 统一规则
-
-- 官网固定使用 `https://www.chaibenn.com`。
-- Shopify 商城固定使用 `https://shop.chaibenn.com`。
-- Admin 固定使用 `https://admin.chaibenn.com`，认证、Session、密码重置、邀请和回调不得使用 `run.app` 地址。
-- Dealer 固定使用 `https://dealer.chaibenn.com`。
-- My ALSVID 固定使用 `https://my.chaibenn.com`。
-- Service 固定使用 `https://service.chaibenn.com`。
-- Supplier 预留 `https://supplier.chaibenn.com`，未完成交付前不得标记为已上线。
-- 所有跨门户跳转使用上述固定域名，不使用 Cloud Run 临时地址作为长期入口。
-- 本地/CI 和 Production 隔离数据、存储与凭据；入口数量不要求增加云环境。
-
-## 5. 当前上线状态
-
-地址命名已经固定。自定义域名是否可以访问，以 DNS、TLS 证书和对应门户服务完成绑定为准。
-
-当前仓库中：
-
-- 2026-10-16 只读核对：Admin `https://admin.chaibenn.com/login?portal=admin` 与 `/reset-password` 返回 200。其 `AUTH_BASE_URL` 使用正式域名。
-- Web 默认 `run.app` URL 已关闭，两个旧 Web 地址返回 404 属于预期；登录、邮件和邀请不再使用这些地址。API 技术地址不因 Web 入口关闭而被一并禁用。
-- `www`、`shop`、`dealer`、`my`、`service`、`supplier` 的真实 DNS/TLS 与业务闭环，必须分别按实际配置和验收证据登记；文档固定命名不等于已经上线。
-- 在对应服务和 DNS 完成前，不把规划地址标记为“已上线”。
-
-## 6. 访问入口原则
-
-后续对外/内部说明统一使用：
-
-- 官网：www.chaibenn.com
-- 商城：shop.chaibenn.com
-- 我的车库：my.chaibenn.com
-- 内部后台：admin.chaibenn.com
-- 经销商：dealer.chaibenn.com
-- 售后服务：service.chaibenn.com
-
-Supplier 入口只有在完成 #185 对应验收后开放；本地开发与临时 CI 不冒用生产数据。完整证据与限制见[实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md)。
+- 邮件发件域：Resend 已创建 `alsvidbike.com`，当前状态为 `not_started`；DKIM TXT、SPF MX、SPF TXT 与 `rsend` CNAME 均尚未完成 DNS 验证。生产邮件仍使用已验证的 `chaibenn.com` 发件域。不要切换到 `@alsvidbike.com`，直到 DNS 配置完成且 Resend 状态变为 `verified`。
+- 代码：门户链接生成逻辑已调整为规范 `alsvidbike.com` 域名；本地开发链接保持本地路径。
+- 自动化：新增门户域名路由测试，覆盖旧生产域名、新规范域名和本地导航。
+- 生产域名：**尚未在本次操作中验证 DNS、TLS、Cloud Run 绑定、生产变量或真实浏览器访问。** 在这些检查通过前，不应声称新域名已正式上线。

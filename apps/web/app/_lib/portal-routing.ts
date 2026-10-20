@@ -25,13 +25,16 @@ export function portalFromHost(host: string): PortalId {
   return 'admin';
 }
 
-export function portalHostFor(host: string, portal: PortalId): string {
-  const value = normalizeHost(host);
-  const isDev = value.includes('.dev.chaibenn.com') || value.includes('.dev.alsvid.com');
-  const domain = isDev ? 'dev.chaibenn.com' : value.endsWith('.alsvid.com') || value === 'alsvid.com' ? 'alsvid.com' : 'chaibenn.com';
-  return `${portalDefinitions[portal].hostnamePrefix}.${domain}`;
+export function portalHostFor(_host: string, portal: PortalId): string {
+  // Only alsvidbike.com is canonical; never generate new links on chaibenn.com or alsvid.com.
+  return `${portalDefinitions[portal].hostnamePrefix}.alsvidbike.com`;
 }
 
 export function portalUrlFor(host: string, portal: PortalId): string {
+  const value = normalizeHost(host);
+  if (value === 'localhost' || value === '127.0.0.1' || value === '0.0.0.0') {
+    // Keep local portal links absolute: some UI code resolves nested routes with new URL(path, base).
+    return `http://${host.trim().toLowerCase()}${portalDefinitions[portal].homePath}`;
+  }
   return `https://${portalHostFor(host, portal)}`;
 }

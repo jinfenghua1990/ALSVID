@@ -1,6 +1,6 @@
 # ALSVID 统一 API 与分门户身份架构
 
-> 当前使用 `chaibenn.com` 域名规范；`alsvid.com` 是未来目标，域名和认证迁移需另行实施与验收。
+> 新的生产门户链接和认证基准统一使用 `*.alsvidbike.com`；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run 绑定、生产环境变量和真实认证流程仍须单独验收，不能把代码目标当成已上线证据。
 
 > 2026-10-16 核对修订：本文区分目标与现有代码。逐项状态与缺口见 [门户实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md)，设计和供应商目标见 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)。未来域名切换仍需迁移配置、回调与 Cookie，不是自动无感切换的承诺。
 
@@ -47,7 +47,7 @@ Admin 顶部右侧的应用切换器显示“官网、车主中心、经销商�
 
 共享登录不共享权限。每次 API 读写需验证会话、组织/车辆范围和业务能力；UI 隐藏、`/v1/auth/me` 的角色或 `system_admin` 入口放行，均不能替代外部资源归属校验。员工代看应是获授权、可审计的支持视图。
 
-当前 Admin 唯一正式入口为 `https://admin.chaibenn.com`，API 用 `AUTH_BASE_URL` 生成其密码重置链接。Web 的默认 `run.app` URL 已在生产部署配置关闭（404 是预期），Proxy 重定向仅是默认 URL 可达时的兼容代码，不能当作现行正式入口。API 自身技术 URL 仍可用于受控服务通信，不因 Web 关闭而一并禁用。
+当前 Admin 唯一正式入口为 `https://admin.alsvidbike.com`，API 用 `AUTH_BASE_URL` 生成其密码重置链接。Web 的默认 `run.app` URL 已在生产部署配置关闭（404 是预期），Proxy 重定向仅是默认 URL 可达时的兼容代码，不能当作现行正式入口。API 自身技术 URL 仍可用于受控服务通信，不因 Web 关闭而一并禁用。
 
 其他门户启用时，各自 OAuth 回调、邀请/登录返回地址必须通过允许列表配置；不得从任意请求 Host 生成认证 URL，也不得把 My 的 Shopify 身份回调硬套成 Admin 密码重置。统一数据中心不代表所有身份都天然 SSO。
 

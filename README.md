@@ -558,7 +558,7 @@ ALSVID 官网同时承担：
 用户访问：
 
 ```text
-www.chaibenn.com
+www.alsvidbike.com
 ```
 
 即可完成：
@@ -1033,16 +1033,16 @@ ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 
 **请所有 AI / 开发人员在设计官网、商城、后台、经销商或会员功能前，先阅读 [`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md)。**
 
-四个核心产品边界：**ALSVID Official**（www.chaibenn.com，品牌官网与 Shopify 商城一体体验）、**ALSVID Admin**（admin.chaibenn.com，内部运营）、**ALSVID Dealer Portal**（dealer.chaibenn.com，经销商 B2B）、**My ALSVID**（my.chaibenn.com，车主会员与售后），另有分阶段交付的 Supplier Portal。当前开发在本地、CI 临时运行；不恢复旧 `*.dev.chaibenn.com` 云发布链。**不把 ALSVID Shop 拆成额外公开站点，也不把内部 Portal Launcher 当成公开首页。**
+四个核心产品边界：**ALSVID Official**（www.alsvidbike.com，品牌官网与商城体验）、**ALSVID Admin**（admin.alsvidbike.com，内部运营）、**ALSVID Dealer Portal**（dealer.alsvidbike.com，经销商 B2B）、**My ALSVID**（my.alsvidbike.com，车主会员与售后），另有分阶段交付的 Supplier Portal。新链接统一采用 `alsvidbike.com`；旧 `chaibenn.com` 为迁移/历史域名，DNS、TLS 和生产配置需独立验收。当前开发在本地、CI 临时运行；不恢复旧 `*.dev.chaibenn.com` 云发布链。**不把 ALSVID Shop 拆成额外公开站点，也不把内部 Portal Launcher 当成公开首页。**
 
 此文档逐项规定四门户页面结构、导航、角色、Shopify 边界、产品视觉、VIN/售后集成、测试与上线状态判断；与旧架构描述有冲突时，门户与官网商城的业务规划以该最新决策为准，实际代码与部署状态以 CURRENT_STATE 和验收证据为准。
 
 门户固定地址、历史开发地址与当前验证范围见 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)。
 
 
-## 当前临时域名
+## 正式域名规范与迁移状态
 
-当前已申请并实际使用的临时域名为 `chaibenn.com`。四大门户当前地址以 `chaibenn.com` 为准；未来取得 `alsvid.com` 后，再按同一门户结构切换，不改变系统架构。
+新生成的门户链接统一使用 `alsvidbike.com`（例如 `www.alsvidbike.com`、`my.alsvidbike.com`、`admin.alsvidbike.com`、`dealer.alsvidbike.com`）。旧 `chaibenn.com` 为迁移/历史域名。DNS、TLS、Cloud Run 自定义域名、认证回调和 Resend 发件域必须通过实际验收后，才能认定生产切换完成；详见 [docs/PORTAL_DOMAINS.md](docs/PORTAL_DOMAINS.md)。
 
 ## 独立项目入口与命名（2026-10-14）
 
