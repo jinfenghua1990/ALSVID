@@ -80,7 +80,7 @@ test("FC1 public preview copy does not claim paid preorder, stock or Shopify che
     assert.doesNotMatch(copy["fc1.faq.7.a"], /Shopify|checkout|在线购买已开放|Jetzt kaufen/i, locale);
     assert.ok(copy["fc1.selection.model_note"].length > 0);
   }
-  const base = path.join(directory, "../../");
+  const base = path.join(directory, "../");
   for (const locale of ["zh", "de", "en"]) {
     const globalCopy = JSON.parse(await readFile(path.join(base, locale + ".json"), "utf8"));
     assert.doesNotMatch(globalCopy["commerce.body"], /Shopify/i);
