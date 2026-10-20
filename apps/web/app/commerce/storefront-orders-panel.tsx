@@ -12,7 +12,8 @@ type Order={id:string;orderNumber:string;source:'ALSVID_WWW';customerEmail:strin
  status:string;paymentStatus:string;taxConfigurationStatus:string;totalNetAmount:string;totalTaxAmount:string;
  totalGrossAmount:string;version:number;createdAt:string;lines:Line[];checkoutEnabled:false;
  productionDemandAllowed:false;blockers:string[]};
-type Summary={checkoutEnabled:false;skus:Sku[];prices:Price[];orders:Order[]};
+type Factory={id:string;code:string;name:string};
+type Summary={checkoutEnabled:false;skus:Sku[];prices:Price[];orders:Order[];factories:Factory[]};
 type ItemInput={skuId:string;quantity:string};
 async function call<T>(path:string,body?:unknown):Promise<T>{
  const response=await fetch('/api/control/v1/commerce/storefront/'+path,{
@@ -24,22 +25,31 @@ async function call<T>(path:string,body?:unknown):Promise<T>{
  if(!payload||!('data' in payload))throw new Error('订单 API 返回格式异常');
  return payload.data as T;
 }
+async function callProduction<T>(orderId:string,body:unknown):Promise<T>{
+ const response=await fetch('/api/control/v1/production/orders/from-storefront/'+orderId,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+ const payload=await response.json().catch(()=>null) as {data?:T;message?:string}|null;
+ if(!response.ok)throw new Error(response.status===401?'登录已过期':response.status===403?'当前账号没有从销售订单创建生产需求的权限':payload?.message||'创建生产需求失败');
+ if(!payload||!('data' in payload))throw new Error('生产需求 API 返回格式异常');
+ return payload.data as T;
+}
 const newItem=(skuId=''):ItemInput=>({skuId,quantity:'1'});
 export function StorefrontOrderDraftPanel(){
- const [summary,setSummary]=useState<Summary>({checkoutEnabled:false,skus:[],prices:[],orders:[]});
+ const [summary,setSummary]=useState<Summary>({checkoutEnabled:false,skus:[],prices:[],orders:[],factories:[]});
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  const [priceSku,setPriceSku]=useState(''),[priceMarket,setPriceMarket]=useState<'DE'|'AT'>('DE');
  const [gross,setGross]=useState(''),[taxRate,setTaxRate]=useState('');
  const [email,setEmail]=useState(''),[market,setMarket]=useState<'DE'|'AT'>('DE');
+ const [factoryId,setFactoryId]=useState('');
  const [items,setItems]=useState<ItemInput[]>([newItem()]);
  const [cancelReason,setCancelReason]=useState('');
  const requestKey=useRef<{fingerprint:string;id:string}|null>(null);
  const refresh=useCallback(async()=>{const data=await call<Summary>('summary');setSummary(data);
   setPriceSku(current=>data.skus.some(s=>s.id===current)?current:(data.skus[0]?.id??''));
   setItems(current=>current.map(line=>({skuId:line.skuId||data.skus[0]?.id||'',quantity:line.quantity})));
+  setFactoryId(current=>data.factories.some(f=>f.id===current)?current:(data.factories[0]?.id??''));
  },[]);
- useEffect(()=>{let live=true;void call<Summary>('summary').then(data=>{if(live){setSummary(data);setPriceSku(data.skus[0]?.id??'');setItems([newItem(data.skus[0]?.id??'')]);}})
+ useEffect(()=>{let live=true;void call<Summary>('summary').then(data=>{if(live){setSummary(data);setPriceSku(data.skus[0]?.id??'');setItems([newItem(data.skus[0]?.id??'')]);setFactoryId(data.factories[0]?.id??'');}})
   .catch(e=>{if(live)setError(e instanceof Error?e.message:'无法读取第一方订单数据');})
   .finally(()=>{if(live)setLoading(false);});return()=>{live=false};},[]);
  const activePrices=summary.prices.filter(p=>p.status==='ACTIVE');
@@ -72,6 +82,12 @@ export function StorefrontOrderDraftPanel(){
    requestKey.current=null;setEmail('');setItems([newItem(availableSkus[0]?.id??'')]);
    return '已保存内部草稿 '+order.orderNumber+'，总额 '+order.totalGrossAmount+' EUR；未收款、未提交给客户、不会自动转生产。';},
    '订单草稿已保存。');
+ }
+ async function createProductionDemand(order:Order){
+  await run(async()=>{
+   const created=await callProduction<Array<{production_order_number:string}>>(order.id,{factoryPartnerId:factoryId});
+   return `生产需求已核对：${created.length} 个生产单，${created.map(x=>x.production_order_number).join('、')}。生产单仍需生产负责人单独审核/释放。`;
+  },'生产需求已处理。');
  }
  async function cancelOrder(order:Order){
   await run(()=>call<Order>('orders/'+order.id+'/cancel',{expectedVersion:order.version,reason:cancelReason.trim()}),
@@ -135,7 +151,12 @@ export function StorefrontOrderDraftPanel(){
      </div>
     </form>
     {!availableSkus.length?<p className={styles.firstPartyEmpty}>该市场没有已启用价格的 SKU。先配置并启用对应市场价格，才可建立草稿。</p>:null}
-    <div className={styles.firstPartyListHead}>最近订单草稿（{summary.orders.length}）</div>
+    <div className={styles.firstPartyListHead}>最近第一方订单（{summary.orders.length}）</div>
+    <label className={styles.cancelReasonField}>生产工厂（仅已核验订单可生成生产需求）
+     <select value={factoryId} onChange={e=>setFactoryId(e.target.value)} disabled={busy||!summary.factories.length}>
+      {summary.factories.map(f=><option key={f.id} value={f.id}>{f.code} · {f.name}</option>)}
+     </select>
+    </label>
     <label className={styles.cancelReasonField}>取消原因（至少 10 个字符）
      <input value={cancelReason} onChange={e=>setCancelReason(e.target.value)} minLength={10} maxLength={500} placeholder="例如：客户信息录入错误，重新建立订单" disabled={busy}/>
     </label>
@@ -143,8 +164,12 @@ export function StorefrontOrderDraftPanel(){
      <div><strong>{o.orderNumber} · {o.totalGrossAmount} {o.currency}</strong>
       <span>{o.customerEmail} · {o.marketCountry} · {o.lines.map(l=>l.skuCode+' × '+l.quantity).join('，')}</span>
       <small>{o.status==='DRAFT'?'内部草稿':o.status==='CANCELLED'?'已取消':o.status} · 支付：{o.paymentStatus==='NOT_CONFIGURED'?'未配置':o.paymentStatus}</small>
+      {o.status==='DRAFT'?<small>生产门槛未通过：尚无已核验付款证据。</small>:null}
      </div>
-     {o.status==='DRAFT'?<button type="button" className={styles.secondaryAction} disabled={busy||cancelReason.trim().length<10} onClick={()=>void cancelOrder(o)}>取消草稿</button>:null}
+     <div className={styles.firstPartyActions}>
+      {['PAYMENT_VERIFIED','FULFILLMENT_PENDING','IN_PRODUCTION'].includes(o.status)?<button type="button" disabled={busy||!factoryId} onClick={()=>void createProductionDemand(o)}>创建 / 核对生产需求</button>:null}
+      {o.status==='DRAFT'?<button type="button" className={styles.secondaryAction} disabled={busy||cancelReason.trim().length<10} onClick={()=>void cancelOrder(o)}>取消草稿</button>:null}
+     </div>
     </article>)}
     {!summary.orders.length?<p className={styles.firstPartyEmpty}>尚无第一方订单草稿。</p>:null}
    </div>
