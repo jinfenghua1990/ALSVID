@@ -78,7 +78,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
   const [engineering, setEngineering] = useState<Engineering>(emptyEngineering);
   const [message, setMessage] = useState('');
-  const [loadError, setLoadError] = useState('');
+  const [catalogError, setCatalogError] = useState('');
+  const [engineeringError, setEngineeringError] = useState('');
   const [loading, setLoading] = useState(true);
   const [modelSearch, setModelSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -99,23 +100,22 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
 
   async function reload() {
     setLoading(true);
-    setLoadError('');
+    setCatalogError('');
+    setEngineeringError('');
     const [catalogResult, engineeringResult] = await Promise.allSettled([
       api('/v1/product/catalog'),
       api('/v1/engineering'),
     ]);
-    const errors: string[] = [];
     if (catalogResult.status === 'fulfilled') {
       setCatalog(catalogResult.value as Catalog);
     } else {
-      errors.push(`产品主数据加载失败：${catalogResult.reason instanceof Error ? catalogResult.reason.message : '请求异常'}`);
+      setCatalogError(catalogResult.reason instanceof Error ? catalogResult.reason.message : '请求异常');
     }
     if (engineeringResult.status === 'fulfilled') {
       setEngineering(engineeringResult.value as Engineering);
     } else {
-      errors.push(`工程数据加载失败：${engineeringResult.reason instanceof Error ? engineeringResult.reason.message : '请求异常'}`);
+      setEngineeringError(engineeringResult.reason instanceof Error ? engineeringResult.reason.message : '请求异常');
     }
-    setLoadError(errors.join('；'));
     setLoading(false);
   }
 
@@ -198,15 +198,20 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       </header>
 
       {message ? <div className={styles.notice} role="status">{message}</div> : null}
-      {loadError ? <div className={`${styles.notice} ${styles.errorNotice}`} role="alert">{loadError}。当前数据无法完整确认，请检查接口状态；接口异常不代表数据库没有记录。</div> : null}
+      {catalogError || engineeringError ? (
+        <div className={`${styles.notice} ${styles.errorNotice}`} role="alert">
+          {[catalogError ? `产品主数据加载失败：${catalogError}` : '', engineeringError ? `工程数据加载失败：${engineeringError}` : ''].filter(Boolean).join('；')}
+          。接口异常不代表数据库没有记录，未成功读取的数据不会按 0 处理。
+        </div>
+      ) : null}
 
       <div className={styles.metrics} aria-label="产品数据概览">
-        <div><span>技术平台</span><strong>{loading ? '—' : catalog.platforms.length}</strong></div>
-        <div><span>产品型号</span><strong>{loading ? '—' : catalog.models.length}</strong></div>
-        <div><span>配置版本</span><strong>{loading ? '—' : catalog.variants.length}</strong></div>
-        <div><span>SKU</span><strong>{loading ? '—' : catalog.skus.length}</strong></div>
-        <div><span>BOM</span><strong>{loading ? '—' : engineering.boms.length}</strong></div>
-        <div><span>零部件</span><strong>{loading ? '—' : engineering.parts.length}</strong></div>
+        <div><span>技术平台</span><strong>{loading || catalogError ? '—' : catalog.platforms.length}</strong></div>
+        <div><span>产品型号</span><strong>{loading || catalogError ? '—' : catalog.models.length}</strong></div>
+        <div><span>配置版本</span><strong>{loading || catalogError ? '—' : catalog.variants.length}</strong></div>
+        <div><span>SKU</span><strong>{loading || catalogError ? '—' : catalog.skus.length}</strong></div>
+        <div><span>BOM</span><strong>{loading || engineeringError ? '—' : engineering.boms.length}</strong></div>
+        <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
       </div>
 
       <section className={styles.seriesSection} id="series">
@@ -223,7 +228,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
               <small>{catalog.models.filter((model) => model.platform_id === platform.id).length} 个型号</small>
             </article>
           ))}
-          {!catalog.platforms.length ? <div className={styles.emptySeries}>{loading ? '正在读取技术平台…' : '暂无平台数据；请检查产品主数据接口。'}</div> : null}
+          {!catalog.platforms.length ? <div className={styles.emptySeries}>{loading ? '正在读取技术平台…' : catalogError ? '平台数据未能读取；请检查接口状态。' : '暂无技术平台数据。'}</div> : null}
         </div>
       </section>
 
@@ -245,7 +250,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             <option value="ACTIVE">启用</option>
             <option value="RETIRED">已退役</option>
           </select>
-          <span>{loading ? '正在同步…' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
+          <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
         </div>
         {loading && catalog.models.length === 0 ? (
           <div className={styles.emptyState}>正在读取产品主数据…</div>
@@ -280,7 +285,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           </div>
         ) : (
           <div className={styles.emptyState}>
-            {loadError
+            {catalogError
               ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
               : modelSearch || statusFilter !== 'ALL'
                 ? '没有符合当前筛选条件的型号。'
