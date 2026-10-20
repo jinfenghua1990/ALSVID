@@ -27,11 +27,16 @@ export function portalFromHost(host: string): PortalId {
 
 export function portalHostFor(host: string, portal: PortalId): string {
   const value = normalizeHost(host);
-  const isDev = value.includes('.dev.chaibenn.com') || value.includes('.dev.alsvid.com');
-  const domain = isDev ? 'dev.chaibenn.com' : value.endsWith('.alsvid.com') || value === 'alsvid.com' ? 'alsvid.com' : 'chaibenn.com';
+  const isLegacyDev = value.endsWith('.dev.chaibenn.com');
+  const isAlsvidDev = value.endsWith('.dev.alsvid.com');
+  const domain = isLegacyDev ? 'dev.chaibenn.com' : isAlsvidDev ? 'dev.alsvid.com' : 'alsvid.com';
   return `${portalDefinitions[portal].hostnamePrefix}.${domain}`;
 }
 
 export function portalUrlFor(host: string, portal: PortalId): string {
+  const value = normalizeHost(host);
+  if (value === 'localhost' || value === '127.0.0.1' || value === '0.0.0.0') {
+    return portalDefinitions[portal].homePath;
+  }
   return `https://${portalHostFor(host, portal)}`;
 }
