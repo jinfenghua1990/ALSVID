@@ -16,6 +16,7 @@ try {
     for (const [device, viewport] of [
       ['desktop', { width: 1440, height: 900 }],
       ['mobile', { width: 390, height: 844 }],
+      ['compact-mobile', { width: 320, height: 720 }],
     ]) {
       const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
       try {
@@ -28,12 +29,15 @@ try {
         await root.waitFor({ state: 'visible', timeout: 15000 });
         await root.locator('header').first().waitFor({ state: 'attached' });
 
-        const headerNav = device === 'desktop'
-          ? root.locator('header > nav').first()
-          : root.locator('header > details').first();
-        if (device === 'mobile') await headerNav.locator('summary').click();
-        const navLinks = headerNav.locator('nav > a, :scope > a');
-        assert.equal(await navLinks.count(), device === 'mobile' ? 7 : 6, 'Approved product/accessories/story navigation exists');
+        const isMobile = device !== 'desktop';
+        const headerNav = isMobile
+          ? root.locator('header > details').first()
+          : root.locator('header > nav').first();
+        if (isMobile) await headerNav.locator('summary').click();
+        const navLinks = isMobile
+          ? headerNav.locator(':scope > nav > a')
+          : headerNav.locator(':scope > a');
+        assert.equal(await navLinks.count(), isMobile ? 7 : 6, 'Approved product/accessories/story navigation exists');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
         assert.equal(await navLinks.nth(2).getAttribute('href'), '#platforms');
@@ -45,16 +49,17 @@ try {
         assert.ok((await newBadge.innerText()).trim(), 'FC2 new badge is localized');
         assert.equal(await reserveBadge.evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(184, 233, 134)');
         assert.equal(await newBadge.evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(230, 83, 75)');
-        if (device === 'desktop') {
+        if (!isMobile) {
           assert.equal(await navLinks.nth(0).evaluate(element => getComputedStyle(element).fontSize), '18px');
         } else {
+          assert.equal(await headerNav.locator('nav a[hreflang]').count(), 3, 'All language options remain accessible inside Menu');
           await headerNav.locator('summary').click();
         }
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Navigation must not cause horizontal overflow');
 
         const hero = root.locator(':scope > section').first();
         const mobileModels = root.locator('header > nav').nth(1);
-        if (device === 'mobile') {
+        if (isMobile) {
           assert.ok(await mobileModels.isVisible(), 'FC1 reservation and FC2 new must be visible in the top mobile header');
           const modelLinks = mobileModels.locator('a');
           assert.equal(await modelLinks.count(), 2, 'The two visible model shortcuts are not hidden in the hamburger menu');
@@ -64,8 +69,18 @@ try {
           assert.equal(await modelLinks.nth(1).locator('span').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(230, 83, 75)');
           const headerBox = await root.locator('header').first().boundingBox();
           const linkBox = await modelLinks.nth(0).boundingBox();
-          assert.ok(headerBox && linkBox && linkBox.y < 130 && linkBox.y >= headerBox.y &&
-            linkBox.y + linkBox.height <= headerBox.y + headerBox.height + 2, 'Model quick links belong to the visible top header');
+          const wordmarkBox = await root.locator('header a').first().boundingBox();
+          const menuBox = await headerNav.locator('summary').boundingBox();
+          assert.ok(headerBox && linkBox && wordmarkBox && menuBox && headerBox.height <= 70,
+            'Header must be a single compact row, including logo and menu');
+          assert.ok(Math.abs(wordmarkBox.y + wordmarkBox.height / 2 - linkBox.y - linkBox.height / 2) < 15 &&
+            Math.abs(menuBox.y + menuBox.height / 2 - linkBox.y - linkBox.height / 2) < 15,
+            'FC1/FC2 must align horizontally with logo and Menu');
+          const secondLinkBox = await modelLinks.nth(1).boundingBox();
+          assert.ok(secondLinkBox && Math.abs(linkBox.y - secondLinkBox.y) < 4 &&
+            linkBox.x >= wordmarkBox.x + wordmarkBox.width - 2 &&
+            secondLinkBox.x + secondLinkBox.width <= menuBox.x + 2,
+            'FC1 and FC2 fit between wordmark and Menu with no overlap');
           const heroTitleBox = await hero.locator('h1').boundingBox();
           assert.ok(heroTitleBox && headerBox && heroTitleBox.y > headerBox.y + headerBox.height,
             'Hero heading must clear the taller mobile header');
