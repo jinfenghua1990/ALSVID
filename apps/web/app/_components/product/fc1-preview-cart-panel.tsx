@@ -109,7 +109,7 @@ export function Fc1PreviewCartPanel({ locale, mode }: { locale: Locale; mode: "c
             {mode === "cart" ? (
               <a className={styles.primaryLink} href={`/${locale}/checkout`}>{t("fc1.cart.review")} <span aria-hidden="true">→</span></a>
             ) : (
-              <button type="button" disabled aria-disabled="true" className={styles.disabledPayment}>{t("fc1.checkout.disabled")}</button>
+              <a className={styles.secondaryLink} href={`/${locale}/cart`}>{t("fc1.cart.title")} ↗</a>
             )}
             <a className={styles.secondaryLink} href={`/${locale}/explore/fc1#configure`}>{t("fc1.cart.back_config")}</a>
           </div>
