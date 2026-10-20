@@ -41,7 +41,7 @@ try {
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
         assert.equal(await navLinks.nth(2).getAttribute('href'), '#platforms');
-        assert.equal(await navLinks.nth(3).getAttribute('href'), '#accessories', 'Accessories is a separate primary nav item');
+        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/accessories', 'Accessories links to the standalone page');
         assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/explore/about-story');
         const reserveBadge = navLinks.nth(0).locator('span');
         const newBadge = navLinks.nth(1).locator('span');
@@ -56,6 +56,11 @@ try {
           await headerNav.locator('summary').click();
         }
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Navigation must not cause horizontal overflow');
+        const accessories = await context.newPage();
+        const accessoriesResponse = await accessories.goto(base + '/' + locale + '/accessories', { waitUntil: 'domcontentloaded' });
+        assert.equal(accessoriesResponse?.status(), 200, locale + ' accessories page should return HTTP 200');
+        assert.equal(await accessories.locator('main').getAttribute('lang'), locale, locale + ' accessories page locale');
+        await accessories.close();
 
         const hero = root.locator(':scope > section').first();
         const mobileModels = root.locator('header > nav').nth(1);
