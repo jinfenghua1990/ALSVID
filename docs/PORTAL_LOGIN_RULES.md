@@ -13,7 +13,7 @@ ALSVID 复用统一 API 与自身身份/授权中心，Shopify Customer 是客�
 | 门户 / 入口 | 正式地址 | 是否公开 | 登录对象 | 登录方式 |
 | --- | --- | --- | --- | --- |
 | ALSVID Official / 官网 | `https://www.alsvid.com` | 是 | 公众访客 | 不提供通用登录动作 |
-| ALSVID Shop | `https://shop.alsvid.com` | 是 | 消费者 / 买家 | Shopify 商城与结账身份；不复用 Admin 登录 |
+| ALSVID Shop（官网内商城体验） | 不单独启用域名 | 随官网 | 消费者 / 买家 | 交易与支付按当前商务决策配置；历史 Shopify 规划不代表已上线 |
 | My ALSVID | `https://my.alsvid.com` | 否 | 客户 / 车主 | Shopify 客户账户验证；ALSVID 只建立最小映射 |
 | Dealer Portal | `https://dealer.alsvid.com` | 否 | 经销商成员 | 经销商工作邮箱；必须满足 Dealer 身份与业务授权 |
 | Admin Portal | `https://admin.alsvid.com` | 否 | ALSVID 内部员工 | 内部域名邮箱 + 内部邀请/验证；管理员还需要 `system_admin` |
