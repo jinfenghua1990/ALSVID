@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { translator, type Locale } from "../../_lib/i18n";
 import { fc1Photos } from "./fc1-photos";
 import styles from "./fc1-product.module.css";
@@ -174,6 +174,8 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const [colour, setColour] = useState<ColourId>("sample");
   const [modelAvailable, setModelAvailable] = useState(false);
   const [visualMode, setVisualMode] = useState<"photo" | "3d">("photo");
+  const [email, setEmail] = useState("");
+  const [reservationState, setReservationState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
 
   const onModelFailure = useCallback(() => {
     setVisualMode("photo");
@@ -196,14 +198,10 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   }, []);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
   const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
-  const reservationEmailConfigured = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(reservationEmail);
+  const reservationEmailConfigured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationEmail);
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
-  const emailSubject = t("fc1.reservation.email_subject");
-  const emailBody = t("fc1.reservation.email_body", { model: modelLabel, colour: colourLabel });
-  const reservationHref = reservationEmailConfigured
-    ? `mailto:${reservationEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-    : null;
+  const submitReservation = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setReservationState("sending"); try { const response = await fetch("/api/public/fc1-reservation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, model: modelLabel, colour: colourLabel, locale }) }); if (!response.ok) throw new Error("send failed"); setReservationState("sent"); } catch { setReservationState("failed"); } };
 
   // Preview choices are local UI state. Only sending an email expresses reservation interest.
   const chooseColour = (next: ColourId) => setColour(next);
@@ -273,14 +271,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
       </fieldset>
       <div className={styles.interestSummary}>
         <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
-        <div className={styles.interestReservationActions}>
-          {reservationHref ? (
-            <a className={styles.interestReservationButton} href={reservationHref}>{t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></a>
-          ) : (
-            <button className={styles.interestReservationButton} type="button" disabled aria-disabled="true">{t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></button>
-          )}
-          {!reservationEmailConfigured ? <p className={styles.interestReservationPending} role="status">{t("fc1.reservation.pending")}</p> : null}
-        </div>
+        <form className={styles.interestReservationActions} onSubmit={submitReservation}><label htmlFor="fc1-reservation-email">{t("fc1.reservation.cta")}</label><input id="fc1-reservation-email" type="email" required autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} placeholder="you@example.com" disabled={!reservationEmailConfigured} /><button className={styles.interestReservationButton} type={reservationEmailConfigured ? "submit" : "button"} disabled={!reservationEmailConfigured || reservationState === "sending"}>{reservationState === "sent" ? "✓" : reservationState === "sending" ? "…" : t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></button><p className={styles.interestReservationPending} role="status">{reservationState === "sent" ? t("fc1.reservation.sent") : reservationState === "failed" ? t("fc1.reservation.failed") : reservationEmailConfigured ? t("fc1.reservation.note") : t("fc1.reservation.pending")}</p></form>
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
         <p>{copy.noPayment}</p>

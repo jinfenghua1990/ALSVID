@@ -266,6 +266,8 @@
   "fc1.cart.view": "Tasche ansehen",
   "fc1.cart.storage_error": "Dein Browser kann die vorläufige Auswahl nicht speichern. Bitte Datenschutzeinstellungen prüfen und erneut versuchen.",
   "fc1.reservation.cta": "Reservierung per E-Mail",
+  "fc1.reservation.sent": "Danke — Ihre Anfrage wurde gesendet.",
+  "fc1.reservation.failed": "Die Anfrage konnte nicht gesendet werden. Bitte erneut versuchen.",
   "fc1.reservation.pending": "Die Reservierungs-E-Mail-Adresse wird später ergänzt; der E-Mail-Link ist noch nicht verfügbar.",
   "fc1.reservation.note": "Reservierungsanfragen sind derzeit nur per E-Mail möglich; Online-Bestellungen und Zahlungen sind nicht verfügbar. Versand aus China nach Deutschland, voraussichtlich 4–6 Wochen; Logistik noch zu bestätigen.",
   "fc1.reservation.email_subject": "ALSVID FC1 Reservierungsanfrage",

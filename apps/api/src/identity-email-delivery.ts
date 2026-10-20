@@ -58,21 +58,25 @@ ${input.resetUrl}
     });
   }
 
-  private async send(input: { to: string; subject: string; text: string; html: string }): Promise<void> {
+  async send(input: { to: string; subject: string; text: string; html: string }): Promise<void> {
+    await sendResendEmail(this.apiKey, this.from, input);
+  }
+}
+
+export async function sendResendEmail(apiKey: string, from: string, input: { to: string; subject: string; text: string; html: string }): Promise<void> {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        authorization: `Bearer ${this.apiKey}`,
+        authorization: `Bearer ${apiKey}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({ from: this.from, to: [input.to], subject: input.subject, text: input.text, html: input.html }),
+      body: JSON.stringify({ from, to: [input.to], subject: input.subject, text: input.text, html: input.html }),
     });
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
       console.error('ALSVID email delivery failed', { status: response.status, detail: detail.slice(0, 300) });
       throw new Error(`Mail provider rejected email (${response.status})`);
     }
-  }
 }
 
 export function createIdentityVerificationDelivery(): IdentityVerificationDelivery {

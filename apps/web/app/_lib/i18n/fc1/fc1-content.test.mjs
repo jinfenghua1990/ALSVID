@@ -48,8 +48,11 @@ test("FC1 clearly offers email reservation only, with a safe missing-email fallb
   }
   const configurator = await readFile(path.join(directory, "../../../_components/product/fc1-colour-configurator.tsx"), "utf8");
   assert.match(configurator, /NEXT_PUBLIC_FC1_RESERVATION_EMAIL/);
-  assert.match(configurator, /mailto:/);
-  assert.match(configurator, /disabled aria-disabled="true"/);
+  assert.match(configurator, /onSubmit=\{submitReservation\}/);
+  assert.match(configurator, /\/api\/public\/fc1-reservation/);
+  assert.match(configurator, /type="email"/);
+  assert.match(configurator, /disabled=\{!reservationEmailConfigured/);
+  assert.doesNotMatch(configurator, /mailto:/);
   assert.match(configurator, /fc1\.reservation\.pending/);
   assert.doesNotMatch(configurator, /saveFc1PreviewCart|fc1\.cart\.|\/cart|\/checkout/);
 });
