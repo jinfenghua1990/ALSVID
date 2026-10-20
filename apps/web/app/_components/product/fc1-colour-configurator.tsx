@@ -5,7 +5,6 @@ import { translator, type Locale } from "../../_lib/i18n";
 import { fc1Photos } from "./fc1-photos";
 import styles from "./fc1-product.module.css";
 import { Fc1ThreeDViewer } from "./fc1-three-d-viewer";
-import { saveFc1PreviewCart } from "../../_lib/commerce/preview-cart";
 
 type ColourId = "sample" | "black" | "blue" | "silver";
 type ModelId = "standard" | "pro";
@@ -31,8 +30,8 @@ const COPY = {
     title: "选择你的 FC1",
     fineprint: "颜色为基于绿色实拍车的模拟效果，量产色号与可售状态以正式公布为准。",
     summary: "当前偏好",
-    delivery: "计划正式开放并确认订单后，由中国发往德国预计交付 4–6 周；实际时间待物流确认。",
-    noPayment: "不产生订单，不收取费用，也不代表预订成功。",
+    delivery: "计划从中国发往德国，预计交付 4–6 周；具体时间待物流确认。当前仅收集邮件预约意向。",
+    noPayment: "邮件仅用于表达预约意向，不代表订单成立，也不会产生付款。",
     saving: "正在记录颜色偏好…",
     saved: "已保存本次浏览的颜色偏好",
     retry: "暂未保存偏好，可再次点击颜色重试",
@@ -54,8 +53,8 @@ const COPY = {
     title: "Make your FC1 yours",
     fineprint: "Colours are simulations based on the genuine green sample. Final finishes and availability are not confirmed.",
     summary: "Your preference",
-    delivery: "Planned dispatch from China to Germany: estimated delivery 4–6 weeks after order confirmation, subject to logistics verification.",
-    noPayment: "No order or payment is created. This is not a confirmed reservation.",
+    delivery: "Shipping from China to Germany is planned, with an estimated 4–6 week delivery window subject to logistics confirmation. At this stage, only email reservation enquiries are accepted.",
+    noPayment: "The email expresses interest only; it does not create an order or trigger payment.",
     saving: "Saving your colour preference…",
     saved: "Colour preference saved for this browsing session",
     retry: "Could not save. Select a colour again to retry.",
@@ -77,8 +76,8 @@ const COPY = {
     title: "Gestalte dein FC1",
     fineprint: "Farbansichten sind Simulationen des echten grünen Musters. Serienfarben und Verfügbarkeit sind noch nicht bestätigt.",
     summary: "Deine Präferenz",
-    delivery: "Geplanter Versand aus China nach Deutschland: voraussichtlich 4–6 Wochen nach Bestellbestätigung, vorbehaltlich logistischer Prüfung.",
-    noPayment: "Keine Bestellung, keine Zahlung und keine verbindliche Reservierung.",
+    delivery: "Der Versand aus China nach Deutschland ist mit einer geschätzten Lieferzeit von 4–6 Wochen geplant; die Logistik muss dies noch bestätigen. Derzeit sind nur Reservierungsanfragen per E-Mail vorgesehen.",
+    noPayment: "Die E-Mail bekundet nur Interesse; sie begründet keine Bestellung und löst keine Zahlung aus.",
     saving: "Farbpräferenz wird gespeichert…",
     saved: "Farbpräferenz für diese Browsersitzung gespeichert",
     retry: "Speichern fehlgeschlagen. Bitte Farbe erneut wählen.",
@@ -190,7 +189,6 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const [colour, setColour] = useState<ColourId>("sample");
   const [touched, setTouched] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const [cartState, setCartState] = useState<"idle" | "added" | "failed">("idle");
   const [modelAvailable, setModelAvailable] = useState(false);
   const [visualMode, setVisualMode] = useState<"photo" | "3d">("photo");
 
@@ -216,6 +214,16 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const preferenceSession = useRef<string | null>(null);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
+  const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
+  const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
+  const colourLabel = t(current.key as "fc1.colours.sample");
+  const emailSubject = t("fc1.reservation.email_subject");
+  const emailBody = t("fc1.reservation.email_body")
+    .replace("{model}", modelLabel)
+    .replace("{colour}", colourLabel);
+  const reservationHref = reservationEmail
+    ? `mailto:${reservationEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    : null;
 
   useEffect(() => {
     if (touched < 1) return;
@@ -247,13 +255,8 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
     return () => window.clearTimeout(wait);
   }, [colour, model, locale, touched]);
 
-  const chooseColour = (next: ColourId) => { setColour(next); setCartState("idle"); setTouched(value=>value+1); };
-  const chooseModel = (next: ModelId) => { setModel(next); setExpandedModel(previous => previous === next ? null : next); setCartState("idle"); setTouched(value=>value+1); };
-  const addToPreviewBag = () => {
-    // Browser-only selection, never a purchase, payment or inventory allocation.
-    const ok = saveFc1PreviewCart({ version: 1, product: "FC1", model, colour, quantity: 1 });
-    setCartState(ok ? "added" : "failed");
-  };
+  const chooseColour = (next: ColourId) => { setColour(next); setTouched(value=>value+1); };
+  const chooseModel = (next: ModelId) => { setModel(next); setExpandedModel(previous => previous === next ? null : next); setTouched(value=>value+1); };
   return <div id="configure" className={styles.interestConfigurator}>
     <div className={styles.interestVisual}>
       <div className={styles.interestIntro}>
@@ -319,11 +322,14 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         <p aria-live="polite" className={styles.interestFeedback}>
           {saveState==="idle"?copy.click:saveState==="saving"?copy.saving:saveState==="saved"?copy.saved:copy.retry}
         </p>
-        <div className={styles.interestCartActions}>
-          <button type="button" onClick={addToPreviewBag}>{cartState === "added" ? t("fc1.cart.added") : t("fc1.cart.add")} <span aria-hidden="true">→</span></button>
-          <a href={`/${locale}/cart`}>{t("fc1.cart.view")} ↗</a>
+        <div className={styles.interestReservationActions}>
+          {reservationHref ? (
+            <a className={styles.interestReservationButton} href={reservationHref}>{t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></a>
+          ) : (
+            <button className={styles.interestReservationButton} type="button" disabled aria-disabled="true">{t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></button>
+          )}
+          {!reservationEmail ? <p className={styles.interestReservationPending} role="status">{t("fc1.reservation.pending")}</p> : null}
         </div>
-        {cartState === "failed" ? <p className={styles.interestCartError} role="alert">{t("fc1.cart.storage_error")}</p> : null}
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
         <p>{copy.noPayment}</p>
