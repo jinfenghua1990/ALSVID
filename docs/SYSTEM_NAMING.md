@@ -41,7 +41,6 @@ ALSVID
 
 ```text
 www.alsvid.com
-shop.alsvid.com
 my.alsvid.com
 admin.alsvid.com
 dealer.alsvid.com
@@ -130,7 +129,7 @@ ALSVID 不重复实现 Shopify 自己负责的 checkout、支付捕获和平台�
 | 入口 | 固定地址 | 主要能力 |
 | --- | --- | --- |
 | **ALSVID Official** | `https://www.alsvid.com` | 品牌、产品、内容与消费者主入口 |
-| **ALSVID Shop** | `https://shop.alsvid.com` | 商品、购物车、结账、支付 |
+| **ALSVID Shop** | 官网内商城体验；暂不启用独立 Shop 域名 | 消费者 / 买家 | 交易与支付按当前商务决策配置；历史 Shopify 规划不代表已接通 |
 | **My ALSVID** | `https://my.alsvid.com` | 我的车辆、车辆注册、VIN、保修、维修、服务、账户 |
 | **ALSVID Admin** | `https://admin.alsvid.com` | 内部工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 |
 | **ALSVID Dealer Portal** | `https://dealer.alsvid.com` | 经销商工作台、产品、采购、B2B 订单、交付车辆、售后、账户 |
@@ -173,7 +172,6 @@ ALSVID Production
 
 ```text
 www.alsvid.com      → ALSVID Official
-shop.alsvid.com     → ALSVID Shop / Shopify
 my.alsvid.com       → My ALSVID
 admin.alsvid.com    → ALSVID Admin
 dealer.alsvid.com   → ALSVID Dealer Portal
@@ -190,7 +188,7 @@ Cloud Run 的 `*.run.app` 地址仅作为技术服务地址，不是用户正式
 
 ## 12. Change control
 
-本命名规则起源于 Issue #116，并由 Issue #118 补充固定系统入口与域名映射。2026-10-16 按最新明确确认更新正式入口：新增 `shop.alsvid.com` 作为 Shopify 商城正式入口、`service.alsvid.com` 作为售后服务正式入口；这不自动意味着新增两套自研前端部署。
+本命名规则起源于 Issue #116，并由 Issue #118 补充固定系统入口与域名映射。当前不把 `shop.alsvid.com` 作为独立公开入口；商城体验由官网承载，交易与支付路线按最新商务决策实施。`service.alsvid.com` 是售后服务入口目标，不代表已完成独立部署。
 
 后续任何新页面、部署、README、架构图、Issue、PR 和 AI/Codex 工作：
 
