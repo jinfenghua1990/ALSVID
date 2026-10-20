@@ -40,15 +40,15 @@ ALSVID
 当前临时品牌域名结构固定为：
 
 ```text
-www.chaibenn.com
-shop.chaibenn.com
-my.chaibenn.com
-admin.chaibenn.com
-dealer.chaibenn.com
-service.chaibenn.com
+www.alsvid.com
+shop.alsvid.com
+my.alsvid.com
+admin.alsvid.com
+dealer.alsvid.com
+service.alsvid.com
 ```
 
-`alsvid.com` 为未来正式品牌域名目标；迁移时沿用相同子域结构。文档中的固定命名不代表每个 DNS、TLS 或业务闭环已经完成上线。
+`chaibenn.com` 为历史迁移域名；新链接统一使用 `alsvid.com`。DNS、TLS、Cloud Run 与认证/邮件配置必须单独验证，不能仅凭代码或文档宣称已上线。文档中的固定命名不代表每个 DNS、TLS 或业务闭环已经完成上线。
 
 ## 4. Environment names
 
@@ -129,12 +129,12 @@ ALSVID 不重复实现 Shopify 自己负责的 checkout、支付捕获和平台�
 
 | 入口 | 固定地址 | 主要能力 |
 | --- | --- | --- |
-| **ALSVID Official** | `https://www.chaibenn.com` | 品牌、产品、内容与消费者主入口 |
-| **ALSVID Shop** | `https://shop.chaibenn.com` | 商品、购物车、结账、支付 |
-| **My ALSVID** | `https://my.chaibenn.com` | 我的车辆、车辆注册、VIN、保修、维修、服务、账户 |
-| **ALSVID Admin** | `https://admin.chaibenn.com` | 内部工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 |
-| **ALSVID Dealer Portal** | `https://dealer.chaibenn.com` | 经销商工作台、产品、采购、B2B 订单、交付车辆、售后、账户 |
-| **ALSVID Service** | `https://service.chaibenn.com` | 售后、保修、维修与服务入口 |
+| **ALSVID Official** | `https://www.alsvid.com` | 品牌、产品、内容与消费者主入口 |
+| **ALSVID Shop** | `https://shop.alsvid.com` | 商品、购物车、结账、支付 |
+| **My ALSVID** | `https://my.alsvid.com` | 我的车辆、车辆注册、VIN、保修、维修、服务、账户 |
+| **ALSVID Admin** | `https://admin.alsvid.com` | 内部工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 |
+| **ALSVID Dealer Portal** | `https://dealer.alsvid.com` | 经销商工作台、产品、采购、B2B 订单、交付车辆、售后、账户 |
+| **ALSVID Service** | `https://service.alsvid.com` | 售后、保修、维修与服务入口 |
 
 官网中的入口关系固定为：
 
@@ -172,15 +172,15 @@ ALSVID Production
 当前临时正式入口固定使用：
 
 ```text
-www.chaibenn.com      → ALSVID Official
-shop.chaibenn.com     → ALSVID Shop / Shopify
-my.chaibenn.com       → My ALSVID
-admin.chaibenn.com    → ALSVID Admin
-dealer.chaibenn.com   → ALSVID Dealer Portal
-service.chaibenn.com  → ALSVID Service
+www.alsvid.com      → ALSVID Official
+shop.alsvid.com     → ALSVID Shop / Shopify
+my.alsvid.com       → My ALSVID
+admin.alsvid.com    → ALSVID Admin
+dealer.alsvid.com   → ALSVID Dealer Portal
+service.alsvid.com  → ALSVID Service
 ```
 
-未来 `alsvid.com` 启用后，保持相同结构：
+规范的 `alsvid.com` 入口结构如下：
 
 ```text
 www.alsvid.com
@@ -197,11 +197,11 @@ service.alsvid.com
 
 Cloud Run 的 `*.run.app` 地址仅作为技术服务地址，不是用户正式入口。
 
-生产环境中的登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 和跨门户跳转均应使用对应 `*.chaibenn.com` 固定域名。Admin 的 canonical auth origin 固定为 `https://admin.chaibenn.com`，不得将任一 Web `run.app` 地址写入用户邮件或前端正式跳转。
+生产环境中的登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 和跨门户跳转均应使用对应 `*.alsvid.com` 固定域名。Admin 的 canonical auth origin 固定为 `https://admin.alsvid.com`，不得将任一 Web `run.app` 地址写入用户邮件或前端正式跳转。
 
 ## 12. Change control
 
-本命名规则起源于 Issue #116，并由 Issue #118 补充固定系统入口与域名映射。2026-10-16 按最新明确确认更新正式入口：新增 `shop.chaibenn.com` 作为 Shopify 商城正式入口、`service.chaibenn.com` 作为售后服务正式入口；这不自动意味着新增两套自研前端部署。
+本命名规则起源于 Issue #116，并由 Issue #118 补充固定系统入口与域名映射。2026-10-16 按最新明确确认更新正式入口：新增 `shop.alsvid.com` 作为 Shopify 商城正式入口、`service.alsvid.com` 作为售后服务正式入口；这不自动意味着新增两套自研前端部署。
 
 后续任何新页面、部署、README、架构图、Issue、PR 和 AI/Codex 工作：
 
@@ -212,7 +212,7 @@ Cloud Run 的 `*.run.app` 地址仅作为技术服务地址，不是用户正式
 5. 不把 Cloud Run `run.app` 地址作为正式用户入口；
 6. 如果确实需要改名或改变域名结构，必须先更新本文并说明迁移影响。
 
-> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载正式入口；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
+> 当前域名说明：新链接的规范目标为 `alsvid.com`；`chaibenn.com` 是历史迁移域名。新域名的 DNS、TLS、服务绑定、认证和邮件配置须通过生产验收后才能视为正式切换完成。
 
 ## 13. Admin 应用切换器与场景名称
 
