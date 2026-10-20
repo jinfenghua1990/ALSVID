@@ -219,9 +219,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
   const emailSubject = t("fc1.reservation.email_subject");
-  const emailBody = t("fc1.reservation.email_body")
-    .replace("{model}", modelLabel)
-    .replace("{colour}", colourLabel);
+  const emailBody = t("fc1.reservation.email_body", { model: modelLabel, colour: colourLabel });
   const reservationHref = reservationEmailConfigured
     ? `mailto:${reservationEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
     : null;
