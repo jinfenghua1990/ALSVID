@@ -23,12 +23,12 @@ export class StorefrontOrdersController{
  }
  @Post('prices/:id/activate')
  async activatePrice(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:ExpectedVersionBody){
-  try{return{data:await storefrontOrderService.activatePrice(requireAuth(request),id,Number(input.expectedVersion))};}
+  try{return{data:await storefrontOrderService.activatePrice(requireAuth(request),id,Number(input?.expectedVersion))};}
   catch(error){return throwHttpDomainError(error);}
  }
  @Post('prices/:id/retire')
  async retirePrice(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:ExpectedVersionBody){
-  try{return{data:await storefrontOrderService.retirePrice(requireAuth(request),id,Number(input.expectedVersion))};}
+  try{return{data:await storefrontOrderService.retirePrice(requireAuth(request),id,Number(input?.expectedVersion))};}
   catch(error){return throwHttpDomainError(error);}
  }
  @Post('orders')
@@ -38,7 +38,7 @@ export class StorefrontOrdersController{
  }
  @Post('orders/:id/cancel')
  async cancelDraftOrder(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:CancelDraftBody){
-  try{return{data:await storefrontOrderService.cancelDraftOrder(requireAuth(request),id,Number(input.expectedVersion),input.reason)};}
+  try{return{data:await storefrontOrderService.cancelDraftOrder(requireAuth(request),id,Number(input?.expectedVersion),input?.reason??'')};}
   catch(error){return throwHttpDomainError(error);}
  }
 }
