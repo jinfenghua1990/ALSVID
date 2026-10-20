@@ -55,5 +55,7 @@ test('first-party orders are immutable priced drafts; retries are idempotent; pr
   const summary=await service.summary(actor);
   assert.ok(summary.orders.some(x=>x.id===order.id));
   assert.ok(summary.prices.some(x=>x.id===price.id));
+  const readonlySummary=await service.summary({userId:actor.userId,permissions:['commerce.storefront.read']});
+  assert.equal(readonlySummary.orders.find(x=>x.id===order.id)?.customerEmail,'已隐藏');
  }finally{await db.close();}
 });
