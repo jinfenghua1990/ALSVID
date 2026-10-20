@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, mkdirSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+const { chromium } = createRequire(process.env.PORTAL_PLAYWRIGHT_ROOT + '/package.json')('playwright');
 
 const base = process.env.PORTAL_UI_BASE_URL ?? 'http://127.0.0.1:3000';
 const output = process.env.PORTAL_UI_OUTPUT ?? '/tmp/portal-login-artifacts';

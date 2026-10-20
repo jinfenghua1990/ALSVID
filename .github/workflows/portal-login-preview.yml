@@ -49,9 +49,11 @@ jobs:
           ALSVID_ENV: production
       - name: Install browser in disposable runner only
         run: |
-          npm install --no-save --package-lock=false playwright
-          npx playwright install --with-deps chromium
+          npm install --prefix "$RUNNER_TEMP/portal-login-browser" playwright@1.58.2
+          "$RUNNER_TEMP/portal-login-browser/node_modules/.bin/playwright" install --with-deps chromium
       - run: node scripts/portal-login-browser-smoke.mjs
+        env:
+          PORTAL_PLAYWRIGHT_ROOT: ${{ runner.temp }}/portal-login-browser
       - name: Upload screenshots and logs
         if: always()
         uses: actions/upload-artifact@v7
