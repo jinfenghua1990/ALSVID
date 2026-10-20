@@ -2,7 +2,9 @@
 
 > **状态：业务规划已确认；不代表功能已开发或域名已部署。** 本文件是后续 AI / 开发人员的跨会话交接基准。不得把 Shopify Shop 误拆成独立公开站点。代码现状以 CURRENT_STATE.md 和实际代码为准。
 
-> **域名规范更新（2026-10-20）：** 新生成的门户链接统一使用 `*.alsvid.com`；DNS、TLS、生产环境变量和实际服务绑定须单独验收，不能将目标地址当成已上线证据。旧 `chaibenn.com` 仅作为迁移/历史域名。\n\n> 2026-10-16 执行修订：设计/供应商目标以[设计边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)和 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)为准；代码证据与后续任务统一维护在[实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md)。保留四核心产品，Supplier 自助是已确认的后续目标；共享云端 Development 已退役。
+> **域名规范更新（2026-10-20）：** 新生成的门户链接统一使用 `*.alsvid.com`；DNS、TLS、生产环境变量和实际服务绑定须单独验收，不能将目标地址当成已上线证据。旧 `chaibenn.com` 仅作为迁移/历史域名。
+
+> 2026-10-16 执行修订：设计/供应商目标以[设计边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)和 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)为准；代码证据与后续任务统一维护在[实施台账](PORTAL_DELIVERY_PLAN_2026-10-16.md)。保留四核心产品，Supplier 自助是已确认的后续目标；共享云端 Development 已退役。
 
 ## 0. 不能重新讨论的已确认边界
 - **四个独立开发工作流/门户**：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
