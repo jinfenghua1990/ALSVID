@@ -37,6 +37,7 @@
 
 ## 4. 当前状态
 
+- 邮件发件域：本次读取的 Resend 状态显示 `alsvid.com` 为 `failed`；DKIM TXT、SPF MX、SPF TXT 均验证失败，`rsend` CNAME 尚未开始验证。不要将生产发件地址切换到 `@alsvid.com`，直到 DNS 记录补齐且 Resend 状态变为 verified。
 - 代码：门户链接生成逻辑已调整为规范 `alsvid.com` 域名；本地开发链接保持本地路径。
 - 自动化：新增门户域名路由测试，覆盖旧生产域名、新规范域名和本地导航。
 - 生产域名：**尚未在本次操作中验证 DNS、TLS、Cloud Run 绑定、生产变量或真实浏览器访问。** 在这些检查通过前，不应声称新域名已正式上线。
