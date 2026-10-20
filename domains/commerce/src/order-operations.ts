@@ -96,6 +96,14 @@ export class CommerceOrderOperationsService {
   const reason=typeof input.reason==='string'?input.reason.trim():'';
   if(reason.length<10||reason.length>1000)throw new CommerceValidationError('Provide a 10-1000 character review reason');
   return this.db.transaction(async (e:QueryExecutor)=>{
+   // Serialize retries for the same order BEFORE reading request idempotency state.
+   // Lock also stabilizes the source amount/currency while requesting a review.
+   const order=await e.query<OrderRow>(`SELECT id,total_amount::text,currency
+     FROM commerce.external_orders WHERE id=$1 FOR UPDATE`,[orderId]);
+   const source=order.rows[0];
+   if(!source)throw new CommerceNotFoundError('Imported order was not found');
+   if(currency!==source.currency||moneyMinor(amount)>moneyMinor(source.total_amount))
+    throw new CommerceValidationError('Review amount or currency exceeds/mismatches the imported order');
    const existing=await e.query<RefundRow>(`SELECT id,external_order_id,client_request_id,requested_by,
     requested_amount::text,currency,reason,state,requested_at FROM commerce.refund_review_requests
     WHERE requested_by=$1 AND client_request_id=$2`,[actor.userId,clientRequestId]);
@@ -106,13 +114,6 @@ export class CommerceOrderOperationsService {
      throw new CommerceConflictError('Request ID already belongs to a different refund review');
     return mapRefund(previous);
    }
-   // Locking the source order provides a stable snapshot for a single review entry.
-   const order=await e.query<OrderRow>(`SELECT id,total_amount::text,currency
-     FROM commerce.external_orders WHERE id=$1 FOR UPDATE`,[orderId]);
-   const source=order.rows[0];
-   if(!source)throw new CommerceNotFoundError('Imported order was not found');
-   if(currency!==source.currency||moneyMinor(amount)>moneyMinor(source.total_amount))
-    throw new CommerceValidationError('Review amount or currency exceeds/mismatches the imported order');
    const saved=await e.query<RefundRow>(`INSERT INTO commerce.refund_review_requests
     (external_order_id,client_request_id,requested_by,requested_amount,currency,reason)
     VALUES($1,$2,$3,$4,$5,$6)
