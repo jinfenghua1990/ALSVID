@@ -20,6 +20,25 @@ type EditTarget = { entity: 'model' | 'variant' | 'sku'; id: string; version: nu
 const emptyCatalog: Catalog = { platforms: [], models: [], variants: [], skus: [] };
 const emptyEngineering: Engineering = { parts: [], boms: [], buildSpecs: [] };
 
+const PLATFORM_PRESENTATION: Record<string, { name: string; description: string; order: number }> = {
+  FC: { name: 'Folding Carbon', description: '碳纤维折叠技术平台', order: 0 },
+  CT: { name: 'City Touring', description: '城市通勤技术平台', order: 1 },
+  FT: { name: 'Fat Tire', description: '胖胎技术平台', order: 2 },
+  GT: { name: 'Gravel/Touring', description: 'Gravel 与长途旅行技术平台', order: 3 },
+};
+
+function platformName(platform: Platform) {
+  return PLATFORM_PRESENTATION[platform.code]?.name ?? platform.name;
+}
+
+function platformDescription(platform: Platform) {
+  return PLATFORM_PRESENTATION[platform.code]?.description ?? platform.description;
+}
+
+function platformOrder(code: string) {
+  return PLATFORM_PRESENTATION[code]?.order ?? 99;
+}
+
 function statusLabel(status: string | null | undefined) {
   if (!status) return '未设置';
   const labels: Record<string, string> = {
@@ -33,11 +52,37 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
+function modelEngineeringStage(modelId: string, catalog: Catalog, engineering: Engineering) {
+  const variants = catalog.variants.filter((variant) => variant.model_id === modelId);
+  const skuIds = catalog.skus
+    .filter((sku) => variants.some((variant) => variant.id === sku.variant_id))
+    .map((sku) => sku.id);
+  const specs = engineering.buildSpecs.filter((spec) => skuIds.includes(spec.sku_id));
+  const boms = engineering.boms.filter((bom) => bom.model_id === modelId);
+  if (specs.some((spec) => spec.status === 'RELEASED')) return '生产规格已发布';
+  if (specs.some((spec) => spec.status === 'DRAFT')) return '生产规格编制中';
+  if (boms.some((bom) => bom.revision_status === 'RELEASED')) return 'BOM 已发布';
+  if (boms.some((bom) => bom.revision_status === 'DRAFT')) return 'BOM 编制中';
+  if (boms.length) return 'BOM 已建，待建版本';
+  return '待建立 BOM';
+}
+
+function modelBomSummary(modelId: string, engineering: Engineering) {
+  const boms = engineering.boms.filter((bom) => bom.model_id === modelId);
+  if (!boms.length) return '未关联 BOM';
+  return boms.map((bom) => `${bom.code}${bom.revision_code ? ` / ${bom.revision_code}` : '（待建版本）'}`).join('、');
+}
+
 export default function ProductClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
   const [engineering, setEngineering] = useState<Engineering>(emptyEngineering);
   const [message, setMessage] = useState('');
+  const [catalogError, setCatalogError] = useState('');
+  const [engineeringError, setEngineeringError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [modelSearch, setModelSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [edit, setEdit] = useState<EditTarget | null>(null);
 
   async function api(path: string, init?: RequestInit) {
@@ -54,25 +99,44 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   }
 
   async function reload() {
-    try {
-      const [nextCatalog, nextEngineering] = await Promise.all([
-        api('/v1/product/catalog'),
-        api('/v1/engineering'),
-      ]);
-      setCatalog(nextCatalog);
-      setEngineering(nextEngineering);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '无法加载产品与工程工作台');
+    setLoading(true);
+    setCatalogError('');
+    setEngineeringError('');
+    const [catalogResult, engineeringResult] = await Promise.allSettled([
+      api('/v1/product/catalog'),
+      api('/v1/engineering'),
+    ]);
+    if (catalogResult.status === 'fulfilled') {
+      setCatalog(catalogResult.value as Catalog);
+    } else {
+      setCatalogError(catalogResult.reason instanceof Error ? catalogResult.reason.message : '请求异常');
     }
+    if (engineeringResult.status === 'fulfilled') {
+      setEngineering(engineeringResult.value as Engineering);
+    } else {
+      setEngineeringError(engineeringResult.reason instanceof Error ? engineeringResult.reason.message : '请求异常');
+    }
+    setLoading(false);
   }
 
   useEffect(() => { void reload(); }, []);
 
-  const hierarchyRows = useMemo(() => catalog.models.map((model) => ({
-    model,
-    platform: catalog.platforms.find((item) => item.id === model.platform_id),
-    variants: catalog.variants.filter((item) => item.model_id === model.id),
-  })), [catalog]);
+  const hierarchyRows = useMemo(() => [...catalog.models]
+    .sort((a, b) => a.code.localeCompare(b.code))
+    .map((model) => ({
+      model,
+      platform: catalog.platforms.find((item) => item.id === model.platform_id),
+      variants: catalog.variants.filter((item) => item.model_id === model.id),
+    })), [catalog]);
+
+  const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) => {
+    const query = modelSearch.trim().toLocaleLowerCase();
+    const searchable = [model.code, model.name, platform?.code, platform ? platformName(platform) : '']
+      .filter(Boolean)
+      .join(' ')
+      .toLocaleLowerCase();
+    return (!query || searchable.includes(query)) && (statusFilter === 'ALL' || model.status === statusFilter);
+  }), [hierarchyRows, modelSearch, statusFilter]);
 
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown) {
     event.preventDefault();
@@ -128,44 +192,112 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         <div>
           <div className={styles.eyebrow}>ALSVID PRODUCT CENTER</div>
           <h1>ALSVID 产品中心</h1>
-          <p>从产品系列、车型配置到 SKU、BOM 与生产规格，统一管理 ALSVID 的核心产品资产。商业产品身份与工程发布事实保持清晰分层。</p>
+          <p>统一维护技术平台、车型、配置版本、SKU 与工程发布关系；生产和销售系统以这里的产品主数据为准。</p>
         </div>
         <div className={styles.releaseBadge}>产品主数据 · 工程控制</div>
       </header>
 
-      {message ? <div className={styles.notice}>{message}</div> : null}
+      {message ? <div className={styles.notice} role="status">{message}</div> : null}
+      {catalogError || engineeringError ? (
+        <div className={`${styles.notice} ${styles.errorNotice}`} role="alert">
+          {[catalogError ? `产品主数据加载失败：${catalogError}` : '', engineeringError ? `工程数据加载失败：${engineeringError}` : ''].filter(Boolean).join('；')}
+          。接口异常不代表数据库没有记录，未成功读取的数据不会按 0 处理。
+        </div>
+      ) : null}
 
       <div className={styles.metrics} aria-label="产品数据概览">
-        <div><span>产品系列</span><strong>{catalog.platforms.length}</strong></div>
-        <div><span>车型</span><strong>{catalog.models.length}</strong></div>
-        <div><span>Variant</span><strong>{catalog.variants.length}</strong></div>
-        <div><span>SKU</span><strong>{catalog.skus.length}</strong></div>
-        <div><span>BOM</span><strong>{engineering.boms.length}</strong></div>
-        <div><span>零部件</span><strong>{engineering.parts.length}</strong></div>
+        <div><span>技术平台</span><strong>{loading || catalogError ? '—' : catalog.platforms.length}</strong></div>
+        <div><span>产品型号</span><strong>{loading || catalogError ? '—' : catalog.models.length}</strong></div>
+        <div><span>配置版本</span><strong>{loading || catalogError ? '—' : catalog.variants.length}</strong></div>
+        <div><span>SKU</span><strong>{loading || catalogError ? '—' : catalog.skus.length}</strong></div>
+        <div><span>BOM</span><strong>{loading || engineeringError ? '—' : engineering.boms.length}</strong></div>
+        <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
       </div>
 
       <section className={styles.seriesSection} id="series">
         <div className={styles.sectionHead}>
-          <div><span>PRODUCT SERIES</span><h2>产品系列</h2></div>
-          <p>界面使用“产品系列”作为业务语言；底层仍保留受控 Platform → Model → Variant → SKU 产品层级。</p>
+          <div><span>TECHNOLOGY PLATFORMS</span><h2>技术平台</h2></div>
+          <p>固定平台顺序：FC、CT、FT、GT。平台定义产品技术方向；具体车型、配置和 SKU 在下方管理。</p>
         </div>
         <div className={styles.platforms}>
-          {catalog.platforms.map((platform) => (
+          {[...catalog.platforms].sort((a, b) => platformOrder(a.code) - platformOrder(b.code)).map((platform) => (
             <article key={platform.id}>
               <span>{platform.code}</span>
-              <h2>{platform.name}</h2>
-              <p>{platform.description}</p>
-              <small>{catalog.models.filter((model) => model.platform_id === platform.id).length} 个车型</small>
+              <h2>{platformName(platform)}</h2>
+              <p>{platformDescription(platform)}</p>
+              <small>{catalog.models.filter((model) => model.platform_id === platform.id).length} 个型号</small>
             </article>
           ))}
-          {!catalog.platforms.length ? <div className={styles.emptySeries}>暂无产品系列数据</div> : null}
+          {!catalog.platforms.length ? <div className={styles.emptySeries}>{loading ? '正在读取技术平台…' : catalogError ? '平台数据未能读取；请检查接口状态。' : '暂无技术平台数据。'}</div> : null}
         </div>
+      </section>
+
+      <section className={styles.section} id="model-register">
+        <div className={styles.sectionHead}>
+          <div><span>MODEL REGISTER</span><h2>产品型号总表</h2></div>
+          <p>先按型号查看平台、配置版本、产品状态、工程阶段和 BOM 关联；工程阶段仅根据当前真实 BOM / 生产规格记录判断。</p>
+        </div>
+        <div className={styles.modelToolbar}>
+          <input
+            aria-label="搜索产品型号"
+            value={modelSearch}
+            onChange={(event) => setModelSearch(event.target.value)}
+            placeholder="搜索型号、名称或技术平台"
+          />
+          <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            <option value="ALL">全部状态</option>
+            <option value="DRAFT">草稿</option>
+            <option value="ACTIVE">启用</option>
+            <option value="RETIRED">已退役</option>
+          </select>
+          <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
+        </div>
+        {loading && catalog.models.length === 0 ? (
+          <div className={styles.emptyState}>正在读取产品主数据…</div>
+        ) : filteredModels.length ? (
+          <div className={styles.modelTableWrap}>
+            <table className={styles.modelTable}>
+              <thead>
+                <tr>
+                  <th>型号</th>
+                  <th>技术平台</th>
+                  <th>配置版本</th>
+                  <th>状态</th>
+                  <th>当前工程阶段</th>
+                  <th>关联 BOM</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredModels.map(({ model, platform, variants }) => (
+                  <tr key={model.id}>
+                    <td><strong>{model.code}</strong><small>{model.name}</small></td>
+                    <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
+                    <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
+                    <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
+                    <td><span className={styles.stageBadge}>{modelEngineeringStage(model.id, catalog, engineering)}</span></td>
+                    <td>{modelBomSummary(model.id, engineering)}</td>
+                    <td><button type="button" className={styles.tableAction} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            {catalogError
+              ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
+              : modelSearch || statusFilter !== 'ALL'
+                ? '没有符合当前筛选条件的型号。'
+                : '当前没有已登记的真实型号。请在下方创建车型；系统不会自动填充示例记录。'}
+          </div>
+        )}
       </section>
 
       <section className={styles.section} id="models">
         <div className={styles.sectionHead}>
-          <div><span>产品层级</span><h2>车型 → Variant → SKU</h2></div>
-          <p>产品系列和车型是 ALSVID 的产品主数据。Shopify 等外部销售渠道只能映射 SKU，不能定义这里的产品真相。</p>
+          <div><span>PRODUCT STRUCTURE</span><h2>产品结构明细：车型 → Variant → SKU</h2></div>
+          <p>这里用于维护型号下的商业版本与可销售 SKU；总表负责筛选和查看，结构树负责编辑下级产品对象。</p>
         </div>
         <div className={styles.hierarchy}>
           {hierarchyRows.map(({ model, platform, variants }) => (
@@ -202,7 +334,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       <section className={styles.formsGrid} id="configuration">
         <form onSubmit={(e) => void submitForm(e, '/v1/product/models', (f) => ({ platformId: f.get('platformId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
           <span>新建车型</span><h3>创建车型</h3>
-          <select name="platformId" required defaultValue=""><option value="" disabled>选择产品系列</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}</select>
+          <select name="platformId" required defaultValue=""><option value="" disabled>选择产品系列</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {platformName(p)}</option>)}</select>
           <input name="code" placeholder="例如：FC1" required />
           <input name="name" placeholder="车型名称" required />
           <input name="description" placeholder="车型说明" />
