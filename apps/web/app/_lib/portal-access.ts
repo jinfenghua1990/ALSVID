@@ -66,8 +66,13 @@ export function requireInternalPreviewSession(): Promise<PortalSession> {
 // The launcher accepts any valid Internal session, including a session that is
 // temporarily limited to completing mandatory password setup. Each destination
 // remains responsible for its own authorization rules.
-export async function readInternalPreviewSession(): Promise<PortalSession | null> {
-  const token = (await cookies()).get('alsvid_session')?.value;
+export function readInternalPreviewSession(): Promise<PortalSession | null> {
+  return readPortalSession('admin');
+}
+
+/** Reads the server-selected portal cookie; authentication never confers portal permissions. */
+export async function readPortalSession(portal: ProtectedPortalId): Promise<PortalSession | null> {
+  const token = (await cookies()).get(sessionCookieNameForPortal(portal))?.value;
   if (!token) return null;
 
   try {
