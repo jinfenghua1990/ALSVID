@@ -69,7 +69,7 @@ export function OrderOperationsPanel(){
    <h2>支付核验 · 生产阻断 · 退款审核</h2></div>
    <span className={styles.releaseBadge}>支付机构尚未接入 · 不开放真实退款</span>
   </div>
-  <p className={styles.opsHelp}>本区只针对历史外部渠道订单。渠道返回“PAID”是**外部报告值**，不是 ALSVID 对支付机构的独立核验；无论渠道报告什么，当前都不能自动生产、确认到账或执行退款。官网自建结账仍未开放。</p>
+  <p className={styles.opsHelp}>本区只针对历史外部渠道订单。渠道返回“PAID”只是外部报告值，不是 ALSVID 对支付机构的独立核验；无论渠道报告什么，当前都不能自动生产、确认到账或执行退款。官网自建结账仍未开放。</p>
   {loading?<p role="status">正在读取真实订单核验状态…</p>:null}
   {error?<p className={styles.notice} role="alert">{error}</p>:null}
   {notice?<p className={styles.notice} role="status">{notice}</p>:null}
