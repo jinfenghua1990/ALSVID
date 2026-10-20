@@ -111,7 +111,7 @@ admin.alsvid.com
 supplier.alsvid.com   # future
 ```
 
-当前生产规范使用 `chaibenn.com` 体系，Admin Canonical URL 为 `https://admin.chaibenn.com`；`alsvid.com` 仅是未来品牌域名目标，不据此改 DNS 或认证配置。其他门户实际 DNS / 部署状态逐项验收，详见 [PORTAL_DOMAINS.md](PORTAL_DOMAINS.md)。
+新的门户链接统一以 `alsvid.com` 为规范域名，Admin 认证目标为 `https://admin.alsvid.com`；旧 `chaibenn.com` 是迁移/历史域名。不要仅凭本次代码或文档修改宣称 DNS、TLS、Cloud Run 绑定或认证配置已完成；逐项验收要求见 [PORTAL_DOMAINS.md](PORTAL_DOMAINS.md)。
 
 ## 4. 五类用户与职责
 
