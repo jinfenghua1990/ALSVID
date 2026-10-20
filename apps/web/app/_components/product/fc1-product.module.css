@@ -325,3 +325,12 @@
 .interestSummary>p.interestCartError { color:#a93434; font-size:12px; }
 @media(max-width:420px){ .interestCartActions { flex-wrap:wrap; } .interestCartActions a { padding:5px 0; } }
 @media(prefers-reduced-motion:reduce){ .interestCartActions button { transition:none; } }
+
+/* FC1 remains a promotional page; this CTA opens an email draft only when configured. */
+.interestReservationActions { display:flex; flex-direction:column; align-items:stretch; gap:10px; margin:17px 0 16px; }
+.interestReservationButton { box-sizing:border-box; display:flex; width:100%; min-height:49px; align-items:center; justify-content:space-between; gap:16px; padding:13px 17px; border:1px solid #234e42; border-radius:5px; background:#234e42; color:#fff; font:inherit; font-size:13px; font-weight:650; text-align:left; text-decoration:none; cursor:pointer; transition:background .2s ease,transform .2s ease; }
+.interestReservationButton:hover:not(:disabled) { background:#1b3e35; transform:translateY(-1px); }
+.interestReservationButton:disabled { opacity:.62; cursor:not-allowed; }
+.interestReservationButton:focus-visible { outline:2px solid #6e9e8d; outline-offset:3px; }
+.interestReservationPending { margin:0; color:#788b94; font-size:11px; line-height:1.65; }
+@media(prefers-reduced-motion:reduce) { .interestReservationButton { transition:none; } }
