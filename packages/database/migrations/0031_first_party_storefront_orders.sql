@@ -4,7 +4,8 @@
 INSERT INTO identity.permissions(id,description) VALUES
  ('commerce.storefront.read','Read ALSVID first-party storefront order drafts and price book'),
  ('commerce.storefront.write','Create and cancel internal ALSVID storefront order drafts'),
- ('commerce.price.manage','Create, activate and retire ALSVID storefront price revisions')
+ ('commerce.price.manage','Create, activate and retire ALSVID storefront price revisions'),
+ ('commerce.storefront.production','Create production demand linked to a payment-verified first-party order')
 ON CONFLICT(id) DO NOTHING;
 
 INSERT INTO identity.role_permissions(role_id,permission_id) VALUES
@@ -12,9 +13,12 @@ INSERT INTO identity.role_permissions(role_id,permission_id) VALUES
  ('commerce_manager','commerce.storefront.write'),
  ('commerce_manager','commerce.price.manage'),
  ('commerce_viewer','commerce.storefront.read'),
+ ('production_manager','commerce.storefront.read'),
+ ('production_manager','commerce.storefront.production'),
  ('system_admin','commerce.storefront.read'),
  ('system_admin','commerce.storefront.write'),
- ('system_admin','commerce.price.manage')
+ ('system_admin','commerce.price.manage'),
+ ('system_admin','commerce.storefront.production')
 ON CONFLICT DO NOTHING;
 
 CREATE SEQUENCE commerce.storefront_order_number_seq START 1;
