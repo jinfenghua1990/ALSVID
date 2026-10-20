@@ -105,7 +105,7 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 8. **2026-10-16 最新设计与供应商边界**必须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 只负责 Admin 内部运营设计/原型；Figma 负责所有对外门户最终 UI；Supplier Portal 作为未来第五个外部业务门户预留；Shopify 负责 B2C/B2B 商业交易，不替代上游供应商协同门户。
 
 
-> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
+> 当前域名说明：新生成的门户链接统一以 `alsvid.com` 为规范目标；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run、认证与邮件配置仍须独立验收，不能将规范地址当成已上线证据。
 
 ## 8. 独立项目入口确认 — 2026-10-14
 
