@@ -1,0 +1,197 @@
+name: ALSVID WWW Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Merged main commit to publish on WWW (blank = current main)"
+        required: false
+        type: string
+      confirm:
+        description: "Type deploy to publish the public website"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: alsvid-production-deploy
+  cancel-in-progress: false
+
+env:
+  WEB_SERVICE: alsvid-web
+  API_SERVICE: alsvid-api
+  PUBLIC_SITE_URL: https://www.alsvidbike.com/zh/explore/fc1
+
+jobs:
+  deploy_www:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: production
+    steps:
+      - name: Checkout verified release
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Require successful main-branch CI and current main commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALLOW_PREVIOUS_PRODUCTION: false
+          RELEASE_CONTROLLER_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          git show "$RELEASE_CONTROLLER_SHA:scripts/release-gate.mjs" | node --input-type=module - production
+          git fetch origin main
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
+            echo "Refusing WWW deployment of an outdated commit." >&2
+            exit 1
+          fi
+
+      - name: Verify public hostname before changing the Web service
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 3 --retry-delay 3 "$PUBLIC_SITE_URL" >/dev/null
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Inspect existing production services (read-only)
+        id: current
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+        run: |
+          set -euo pipefail
+          [[ -n "$GCP_PROJECT_ID" && -n "$GCP_REGION" && -n "$AUTH_BASE_URL" ]]
+          [[ "$AUTH_BASE_URL" == https://* && "$AUTH_BASE_URL" != *run.app* ]]
+          api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          previous_revision="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.traffic[0].revisionName)')"
+          [[ "$api_url" == https://* && -n "$previous_revision" ]]
+          curl --fail --silent --show-error --retry 4 --retry-delay 3 "$api_url/api/health" >/dev/null
+          echo "api_url=$api_url" >> "$GITHUB_OUTPUT"
+          echo "previous_revision=$previous_revision" >> "$GITHUB_OUTPUT"
+          echo "Preserving existing API, database, identity base URL, email sender and worker pool."
+
+      - name: Configure Artifact Registry
+        env:
+          GCP_REGION: ${{ vars.GCP_REGION }}
+        run: gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev" --quiet
+
+      - name: Locate the exact Web image
+        id: image
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
+        run: |
+          set -euo pipefail
+          [[ -n "$GAR_REPOSITORY" ]]
+          release_sha="$(git rev-parse HEAD)"
+          image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GAR_REPOSITORY/alsvid-web:$release_sha"
+          echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          if gcloud artifacts docker images describe "$image" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.image.outputs.exists != 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push only the Web image
+        if: steps.image.outputs.exists != 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.web
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.image.outputs.image }}
+          build-args: |
+            ALSVID_ENV=production
+            NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+          cache-from: type=gha,scope=alsvid-production-web
+          cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
+
+      - name: Pin immutable Web image digest
+        id: pinned
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          digest="$(gcloud artifacts docker images describe "$IMAGE" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
+          if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "Cannot resolve the release Web image digest." >&2
+            exit 1
+          fi
+          echo "url=${IMAGE%:*}@$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Web only (no API, worker or database changes)
+        id: deploy
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          RELEASE_SHA: ${{ steps.image.outputs.release_sha }}
+          API_URL: ${{ steps.current.outputs.api_url }}
+          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+        run: |
+          set -euo pipefail
+          [[ -n "$RUNTIME_SERVICE_ACCOUNT" ]]
+          gcloud run deploy "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --no-default-url --image "${{ steps.pinned.outputs.url }}" --service-account "$RUNTIME_SERVICE_ACCOUNT" --port 3000 --cpu 1 --memory 512Mi --min 0 --max 3 --allow-unauthenticated --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_API_BASE_URL=$API_URL/api,AUTH_BASE_URL=$AUTH_BASE_URL" --quiet
+
+      - name: Confirm WWW is serving the expected release
+        env:
+          RELEASE_SHA: ${{ steps.image.outputs.release_sha }}
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$PUBLIC_SITE_URL" >/dev/null
+          release_json="$(curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "https://www.alsvidbike.com/release-check")"
+          printf '%s' "$release_json" | node -e '
+            let text = "";
+            process.stdin.on("data", (chunk) => text += chunk);
+            process.stdin.on("end", () => {
+              const payload = JSON.parse(text);
+              if (payload.service !== "alsvid-web" || payload.release !== process.argv[1]) {
+                console.error("The public WWW hostname is not serving the new Web revision.");
+                process.exit(1);
+              }
+            });
+          ' "$RELEASE_SHA"
+          echo "WWW live: $PUBLIC_SITE_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified public release: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "API, database, worker and transactional sender: unchanged" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Restore previous Web revision if post-deploy verification fails
+        if: ${{ failure() && steps.deploy.outcome == 'success' }}
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          PREVIOUS_REVISION: ${{ steps.current.outputs.previous_revision }}
+        run: |
+          set -euo pipefail
+          [[ -n "$PREVIOUS_REVISION" ]]
+          gcloud run services update-traffic "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --to-revisions "$PREVIOUS_REVISION=100" --quiet
+          echo "WWW rollback requested after failed verification." >> "$GITHUB_STEP_SUMMARY"

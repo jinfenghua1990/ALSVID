@@ -256,7 +256,7 @@ jobs:
         if: always() && steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml down -v --remove-orphans
 
-  dispatch_production:
+  dispatch_www_production:
     needs: [verify, containers]
     if: >-
       ${{
@@ -278,7 +278,7 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
-      - name: Dispatch the verified main commit to Production
+      - name: Dispatch verified main commit to WWW-only Production
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -301,13 +301,28 @@ jobs:
             fi
           fi
 
+          # This temporary staged release publishes only the shared Web service.
+          # Backend/schema/infrastructure changes must never sneak into that path.
+          if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
+            while IFS= read -r file; do
+              case "$file" in
+                apps/api/*|apps/worker/*|packages/*|infra/docker/Dockerfile.api|infra/docker/Dockerfile.worker|infra/gcp/*)
+                  echo "Backend/shared-schema/infra change detected: $file. Manual full-stack release required."
+                  exit 0
+                  ;;
+              esac
+            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+          fi
+
           main_sha="$(gh api "repos/$GH_REPO/commits/main" --jq .sha)"
           if [[ "$main_sha" != "$RELEASE_SHA" ]]; then
             echo "A newer main commit exists; skipping the obsolete release dispatch."
             exit 0
           fi
 
-          gh workflow run production-deploy.yml --ref main \
+          # During staged hostname migration, protect existing API, DB, mail and worker services.
+          # Full-platform releases remain an explicit separate production workflow.
+          gh workflow run www-deploy.yml --ref main \
             -f confirm=deploy \
             -f release_sha="$RELEASE_SHA"
-          echo "Production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          echo "WWW-only production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
