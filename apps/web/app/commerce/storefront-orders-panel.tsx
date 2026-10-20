@@ -147,7 +147,7 @@ export function StorefrontOrderDraftPanel(){
       {items.length>1?<button type="button" className={styles.secondaryAction} disabled={busy} onClick={()=>setItems(old=>old.filter((_,j)=>j!==i))}>移除</button>:null}
      </div>)}
      <div className={styles.firstPartyInline}>
-      <button type="button" className={styles.secondaryAction} disabled={busy||items.length>=25||!canAddLine} onClick={()=>setItems(old=>[...old,newItem(availableSkus.find(s=>!old.some(x=>x.skuId===s.id))?.id??'')])>添加商品行</button>
+      <button type="button" className={styles.secondaryAction} disabled={busy||items.length>=25||!canAddLine} onClick={()=>setItems(old=>[...old,newItem(availableSkus.find(s=>!old.some(x=>x.skuId===s.id))?.id??'')])}>添加商品行</button>
       <button type="submit" disabled={busy||!email.trim()||!availableSkus.length||items.some(x=>!x.skuId||!/^\d+$/.test(x.quantity)||Number(x.quantity)<1||Number(x.quantity)>1000)}>创建草稿（不收款）</button>
      </div>
     </form>
