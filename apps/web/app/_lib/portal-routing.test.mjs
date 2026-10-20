@@ -17,7 +17,8 @@ test('local development keeps portal navigation on the local app', () => {
   assert.equal(new URL('/my/vehicles', portalUrlFor('localhost:3000', 'my')).toString(), 'http://localhost:3000/my/vehicles');
 });
 
-test('legacy and canonical development hosts retain their own development suffix', () => {
-  assert.equal(portalHostFor('www.dev.chaibenn.com', 'my'), 'my.dev.chaibenn.com');
-  assert.equal(portalHostFor('www.dev.alsvid.com', 'my'), 'my.dev.alsvid.com');
+test('legacy and retired development hosts never generate non-canonical links', () => {
+  assert.equal(portalHostFor('www.dev.chaibenn.com', 'my'), 'my.alsvid.com');
+  assert.equal(portalHostFor('www.dev.alsvid.com', 'my'), 'my.alsvid.com');
+  assert.equal(portalUrlFor('www.dev.chaibenn.com', 'my'), 'https://my.alsvid.com');
 });
