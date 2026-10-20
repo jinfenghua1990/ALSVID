@@ -60,7 +60,7 @@ try {
         assert.match(await product.locator('h1').innerText(),/FC2/);
         await page.waitForFunction(()=>{const image=document.querySelector('[data-fc2-gallery] img');return image?.complete&&image.naturalWidth>0;});
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'FC2 must fit '+device+' viewport');
-        assert.ok(await page.locator('link[rel="canonical"]').getAttribute('href')=== 'https://www.alsvid.com/'+locale+'/explore/fc2');
+        assert.ok(await page.locator('link[rel="canonical"]').getAttribute('href')=== 'https://www.alsvidbike.com/'+locale+'/explore/fc2');
         await page.screenshot({path:output+'/fc2-'+locale+'-'+device+'.png',fullPage:true});
         const gallery=product.locator('[data-fc2-gallery]');
         const controls=gallery.locator('button');

@@ -19,13 +19,13 @@ export async function generateFc1Metadata(localeValue: string): Promise<Metadata
   if (!isLocale(localeValue)) return {};
   const locale = localeValue;
   const t = translator(locale);
-  const languages = Object.fromEntries(locales.map((item) => [item, `https://www.alsvid.com/${item}/explore/fc1`])) as Record<Locale, string>;
+  const languages = Object.fromEntries(locales.map((item) => [item, `https://www.alsvidbike.com/${item}/explore/fc1`])) as Record<Locale, string>;
   return {
     title: t("fc1.title"),
     description: t("fc1.description"),
     alternates: {
-      canonical: `https://www.alsvid.com/${locale}/explore/fc1`,
-      languages: { ...languages, "x-default": "https://www.alsvid.com/en/explore/fc1" },
+      canonical: `https://www.alsvidbike.com/${locale}/explore/fc1`,
+      languages: { ...languages, "x-default": "https://www.alsvidbike.com/en/explore/fc1" },
     },
     openGraph: { title: t("fc1.title"), description: t("fc1.description"), images: ["/products/fc1/side.webp"] },
   };

@@ -98,7 +98,7 @@ ALSVID currently prefers low fixed cost and low operational burden over prematur
 
 ## Domain / custom URL
 
-Admin's canonical target entry is `https://admin.alsvid.com`; the old `chaibenn.com` domain is legacy and must not be generated for new cross-portal links. Production authentication/email links use the configured canonical domain, not request-host inference or technical service aliases. Before release, verify DNS/TLS, Cloud Run custom-domain binding, `AUTH_BASE_URL`, verified mail sender domain, identity callbacks and browser flows as listed in `docs/PORTAL_DOMAINS.md`. This target mapping is not proof that the production domain migration has completed.
+Admin's canonical target entry is `https://admin.alsvidbike.com`; the old `chaibenn.com` domain is legacy and must not be generated for new cross-portal links. Production authentication/email links use the configured canonical domain, not request-host inference or technical service aliases. Before release, verify DNS/TLS, Cloud Run custom-domain binding, `AUTH_BASE_URL`, verified mail sender domain, identity callbacks and browser flows as listed in `docs/PORTAL_DOMAINS.md`. This target mapping is not proof that the production domain migration has completed.
 
 ## Q4 / backup / DR
 

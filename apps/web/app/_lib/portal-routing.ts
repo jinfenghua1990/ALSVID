@@ -26,8 +26,8 @@ export function portalFromHost(host: string): PortalId {
 }
 
 export function portalHostFor(_host: string, portal: PortalId): string {
-  // chaibenn.com is a legacy migration domain only. Never generate new links to it.
-  return `${portalDefinitions[portal].hostnamePrefix}.alsvid.com`;
+  // Only alsvidbike.com is canonical; never generate new links on chaibenn.com or alsvid.com.
+  return `${portalDefinitions[portal].hostnamePrefix}.alsvidbike.com`;
 }
 
 export function portalUrlFor(host: string, portal: PortalId): string {

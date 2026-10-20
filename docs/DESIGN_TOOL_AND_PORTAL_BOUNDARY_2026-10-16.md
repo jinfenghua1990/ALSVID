@@ -104,14 +104,14 @@ Supplier Portal 是后续第五个**外部业务门户**，不是五个都已上
 目标域名：
 
 ```text
-www.alsvid.com
-my.alsvid.com
-dealer.alsvid.com
-admin.alsvid.com
-supplier.alsvid.com   # future
+www.alsvidbike.com
+my.alsvidbike.com
+dealer.alsvidbike.com
+admin.alsvidbike.com
+supplier.alsvidbike.com   # future
 ```
 
-新的门户链接统一以 `alsvid.com` 为规范域名，Admin 认证目标为 `https://admin.alsvid.com`；旧 `chaibenn.com` 是迁移/历史域名。不要仅凭本次代码或文档修改宣称 DNS、TLS、Cloud Run 绑定或认证配置已完成；逐项验收要求见 [PORTAL_DOMAINS.md](PORTAL_DOMAINS.md)。
+新的门户链接统一以 `alsvidbike.com` 为规范域名，Admin 认证目标为 `https://admin.alsvidbike.com`；旧 `chaibenn.com` 是迁移/历史域名。不要仅凭本次代码或文档修改宣称 DNS、TLS、Cloud Run 绑定或认证配置已完成；逐项验收要求见 [PORTAL_DOMAINS.md](PORTAL_DOMAINS.md)。
 
 ## 4. 五类用户与职责
 

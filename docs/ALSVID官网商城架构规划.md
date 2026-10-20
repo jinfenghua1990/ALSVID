@@ -299,11 +299,11 @@ alsvid-my-prod
 Production 正式域名规范为：
 
 ```text
-www.alsvid.com      → ALSVID Official
-my.alsvid.com       → My ALSVID
-dealer.alsvid.com   → ALSVID Dealer Portal
-admin.alsvid.com    → ALSVID Admin
-service.alsvid.com  → ALSVID Service
+www.alsvidbike.com      → ALSVID Official
+my.alsvidbike.com       → My ALSVID
+dealer.alsvidbike.com   → ALSVID Dealer Portal
+admin.alsvidbike.com    → ALSVID Admin
+service.alsvidbike.com  → ALSVID Service
 ```
 
 开发与测试使用本地环境及临时 CI，不创建或恢复共享云端 Development 子域。
@@ -342,4 +342,4 @@ Issue #118 进一步固定四个系统的入口职责、Development / Production
 除非后续出现明确的新架构决策，否则官网、后台、部署、README、Issue、PR 与后续 AI/Codex 工作均沿用本规则，不因聊天窗口或开发阶段变化重新命名。
 
 
-> 当前域名说明：新生成的门户链接统一使用 `alsvid.com` 作为规范域名；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run 和邮件认证仍须独立验收后，才能认定生产切换完成。
+> 当前域名说明：新生成的门户链接统一使用 `alsvidbike.com` 作为规范域名；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run 和邮件认证仍须独立验收后，才能认定生产切换完成。

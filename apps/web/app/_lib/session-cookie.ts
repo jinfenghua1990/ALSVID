@@ -37,11 +37,13 @@ export function sessionCookieOptions(request: Request, expiresAt?: Date): {
     ? '.dev.chaibenn.com'
     : INTERNAL_PORTALS.has(portal) && host.endsWith('.chaibenn.com')
       ? '.chaibenn.com'
-      : INTERNAL_PORTALS.has(portal) && host.endsWith('.dev.alsvid.com')
-        ? '.dev.alsvid.com'
-        : INTERNAL_PORTALS.has(portal) && host.endsWith('.alsvid.com')
-          ? '.alsvid.com'
-          : undefined;
+      : INTERNAL_PORTALS.has(portal) && host.endsWith('.alsvidbike.com')
+        ? '.alsvidbike.com'
+        : INTERNAL_PORTALS.has(portal) && host.endsWith('.dev.alsvid.com')
+          ? '.dev.alsvid.com'
+          : INTERNAL_PORTALS.has(portal) && host.endsWith('.alsvid.com')
+            ? '.alsvid.com'
+            : undefined;
 
   return {
     httpOnly: true,

@@ -3,11 +3,11 @@ import test from 'node:test';
 import { portalHostFor, portalUrlFor } from './portal-routing.ts';
 
 test('legacy production hosts generate canonical ALSVID portal hosts', () => {
-  assert.equal(portalHostFor('www.chaibenn.com', 'my'), 'my.alsvid.com');
-  assert.equal(portalHostFor('my.chaibenn.com', 'my'), 'my.alsvid.com');
-  assert.equal(portalHostFor('admin.chaibenn.com', 'dealer'), 'dealer.alsvid.com');
-  assert.equal(portalHostFor('www.alsvid.com', 'my'), 'my.alsvid.com');
-  assert.equal(portalUrlFor('www.chaibenn.com', 'my'), 'https://my.alsvid.com');
+  assert.equal(portalHostFor('www.chaibenn.com', 'my'), 'my.alsvidbike.com');
+  assert.equal(portalHostFor('my.chaibenn.com', 'my'), 'my.alsvidbike.com');
+  assert.equal(portalHostFor('admin.chaibenn.com', 'dealer'), 'dealer.alsvidbike.com');
+  assert.equal(portalHostFor('www.alsvidbike.com', 'my'), 'my.alsvidbike.com');
+  assert.equal(portalUrlFor('www.chaibenn.com', 'my'), 'https://my.alsvidbike.com');
 });
 
 test('local development keeps portal navigation on the local app', () => {
@@ -18,7 +18,7 @@ test('local development keeps portal navigation on the local app', () => {
 });
 
 test('legacy and retired development hosts never generate non-canonical links', () => {
-  assert.equal(portalHostFor('www.dev.chaibenn.com', 'my'), 'my.alsvid.com');
-  assert.equal(portalHostFor('www.dev.alsvid.com', 'my'), 'my.alsvid.com');
-  assert.equal(portalUrlFor('www.dev.chaibenn.com', 'my'), 'https://my.alsvid.com');
+  assert.equal(portalHostFor('www.dev.chaibenn.com', 'my'), 'my.alsvidbike.com');
+  assert.equal(portalHostFor('www.dev.alsvid.com', 'my'), 'my.alsvidbike.com');
+  assert.equal(portalUrlFor('www.dev.chaibenn.com', 'my'), 'https://my.alsvidbike.com');
 });

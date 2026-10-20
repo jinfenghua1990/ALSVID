@@ -9,7 +9,7 @@ function shopProductUrl() {
     const value=process.env.ALSVID_SHOPIFY_FC2_PRODUCT_URL?.trim();
     if(!value) return null;
     const url=new URL(value);
-    return url.protocol==="https:" && url.hostname==="shop.chaibenn.com" && url.pathname.startsWith("/products/") ? url.toString() : null;
+    return url.protocol==="https:" && url.hostname==="shop.alsvidbike.com" && url.pathname.startsWith("/products/") ? url.toString() : null;
   } catch { return null; }
 }
 export function Fc2LaunchCard({locale}:{locale:Locale}) {

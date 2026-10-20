@@ -40,14 +40,14 @@ ALSVID
 正式品牌域名规范结构为：
 
 ```text
-www.alsvid.com
-my.alsvid.com
-admin.alsvid.com
-dealer.alsvid.com
-service.alsvid.com
+www.alsvidbike.com
+my.alsvidbike.com
+admin.alsvidbike.com
+dealer.alsvidbike.com
+service.alsvidbike.com
 ```
 
-`chaibenn.com` 为历史迁移域名；新链接统一使用 `alsvid.com`。DNS、TLS、Cloud Run 与认证/邮件配置必须单独验证，不能仅凭代码或文档宣称已上线。文档中的固定命名不代表每个 DNS、TLS 或业务闭环已经完成上线。
+`chaibenn.com` 为历史迁移域名；新链接统一使用 `alsvidbike.com`。DNS、TLS、Cloud Run 与认证/邮件配置必须单独验证，不能仅凭代码或文档宣称已上线。文档中的固定命名不代表每个 DNS、TLS 或业务闭环已经完成上线。
 
 ## 4. Environment names
 
@@ -128,12 +128,12 @@ ALSVID 不重复实现 Shopify 自己负责的 checkout、支付捕获和平台�
 
 | 入口 | 固定地址 | 主要能力 |
 | --- | --- | --- |
-| **ALSVID Official** | `https://www.alsvid.com` | 品牌、产品、内容与消费者主入口 |
+| **ALSVID Official** | `https://www.alsvidbike.com` | 品牌、产品、内容与消费者主入口 |
 | **ALSVID Shop** | 官网内商城体验；暂不启用独立 Shop 域名 | 消费者 / 买家 | 交易与支付按当前商务决策配置；历史 Shopify 规划不代表已接通 |
-| **My ALSVID** | `https://my.alsvid.com` | 我的车辆、车辆注册、VIN、保修、维修、服务、账户 |
-| **ALSVID Admin** | `https://admin.alsvid.com` | 内部工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 |
-| **ALSVID Dealer Portal** | `https://dealer.alsvid.com` | 经销商工作台、产品、采购、B2B 订单、交付车辆、售后、账户 |
-| **ALSVID Service** | `https://service.alsvid.com` | 售后、保修、维修与服务入口 |
+| **My ALSVID** | `https://my.alsvidbike.com` | 我的车辆、车辆注册、VIN、保修、维修、服务、账户 |
+| **ALSVID Admin** | `https://admin.alsvidbike.com` | 内部工作台、产品、订单、生产、库存、经销商、客户、售后、供应链、数据、设置 |
+| **ALSVID Dealer Portal** | `https://dealer.alsvidbike.com` | 经销商工作台、产品、采购、B2B 订单、交付车辆、售后、账户 |
+| **ALSVID Service** | `https://service.alsvidbike.com` | 售后、保修、维修与服务入口 |
 
 官网中的入口关系固定为：
 
@@ -171,11 +171,11 @@ ALSVID Production
 新的生产跨门户链接统一指向以下规范入口：
 
 ```text
-www.alsvid.com      → ALSVID Official
-my.alsvid.com       → My ALSVID
-admin.alsvid.com    → ALSVID Admin
-dealer.alsvid.com   → ALSVID Dealer Portal
-service.alsvid.com  → ALSVID Service
+www.alsvidbike.com      → ALSVID Official
+my.alsvidbike.com       → My ALSVID
+admin.alsvidbike.com    → ALSVID Admin
+dealer.alsvidbike.com   → ALSVID Dealer Portal
+service.alsvidbike.com  → ALSVID Service
 ```
 
 这些是**固定的规范命名与路由约定**，不是当前每个 DNS、证书或云资源已配置完成的声明。真实上线前仍需完成域名所有权、DNS、TLS、Cloud Run 路由与认证/邮件配置的实际验证。
@@ -184,11 +184,11 @@ service.alsvid.com  → ALSVID Service
 
 Cloud Run 的 `*.run.app` 地址仅作为技术服务地址，不是用户正式入口。
 
-生产环境中的登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 和跨门户跳转均应使用对应 `*.alsvid.com` 固定域名。Admin 的 canonical auth origin 固定为 `https://admin.alsvid.com`，不得将任一 Web `run.app` 地址写入用户邮件或前端正式跳转。
+生产环境中的登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 和跨门户跳转均应使用对应 `*.alsvidbike.com` 固定域名。Admin 的 canonical auth origin 固定为 `https://admin.alsvidbike.com`，不得将任一 Web `run.app` 地址写入用户邮件或前端正式跳转。
 
 ## 12. Change control
 
-本命名规则起源于 Issue #116，并由 Issue #118 补充固定系统入口与域名映射。当前不把 `shop.alsvid.com` 作为独立公开入口；商城体验由官网承载，交易与支付路线按最新商务决策实施。`service.alsvid.com` 是售后服务入口目标，不代表已完成独立部署。
+本命名规则起源于 Issue #116，并由 Issue #118 补充固定系统入口与域名映射。当前不把 `shop.alsvidbike.com` 作为独立公开入口；商城体验由官网承载，交易与支付路线按最新商务决策实施。`service.alsvidbike.com` 是售后服务入口目标，不代表已完成独立部署。
 
 后续任何新页面、部署、README、架构图、Issue、PR 和 AI/Codex 工作：
 
@@ -199,7 +199,7 @@ Cloud Run 的 `*.run.app` 地址仅作为技术服务地址，不是用户正式
 5. 不把 Cloud Run `run.app` 地址作为正式用户入口；
 6. 如果确实需要改名或改变域名结构，必须先更新本文并说明迁移影响。
 
-> 当前域名说明：新链接的规范目标为 `alsvid.com`；`chaibenn.com` 是历史迁移域名。新域名的 DNS、TLS、服务绑定、认证和邮件配置须通过生产验收后才能视为正式切换完成。
+> 当前域名说明：新链接的规范目标为 `alsvidbike.com`；`chaibenn.com` 是历史迁移域名。新域名的 DNS、TLS、服务绑定、认证和邮件配置须通过生产验收后才能视为正式切换完成。
 
 ## 13. Admin 应用切换器与场景名称
 

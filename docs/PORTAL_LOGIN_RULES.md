@@ -6,23 +6,23 @@ ALSVID 复用统一 API 与自身身份/授权中心，Shopify Customer 是客�
 
 ## 域名切换状态
 
-新生成的门户入口和认证基准统一采用 `*.alsvid.com`。旧 `chaibenn.com` 不再作为新链接目标。DNS、TLS、Cloud Run 自定义域名、`AUTH_BASE_URL`、邮件发件域及身份回调须通过生产验收后，才可认定域名迁移完成。
+新生成的门户入口和认证基准统一采用 `*.alsvidbike.com`。旧 `chaibenn.com` 不再作为新链接目标。DNS、TLS、Cloud Run 自定义域名、`AUTH_BASE_URL`、邮件发件域及身份回调须通过生产验收后，才可认定域名迁移完成。
 
 ## 门户规则
 
 | 门户 / 入口 | 正式地址 | 是否公开 | 登录对象 | 登录方式 |
 | --- | --- | --- | --- | --- |
-| ALSVID Official / 官网 | `https://www.alsvid.com` | 是 | 公众访客 | 不提供通用登录动作 |
+| ALSVID Official / 官网 | `https://www.alsvidbike.com` | 是 | 公众访客 | 不提供通用登录动作 |
 | ALSVID Shop（官网内商城体验） | 不单独启用域名 | 随官网 | 消费者 / 买家 | 交易与支付按当前商务决策配置；历史 Shopify 规划不代表已上线 |
-| My ALSVID | `https://my.alsvid.com` | 否 | 客户 / 车主 | Shopify 客户账户验证；ALSVID 只建立最小映射 |
-| Dealer Portal | `https://dealer.alsvid.com` | 否 | 经销商成员 | 经销商工作邮箱；必须满足 Dealer 身份与业务授权 |
-| Admin Portal | `https://admin.alsvid.com` | 否 | ALSVID 内部员工 | 内部域名邮箱 + 内部邀请/验证；管理员还需要 `system_admin` |
-| ALSVID Service | `https://service.alsvid.com` | 按页面 | 客户 / 经销商 / 服务相关用户 | 按售后业务身份与服务范围鉴权；不因访问 Service 自动获得 Admin 权限 |
-| Supplier Portal（分阶段目标，#185） | `https://supplier.alsvid.com` | 否 | 外部供应商成员 | 供应商企业邮箱 + 授权邀请 + Supplier 组织成员关系 |
+| My ALSVID | `https://my.alsvidbike.com` | 否 | 客户 / 车主 | Shopify 客户账户验证；ALSVID 只建立最小映射 |
+| Dealer Portal | `https://dealer.alsvidbike.com` | 否 | 经销商成员 | 经销商工作邮箱；必须满足 Dealer 身份与业务授权 |
+| Admin Portal | `https://admin.alsvidbike.com` | 否 | ALSVID 内部员工 | 内部域名邮箱 + 内部邀请/验证；管理员还需要 `system_admin` |
+| ALSVID Service | `https://service.alsvidbike.com` | 按页面 | 客户 / 经销商 / 服务相关用户 | 按售后业务身份与服务范围鉴权；不因访问 Service 自动获得 Admin 权限 |
+| Supplier Portal（分阶段目标，#185） | `https://supplier.alsvidbike.com` | 否 | 外部供应商成员 | 供应商企业邮箱 + 授权邀请 + Supplier 组织成员关系 |
 
 开发在本地、CI 使用临时资源；旧 `*.dev.chaibenn.com` 云环境已退役，不按历史域名创建资源。测试身份/数据/凭据与生产隔离。
 
-Cloud Run 的 `*.run.app` 地址不是正式用户入口。生产登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 与跨门户跳转必须使用对应 `*.alsvid.com` canonical URL；Admin 的认证基准固定为 `https://admin.alsvid.com`。
+Cloud Run 的 `*.run.app` 地址不是正式用户入口。生产登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 与跨门户跳转必须使用对应 `*.alsvidbike.com` canonical URL；Admin 的认证基准固定为 `https://admin.alsvidbike.com`。
 
 ## 行为
 

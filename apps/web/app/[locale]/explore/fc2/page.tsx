@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("fc2.title"), description: t("fc2.description"),
     alternates: {
-      canonical: `https://www.alsvid.com/${locale}/explore/fc2`,
-      languages: Object.fromEntries([...locales.map(item => [item, `https://www.alsvid.com/${item}/explore/fc2`]), ["x-default", "https://www.alsvid.com/en/explore/fc2"]]),
+      canonical: `https://www.alsvidbike.com/${locale}/explore/fc2`,
+      languages: Object.fromEntries([...locales.map(item => [item, `https://www.alsvidbike.com/${item}/explore/fc2`]), ["x-default", "https://www.alsvidbike.com/en/explore/fc2"]]),
     },
     openGraph: { title: t("fc2.title"), description: t("fc2.description"), images: [{url:"/products/fc2/side-studio-1536.webp",width:1536,height:1024,alt:t("fc2.gallery.alt.side")}] },
   };
