@@ -1683,66 +1683,92 @@
   .posterHome .mobileNav nav { width: min(88vw, 320px); }
 }
 
-/* The two model statuses must be immediately visible on a phone without opening Menu. */
+/* Model statuses stay visible alongside the wordmark on narrow screens.
+   The language choices move inside Menu; mobile header never grows to two rows. */
 .mobileModelLinks { display: none; }
+.mobileLanguage { display: none; }
 @media (max-width: 760px) {
   .posterHome .header {
-    height: auto;
-    min-height: 106px;
-    flex-wrap: wrap;
+    height: 64px;
+    min-height: 64px;
+    flex-wrap: nowrap;
     align-content: center;
-    column-gap: 10px;
-    row-gap: 0;
-    padding: 7px 15px 8px;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(4px, 1.2vw, 8px);
+    padding: 0 clamp(8px, 2.5vw, 15px);
   }
-  .posterHome .brand-lockup {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-  .posterHome .logo { font-size: 18px; letter-spacing: .10em; }
-  .posterHome .mobileNav { margin-left: 2px; }
+  .posterHome .brand-lockup { min-width: 0; flex: 0 0 auto; }
+  .posterHome .brandBike { display: none; }
+  .posterHome .logo { font-size: clamp(14px, 3.8vw, 17px); letter-spacing: .025em; }
+  .posterHome .actions { display: none; }
   .posterHome .mobileModelLinks {
     display: flex;
-    order: 4;
-    width: 100%;
+    order: 2;
+    flex: 1 1 auto;
+    justify-content: center;
+    width: auto;
     min-width: 0;
-    gap: 8px;
-    margin-top: 4px;
+    gap: clamp(2px, .8vw, 6px);
+    margin: 0;
   }
   .posterHome .mobileModelLinks a {
-    display: inline-flex;
     flex: 1 1 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 4px;
     min-width: 0;
-    min-height: 42px;
-    padding: 8px;
-    border: 1px solid #ffffff2a;
-    border-radius: 7px;
-    background: #ffffff0e;
+    min-height: 40px;
+    padding: 4px 2px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
     color: #fff;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1.2;
     text-decoration: none;
     white-space: nowrap;
   }
-  .posterHome .mobileModelLinks a:focus-visible {
-    outline: 2px solid #b8e986;
-    outline-offset: 2px;
-  }
+  .posterHome .mobileModelLinks a:hover,
+  .posterHome .mobileModelLinks a:focus-visible { background: #ffffff12; }
+  .posterHome .mobileModelLinks a:focus-visible { outline: 2px solid #b8e986; outline-offset: 1px; }
   .posterHome .mobileModelLinks .reserveBadge,
-  .posterHome .mobileModelLinks .newBadge {
-    font-size: 10px;
-    min-height: 20px;
-    padding: 4px 6px;
+  .posterHome .mobileModelLinks .newBadge { font-size: 9px; min-height: 18px; padding: 3px 5px; }
+  .posterHome .mobileNav { order: 3; flex: 0 0 auto; margin: 0; }
+  .posterHome .mobileNav summary { width: 38px; height: 38px; font-size: 16px; }
+  .posterHome .mobileNav > nav { top: 47px; }
+  .posterHome .mobileLanguage { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffffff26; }
+  .posterHome .mobileNav .mobileLanguage nav {
+    position: static;
+    display: flex !important;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    flex-wrap: nowrap;
+    gap: 3px;
   }
-  /* Hero heading stays fully clear of the taller two-row fixed header. */
-  .posterHome .posterContent { top: max(132px, 24%); }
+  .posterHome .mobileNav .mobileLanguage nav a {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 38px;
+    padding: 6px 2px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .posterHome .posterContent { top: max(85px, 16%); }
 }
 @media (max-width: 360px) {
-  .posterHome .header { padding-inline: 10px; }
-  .posterHome .mobileModelLinks a { font-size: 14px; gap: 5px; padding-inline: 5px; }
-  .posterHome .logo { font-size: 16px; letter-spacing: .08em; }
+  .posterHome .header { padding-inline: 8px; gap: 3px; }
+  .posterHome .logo { font-size: 13px; letter-spacing: .01em; }
+  .posterHome .mobileModelLinks a { font-size: 12px; gap: 3px; padding-inline: 1px; }
+  .posterHome .mobileModelLinks .reserveBadge,
+  .posterHome .mobileModelLinks .newBadge { font-size: 8px; padding: 3px 3px; }
+  .posterHome .mobileNav summary { width: 36px; height: 36px; }
 }
