@@ -171,7 +171,7 @@
 
 
 /* FC1 selection studio — 70% true product visual, 30% selection controls. */
-.interestConfigurator{display:grid;grid-template-columns:minmax(0,7fr) minmax(345px,3fr);height:clamp(680px,calc(100svh - 64px),1000px);min-height:680px;overflow:hidden;scroll-margin-top:72px;background:#131e26;color:#fff;text-align:left}
+.interestConfigurator{display:grid;grid-template-columns:minmax(0,6fr) minmax(430px,4fr);height:clamp(680px,calc(100svh - 64px),1000px);min-height:680px;overflow:hidden;scroll-margin-top:72px;background:#131e26;color:#fff;text-align:left}
 /* Gentle graphite-blue studio lighting gives the fully visible bicycle depth without changing the product image. */
 .interestVisual{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:radial-gradient(ellipse 85% 65% at 50% 66%,#667c87 0%,#455d6a 44%,#2b3e4b 72%,transparent 100%),linear-gradient(165deg,#1c2b36 0%,#354b57 58%,#1c2c38 100%);isolation:isolate}
 /* Replace the oversized background FC1 lettering with a subtle studio floor fade. */
