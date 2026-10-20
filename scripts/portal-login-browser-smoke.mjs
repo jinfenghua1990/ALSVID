@@ -63,7 +63,10 @@ try {
   await page.goto(base+'/en/login?portal=dealer');
   const root = page.locator('[data-portal-login=dealer]');
   const action = root.getByRole('button',{name:'Dealer sign in',exact:true});
-  await action.hover();
+  // Reveal first, leave the moving entry, then hover the final CTA once it has settled.
+  await action.focus();
+  await root.locator('h1').click();
+  await root.locator('button[aria-expanded=true]').hover();
   await page.waitForFunction(()=>Number(document.querySelector('[data-wheel-speed]')?.getAttribute('data-wheel-speed'))>.9);
   await root.locator('h1').click();
   await page.waitForFunction(()=>Number(document.querySelector('[data-wheel-speed]')?.getAttribute('data-wheel-speed'))<.25);
