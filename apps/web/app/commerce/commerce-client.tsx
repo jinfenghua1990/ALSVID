@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 import styles from './commerce.module.css';
+import { OrderOperationsPanel } from './order-operations-panel';
 import { adminRecordHref, queryRecordId } from '../_design/record-links';
 
 type Partner = { id: string; partnerCode: string; displayName: string; roles: string[] };
@@ -207,6 +208,8 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       </header>
 
       {message ? <div className={styles.notice}>{message}</div> : null}
+
+      <OrderOperationsPanel />
 
       <section className={styles.providerGrid}>
         <article className={styles.providerCard}>
