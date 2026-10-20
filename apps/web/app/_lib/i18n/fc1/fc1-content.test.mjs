@@ -60,8 +60,8 @@ test("FC1 story and product layouts contain no cart or checkout CTA", async () =
     assert.equal(source.includes("ALSVID_SHOPIFY_FC1_PRODUCT_URL"), false);
     assert.equal(source.includes("shop.chaibenn.com"), false);
     assert.match(source, /fc1\.reservation\.note/);
-    assert.doesNotMatch(source, /href=\{\`\/\$\{locale\}\/checkout/);
-    assert.doesNotMatch(source, /href=\{\`\/\$\{locale\}\/cart/);
+    assert.equal(source.includes('href={`/${locale}/checkout'), false);
+    assert.equal(source.includes('href={`/${locale}/cart'), false);
   }
 });
 
