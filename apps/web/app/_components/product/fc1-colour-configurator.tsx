@@ -215,13 +215,14 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const preferenceSession = useRef<string | null>(null);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
   const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
+  const reservationEmailConfigured = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(reservationEmail);
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
   const emailSubject = t("fc1.reservation.email_subject");
   const emailBody = t("fc1.reservation.email_body")
     .replace("{model}", modelLabel)
     .replace("{colour}", colourLabel);
-  const reservationHref = reservationEmail
+  const reservationHref = reservationEmailConfigured
     ? `mailto:${reservationEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
     : null;
 
@@ -328,7 +329,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
           ) : (
             <button className={styles.interestReservationButton} type="button" disabled aria-disabled="true">{t("fc1.reservation.cta")} <span aria-hidden="true">↗</span></button>
           )}
-          {!reservationEmail ? <p className={styles.interestReservationPending} role="status">{t("fc1.reservation.pending")}</p> : null}
+          {!reservationEmailConfigured ? <p className={styles.interestReservationPending} role="status">{t("fc1.reservation.pending")}</p> : null}
         </div>
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
