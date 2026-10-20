@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller.js';
 import { AuthGuard } from './auth.guard.js';
 import { CommerceController } from './commerce.controller.js';
 import { CommerceOrderOperationsController } from './commerce-order-operations.controller.js';
+import { StorefrontOrdersController } from './storefront-orders.controller.js';
 import { ColourInterestController } from './colour-interest.controller.js';
 import { DealerController } from './dealer.controller.js';
 import { EngineeringController } from './engineering.controller.js';
@@ -50,6 +51,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     DealerController,
     CommerceController,
     CommerceOrderOperationsController,
+    StorefrontOrdersController,
     ColourInterestController,
     IntegrationsController,
     FinanceController,
