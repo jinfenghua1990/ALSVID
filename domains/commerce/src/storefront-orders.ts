@@ -46,7 +46,7 @@ function requirePermission(actor:StorefrontActor,permission:string):void{
 }
 function requireId(value:unknown,name:string):string{
  if(typeof value!=='string'||!uuid.test(value))throw new CommerceValidationError(`${name} must be a valid UUID`);
- return value;
+ return value.toLowerCase();
 }
 function normalizeMarket(value:unknown):'DE'|'AT'{
  if(typeof value!=='string'||!allowedMarkets.includes(value as 'DE'|'AT'))throw new CommerceValidationError('First-release market must be DE or AT');
