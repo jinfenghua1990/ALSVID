@@ -117,9 +117,11 @@ export class StorefrontOrderService{
     JOIN partners.roles r ON r.partner_id=p.id WHERE r.role='FACTORY'
     ORDER BY p.display_name,p.partner_code LIMIT 100`)
   ]);
+  const mappedOrders=orders.rows.map(mapOrder).map(order=>actor.permissions.includes('commerce.storefront.write')
+   ?order:{...order,customerEmail:'已隐藏'});
   return {checkoutEnabled:false,skus:skus.rows.map(r=>({id:r.id,sku:r.sku,name:r.name,colorCode:r.color_code,
     marketCode:r.market_code,modelCode:r.model_code,variantCode:r.variant_code})),
-   prices:prices.rows.map(mapPrice),orders:orders.rows.map(mapOrder),
+   prices:prices.rows.map(mapPrice),orders:mappedOrders,
    factories:factories.rows.map(r=>({id:r.id,code:r.partner_code,name:r.display_name}))};
  }
  async createPrice(actor:StorefrontActor,input:CreateStorefrontPriceInput):Promise<StorefrontPrice>{
