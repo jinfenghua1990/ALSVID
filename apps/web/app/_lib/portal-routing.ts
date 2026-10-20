@@ -25,12 +25,9 @@ export function portalFromHost(host: string): PortalId {
   return 'admin';
 }
 
-export function portalHostFor(host: string, portal: PortalId): string {
-  const value = normalizeHost(host);
-  const isLegacyDev = value.endsWith('.dev.chaibenn.com');
-  const isAlsvidDev = value.endsWith('.dev.alsvid.com');
-  const domain = isLegacyDev ? 'dev.chaibenn.com' : isAlsvidDev ? 'dev.alsvid.com' : 'alsvid.com';
-  return `${portalDefinitions[portal].hostnamePrefix}.${domain}`;
+export function portalHostFor(_host: string, portal: PortalId): string {
+  // chaibenn.com is a legacy migration domain only. Never generate new links to it.
+  return `${portalDefinitions[portal].hostnamePrefix}.alsvid.com`;
 }
 
 export function portalUrlFor(host: string, portal: PortalId): string {
