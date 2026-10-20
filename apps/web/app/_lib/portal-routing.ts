@@ -36,7 +36,8 @@ export function portalHostFor(host: string, portal: PortalId): string {
 export function portalUrlFor(host: string, portal: PortalId): string {
   const value = normalizeHost(host);
   if (value === 'localhost' || value === '127.0.0.1' || value === '0.0.0.0') {
-    return portalDefinitions[portal].homePath;
+    // Keep local portal links absolute: some UI code resolves nested routes with new URL(path, base).
+    return `http://${host.trim().toLowerCase()}${portalDefinitions[portal].homePath}`;
   }
   return `https://${portalHostFor(host, portal)}`;
 }
