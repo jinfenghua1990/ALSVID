@@ -72,3 +72,24 @@ test("legacy cart and checkout URLs redirect back to FC1 reservation configurati
   assert.ok(checkout.includes("redirect(`/${locale}/explore/fc1#configure`)"));
   assert.doesNotMatch(cart + checkout, /Fc1PreviewCartPanel|paymentIntent|createOrder|onSubmit|<form/);
 });
+
+test("FC1 public preview copy does not claim paid preorder, stock or Shopify checkout", async () => {
+  for (const [locale, copy] of Object.entries(locales)) {
+    assert.ok(copy["hero.poster_buy"].length > 0);
+    assert.doesNotMatch(copy["hero.poster_buy"], /立即预订|Pre-order now|Jetzt vorbestellen/i, locale);
+    assert.doesNotMatch(copy["fc1.faq.7.a"], /Shopify|checkout|在线购买已开放|Jetzt kaufen/i, locale);
+    assert.ok(copy["fc1.selection.model_note"].length > 0);
+  }
+  const base = path.join(directory, "../../");
+  for (const locale of ["zh", "de", "en"]) {
+    const globalCopy = JSON.parse(await readFile(path.join(base, locale + ".json"), "utf8"));
+    assert.doesNotMatch(globalCopy["commerce.body"], /Shopify/i);
+    assert.doesNotMatch(globalCopy["detail.accessory_body"], /Shopify/i);
+  }
+  const configurator = await readFile(path.join(directory, "../../../_components/product/fc1-colour-configurator.tsx"), "utf8");
+  assert.doesNotMatch(configurator, /fetch\("\/api\/public\/fc1-colour-interest"/);
+  assert.doesNotMatch(configurator, /copy\.soldOut|setSaveState|saveFc1PreviewCart/);
+  assert.match(configurator, /copy\.proposal/);
+  const css = await readFile(path.join(directory, "../../../_components/product/fc1-product.module.css"), "utf8");
+  assert.match(css, /\.interestSpecs\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+});
