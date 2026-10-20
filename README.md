@@ -558,7 +558,7 @@ ALSVID 官网同时承担：
 用户访问：
 
 ```text
-www.chaibenn.com
+www.alsvid.com
 ```
 
 即可完成：
@@ -1040,9 +1040,9 @@ ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 门户固定地址、历史开发地址与当前验证范围见 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)。
 
 
-## 当前临时域名
+## 正式域名规范与迁移状态
 
-当前已申请并实际使用的临时域名为 `chaibenn.com`。四大门户当前地址以 `chaibenn.com` 为准；未来取得 `alsvid.com` 后，再按同一门户结构切换，不改变系统架构。
+新生成的门户链接统一使用 `alsvid.com`（例如 `www.alsvid.com`、`my.alsvid.com`、`admin.alsvid.com`、`dealer.alsvid.com`）。旧 `chaibenn.com` 为迁移/历史域名。DNS、TLS、Cloud Run 自定义域名、认证回调和 Resend 发件域必须通过实际验收后，才能认定生产切换完成；详见 [docs/PORTAL_DOMAINS.md](docs/PORTAL_DOMAINS.md)。
 
 ## 独立项目入口与命名（2026-10-14）
 
