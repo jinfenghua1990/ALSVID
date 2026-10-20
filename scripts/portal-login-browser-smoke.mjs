@@ -48,6 +48,8 @@ try {
         await code.fill('123456');
         await root.getByRole('button',{name:copy['auth.verify'],exact:true}).click();
         await root.locator('input[name=confirmPassword]').waitFor();
+        assert.equal(await root.locator('input[name=password]').inputValue(),'','New password must not reuse the previous email');
+        assert.equal(await root.locator('input[name=confirmPassword]').inputValue(),'','Confirmation must not reuse the previous code');
         assert.equal(await root.getByRole('button',{name:copy['auth.close'],exact:true}).count(),0,'Mandatory password setup cannot be dismissed');
         assert.equal(await root.getByRole('button',{name:copy['auth.save_password'],exact:true}).count(),1,'Only one submit CTA');
         assert.equal(await page.getByText(/Shopify/i).count(),0);

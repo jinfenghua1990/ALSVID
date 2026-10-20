@@ -120,7 +120,7 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
       <button type="button" aria-pressed={method === 'password'} disabled={busy} onClick={() => switchMethod('password')}>{t('auth.password_method')}</button>
     </div> : null}
     {setupRequired ? <p className={styles.setupLead}>{t('auth.setup_title')} · {t('auth.password_rules')}</p> : null}
-    <form id={formId} className={styles.form} onSubmit={setupRequired ? submitPasswordSetup : method === 'password' ? submitPassword : submitEmail}>
+    <form key={setupRequired ? 'setup' : method === 'password' ? 'password' : codeRequested ? 'code' : 'email'} id={formId} className={styles.form} onSubmit={setupRequired ? submitPasswordSetup : method === 'password' ? submitPassword : submitEmail}>
       {setupRequired ? <>
         <label className={styles.field}>{t('auth.new_password')}<span className={styles.inputRow}><input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></span></label>
         <label className={styles.field}>{t('auth.confirm_password')}<span className={styles.inputRow}><input name="confirmPassword" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></span></label>
