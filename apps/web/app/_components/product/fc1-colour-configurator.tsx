@@ -201,7 +201,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const reservationEmailConfigured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationEmail);
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
-  const submitReservation = async (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); setReservationState("sending"); try { const response = await fetch("/api/public/fc1-reservation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, model: modelLabel, colour: colourLabel, locale }) }); if (!response.ok) throw new Error("send failed"); setReservationState("sent"); } catch { setReservationState("failed"); } };
+  const submitReservation = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setReservationState("sending"); try { const response = await fetch("/api/public/fc1-reservation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, model: modelLabel, colour: colourLabel, locale }) }); if (!response.ok) throw new Error("send failed"); setReservationState("sent"); } catch { setReservationState("failed"); } };
 
   // Preview choices are local UI state. Only sending an email expresses reservation interest.
   const chooseColour = (next: ColourId) => setColour(next);
