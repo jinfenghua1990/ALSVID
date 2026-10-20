@@ -319,7 +319,7 @@ BEGIN
  RETURN NEW;
 END;
 $$;
-CREATE TRIGGER production_storefront_order_link_guard
+CREATE TRIGGER production_00_storefront_order_link_guard
  BEFORE INSERT OR UPDATE OF source_storefront_order_line_id,build_spec_id,planned_quantity
  ON production.production_orders
  FOR EACH ROW EXECUTE FUNCTION production.guard_storefront_order_link();
