@@ -262,7 +262,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
           <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
-          <p className={styles.smallNote}>{key("fc1.selection.unavailable")} <a href={`/${locale}/checkout`}>{key("fc1.checkout.link")} ↗</a></p>
+          <p className={styles.smallNote}>{key("fc1.reservation.note")}</p>
         </section>
 
         <section data-fc1-chapter className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
