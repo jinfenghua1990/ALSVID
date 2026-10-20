@@ -54,6 +54,9 @@ export function HomePage({
             <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
             <a href={detail("about-story")}>{t("brand.story")}</a>
             <a href={myUrl}>{t("navigation.owner_account")}</a>
+            <div className={styles.mobileLanguage}>
+              <LanguageSwitcher locale={locale} label={t("language.label")} variant="inline" />
+            </div>
           </nav>
         </details>
         <nav className={styles.mobileModelLinks} aria-label={t("navigation.products")}>
