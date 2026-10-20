@@ -27,6 +27,14 @@ test('first-party orders are immutable priced drafts; retries are idempotent; pr
   assert.equal(active.status,'ACTIVE');
   assert.equal(active.version,2);
   await assert.rejects(db.query(`UPDATE commerce.storefront_prices SET unit_price_gross=120.00 WHERE id=$1`,[price.id]),/immutable/);
+  const duplicatePrice=await service.createPrice(actor,{skuId:sku.rows[0]!.id,marketCountry:'DE',unitPriceGross:'125.00',taxRateBasisPoints:1900});
+  await assert.rejects(service.activatePrice(actor,duplicatePrice.id,duplicatePrice.version),{code:'COMMERCE_CONFLICT'});
+  await assert.rejects(db.transaction(async executor=>{
+   await executor.query(`INSERT INTO commerce.storefront_orders(customer_email,market_country,currency,status,payment_status,
+    total_net_amount,total_tax_amount,total_gross_amount,client_request_id,request_sha256,created_by,updated_by)
+    VALUES('no-lines@example.com','DE','EUR','DRAFT','NOT_CONFIGURED',100.00,19.00,119.00,$1,$2,$3,$3)`,
+    [randomUUID(),'a'.repeat(64),actor.userId]);
+  }),/totals must exactly equal/);
   const input={clientRequestId:randomUUID(),customerEmail:'Customer@Example.com',marketCountry:'DE' as const,
    items:[{skuId:sku.rows[0]!.id,quantity:1}]};
   const order=await service.createDraftOrder(actor,input);
