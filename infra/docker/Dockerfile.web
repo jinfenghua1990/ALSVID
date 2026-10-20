@@ -8,7 +8,9 @@ RUN pnpm fetch
 COPY . .
 RUN pnpm install --offline --frozen-lockfile
 ARG ALSVID_ENV=test
+ARG NEXT_PUBLIC_FC1_RESERVATION_EMAIL=
 ENV ALSVID_ENV=$ALSVID_ENV
+ENV NEXT_PUBLIC_FC1_RESERVATION_EMAIL=$NEXT_PUBLIC_FC1_RESERVATION_EMAIL
 RUN pnpm --filter @alsvid/web build \
   && mkdir -p apps/web/.next/standalone/apps/web/.next \
   && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static \
