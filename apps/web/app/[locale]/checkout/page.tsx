@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { isLocale } from "../../_lib/i18n/routing";
 import { translator } from "../../_lib/i18n";
+import { Fc1PreviewCartPanel } from "../../_components/product/fc1-preview-cart-panel";
 import styles from "./checkout-preview.module.css";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -45,6 +46,7 @@ export default async function CheckoutPreview({ params }: Props) {
           <p>{t("fc1.checkout.intro")}</p>
           <p className={styles.notice} role="status">{t("fc1.checkout.notice")}</p>
         </section>
+        <Fc1PreviewCartPanel locale={locale} mode="checkout" />
         <section className={styles.details} aria-label={t("fc1.checkout.title")}>
           {details.map((detail) => (
             <article className={styles.panel} key={detail}>
