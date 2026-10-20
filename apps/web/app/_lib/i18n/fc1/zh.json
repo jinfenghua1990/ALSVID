@@ -266,6 +266,8 @@
   "fc1.cart.view": "查看购物袋",
   "fc1.cart.storage_error": "当前浏览器无法保存临时配置，请检查隐私设置或稍后重试。",
   "fc1.reservation.cta": "邮件预约",
+  "fc1.reservation.sent": "谢谢，预约意向已发送。",
+  "fc1.reservation.failed": "发送失败，请稍后重试。",
   "fc1.reservation.pending": "预约邮箱待同步，邮件入口暂未开放。",
   "fc1.reservation.note": "目前仅通过邮件接受预约意向，不开放在线下单或付款。计划中国直发德国，预计交付 4–6 周，具体时间待物流确认。",
   "fc1.reservation.email_subject": "ALSVID FC1 预约意向",

@@ -36,7 +36,7 @@ export function HomePage({
           <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
           <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
           <a href="#platforms">{t("navigation.products")}</a>
-          <a href="#accessories">{t("footer.accessories")}</a>
+          <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
           <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
           <a href={detail("about-story")}>{t("brand.story")}</a>
         </nav>
@@ -50,7 +50,7 @@ export function HomePage({
             <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
             <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
             <a href="#platforms">{t("navigation.products")}</a>
-            <a href="#accessories">{t("footer.accessories")}</a>
+            <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
             <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
             <a href={detail("about-story")}>{t("brand.story")}</a>
             <a href={myUrl}>{t("navigation.owner_account")}</a>

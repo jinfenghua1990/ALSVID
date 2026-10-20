@@ -11,6 +11,7 @@ import { ColourInterestController } from './colour-interest.controller.js';
 import { DealerController } from './dealer.controller.js';
 import { EngineeringController } from './engineering.controller.js';
 import { FinanceController } from './finance.controller.js';
+import { Fc1ReservationController } from './fc1-reservation.controller.js';
 import { HealthController } from './health.controller.js';
 import { IntegrationsController } from './integrations.controller.js';
 import { InventoryController } from './inventory.controller.js';
@@ -55,6 +56,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     ColourInterestController,
     IntegrationsController,
     FinanceController,
+    Fc1ReservationController,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
