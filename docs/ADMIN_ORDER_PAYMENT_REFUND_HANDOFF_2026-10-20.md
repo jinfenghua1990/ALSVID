@@ -19,8 +19,21 @@
 5. **真实 B2C 客户与交付**：Customer Account OAuth、核验交付 → Vehicle VIN → My 的精确归属及客户退款信息流程尚未全面验收。
 6. **生产上线**：法律条款、税费/进口责任、SCA/3DS、PSP/商户资质、回滚/事故处理，需另行真实账号沙盒验收和负责人审批。
 
-## 后续建议按业务依赖进行
+## 第二批已写入代码（同一 Draft PR #232，等待 CI）
 
-**下一批**：第一方不可变订单与订单行/总价快照（受服务端价格/税率/物流权威限制），支付尝试 UNVERIFIED/PENDING；独立 PSP 适配协议与合法状态机/幂等；只有经过真正 PSP 核验且风险审批通过的已收款订单可创建有来源标识的生产需求。库存/已开工订单取消与退款需单独补偿逻辑，不可直接退款即撤销生产。
+- 新迁移 `0031_first_party_storefront_orders.sql` 建立与外部渠道订单隔离的 `commerce.storefront_orders`、不可变 `storefront_order_lines`、追加式 `storefront_order_events`、市场价格版本 `storefront_prices` 与 PSP 成功付款证据表。
+- 新建 `StorefrontOrderService` 和内部 API：`GET /v1/commerce/storefront/summary`、`POST /prices`、`POST /prices/:id/activate`、`POST /prices/:id/retire`、`POST /orders`、`POST /orders/:id/cancel`。权限单独控制；创建订单时由服务端读取当前有效价格，不接受浏览器传入总价；以请求 ID 和 payload hash 保证幂等。
+- Admin 订单页新增“自建商城订单与价格”区域。可为有效 SKU 分别建立 DE/AT 的 EUR 含税价格草稿、启用/退役价格版本，并建立含价格/税额快照的内部订单草稿。税率基点由管理员录入，当前未经过税务/法律核验。
+- 新订单只会以 `DRAFT / NOT_CONFIGURED` 建立；没有“手动标记已付款”、公共结账、PSP 支付发起或库存预留接口。价格快照和订单行不可修改；数据库延迟约束核对订单总额与明细合计。
+- 生产单增加可选 `sourceStorefrontOrderLineId`。若关联第一方订单行，数据库会检查：订单确实已付款、不可变 PSP 成功证据的签名与订单绑定标志已记录、金额和币种精确匹配、Build Specification 已发布且 SKU 匹配、生产数量等于销售行数量。旧的无来源人工生产计划仍按原规则运行。
+- 新增 `storefront-orders.test.ts` 与真实 PostgreSQL 集成测试，覆盖税额计算、权限、价格版本、价格/订单快照不可变、幂等请求、总额对账和未付款时生产关联被拒绝。
 
-参照已接受 ADR 0005 `docs/adr/0005-alsvid-owned-storefront-and-third-party-payments.md`。
+## 仍未完成、不可用于真实交易
+
+1. **公共 WWW 结账未启用。** 当前第一方订单 API 是内部草稿管理，只在 Admin 身份认证后可用；没有面向消费者的创建订单、购物车、下单承诺页或订单查询。
+2. **PSP 尚未选择/连接。** 没有 payment intent、provider webhook 签名校验、交易查询、重放防护、对账和真正将订单推进至 `PAYMENT_PENDING` / `PAYMENT_VERIFIED` 的适配器。付款证据表是后续接入的存储边界，不是当前已完成的支付验证器。
+3. **价格/税务未获正式批准。** 价格和税率是内部配置数据，当前 UI 明示未完成正式结账合规核验；不可把它当作对消费者的最终报价或德国/奥地利税务意见。
+4. **销售转生产目前是数据库级门槛，不是自动生产。** 已有代码不能把订单草稿转为已付款，也没有从第一方订单批量创建生产单、分配工厂、预留库存、安排交付的自动工作流。只有将来可信 PSP 适配器记录匹配的成功付款证据、更新订单状态后，才可能创建关联生产单。
+5. **取消与退款仍是不同流程。** 内部未付款草稿可以取消；已付款订单的取消/退款必须另做审批、PSP 退款、异步确认、累计退款上限和财务对账。旧 Finance `reversePayment` 只是账内冲销，不是资金退回。
+6. **PR 未合并、未发布。** 必须等完整 CI（数据库迁移、类型检查、所有测试、容器构建与冒烟检查）通过后再审核；保持 Draft，不得触发正式部署。
+
