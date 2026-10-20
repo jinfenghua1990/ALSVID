@@ -56,6 +56,14 @@ export function HomePage({
             <a href={myUrl}>{t("navigation.owner_account")}</a>
           </nav>
         </details>
+        <nav className={styles.mobileModelLinks} aria-label={t("navigation.products")}>
+          <a href={detail("fc1")} className={styles.newModelLink}>
+            {t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span>
+          </a>
+          <a href={detail("fc2")} className={styles.newModelLink}>
+            {t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span>
+          </a>
+        </nav>
       </header>
       <HomePosterHero
         title={t("hero.poster_title")}
