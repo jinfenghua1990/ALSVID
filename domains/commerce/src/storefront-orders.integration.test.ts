@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {randomUUID} from 'node:crypto';
 import {Database} from '@alsvid/database';
-import {createProductionService} from '@alsvid/production';
 import {StorefrontOrderService} from './storefront-orders.js';
 
 test('first-party orders are immutable priced drafts; retries are idempotent; production link is payment-gated',
@@ -46,11 +45,7 @@ test('first-party orders are immutable priced drafts; retries are idempotent; pr
   const repeated=await service.createDraftOrder(actor,input);
   assert.equal(repeated.id,order.id);
   await assert.rejects(service.createDraftOrder(actor,{...input,items:[{skuId:sku.rows[0]!.id,quantity:2}]}),{code:'COMMERCE_CONFLICT'});
-  const prod=createProductionService(db,audit);
-  await assert.rejects(prod.createOrder(actor,{
-   buildSpecId:randomUUID(),factoryPartnerId:randomUUID(),plannedQuantity:1,
-   sourceStorefrontOrderLineId:order.lines[0]!.id,
-  }),/payment-verified first-party order/);
+  await assert.rejects(db.query(`INSERT INTO production.production_orders(build_spec_id,factory_partner_id,planned_quantity,source_storefront_order_line_id,created_by,updated_by) VALUES($1,$2,1,$3,$4,$4)`,[randomUUID(),randomUUID(),order.lines[0]!.id,actor.userId]),/payment-verified first-party order/);
   await assert.rejects(db.query(`UPDATE commerce.storefront_order_lines SET quantity=2 WHERE id=$1`,[order.lines[0]!.id]),/immutable/);
   const cancelled=await service.cancelDraftOrder(actor,order.id,order.version,'Customer details entered incorrectly');
   assert.equal(cancelled.status,'CANCELLED');
