@@ -323,3 +323,72 @@ CREATE TRIGGER production_storefront_order_link_guard
  BEFORE INSERT OR UPDATE OF source_storefront_order_line_id,build_spec_id,planned_quantity
  ON production.production_orders
  FOR EACH ROW EXECUTE FUNCTION production.guard_storefront_order_link();
+
+-- Database-side checks ensure the app cannot forge price snapshots or totals.
+CREATE OR REPLACE FUNCTION commerce.guard_storefront_order_line_insert() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+ order_row commerce.storefront_orders%ROWTYPE;
+ price_row commerce.storefront_prices%ROWTYPE;
+ sku_row product.skus%ROWTYPE;
+ expected_tax numeric(18,2);
+BEGIN
+ SELECT * INTO order_row FROM commerce.storefront_orders WHERE id=NEW.order_id FOR UPDATE;
+ IF NOT FOUND OR order_row.status<>'DRAFT' OR order_row.payment_status<>'NOT_CONFIGURED' THEN
+  RAISE EXCEPTION 'Order lines may only be added while creating an unpaid internal draft';
+ END IF;
+ SELECT p.* INTO price_row FROM commerce.storefront_prices p WHERE p.id=NEW.price_id FOR SHARE;
+ IF NOT FOUND OR price_row.status<>'ACTIVE' OR price_row.effective_from IS NULL OR price_row.effective_from>now()
+   OR price_row.sku_id<>NEW.sku_id OR price_row.market_country<>order_row.market_country
+   OR price_row.currency<>order_row.currency OR price_row.unit_price_gross<>NEW.unit_price_gross
+   OR price_row.tax_rate_basis_points<>NEW.tax_rate_basis_points THEN
+  RAISE EXCEPTION 'Order line price snapshot must match an active server-owned price for this SKU and market';
+ END IF;
+ SELECT * INTO sku_row FROM product.skus WHERE id=NEW.sku_id FOR SHARE;
+ IF NOT FOUND OR sku_row.status<>'ACTIVE' OR sku_row.sku<>NEW.sku_code_snapshot
+   OR sku_row.name<>NEW.sku_name_snapshot OR sku_row.color_code IS DISTINCT FROM NEW.color_code_snapshot THEN
+  RAISE EXCEPTION 'Order line product snapshot must match the current active SKU';
+ END IF;
+ expected_tax:=round((NEW.line_gross_amount*NEW.tax_rate_basis_points::numeric)/(10000+NEW.tax_rate_basis_points),2);
+ IF NEW.line_gross_amount<>NEW.unit_price_gross*NEW.quantity
+   OR NEW.line_tax_amount<>expected_tax OR NEW.line_net_amount<>NEW.line_gross_amount-expected_tax THEN
+  RAISE EXCEPTION 'Order line gross, net and tax amounts do not reconcile';
+ END IF;
+ RETURN NEW;
+END;
+$$;
+CREATE TRIGGER storefront_order_line_snapshot_guard
+ BEFORE INSERT ON commerce.storefront_order_lines
+ FOR EACH ROW EXECUTE FUNCTION commerce.guard_storefront_order_line_insert();
+
+CREATE OR REPLACE FUNCTION commerce.verify_storefront_order_totals() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+ target_order_id uuid;
+ order_row commerce.storefront_orders%ROWTYPE;
+ line_count bigint;
+ line_net numeric(18,2);
+ line_tax numeric(18,2);
+ line_gross numeric(18,2);
+BEGIN
+ IF TG_TABLE_NAME='storefront_orders' THEN target_order_id:=NEW.id;
+ ELSE target_order_id:=NEW.order_id;
+ END IF;
+ SELECT * INTO order_row FROM commerce.storefront_orders WHERE id=target_order_id;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Storefront order was removed unexpectedly'; END IF;
+ SELECT count(*),COALESCE(sum(line_net_amount),0),COALESCE(sum(line_tax_amount),0),COALESCE(sum(line_gross_amount),0)
+ INTO line_count,line_net,line_tax,line_gross
+ FROM commerce.storefront_order_lines WHERE order_id=target_order_id;
+ IF line_count<1 OR line_net<>order_row.total_net_amount OR line_tax<>order_row.total_tax_amount
+   OR line_gross<>order_row.total_gross_amount THEN
+  RAISE EXCEPTION 'Storefront order totals must exactly equal the immutable line snapshots';
+ END IF;
+ RETURN NULL;
+END;
+$$;
+CREATE CONSTRAINT TRIGGER storefront_order_totals_match_order
+ AFTER INSERT ON commerce.storefront_orders DEFERRABLE INITIALLY DEFERRED
+ FOR EACH ROW EXECUTE FUNCTION commerce.verify_storefront_order_totals();
+CREATE CONSTRAINT TRIGGER storefront_order_totals_match_lines
+ AFTER INSERT ON commerce.storefront_order_lines DEFERRABLE INITIALLY DEFERRED
+ FOR EACH ROW EXECUTE FUNCTION commerce.verify_storefront_order_totals();
