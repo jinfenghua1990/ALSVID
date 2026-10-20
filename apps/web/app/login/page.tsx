@@ -1,9 +1,9 @@
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { PortalLoginGate } from '../_components/portal-login';
-import { canAccessPortal, readInternalPreviewSession } from '../_lib/portal-access';
+import { canAccessPortal, readPortalSession } from '../_lib/portal-access';
 import { portalDefinitions, portalFromHost, type ProtectedPortalId } from '../_lib/portal-routing';
-import styles from './login.module.css';
+import { isLocale, localeCookie, preferredLocale } from '../_lib/i18n/routing';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -27,28 +27,21 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
   if (hostPortal === 'www') redirect('/');
 
   const redirectTo = safeReturnTo(firstValue(params.returnTo), portal);
-  const session = await readInternalPreviewSession();
+  const session = await readPortalSession(portal);
   const portalAuthenticated = Boolean(session && canAccessPortal(portal, session));
   if (portalAuthenticated && !session?.passwordSetupRequired) redirect(redirectTo);
 
-  const definition = portalDefinitions[portal];
+  const requestedLocale = requestHeaders.get('x-alsvid-locale');
+  const savedLocale = (await cookies()).get(localeCookie)?.value;
+  const locale = isLocale(requestedLocale) ? requestedLocale : preferredLocale(savedLocale, requestHeaders.get('accept-language') ?? '');
   return (
     <PortalLoginGate
       portal={portal}
+      locale={locale}
       authenticated={portalAuthenticated}
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
       passwordLoginEnabled={process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'}
       redirectTo={redirectTo}
-      shopifyLoginUrl={process.env.ALSVID_SHOPIFY_CUSTOMER_LOGIN_URL?.trim() ?? ''}
-    >
-      <main className={styles.page} aria-hidden="true">
-        <section className={styles.panel}>
-          <div className={styles.brand}>ALSVID</div>
-          <div className={styles.eyebrow}>{definition.label.toUpperCase()}</div>
-          <h1 className={styles.title}>登录</h1>
-          <p className={styles.lead}>进入 {definition.label}。登录后会返回你刚才访问的页面。</p>
-        </section>
-      </main>
-    </PortalLoginGate>
+    />
   );
 }

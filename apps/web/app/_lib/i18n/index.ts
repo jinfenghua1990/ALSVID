@@ -7,11 +7,14 @@ import fc1En from './fc1/en.json';
 import fc2Zh from './fc2/zh.json';
 import fc2De from './fc2/de.json';
 import fc2En from './fc2/en.json';
+import authZh from './auth/zh.json';
+import authDe from './auth/de.json';
+import authEn from './auth/en.json';
 import type { Locale } from './routing';
 export type { Locale } from './routing';
-const zhCatalog = { ...zh, ...fc1Zh, ...fc2Zh };
-const deCatalog = { ...de, ...fc1De, ...fc2De };
-const enCatalog = { ...en, ...fc1En, ...fc2En };
+const zhCatalog = { ...zh, ...fc1Zh, ...fc2Zh, ...authZh };
+const deCatalog = { ...de, ...fc1De, ...fc2De, ...authDe };
+const enCatalog = { ...en, ...fc1En, ...fc2En, ...authEn };
 export type TranslationKey = keyof typeof enCatalog;
 const catalogs: Record<Locale, Record<TranslationKey, string>> = {
   zh: zhCatalog,

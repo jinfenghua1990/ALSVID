@@ -97,7 +97,7 @@ export class IdentityService {
     };
   }
 
-  async startEmailVerification(email: string): Promise<{ expiresAt: string; testCode?: string }> {
+  async startEmailVerification(email: string, audience: 'internal' | 'customer' = 'internal'): Promise<{ expiresAt: string; testCode?: string }> {
     if (!this.verificationDelivery.configured) throw new IdentityMailUnavailableError();
     const normalizedEmail = normalizeEmail(email);
 
@@ -105,10 +105,10 @@ export class IdentityService {
     // ALSVID account even when it predates the current company-domain policy.
     // Domain/invite policy applies only to creation of new Internal identities.
     const existingUserId = await this.repository.findUserIdByEmail(normalizedEmail);
-    if (!existingUserId) assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+    if (audience === 'internal' && !existingUserId) assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
 
-    const firstAdminCandidate = await this.isFirstAdminCandidate(normalizedEmail);
-    if (!existingUserId && this.registrationPolicy.registrationMode === 'invite_only' && !firstAdminCandidate) {
+    const firstAdminCandidate = audience === 'internal' && await this.isFirstAdminCandidate(normalizedEmail);
+    if (audience === 'internal' && !existingUserId && this.registrationPolicy.registrationMode === 'invite_only' && !firstAdminCandidate) {
       if (!(await this.repository.hasValidRegistrationInvite(normalizedEmail))) throw new InternalRegistrationDeniedError();
     }
 
@@ -119,7 +119,8 @@ export class IdentityService {
     }
 
     const code = this.codes.create();
-    const codeHash = await this.codes.hash(code);
+    // Bind customer challenges to their audience; a My code cannot activate Internal registration.
+    const codeHash = await this.codes.hash(audience === 'customer' ? 'customer:' + code : code);
     const expiresAt = new Date(now.getTime() + this.registrationPolicy.verificationTtlMs);
     const challengeId = await this.repository.transaction(async (executor) => {
       await this.repository.invalidateActiveEmailChallenges(normalizedEmail, executor);
@@ -144,7 +145,7 @@ export class IdentityService {
     };
   }
 
-  async completeEmailVerification(email: string, code: string, displayName?: string): Promise<{ token: string; expiresAt: string; user: AuthContext; firstAdminActivated: boolean }> {
+  async completeEmailVerification(email: string, code: string, displayName?: string, audience: 'internal' | 'customer' = 'internal'): Promise<{ token: string; expiresAt: string; user: AuthContext; firstAdminActivated: boolean }> {
     const normalizedEmail = normalizeEmail(email);
     if (!/^\d{6}$/.test(code.trim())) throw new InvalidEmailCodeError();
 
@@ -161,7 +162,7 @@ export class IdentityService {
         return { kind: 'invalid' as const };
       }
 
-      const verified = await this.codes.verify(code.trim(), challenge.codeHash);
+      const verified = await this.codes.verify(audience === 'customer' ? 'customer:' + code.trim() : code.trim(), challenge.codeHash);
       if (!verified) {
         await this.repository.incrementEmailChallengeAttempts(challenge.id, executor);
         await this.audit.record({ action: 'identity.email_verification_failed', targetType: 'email_verification', targetId: challenge.id, metadata: { email: normalizedEmail } }, executor);
@@ -169,23 +170,26 @@ export class IdentityService {
       }
 
       let userId = await this.repository.findUserIdByEmail(normalizedEmail, executor);
-      const firstAdminCandidate = !(await this.repository.hasActiveSystemAdmin(executor)) && this.registrationPolicy.initialAdminEmail === normalizedEmail;
+      const isNewUser = !userId;
+      const firstAdminCandidate = audience === 'internal' && !(await this.repository.hasActiveSystemAdmin(executor)) && this.registrationPolicy.initialAdminEmail === normalizedEmail;
       if (!userId) {
-        assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
-        const invited = await this.repository.hasValidRegistrationInvite(normalizedEmail, executor);
-        if (this.registrationPolicy.registrationMode === 'invite_only' && !invited && !firstAdminCandidate) {
+        if (audience === 'internal') assertApprovedCompanyEmail(normalizedEmail, this.registrationPolicy.approvedEmailDomains);
+        const invited = audience === 'internal' && await this.repository.hasValidRegistrationInvite(normalizedEmail, executor);
+        if (audience === 'internal' && this.registrationPolicy.registrationMode === 'invite_only' && !invited && !firstAdminCandidate) {
           await this.repository.consumeEmailChallenge(challenge.id, executor);
           await this.audit.record({ action: 'identity.internal_registration_denied', targetType: 'email_verification', targetId: challenge.id, metadata: { email: normalizedEmail } }, executor);
           return { kind: 'denied' as const };
         }
         userId = await this.repository.createUser(normalizedEmail, cleanDisplayName(displayName, normalizedEmail), null, now, executor);
         if (invited) await this.repository.consumeRegistrationInvite(normalizedEmail, executor);
-        await this.audit.record({ actorUserId: userId, action: 'identity.internal_user_registered', targetType: 'user', targetId: userId }, executor);
+        await this.audit.record({ actorUserId: userId, action: audience === 'customer' ? 'identity.customer_registered' : 'identity.internal_user_registered', targetType: 'user', targetId: userId }, executor);
       } else {
         await this.repository.markEmailVerified(userId, now, executor);
       }
 
-      await this.repository.ensureUserRole(userId, 'internal_user', executor);
+      if (audience === 'customer') await this.repository.ensureUserRole(userId, 'customer_user', executor);
+      else if (isNewUser || firstAdminCandidate) await this.repository.ensureUserRole(userId, 'internal_user', executor);
+      // Existing customer identities never acquire Internal roles merely by selecting an Internal portal.
       let firstAdminActivated = false;
       if (firstAdminCandidate) {
         await this.repository.ensureUserRole(userId, 'system_admin', executor);
