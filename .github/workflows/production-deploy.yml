@@ -110,7 +110,7 @@ jobs:
           R2_BUCKET: ${{ vars.R2_BUCKET }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
-          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+          AUTH_BASE_URL: https://admin.alsvidbike.com
           RELEASE_EVENT: ${{ github.event_name }}
         run: |
           set -euo pipefail
@@ -118,7 +118,7 @@ jobs:
             GCP_PROJECT_ID GCP_REGION GAR_REPOSITORY \
             GCP_WORKLOAD_IDENTITY_PROVIDER GCP_DEPLOY_SERVICE_ACCOUNT \
             GCP_RUNTIME_SERVICE_ACCOUNT R2_ENDPOINT R2_BUCKET \
-            MAIL_PROVIDER MAIL_FROM_ADDRESS AUTH_BASE_URL; do
+            MAIL_PROVIDER MAIL_FROM_ADDRESS; do
             if [[ -z "${!name:-}" ]]; then
               echo "Missing required GitHub production variable: $name" >&2
               exit 1
@@ -135,8 +135,8 @@ jobs:
             exit 1
           fi
 
-          if [[ "$MAIL_FROM_ADDRESS" != *@alsvidbike.com ]]; then
-            echo "MAIL_FROM_ADDRESS must use a verified @alsvidbike.com sender domain before the canonical-domain release" >&2
+          if [[ ! "$MAIL_FROM_ADDRESS" =~ ^[^@[:space:]]+@[^@[:space:]]+$ ]]; then
+            echo "MAIL_FROM_ADDRESS must be a valid email address" >&2
             exit 1
           fi
 
@@ -181,9 +181,10 @@ jobs:
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Verify Resend sender domain before changing Production
+      - name: Verify configured Resend sender domain before changing Production
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
         run: |
           set -euo pipefail
           api_key="$(gcloud secrets versions access latest --secret=alsvid-mail-api-key --project "$GCP_PROJECT_ID")"
@@ -191,11 +192,21 @@ jobs:
           unset api_key
           node --input-type=module -e '
             const response = JSON.parse(process.argv[1]);
-            const domain = (response.data ?? response.domains ?? []).find((item) => item.name === "alsvidbike.com");
-            if (!domain || domain.status !== "verified") {
-              console.error("Refusing deployment: Resend domain alsvidbike.com must be verified before Production changes.");
+            const address = process.env.MAIL_FROM_ADDRESS ?? "";
+            const match = address.match(/^[^@\\s]+@([^@\\s]+)$/);
+            if (!match) {
+              console.error("Refusing deployment: MAIL_FROM_ADDRESS is not a valid email address.");
               process.exit(1);
             }
+            const senderDomain = match[1].toLowerCase();
+            const domain = (response.data ?? response.domains ?? []).find(
+              (item) => item.name.toLowerCase() === senderDomain
+            );
+            if (!domain || domain.status !== "verified") {
+              console.error(`Refusing deployment: Resend sender domain ${senderDomain} must be verified before Production changes.`);
+              process.exit(1);
+            }
+            console.log(`Verified Resend sender domain: ${senderDomain}`);
           ' "$domains"
 
       - name: Configure registry and reuse existing release images when available
@@ -350,7 +361,7 @@ jobs:
           ALSVID_INITIAL_ADMIN_EMAIL: ${{ vars.ALSVID_INITIAL_ADMIN_EMAIL }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
-          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+          AUTH_BASE_URL: https://admin.alsvidbike.com
         run: |
           set -euo pipefail
           env_vars="NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_EMAIL_TEST_MODE=false,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,ALSVID_INTERNAL_EMAIL_DOMAINS=${ALSVID_INTERNAL_EMAIL_DOMAINS:-},ALSVID_INTERNAL_REGISTRATION_MODE=${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain},ALSVID_INITIAL_ADMIN_EMAIL=${ALSVID_INITIAL_ADMIN_EMAIL:-},MAIL_PROVIDER=${MAIL_PROVIDER:-resend},MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@alsvidbike.com},MAIL_FROM_NAME=ALSVID,AUTH_BASE_URL=$AUTH_BASE_URL"
@@ -413,7 +424,7 @@ jobs:
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           API_URL: ${{ steps.api.outputs.url }}
-          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+          AUTH_BASE_URL: https://admin.alsvidbike.com
         run: |
           set -euo pipefail
           gcloud run deploy "$WEB_SERVICE" \
@@ -437,7 +448,7 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           PUBLIC_SITE_URL: https://www.alsvidbike.com/zh/explore/fc1
-          AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+          AUTH_BASE_URL: https://admin.alsvidbike.com
         run: |
           set -euo pipefail
           curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$PUBLIC_SITE_URL" >/dev/null
