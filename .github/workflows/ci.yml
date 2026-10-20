@@ -256,7 +256,7 @@ jobs:
         if: always() && steps.scope.outputs.docs_only != 'true'
         run: docker compose -p alsvid-ci -f infra/docker-compose.test.yml down -v --remove-orphans
 
-  dispatch_production:
+  dispatch_www_production:
     needs: [verify, containers]
     if: >-
       ${{
@@ -278,7 +278,7 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
-      - name: Dispatch the verified main commit to Production
+      - name: Dispatch verified main commit to WWW-only Production
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -307,7 +307,9 @@ jobs:
             exit 0
           fi
 
-          gh workflow run production-deploy.yml --ref main \
+          # During staged hostname migration, protect existing API, DB, mail and worker services.
+          # Full-platform releases remain an explicit separate production workflow.
+          gh workflow run www-deploy.yml --ref main \
             -f confirm=deploy \
             -f release_sha="$RELEASE_SHA"
-          echo "Production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          echo "WWW-only production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
