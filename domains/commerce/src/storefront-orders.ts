@@ -99,7 +99,7 @@ export class StorefrontOrderService{
  constructor(private readonly db:DatabasePort,private readonly audit:CommerceAuditPort){}
  async summary(actor:StorefrontActor){
   requirePermission(actor,'commerce.storefront.read');
-  const [skus,prices,orders]=await Promise.all([
+  const [skus,prices,orders,factories]=await Promise.all([
    this.db.query<any>(`SELECT s.id,s.sku,s.name,s.color_code,s.market_code,m.code AS model_code,v.code AS variant_code
     FROM product.skus s JOIN product.variants v ON v.id=s.variant_id
     JOIN product.models m ON m.id=v.model_id WHERE s.status='ACTIVE' ORDER BY m.code,v.code,s.sku LIMIT 500`),
@@ -112,11 +112,15 @@ export class StorefrontOrderService{
     'lineTaxAmount',l.line_tax_amount::text,'lineGrossAmount',l.line_gross_amount::text)
     ORDER BY l.created_at,l.id) FILTER(WHERE l.id IS NOT NULL),'[]'::json) AS lines
     FROM commerce.storefront_orders o LEFT JOIN commerce.storefront_order_lines l ON l.order_id=o.id
-    GROUP BY o.id ORDER BY o.created_at DESC,o.id DESC LIMIT 100`)
+    GROUP BY o.id ORDER BY o.created_at DESC,o.id DESC LIMIT 100`),
+   this.db.query<any>(`SELECT p.id,p.partner_code,p.display_name FROM partners.partners p
+    JOIN partners.roles r ON r.partner_id=p.id WHERE r.role='FACTORY'
+    ORDER BY p.display_name,p.partner_code LIMIT 100`)
   ]);
   return {checkoutEnabled:false,skus:skus.rows.map(r=>({id:r.id,sku:r.sku,name:r.name,colorCode:r.color_code,
     marketCode:r.market_code,modelCode:r.model_code,variantCode:r.variant_code})),
-   prices:prices.rows.map(mapPrice),orders:orders.rows.map(mapOrder)};
+   prices:prices.rows.map(mapPrice),orders:orders.rows.map(mapOrder),
+   factories:factories.rows.map(r=>({id:r.id,code:r.partner_code,name:r.display_name}))};
  }
  async createPrice(actor:StorefrontActor,input:CreateStorefrontPriceInput):Promise<StorefrontPrice>{
   requirePermission(actor,'commerce.price.manage');
