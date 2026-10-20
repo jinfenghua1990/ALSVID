@@ -296,25 +296,19 @@ alsvid-my-prod
 
 ## 十一、域名映射（目标约定）
 
-Production 正式域名优先规划为：
+Production 正式域名规范为：
 
 ```text
-www.chaibenn.com      → ALSVID Official
-my.chaibenn.com       → My ALSVID
-dealer.chaibenn.com   → ALSVID Dealer Portal
-admin.chaibenn.com    → ALSVID Admin
+www.alsvid.com      → ALSVID Official
+my.alsvid.com       → My ALSVID
+dealer.alsvid.com   → ALSVID Dealer Portal
+admin.alsvid.com    → ALSVID Admin
+service.alsvid.com  → ALSVID Service
 ```
 
-Development 域名优先规划为：
+开发与测试使用本地环境及临时 CI，不创建或恢复共享云端 Development 子域。
 
-```text
-www.dev.chaibenn.com      → ALSVID Official / Development
-my.dev.chaibenn.com       → My ALSVID / Development
-dealer.dev.chaibenn.com   → ALSVID Dealer Portal / Development
-admin.dev.chaibenn.com    → ALSVID Admin / Development
-```
-
-以上域名是长期目标命名约定，不代表当前 DNS、TLS、Shopify 或 Cloud Run 路由已经配置完成。
+旧 `chaibenn.com` 域名作为迁移/历史域名处理；生产切换仍须验证 DNS、TLS、Cloud Run 自定义域名、认证/邮件变量与实际浏览器访问。以上规范不代表这些外部配置已完成。
 
 ## 十二、设计原则
 
@@ -348,4 +342,4 @@ Issue #118 进一步固定四个系统的入口职责、Development / Production
 除非后续出现明确的新架构决策，否则官网、后台、部署、README、Issue、PR 与后续 AI/Codex 工作均沿用本规则，不因聊天窗口或开发阶段变化重新命名。
 
 
-> 当前域名说明：现阶段使用 `chaibenn.com` 临时承载四大门户；`alsvid.com` 为未来正式品牌域名目标，系统结构不变。
+> 当前域名说明：新生成的门户链接统一使用 `alsvid.com` 作为规范域名；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run 和邮件认证仍须独立验收后，才能认定生产切换完成。
