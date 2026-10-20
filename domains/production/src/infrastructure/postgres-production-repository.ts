@@ -8,6 +8,35 @@ export class PostgresProductionRepository implements ProductionRepository{
  this.db.query<any>(`SELECT q.*,u.production_order_id,u.unit_no FROM production.qc_inspections q JOIN production.production_units u ON u.id=q.production_unit_id ORDER BY q.inspected_at DESC LIMIT 2000`),
  this.db.query<any>(`SELECT d.*,ep.part_number AS expected_part_number,ap.part_number AS actual_part_number FROM production.as_built_deviations d JOIN engineering.parts ep ON ep.id=d.expected_part_id JOIN engineering.parts ap ON ap.id=d.actual_part_id ORDER BY d.created_at DESC LIMIT 1000`),
  this.db.query<any>(`SELECT * FROM production.order_state_history ORDER BY occurred_at DESC LIMIT 1000`)]);return{orders:orders.rows,units:units.rows,inspections:inspections.rows,deviations:deviations.rows,history:history.rows}}
+ async getStorefrontOrderProductionContext(orderId:string,factoryPartnerId:string,e:QueryExecutor):Promise<{order:any|null;paymentEvidence:boolean;factoryValid:boolean;lines:any[];existing:any[]}>{
+  const found=await e.query<any>(`SELECT id,order_number,status,payment_status,tax_configuration_status,total_gross_amount::text,currency
+   FROM commerce.storefront_orders WHERE id=$1 FOR UPDATE`,[orderId]);
+  const order=found.rows[0]??null;
+  if(!order)return{order:null,paymentEvidence:false,factoryValid:false,lines:[],existing:[]};
+  const evidence=await e.query(`SELECT id FROM commerce.storefront_payment_verifications
+   WHERE order_id=$1 AND amount=$2 AND currency=$3 AND provider_status='SUCCEEDED'
+    AND signature_verified_at IS NOT NULL AND order_binding_verified_at IS NOT NULL LIMIT 1`,
+   [orderId,order.total_gross_amount,order.currency]);
+  const factory=await e.query(`SELECT p.id FROM partners.partners p
+   JOIN partners.roles r ON r.partner_id=p.id WHERE p.id=$1 AND r.role='FACTORY' LIMIT 1`,[factoryPartnerId]);
+  const lines=await e.query<any>(`SELECT l.id AS line_id,l.sku_id,l.quantity,bs.id AS build_spec_id
+   FROM commerce.storefront_order_lines l
+   LEFT JOIN LATERAL(
+    SELECT x.id FROM engineering.build_specs x WHERE x.sku_id=l.sku_id AND x.status='RELEASED'
+    ORDER BY x.effective_from DESC NULLS LAST,x.released_at DESC NULLS LAST,x.created_at DESC LIMIT 1
+   ) bs ON TRUE
+   WHERE l.order_id=$1 ORDER BY l.created_at,l.id FOR SHARE OF l`,[orderId]);
+  const lineIds=lines.rows.map((line:any)=>line.line_id);
+  const existing=lineIds.length?await e.query<any>(`SELECT id,production_order_number,source_storefront_order_line_id,
+   planned_quantity,build_spec_id,factory_partner_id,status
+   FROM production.production_orders WHERE source_storefront_order_line_id=ANY($1::uuid[]) ORDER BY created_at,id`,[lineIds]):{rows:[]};
+  return{order,paymentEvidence:Boolean(evidence.rows[0]),factoryValid:Boolean(factory.rows[0]),lines:lines.rows,existing:existing.rows};
+ }
+ async advanceStorefrontOrderToFulfillment(orderId:string,userId:string,e:QueryExecutor):Promise<boolean>{
+  const result=await e.query(`UPDATE commerce.storefront_orders SET status='FULFILLMENT_PENDING',
+   version=version+1,updated_by=$2,updated_at=now() WHERE id=$1 AND status='PAYMENT_VERIFIED' RETURNING id`,[orderId,userId]);
+  return Boolean(result.rows[0]);
+ }
  async createOrder(input:CreateProductionOrderInput&{actorUserId:string},executor?:QueryExecutor):Promise<any>{const database=executor??this.db;const r=await database.query<any>(`INSERT INTO production.production_orders(build_spec_id,factory_partner_id,source_purchase_order_id,source_storefront_order_line_id,planned_quantity,planned_start_date,planned_completion_date,note,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9) RETURNING *`,[input.buildSpecId,input.factoryPartnerId,input.sourcePurchaseOrderId||null,input.sourceStorefrontOrderLineId||null,input.plannedQuantity,input.plannedStartDate||null,input.plannedCompletionDate||null,input.note?.trim()??'',input.actorUserId]);return r.rows[0]}
  async releaseOrder(id:string,userId:string,e:QueryExecutor):Promise<any|null>{const r=await e.query<any>(`UPDATE production.production_orders SET status='RELEASED',released_at=now(),version=version+1,updated_by=$2,updated_at=now() WHERE id=$1 AND status='DRAFT' RETURNING *`,[id,userId]);return r.rows[0]??null}
  async createUnits(id:string,count:number,userId:string,e:QueryExecutor):Promise<void>{await e.query(`INSERT INTO production.production_units(production_order_id,unit_no,updated_by) SELECT $1,n,$2 FROM generate_series(1,$3::integer) AS n`,[id,userId,count])}
