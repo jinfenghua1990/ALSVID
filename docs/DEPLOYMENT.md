@@ -94,7 +94,7 @@ Non-secret GitHub `production` Environment variables are documented in `docs/PRO
 
 ## Release
 
-Production releases are reproducible from a Git commit SHA. After a change is merged into `main`, `.github/workflows/production-deploy.yml` automatically builds and deploys that exact commit. The same workflow remains manually dispatchable so an operator can deploy a specific merged commit, including a previous compatible commit for application rollback. It builds and publishes images tagged by source SHA only when that release has no prior images, resolves and deploys exact Artifact Registry digests, authenticates through Workload Identity Federation, runs migrations explicitly, deploys API/Worker/Web and verifies health.
+Production releases are reproducible from a Git commit SHA. **Temporary WWW-only staged mode (2026-10-20):** after passing main CI, compatible frontend/workflow-only changes are dispatched to `.github/workflows/www-deploy.yml`, which deploys only `alsvid-web` and verifies the live `www.alsvidbike.com/release-check` commit; it does not migrate the database or touch the API, worker, email or auth base. Backend/database/shared/infrastructure changes are not automatically promoted through this path. `.github/workflows/production-deploy.yml` remains the explicit full-platform release/rollback workflow, and must only be used after its additional domain, authentication and service preflight checks pass. Both workflows validate exact commit CI and immutable image identity.
 
 No production fix is made by editing a running container.
 
