@@ -315,3 +315,13 @@
 .interestModelNote{margin:9px 0 0;color:#536c79;font-size:12px;line-height:1.6}
 .interestSummary .interestDelivery{color:#324f60;font-size:12px;font-weight:600;line-height:1.6}
 .interestModels small{font-size:11px}
+
+/* Browser-only preview bag CTA; does not replace the green booking animation. */
+.interestCartActions { display:flex; align-items:center; gap:15px; margin:17px 0 16px; }
+.interestCartActions button { flex:1; display:flex; justify-content:space-between; align-items:center; gap:15px; min-height:48px; padding:12px 17px; border:1px solid #2f5365; border-radius:6px; background:#1e3543; color:#fff; font:inherit; font-size:13px; font-weight:650; text-align:left; cursor:pointer; transition:background .2s ease,transform .2s ease; }
+.interestCartActions button:hover { background:#27495b; transform:translateY(-1px); }
+.interestCartActions a { flex:none; font-size:12px; font-weight:650; color:#2d6379; text-decoration:none; }
+.interestCartActions a:hover { text-decoration:underline; text-underline-offset:4px; }
+.interestSummary>p.interestCartError { color:#a93434; font-size:12px; }
+@media(max-width:420px){ .interestCartActions { flex-wrap:wrap; } .interestCartActions a { padding:5px 0; } }
+@media(prefers-reduced-motion:reduce){ .interestCartActions button { transition:none; } }

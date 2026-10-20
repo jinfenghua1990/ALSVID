@@ -62,3 +62,23 @@ test("checkout preview cannot submit an order or capture payment", async () => {
   assert.ok(source.includes('disabled aria-disabled="true"'));
   assert.doesNotMatch(source, /<form|onSubmit=|paymentIntent|createOrder|createPayment/);
 });
+
+test("preview bag and checkout review remain local and non-transactional", async () => {
+  for (const [locale, copy] of Object.entries(locales)) {
+    for (const key of ["fc1.cart.add", "fc1.cart.view", "fc1.cart.order_review", "fc1.cart.no_purchase", "fc1.cart.price_pending"]) {
+      assert.equal(typeof copy[key], "string", `${locale} missing ${key}`);
+      assert.ok(copy[key].trim());
+    }
+  }
+  const configurator = await readFile(path.join(directory, "../../../_components/product/fc1-colour-configurator.tsx"), "utf8");
+  const cart = await readFile(path.join(directory, "../../../[locale]/cart/page.tsx"), "utf8");
+  const checkout = await readFile(path.join(directory, "../../../[locale]/checkout/page.tsx"), "utf8");
+  const panel = await readFile(path.join(directory, "../../../_components/product/fc1-preview-cart-panel.tsx"), "utf8");
+  assert.match(configurator, /saveFc1PreviewCart/);
+  assert.match(configurator, /\/cart/);
+  assert.ok(cart.includes('data-cart-mode="preview-only"'));
+  assert.match(checkout, /mode="checkout"/);
+  assert.match(checkout, /disabled aria-disabled="true"/);
+  assert.doesNotMatch(panel, /fetch\(|createOrder|paymentIntent|onSubmit/);
+  assert.doesNotMatch(cart, /fetch\(|createOrder|paymentIntent|onSubmit/);
+});

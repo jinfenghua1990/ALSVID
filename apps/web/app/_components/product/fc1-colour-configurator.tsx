@@ -5,6 +5,7 @@ import { translator, type Locale } from "../../_lib/i18n";
 import { fc1Photos } from "./fc1-photos";
 import styles from "./fc1-product.module.css";
 import { Fc1ThreeDViewer } from "./fc1-three-d-viewer";
+import { saveFc1PreviewCart } from "../../_lib/commerce/preview-cart";
 
 type ColourId = "sample" | "black" | "blue" | "silver";
 type ModelId = "standard" | "pro";
@@ -189,6 +190,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const [colour, setColour] = useState<ColourId>("sample");
   const [touched, setTouched] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const [cartState, setCartState] = useState<"idle" | "added" | "failed">("idle");
   const [modelAvailable, setModelAvailable] = useState(false);
   const [visualMode, setVisualMode] = useState<"photo" | "3d">("photo");
 
@@ -245,8 +247,13 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
     return () => window.clearTimeout(wait);
   }, [colour, model, locale, touched]);
 
-  const chooseColour = (next: ColourId) => { setColour(next); setTouched(value=>value+1); };
-  const chooseModel = (next: ModelId) => { setModel(next); setExpandedModel(previous => previous === next ? null : next); setTouched(value=>value+1); };
+  const chooseColour = (next: ColourId) => { setColour(next); setCartState("idle"); setTouched(value=>value+1); };
+  const chooseModel = (next: ModelId) => { setModel(next); setExpandedModel(previous => previous === next ? null : next); setCartState("idle"); setTouched(value=>value+1); };
+  const addToPreviewBag = () => {
+    // Browser-only selection, never a purchase, payment or inventory allocation.
+    const ok = saveFc1PreviewCart({ version: 1, product: "FC1", model, colour, quantity: 1 });
+    setCartState(ok ? "added" : "failed");
+  };
   return <div id="configure" className={styles.interestConfigurator}>
     <div className={styles.interestVisual}>
       <div className={styles.interestIntro}>
@@ -312,6 +319,11 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         <p aria-live="polite" className={styles.interestFeedback}>
           {saveState==="idle"?copy.click:saveState==="saving"?copy.saving:saveState==="saved"?copy.saved:copy.retry}
         </p>
+        <div className={styles.interestCartActions}>
+          <button type="button" onClick={addToPreviewBag}>{cartState === "added" ? t("fc1.cart.added") : t("fc1.cart.add")} <span aria-hidden="true">→</span></button>
+          <a href={`/${locale}/cart`}>{t("fc1.cart.view")} ↗</a>
+        </div>
+        {cartState === "failed" ? <p className={styles.interestCartError} role="alert">{t("fc1.cart.storage_error")}</p> : null}
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
         <p>{copy.noPayment}</p>
