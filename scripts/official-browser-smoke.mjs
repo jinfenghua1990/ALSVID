@@ -27,7 +27,51 @@ try {
         const root = page.locator('main[data-home-design="original-migration"]');
         await root.waitFor({ state: 'visible', timeout: 15000 });
         await root.locator('header').first().waitFor({ state: 'attached' });
+
+        const headerNav = device === 'desktop'
+          ? root.locator('header > nav').first()
+          : root.locator('header > details').first();
+        if (device === 'mobile') await headerNav.locator('summary').click();
+        const navLinks = headerNav.locator('nav > a, :scope > a');
+        assert.equal(await navLinks.count(), device === 'mobile' ? 7 : 6, 'Approved product/accessories/story navigation exists');
+        assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
+        assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
+        assert.equal(await navLinks.nth(2).getAttribute('href'), '#platforms');
+        assert.equal(await navLinks.nth(3).getAttribute('href'), '#accessories', 'Accessories is a separate primary nav item');
+        assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/explore/about-story');
+        const reserveBadge = navLinks.nth(0).locator('span');
+        const newBadge = navLinks.nth(1).locator('span');
+        assert.ok((await reserveBadge.innerText()).trim(), 'FC1 reservation badge is localized');
+        assert.ok((await newBadge.innerText()).trim(), 'FC2 new badge is localized');
+        assert.equal(await reserveBadge.evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(184, 233, 134)');
+        assert.equal(await newBadge.evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(230, 83, 75)');
+        if (device === 'desktop') {
+          assert.equal(await navLinks.nth(0).evaluate(element => getComputedStyle(element).fontSize), '18px');
+        } else {
+          await headerNav.locator('summary').click();
+        }
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Navigation must not cause horizontal overflow');
+
         const hero = root.locator(':scope > section').first();
+        const mobileModels = root.locator('header > nav').nth(1);
+        if (device === 'mobile') {
+          assert.ok(await mobileModels.isVisible(), 'FC1 reservation and FC2 new must be visible in the top mobile header');
+          const modelLinks = mobileModels.locator('a');
+          assert.equal(await modelLinks.count(), 2, 'The two visible model shortcuts are not hidden in the hamburger menu');
+          assert.equal(await modelLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1');
+          assert.equal(await modelLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2');
+          assert.equal(await modelLinks.nth(0).locator('span').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(184, 233, 134)');
+          assert.equal(await modelLinks.nth(1).locator('span').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(230, 83, 75)');
+          const headerBox = await root.locator('header').first().boundingBox();
+          const linkBox = await modelLinks.nth(0).boundingBox();
+          assert.ok(headerBox && linkBox && linkBox.y < 130 && linkBox.y >= headerBox.y &&
+            linkBox.y + linkBox.height <= headerBox.y + headerBox.height + 2, 'Model quick links belong to the visible top header');
+          const heroTitleBox = await hero.locator('h1').boundingBox();
+          assert.ok(heroTitleBox && headerBox && heroTitleBox.y > headerBox.y + headerBox.height,
+            'Hero heading must clear the taller mobile header');
+        } else {
+          assert.equal(await mobileModels.isVisible(), false, 'Do not duplicate quick links on desktop');
+        }
         const tabs = hero.locator('[role="group"] button[aria-pressed]');
         assert.equal(await tabs.count(), 4, 'Keep all four platform scenes');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'true', 'Initial scene is selected');

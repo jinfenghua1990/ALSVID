@@ -33,10 +33,12 @@ export function HomePage({
           <span className={styles["brand-strapline"]}>{t("announcement")}</span>
         </div>
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
+          <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
           <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
           <a href="#platforms">{t("navigation.products")}</a>
+          <a href="#accessories">{t("footer.accessories")}</a>
           <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
-          <a href={detail("about-story")}>{t("navigation.company")}</a>
+          <a href={detail("about-story")}>{t("brand.story")}</a>
         </nav>
         <div className={styles["actions"]}>
           <a href={myUrl}>{t("navigation.owner_account")}</a>
@@ -45,13 +47,23 @@ export function HomePage({
         <details className={styles.mobileNav}>
           <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
           <nav aria-label={t("navigation.primary")}>
+            <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
             <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
             <a href="#platforms">{t("navigation.products")}</a>
+            <a href="#accessories">{t("footer.accessories")}</a>
             <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
-            <a href={detail("about-story")}>{t("navigation.company")}</a>
+            <a href={detail("about-story")}>{t("brand.story")}</a>
             <a href={myUrl}>{t("navigation.owner_account")}</a>
           </nav>
         </details>
+        <nav className={styles.mobileModelLinks} aria-label={t("navigation.products")}>
+          <a href={detail("fc1")} className={styles.newModelLink}>
+            {t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span>
+          </a>
+          <a href={detail("fc2")} className={styles.newModelLink}>
+            {t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span>
+          </a>
+        </nav>
       </header>
       <HomePosterHero
         title={t("hero.poster_title")}
