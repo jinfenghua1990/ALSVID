@@ -37,7 +37,7 @@ ALSVID
 
 页面导航、Logo 和品牌文案不显示 `ALSVID Official`。`Official` 用于区分官网项目与 Admin、Dealer Portal、My ALSVID；`www` 仍可作为域名和既有资源技术标识。
 
-当前临时品牌域名结构固定为：
+正式品牌域名规范结构为：
 
 ```text
 www.alsvid.com
@@ -169,7 +169,7 @@ ALSVID Production
 
 ## 10. Preferred domain mapping
 
-当前临时正式入口固定使用：
+新的生产跨门户链接统一指向以下规范入口：
 
 ```text
 www.alsvid.com      → ALSVID Official
@@ -180,18 +180,7 @@ dealer.alsvid.com   → ALSVID Dealer Portal
 service.alsvid.com  → ALSVID Service
 ```
 
-规范的 `alsvid.com` 入口结构如下：
-
-```text
-www.alsvid.com
-shop.alsvid.com
-my.alsvid.com
-admin.alsvid.com
-dealer.alsvid.com
-service.alsvid.com
-```
-
-这些是**固定的目标命名与路由约定**，不是当前每个 DNS、证书或云资源已配置完成的声明。真实上线前仍需完成域名所有权、DNS、TLS、Cloud Run / Shopify 路由等实际配置与验证。
+这些是**固定的规范命名与路由约定**，不是当前每个 DNS、证书或云资源已配置完成的声明。真实上线前仍需完成域名所有权、DNS、TLS、Cloud Run 路由与认证/邮件配置的实际验证。
 
 ## 11. Cloud Run canonical URL rule
 
