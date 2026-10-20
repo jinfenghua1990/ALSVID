@@ -191,7 +191,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
           <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
-          <p className={styles.smallNote}>{key("fc1.selection.unavailable")} <a href={`/${locale}/checkout`}>{key("fc1.checkout.link")} ↗</a></p>
+          <p className={styles.smallNote}>{key("fc1.reservation.note")}</p>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
       </div>
