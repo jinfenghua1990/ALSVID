@@ -4,7 +4,7 @@ export interface ProductionAuditPort{record(input:{actorUserId:string;action:str
 export interface ProductionRepository{
  transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>;
  summary():Promise<ProductionSummary>;
- createOrder(input:CreateProductionOrderInput&{actorUserId:string},executor?:QueryExecutor):Promise<any>;
+ createOrder(input:CreateProductionOrderInput&{actorUserId:string},executor?:QueryExecutor):Promise<any>;getStorefrontOrderProductionContext(orderId:string,factoryPartnerId:string,executor:QueryExecutor):Promise<{order:any|null;paymentEvidence:boolean;factoryValid:boolean;lines:any[];existing:any[]}>;advanceStorefrontOrderToFulfillment(orderId:string,userId:string,executor:QueryExecutor):Promise<boolean>;
  releaseOrder(orderId:string,userId:string,executor:QueryExecutor):Promise<any|null>;createUnits(orderId:string,count:number,userId:string,executor:QueryExecutor):Promise<void>;
  startOrder(orderId:string,userId:string):Promise<any|null>;markUnitAssembled(unitId:string,userId:string):Promise<any|null>;
  countUnitsBlockingQc(orderId:string,executor:QueryExecutor):Promise<number>;moveOrderToQc(orderId:string,userId:string,executor:QueryExecutor):Promise<any|null>;markAssembledUnitsQcPending(orderId:string,userId:string,executor:QueryExecutor):Promise<void>;
