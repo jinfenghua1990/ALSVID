@@ -193,8 +193,8 @@ jobs:
           node --input-type=module -e '
             const response = JSON.parse(process.argv[1]);
             const address = process.env.MAIL_FROM_ADDRESS ?? "";
-            const match = address.match(/^[^@\\s]+@([^@\\s]+)$/);
-            if (!match) {
+            const match = address.match(/^[^@]+@([^@]+)$/);
+            if (!match || [...address].some((character) => character.trim() === "")) {
               console.error("Refusing deployment: MAIL_FROM_ADDRESS is not a valid email address.");
               process.exit(1);
             }
