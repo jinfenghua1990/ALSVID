@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${t(detail.title)} | ${t("brand.name")}`,
     description: t(detail.body),
     alternates: {
-      canonical: `https://www.chaibenn.com/${locale}/explore/${slug}`,
-      languages: { zh: `https://www.chaibenn.com/zh/explore/${slug}`,
-        de: `https://www.chaibenn.com/de/explore/${slug}`,
-        en: `https://www.chaibenn.com/en/explore/${slug}`,
+      canonical: `https://www.alsvid.com/${locale}/explore/${slug}`,
+      languages: { zh: `https://www.alsvid.com/zh/explore/${slug}`,
+        de: `https://www.alsvid.com/de/explore/${slug}`,
+        en: `https://www.alsvid.com/en/explore/${slug}`,
       },
     },
   };
