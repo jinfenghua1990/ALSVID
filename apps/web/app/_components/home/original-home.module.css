@@ -1682,3 +1682,67 @@
   .posterHome .brand-strapline { display: none; }
   .posterHome .mobileNav nav { width: min(88vw, 320px); }
 }
+
+/* The two model statuses must be immediately visible on a phone without opening Menu. */
+.mobileModelLinks { display: none; }
+@media (max-width: 760px) {
+  .posterHome .header {
+    height: auto;
+    min-height: 106px;
+    flex-wrap: wrap;
+    align-content: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 7px 15px 8px;
+  }
+  .posterHome .brand-lockup {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .posterHome .logo { font-size: 18px; letter-spacing: .10em; }
+  .posterHome .mobileNav { margin-left: 2px; }
+  .posterHome .mobileModelLinks {
+    display: flex;
+    order: 4;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .posterHome .mobileModelLinks a {
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px;
+    border: 1px solid #ffffff2a;
+    border-radius: 7px;
+    background: #ffffff0e;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .posterHome .mobileModelLinks a:focus-visible {
+    outline: 2px solid #b8e986;
+    outline-offset: 2px;
+  }
+  .posterHome .mobileModelLinks .reserveBadge,
+  .posterHome .mobileModelLinks .newBadge {
+    font-size: 10px;
+    min-height: 20px;
+    padding: 4px 6px;
+  }
+  /* Hero heading stays fully clear of the taller two-row fixed header. */
+  .posterHome .posterContent { top: max(132px, 24%); }
+}
+@media (max-width: 360px) {
+  .posterHome .header { padding-inline: 10px; }
+  .posterHome .mobileModelLinks a { font-size: 14px; gap: 5px; padding-inline: 5px; }
+  .posterHome .logo { font-size: 16px; letter-spacing: .08em; }
+}
