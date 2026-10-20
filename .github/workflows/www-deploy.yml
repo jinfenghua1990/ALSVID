@@ -162,12 +162,26 @@ jobs:
           [[ -n "$RUNTIME_SERVICE_ACCOUNT" ]]
           gcloud run deploy "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --no-default-url --image "${{ steps.pinned.outputs.url }}" --service-account "$RUNTIME_SERVICE_ACCOUNT" --port 3000 --cpu 1 --memory 512Mi --min 0 --max 3 --allow-unauthenticated --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_API_BASE_URL=$API_URL/api,AUTH_BASE_URL=$AUTH_BASE_URL" --quiet
 
-      - name: Confirm public website is healthy
+      - name: Confirm WWW is serving the expected release
+        env:
+          RELEASE_SHA: ${{ steps.image.outputs.release_sha }}
         run: |
           set -euo pipefail
           curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "$PUBLIC_SITE_URL" >/dev/null
+          release_json="$(curl --location --fail --silent --show-error --retry 6 --retry-delay 5 "https://www.alsvidbike.com/release-check")"
+          printf '%s' "$release_json" | node -e '
+            let text = "";
+            process.stdin.on("data", (chunk) => text += chunk);
+            process.stdin.on("end", () => {
+              const payload = JSON.parse(text);
+              if (payload.service !== "alsvid-web" || payload.release !== process.argv[1]) {
+                console.error("The public WWW hostname is not serving the new Web revision.");
+                process.exit(1);
+              }
+            });
+          ' "$RELEASE_SHA"
           echo "WWW live: $PUBLIC_SITE_URL" >> "$GITHUB_STEP_SUMMARY"
-          echo "Published commit: ${{ steps.image.outputs.release_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified public release: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "API, database, worker and transactional sender: unchanged" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Restore previous Web revision if post-deploy verification fails
