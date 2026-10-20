@@ -24,8 +24,8 @@ export function normalizeFc1PreviewCart(value: unknown): Fc1PreviewCart | null {
   if (cart.version !== 1 || cart.product !== "FC1") return null;
   if (!cart.model || !MODELS.includes(cart.model)) return null;
   if (!cart.colour || !COLOURS.includes(cart.colour)) return null;
-  if (!Number.isInteger(cart.quantity) || (cart.quantity ?? 0) < 1 || (cart.quantity ?? 0) > 9) return null;
-  return { version: 1, product: "FC1", model: cart.model, colour: cart.colour, quantity: cart.quantity! };
+  if (typeof cart.quantity !== "number" || !Number.isInteger(cart.quantity) || cart.quantity < 1 || cart.quantity > 9) return null;
+  return { version: 1, product: "FC1", model: cart.model, colour: cart.colour, quantity: cart.quantity };
 }
 
 export function readFc1PreviewCart(): Fc1PreviewCart | null {
