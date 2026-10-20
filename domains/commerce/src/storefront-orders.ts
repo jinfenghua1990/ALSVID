@@ -39,7 +39,7 @@ type SkuPriceRow={price_id:string;sku_id:string;sku:string;sku_name:string;color
  market_country:string;currency:string;unit_price_gross:string;tax_rate_basis_points:number};
 type OrderRow={id:string;order_number:string;source:'ALSVID_WWW';customer_email:string;market_country:string;
  currency:string;status:string;payment_status:string;tax_configuration_status:string;
- total_net_amount:string;total_tax_amount:string;total_gross_amount:string;version:number;created_at:Date;lines?:StorefrontOrderLine[]};
+ total_net_amount:string;total_tax_amount:string;total_gross_amount:string;version:number;created_at:Date;cancel_reason?:string|null;lines?:StorefrontOrderLine[]};
 type ExistingRequestRow={id:string;request_sha256:string};
 function requirePermission(actor:StorefrontActor,permission:string):void{
  if(!actor.permissions.includes(permission))throw new ForbiddenError('COMMERCE_FORBIDDEN',`Missing ${permission}`);
