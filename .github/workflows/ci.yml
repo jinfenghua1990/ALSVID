@@ -301,6 +301,19 @@ jobs:
             fi
           fi
 
+          # This temporary staged release publishes only the shared Web service.
+          # Backend/schema/infrastructure changes must never sneak into that path.
+          if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
+            while IFS= read -r file; do
+              case "$file" in
+                apps/api/*|apps/worker/*|packages/*|infra/docker/Dockerfile.api|infra/docker/Dockerfile.worker|infra/gcp/*)
+                  echo "Backend/shared-schema/infra change detected: $file. Manual full-stack release required."
+                  exit 0
+                  ;;
+              esac
+            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+          fi
+
           main_sha="$(gh api "repos/$GH_REPO/commits/main" --jq .sha)"
           if [[ "$main_sha" != "$RELEASE_SHA" ]]; then
             echo "A newer main commit exists; skipping the obsolete release dispatch."
