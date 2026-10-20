@@ -1,6 +1,14 @@
 # Current State
 
-## FC1 browser-only preview bag and order review — 2026-10-20
+## FC1 promotional / email-reservation-only state — 2026-10-20
+
+The current FC1 customer journey is **product promotion + model/colour preference preview + email reservation enquiry only**. Do not expose online ordering, a cart, checkout, payment, order creation or stock reservation. The configurator keeps the actual reference-bike photography, model selector, colour-preview behavior and grouped specifications. Its email CTA reads the optional `NEXT_PUBLIC_FC1_RESERVATION_EMAIL` build-time variable. If the variable is missing or malformed, the CTA remains disabled and explicitly states that the reservation email will be added later; never invent a recipient address. When configured, the CTA opens the customer's own email client with a localized subject/body containing the selected model and colour. Sending the email is only an enquiry, not an order confirmation.
+
+The stated logistics are China-to-Germany with an **estimated** 4–6 week delivery window, subject to logistics confirmation; it is not a guaranteed delivery date. The legacy `/{locale}/cart` and `/{locale}/checkout` URLs redirect back to the FC1 configuration section. No online payment, order or inventory mutation is performed. Set the public email variable before the Next.js production build, then run checks and deploy; adding a runtime-only Cloud Run variable is not enough for a `NEXT_PUBLIC_` value already compiled into the client bundle.
+
+## Historical preview-cart experiment — retired 2026-10-20
+
+
 
 Source-change scope (not a delivery or live payment claim): the FC1 configurator can explicitly save its current model and proposed colour into a **single FC1 browser-session-only preview bag**, with a quantity selector limited to 1–9. A new localized `/{locale}/cart` page shows the genuine green reference bicycle, editable quantity and a prominent “price pending / no purchase” disclaimer. The existing `/{locale}/checkout` information page now shows a read-only order-review preview from the same session before the legal/risk notes. All copy is in DE/EN/ZH, with clear labels that no SKU, price, payment, stock reservation, real order, email notification or account persistence is involved. No card collection, checkout form, webhook or PSP SDK is introduced; payment remains disabled. The cart is not a canonical Commerce order: only `sessionStorage` records a product code, model code, colour proposal and quantity, with input validation and graceful storage failure. There is no backend order/inventory mutation. A future real cart must implement trusted product/price/tax/stock authority, authenticated order lifecycle and PSP verification per ADR 0005 rather than reinterpret this session preview as a valid order.
 
