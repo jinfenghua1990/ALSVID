@@ -44,11 +44,12 @@ export function StorefrontOrderDraftPanel(){
   .finally(()=>{if(live)setLoading(false);});return()=>{live=false};},[]);
  const activePrices=summary.prices.filter(p=>p.status==='ACTIVE');
  const availableSkus=summary.skus.filter(s=>activePrices.some(p=>p.skuId===s.id&&p.marketCountry===market));
- const selectedPrice=summary.prices.find(p=>p.skuId===priceSku&&p.marketCountry===priceMarket&&p.status==='DRAFT');
  async function run(action:()=>Promise<unknown>,success:string){
   if(busy)return;setBusy(true);setError('');setNotice('');
-  try{await action();setNotice(success);await refresh();}
-  catch(e){setError(e instanceof Error?e.message:'操作未确认成功，请检查数据后重试');}
+  try{
+   const result=await action();setNotice(typeof result==='string'?result:success);
+   try{await refresh();}catch(e){setError('操作已完成，但列表刷新失败：'+(e instanceof Error?e.message:'未知错误')+'。请重新加载页面核对，不要重复提交。');}
+  }catch(e){setError(e instanceof Error?e.message:'操作未确认成功，请检查数据后重试');}
   finally{setBusy(false);}
  }
  async function createPrice(e:FormEvent<HTMLFormElement>){
@@ -69,7 +70,7 @@ export function StorefrontOrderDraftPanel(){
   requestKey.current={fingerprint,id:clientRequestId};
   await run(async()=>{const order=await call<Order>('orders',{...payload,clientRequestId});
    requestKey.current=null;setEmail('');setItems([newItem(availableSkus[0]?.id??'')]);
-   setNotice('已保存内部草稿 '+order.orderNumber+'，总额 '+order.totalGrossAmount+' EUR；未收款、未提交给客户、不会自动转生产。');},
+   return '已保存内部草稿 '+order.orderNumber+'，总额 '+order.totalGrossAmount+' EUR；未收款、未提交给客户、不会自动转生产。';},
    '订单草稿已保存。');
  }
  async function cancelOrder(order:Order){
