@@ -21,7 +21,7 @@ export class ProductionController {
 
   @Post('orders/from-storefront/:id')
   async createFromStorefront(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: { factoryPartnerId: string }) {
-    try { return { data: await productionService.createFromStorefrontOrder(requireAuth(request), id, input.factoryPartnerId) }; }
+    try { return { data: await productionService.createFromStorefrontOrder(requireAuth(request), id, input?.factoryPartnerId ?? '') }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
