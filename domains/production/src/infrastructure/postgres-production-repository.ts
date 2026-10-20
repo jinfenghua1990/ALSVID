@@ -18,7 +18,7 @@ export class PostgresProductionRepository implements ProductionRepository{
     AND signature_verified_at IS NOT NULL AND order_binding_verified_at IS NOT NULL LIMIT 1`,
    [orderId,order.total_gross_amount,order.currency]);
   const factory=await e.query(`SELECT p.id FROM partners.partners p
-   JOIN partners.roles r ON r.partner_id=p.id WHERE p.id=$1 AND r.role='FACTORY' LIMIT 1`,[factoryPartnerId]);
+   JOIN partners.roles r ON r.partner_id=p.id WHERE p.id=$1 AND r.role='FACTORY' AND r.enabled=true LIMIT 1`,[factoryPartnerId]);
   const lines=await e.query<any>(`SELECT l.id AS line_id,l.sku_id,l.quantity,bs.id AS build_spec_id
    FROM commerce.storefront_order_lines l
    LEFT JOIN LATERAL(
