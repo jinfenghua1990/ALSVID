@@ -215,7 +215,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const preferenceSession = useRef<string | null>(null);
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
   const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
-  const reservationEmailConfigured = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(reservationEmail);
+  const reservationEmailConfigured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationEmail);
   const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
   const emailSubject = t("fc1.reservation.email_subject");
