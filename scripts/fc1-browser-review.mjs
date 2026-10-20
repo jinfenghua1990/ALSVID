@@ -63,11 +63,11 @@ try {
       const context = await browser.newContext({ viewport });
       const page = await context.newPage();
       const failures = [];
-      const preferences = [];
+      const implicitReservationRequests = [];
       page.on("pageerror", (error) => failures.push(error.message));
       await page.route("**/api/public/fc1-colour-interest", async (route) => {
-        preferences.push(JSON.parse(route.request().postData() || "{}"));
-        await route.fulfill({ status:200, contentType:"application/json", body:'{"saved":true}' });
+        implicitReservationRequests.push(route.request().url());
+        await route.abort();
       });
       const response = await page.goto(base + "/" + locale + "/explore/fc1", { waitUntil:"networkidle" });
       assert.equal(response.status(), 200);
@@ -97,6 +97,10 @@ try {
       assert.equal(await standard.getAttribute("aria-expanded"), "true", "Standard details should expand on selection");
       assert.equal(await sideSpecs.locator(":scope > div").count(), 4, "the four reference figures open directly below Standard");
       assert.equal(await sideSpecs.getByText("85 × 69 × 48", {exact:false}).count(), 1);
+      if (device === "desktop") {
+        const specColumns = await sideSpecs.evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(" ").length);
+        assert.equal(specColumns, 4, "desktop must show four reference metrics in one model-card row");
+      }
       await standard.click();
       assert.equal(await standard.getAttribute("aria-expanded"), "false", "selecting Standard again closes its details");
       assert.equal(await sideSpecs.count(), 0);
@@ -163,13 +167,17 @@ try {
       await colour.click();
       assert.equal(await colour.getAttribute("aria-pressed"), "true");
       await page.locator('#overview canvas[data-visible="true"]').waitFor();
-      await page.waitForFunction(() => document.querySelector('#configure [aria-live="polite"]')?.textContent?.length > 5);
-      await page.waitForTimeout(700);
-      assert.ok(preferences.length > 0, "user-initiated colour selection records a preference");
-      assert.equal(preferences.at(-1).colourCode, "blue");
-      assert.equal(preferences.at(-1).modelCode, "pro");
-      assert.equal(preferences.at(-1).productCode, "FC1");
-      assert.ok(preferences.at(-1).sessionKey);
+      await page.waitForTimeout(650);
+      assert.equal(implicitReservationRequests.length, 0, "selecting a colour must never submit an implicit reservation");
+      assert.ok((await configure.locator('[class*="interestSwatches"]').innerText()).includes(copy["fc1.colours.blue"]));
+      const pendingEmail = configure.getByRole("button", { name: copy["fc1.reservation.cta"], exact:false });
+      const emailLink = configure.getByRole("link", { name: copy["fc1.reservation.cta"], exact:false });
+      if (await pendingEmail.count() > 0) {
+        assert.equal(await pendingEmail.isDisabled(), true, "email booking cannot be submitted before recipient configured");
+        assert.equal(await emailLink.count(), 0);
+      } else {
+        assert.match(await emailLink.getAttribute("href"), /^mailto:/, "configured reservation opens email client only");
+      }
       const gallery = page.locator("#gallery");
       await gallery.scrollIntoViewIfNeeded();
       await page.waitForTimeout(250);
