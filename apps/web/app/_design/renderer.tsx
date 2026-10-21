@@ -35,6 +35,9 @@ function isAreaActive(area: string, label: string): boolean {
 }
 
 function menuDestination(screen: Screen, label: string): string | undefined {
+  // Go to the persisted first-party Commerce workflow, not a design-only order screen.
+  if (screen.area === '订单' && label === '全部订单') return '/admin/orders';
+  if (screen.area === '订单' && label === 'B2C消费者订单') return '/admin/orders#b2c';
   const clean = (value: string) => value.replace(/[\s·/]/g, '');
   const term = clean(label);
   const moduleScreens = screens.filter(item => item.area === screen.area);
