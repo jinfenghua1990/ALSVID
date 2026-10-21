@@ -10,6 +10,7 @@ test('Admin password login uses a dedicated flag at every trust boundary', () =>
   const login = from('../login/page.tsx');
   const ui = from('../_components/portal-login.tsx');
   const deploy = from('../../../../.github/workflows/production-deploy.yml');
+  const wwwDeploy = from('../../../../.github/workflows/www-deploy.yml');
 
   for (const source of [api, proxy]) {
     assert.match(source, /portal === 'admin'[\s\S]*ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'/);
@@ -23,6 +24,7 @@ test('Admin password login uses a dedicated flag at every trust boundary', () =>
   assert.match(ui, /passwordLoginEnabled && method === 'password'/);
   assert.match(ui, /if \(!passwordLoginEnabled\) return;/);
   assert.match(deploy, /ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED=true/);
+  assert.match(wwwDeploy, /ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED=true/);
 });
 
 test('first account password setup and email authentication are not removed', () => {
