@@ -119,7 +119,7 @@ try {
         assert.equal(await purchase.locator('button').count(),2,'Detail page exposes add and buy controls');
         assert.equal(await purchase.locator('button').nth(1).isDisabled(),true,'Buy now is gated until PSP, SKU and price readiness');
         await purchase.locator('button').first().click();
-        await shopping.locator('a[href="/'+locale+'/cart"]').first().waitFor();
+        await purchase.locator('a[href="/'+locale+'/cart"]').waitFor({state:'visible'});
         const cartWithItem=await shopping.goto(base+'/'+locale+'/cart',{waitUntil:'domcontentloaded'});
         assert.equal(cartWithItem?.status(),200);
         await shopping.locator('main[data-storefront-cart="cart"] article').first().waitFor();
