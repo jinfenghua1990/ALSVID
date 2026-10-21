@@ -10,6 +10,8 @@
 .logo:hover .brandBike{transform:translateX(2px)}
 .strapline{color:#aeb5b1;font-size:9px;line-height:1.2;letter-spacing:.08em}
 .desktopNav{display:flex;justify-content:center;align-items:center;gap:clamp(14px,1.35vw,22px);min-width:0}
+.homeLink{display:inline-flex;align-items:center;white-space:nowrap;color:#b6c0ba;font-size:13px;font-weight:600;letter-spacing:0;padding-right:clamp(10px,1vw,16px);margin-right:clamp(2px,.3vw,6px);border-right:1px solid #ffffff26;transition:color .2s}
+.homeLink:hover,.homeLink:focus-visible{color:#b8e986}
 .navLink{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;color:#f0f1ef;font-size:18px;font-weight:500;line-height:1.25;letter-spacing:-.015em;transition:color .2s}
 .navLink:hover,.navLink[aria-current=page]{color:#b8e986}
 /* Override legacy homepage .page nav a selector without touching product/content links. */
@@ -60,4 +62,4 @@
  .reserveBadge,.newBadge{font-size:8px;padding:3px 3px}
  .mobileMenu summary{width:36px;height:36px}
 }
-@media(prefers-reduced-motion:reduce){.brandBike,.navLink,.dealerLogin{transition:none}.logo:hover .brandBike{transform:none}}
+@media(prefers-reduced-motion:reduce){.brandBike,.navLink,.homeLink,.dealerLogin{transition:none}.logo:hover .brandBike{transform:none}}
