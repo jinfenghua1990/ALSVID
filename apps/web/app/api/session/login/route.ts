@@ -4,10 +4,15 @@ import { sessionCookieName, sessionCookieOptions } from '../../../_lib/session-c
 const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  if (process.env.ALSVID_PASSWORD_LOGIN_ENABLED !== 'true') {
+  const body = await request.text();
+  let portal: string | undefined;
+  try { portal = JSON.parse(body).portal; } catch { /* Forward malformed JSON to the API for validation. */ }
+  const passwordLoginEnabled = portal === 'admin'
+    ? process.env.ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'
+    : process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true';
+  if (!passwordLoginEnabled) {
     return NextResponse.json({ message: '账户密码登录暂未启用，请使用邮箱验证码。' }, { status: 403 });
   }
-  const body = await request.text();
   const response = await fetch(`${apiBase}/v1/auth/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -18,8 +23,6 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!response.ok) return NextResponse.json(payload, { status: response.status });
 
   const result = NextResponse.json({ data: payload.data.user });
-  let portal: string | undefined;
-  try { portal = JSON.parse(body).portal; } catch { /* The API returns the validation error for malformed JSON. */ }
   result.cookies.set(sessionCookieName(request, portal), payload.data.token, sessionCookieOptions(request, new Date(payload.data.expiresAt)));
   return result;
 }
