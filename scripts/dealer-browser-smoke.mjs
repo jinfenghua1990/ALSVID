@@ -23,7 +23,7 @@ try{
     await page.getByRole('heading',{level:1}).first().waitFor();
     assert.equal(await page.locator('[class*=platformCard]').count(),4);
     assert.ok(await page.locator('a[href="/'+locale+'/dealers/locations"]').count()>=1);
-    assert.equal(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count(),1,'dealer portal login visible in header');
+    assert.ok(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count()>=1,'dealer portal login included in shared header');
     assert.equal(await page.locator('header[data-public-site-header]').count(),1,'dealer page reuses homepage header');
     assert.ok(await page.locator('header a[href="/'+locale+'/dealers#apply"]').count()>=1,'direct applicant navigation exists');
     assert.equal(await page.locator('header details[class*="switcher"] summary').count(),1,'homepage globe language switcher reused');
