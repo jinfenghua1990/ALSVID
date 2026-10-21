@@ -387,6 +387,7 @@ jobs:
           ALSVID_INITIAL_ADMIN_EMAIL: ${{ vars.ALSVID_INITIAL_ADMIN_EMAIL }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
           AUTH_BASE_URL: https://admin.alsvidbike.com
         run: |
           set -euo pipefail
