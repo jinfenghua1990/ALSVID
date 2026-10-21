@@ -66,12 +66,20 @@ try {
         assert.equal(await bicycles.locator('main[data-bikes-catalog]').count(), 1, 'Bicycle catalog renders');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc1"]').count() > 0, true, 'FC1 detail link exists');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc2"]').count() > 0, true, 'FC2 detail link exists');
+        assert.ok(await bicycles.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Bicycle catalog should not overflow at ' + device);
+        const gtResponse = await bicycles.goto(base + '/' + locale + '/bikes?platform=gt#models', { waitUntil: 'domcontentloaded' });
+        assert.equal(gtResponse?.status(), 200, 'Platform filter loads');
+        assert.equal(await bicycles.locator('#models article').count(), 0, 'Unconfirmed GT bikes do not appear as real listings');
         await bicycles.close();
         const accessories = await context.newPage();
         const accessoriesResponse = await accessories.goto(base + '/' + locale + '/accessories', { waitUntil: 'domcontentloaded' });
         assert.equal(accessoriesResponse?.status(), 200, locale + ' accessories page should return HTTP 200');
         assert.equal(await accessories.locator('main').getAttribute('lang'), locale, locale + ' accessories page locale');
         assert.equal(await accessories.locator('main[data-accessories-catalog]').count(), 1, 'Accessory catalog renders');
+        assert.ok(await accessories.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Accessories catalog should not overflow at ' + device);
+        const rackResponse = await accessories.goto(base + '/' + locale + '/accessories?category=rack#categories', { waitUntil: 'domcontentloaded' });
+        assert.equal(rackResponse?.status(), 200, 'Accessories category filter loads');
+        assert.equal(await accessories.locator('#categories article').count(), 1, 'Rack filter shows one category');
         await accessories.close();
 
         const hero = root.locator(':scope > section').first();
