@@ -23,7 +23,7 @@
 ## 二、身份安全
 
 - 旧的 13 组业务工作台已添加服务端 `requirePortalSession('admin', ...)`；API 仍需各自做业务动作授权，不能把页面登录当作业务授权。
-- `ALSVID_PASSWORD_LOGIN_ENABLED` **默认关闭**。Web 端隐藏并拒绝账户密码登录，API 层也拒绝；源码不删除，将来重新开启必须两个服务明确设 `true` 并完成管理员与经销商的登录回归。
+- 管理员、经销商、供应商分别使用 `ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED`、`ALSVID_DEALER_PASSWORD_LOGIN_ENABLED`、`ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED`；Web 与 API 两侧必须同时开启。My ALSVID 不继承这些开关，继续使用邮箱验证码登录。
 - 邮箱验证码登录和首次账户密码初始化沿用原机制。这不代表生产邮件投递已在本 PR 重新实测。
 - `/admin` 中的退出按钮使用现有会话注销 API；没有后台能力的搜索、通知、主题按钮继续禁用。
 
