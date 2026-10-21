@@ -11,7 +11,7 @@ export function CatalogShell({ locale, active, children }: { locale: Locale; act
     {children}
     <footer className={styles.footer}>
       <div><a href={base + "/"}>ALSVID</a><span>{t("catalog.shared.footer")}</span></div>
-      <nav aria-label={t("navigation.primary")}><a href={base + "/bikes"}>{t("catalog.nav.bikes")}</a><a href={base + "/accessories"}>{t("catalog.nav.accessories")}</a><a href={base + "/"}>{t("catalog.shared.contact")} ↗</a></nav>
+      <nav aria-label={t("navigation.primary")}><a href={base + "/bikes"}>{t("catalog.nav.bikes")}</a><a href={base + "/accessories"}>{t("catalog.nav.accessories")}</a><a href={base + "/"}>{t("catalog.shared.contact")}</a></nav>
       <p>{t("catalog.shared.preview")}</p>
     </footer>
   </div>;

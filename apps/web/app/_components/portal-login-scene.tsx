@@ -25,7 +25,7 @@ export function PortalLoginScene({ portal, locale, open, busy, locked, formId, a
     <div className={styles.background} aria-hidden="true" /><div className={styles.dither} aria-hidden="true" />
     <header className={styles.header}>
       <a className={styles.logo} href={'https://www.alsvidbike.com/' + locale}>ALSVID</a>
-      <div className={styles.headerLinks}><LanguageSwitcher locale={locale} label={t('auth.language')} /><a href={'https://www.alsvidbike.com/' + locale}>{t('auth.return')} ↗</a></div>
+      <div className={styles.headerLinks}><LanguageSwitcher locale={locale} label={t('auth.language')} /><a href={'https://www.alsvidbike.com/' + locale}>{t('auth.return')}</a></div>
     </header>
     <div className={styles.stage}>
       <section className={styles.story}>

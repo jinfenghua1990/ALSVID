@@ -39,8 +39,8 @@ export default async function DealerPartnershipPage({ params }: Props) {
           <h1>{t('network.hero.title')}</h1>
           <p>{t('network.hero.body')}</p>
           <div className={styles.heroActions}>
-            <a className={styles.outlineButton} href="#apply">{t('network.hero.apply')} <span aria-hidden="true">↗</span></a>
-            <a className={styles.textButton} href="https://dealer.alsvidbike.com">{t('network.nav.account')} <span aria-hidden="true">↗</span></a>
+            <a className={styles.outlineButton} href="#apply">{t('network.hero.apply')}</a>
+            <a className={styles.textButton} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>
           </div>
           <div className={styles.heroNote}>{t('network.hero.note')}</div>
         </div>
@@ -65,7 +65,7 @@ export default async function DealerPartnershipPage({ params }: Props) {
         </div>
         <div className={styles.fourGrid}>{platforms.map(p => <a className={styles.platformCard} key={p.code} href={p.href}>
           <img src={p.img} alt="" loading="lazy"/>
-          <div><span>{p.code} PLATFORM</span><h3>{p.label}</h3><b aria-hidden="true">↗</b></div>
+          <div><span>{p.code} PLATFORM</span><h3>{p.label}</h3></div>
         </a>)}</div>
       </section>
       <section className={styles.section}>
@@ -95,7 +95,7 @@ export default async function DealerPartnershipPage({ params }: Props) {
           <p className={styles.eyebrow}>{t('network.apply.eyebrow')}</p>
           <h2>{t('network.apply.title')}</h2>
           <p>{t('network.apply.body')}</p>
-          <a className={styles.partnerLogin} href="https://dealer.alsvidbike.com">{t('network.apply.login')} ↗</a>
+          <a className={styles.partnerLogin} href="https://dealer.alsvidbike.com">{t('network.apply.login')}</a>
         </div>
         <DealerApplicationForm locale={locale}/>
       </section>
@@ -112,7 +112,7 @@ export default async function DealerPartnershipPage({ params }: Props) {
       </section>
       <section className={styles.finalBanner}>
         <div><p className={styles.eyebrow}>{t('network.locations.eyebrow')}</p><h2>{t('network.locations.title')}</h2><p>{t('network.locations.body')}</p></div>
-        <a className={styles.outlineButton} href={base + '/dealers/locations'}>{t('network.hero.find')} ↗</a>
+        <a className={styles.outlineButton} href={base + '/dealers/locations'}>{t('network.hero.find')}</a>
       </section>
     </main>
   </PublicShell>;

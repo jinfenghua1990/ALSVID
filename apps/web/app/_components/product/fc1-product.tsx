@@ -52,8 +52,8 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p className={styles.heroDescription}>{key("fc1.intro")}</p>
             <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
             <div className={styles.heroCtas}>
-              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↘</span></a>
-              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
+              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")}</a>
+              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")}</a>
             </div>
           </div>
           <img className={styles.heroProduct} {...fc1Photos.side} alt={key("fc1.photo.alt")} fetchPriority="high" />
@@ -181,7 +181,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")}</a>
           <p className={styles.smallNote}>{key("fc1.reservation.note")}</p>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>

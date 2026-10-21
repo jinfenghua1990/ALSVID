@@ -99,7 +99,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
         <div><p className={styles.kicker}>{t("catalog.bikes.compare.kicker")}</p><h2>{t("catalog.bikes.compare.title")}</h2><p>{t("catalog.bikes.compare.body")}</p><a href={prefix + "/accessories"}>{t("catalog.bikes.compare.cta")}</a></div>
         <div className={styles.guideTable} role="table" aria-label={t("catalog.bikes.compare.title")}>
           <div role="row" className={styles.guideHead}><span role="columnheader">{t("catalog.bikes.compare.model")}</span><span role="columnheader">{t("catalog.bikes.compare.platform")}</span><span role="columnheader">{t("catalog.bikes.compare.state")}</span></div>
-          {models.map(model => <a role="row" key={model.id} href={prefix + "/explore/" + model.id}><strong role="cell">{model.name}</strong><span role="cell">FC</span><span role="cell">{model.status} ↗</span></a>)}
+          {models.map(model => <a role="row" key={model.id} href={prefix + "/explore/" + model.id}><strong role="cell">{model.name}</strong><span role="cell">FC</span><span role="cell">{model.status}</span></a>)}
         </div>
       </section>
       <div className={styles.preview}>{t("catalog.shared.preview")}</div>

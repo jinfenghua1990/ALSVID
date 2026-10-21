@@ -18,7 +18,7 @@ export async function DirectoryPage({ locale, kind }: { locale: Locale; kind: 's
      <h1>{t(sales?'network.locations.title':'network.service.title')}</h1>
      <p>{t(sales?'network.locations.body':'network.service.body')}</p>
      <a className={styles.outlineButton} href={sales?base+'/dealers#apply':'https://my.alsvidbike.com'}>
-      {t(sales?'network.locations.apply':'network.service.owner')} <span aria-hidden="true">↗</span>
+      {t(sales?'network.locations.apply':'network.service.owner')}
      </a>
     </div>
    </section>
@@ -47,8 +47,8 @@ export async function DirectoryPage({ locale, kind }: { locale: Locale; kind: 's
      })}
     </div>
     <div className={styles.directoryAfter}>
-     <a href={base+'/dealers'}>{t('network.shared.back')} ↗</a>
-     {!sales&&<a href="https://my.alsvidbike.com">{t('network.service.owner')} ↗</a>}
+     <a href={base+'/dealers'}>{t('network.shared.back')}</a>
+     {!sales&&<a href="https://my.alsvidbike.com">{t('network.service.owner')}</a>}
     </div>
    </section>
   </main>

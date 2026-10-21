@@ -7,7 +7,7 @@ import styles from "./fc2-product.module.css";
 export function Fc2LaunchCard({locale}:{locale:Locale}) {
   const t=translator(locale);
   return <section className={styles.launchCard} data-fc2-launch>
-    <div className={styles.launchCopy}><span className={styles.eyebrow}>{t("fc2.new")}</span><h2>{t("brand.name")} {t("fc2.model")}</h2><p>{t("fc2.launch.body")}</p><a className={styles.button} href={`/${locale}/explore/fc2`}>{t("fc2.explore")} <span aria-hidden="true">↗</span></a></div>
+    <div className={styles.launchCopy}><span className={styles.eyebrow}>{t("fc2.new")}</span><h2>{t("brand.name")} {t("fc2.model")}</h2><p>{t("fc2.launch.body")}</p><a className={styles.button} href={`/${locale}/explore/fc2`}>{t("fc2.explore")}</a></div>
     <a className={styles.launchImage} href={`/${locale}/explore/fc2`} aria-label={t("fc2.explore")}><img src="/products/fc2/side-studio-768.webp" srcSet="/products/fc2/side-studio-768.webp 768w, /products/fc2/side-studio-1536.webp 1536w" sizes="(max-width:760px) 100vw, 60vw" width={1536} height={1024} alt={t("fc2.gallery.alt.side")} loading="lazy" /></a>
   </section>;
 }
@@ -33,7 +33,7 @@ export function Fc2ProductPage({locale,dealerUrl,myUrl}:{locale:Locale;dealerUrl
   return <main className={styles.page} lang={locale} data-fc2-product="1">
     <PublicSiteHeader locale={locale} myUrl={myUrl} active="fc2" />
     <section className={styles.hero} id="overview">
-      <div className={styles.heroCopy}><p className={styles.eyebrow}>{t("fc2.series")}</p><h1><small>{t("brand.name")}</small>{t("fc2.model")}</h1><h2>{t("fc2.headline")}</h2><p>{t("fc2.intro")}</p><a className={styles.button} href="#availability">{t("fc2.availability")} <span aria-hidden="true">↗</span></a></div>
+      <div className={styles.heroCopy}><p className={styles.eyebrow}>{t("fc2.series")}</p><h1><small>{t("brand.name")}</small>{t("fc2.model")}</h1><h2>{t("fc2.headline")}</h2><p>{t("fc2.intro")}</p><a className={styles.button} href="#availability">{t("fc2.availability")}</a></div>
       <Fc2Gallery locale={locale} />
     </section>
     <div className={styles.metricWrap}><div className={styles.metrics}>
@@ -52,7 +52,7 @@ export function Fc2ProductPage({locale,dealerUrl,myUrl}:{locale:Locale;dealerUrl
     <section className={styles.batterySection}><div><p className={styles.eyebrow}>{t("fc2.battery.kicker")}</p><h2>{t("fc2.battery.title")}</h2><p>{t("fc2.battery.body")}</p></div><div className={styles.batteryNumber}><strong>{number(data.batteryVoltageV)}<small> V</small></strong><span>{number(data.batteryCapacityAh)} Ah · LG</span></div></section>
     <section id="specifications" className={styles.section}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>{t("fc2.spec.kicker")}</p><h2>{t("fc2.spec.title")}</h2></div><p>{t("fc2.metric.note")}</p></div><div className={styles.specGrid}>{groups.map(group=><article key={group.id}><h3>{key("fc2.spec."+group.id)}</h3><dl>{group.rows.map(([label,value])=><div key={label}><dt>{key("fc2."+label)}</dt><dd>{value}</dd></div>)}</dl></article>)}</div><p className={styles.smallNote}>{t("fc2.spec.note")}</p></section>
     <section className={styles.faq}><h2>{t("fc2.faq.title")}</h2><div>{["photo","fold","buy"].map(id=><details key={id}><summary>{key("fc2.faq."+id+".q")}</summary><p>{key("fc2.faq."+id+".a")}</p></details>)}</div></section>
-    <section id="availability" className={styles.availability}><div><p className={styles.eyebrow}>{t("fc2.available.kicker")}</p><h2>{t("fc2.available.title")}</h2><p>{t("fc2.available.body")}</p><div className={styles.ctas}><a className={styles.button} href={dealerUrl}>{t("fc2.available.dealer")} <span aria-hidden="true">↗</span></a><a className={styles.textLink} href={`/${locale}/explore/fc1`}>{t("fc2.fc1")} <span aria-hidden="true">↗</span></a></div></div><span className={styles.wordmark} aria-hidden="true">FC2</span></section>
-    <footer className={styles.footer}><a className={styles.brand} href={`/${locale}/`}>{t("brand.name")}</a><p>{t("fc2.footer")}</p><a href={`/${locale}/`}>{t("fc2.home")} ↗</a></footer>
+    <section id="availability" className={styles.availability}><div><p className={styles.eyebrow}>{t("fc2.available.kicker")}</p><h2>{t("fc2.available.title")}</h2><p>{t("fc2.available.body")}</p><div className={styles.ctas}><a className={styles.button} href={dealerUrl}>{t("fc2.available.dealer")}</a><a className={styles.textLink} href={`/${locale}/explore/fc1`}>{t("fc2.fc1")}</a></div></div><span className={styles.wordmark} aria-hidden="true">FC2</span></section>
+    <footer className={styles.footer}><a className={styles.brand} href={`/${locale}/`}>{t("brand.name")}</a><p>{t("fc2.footer")}</p><a href={`/${locale}/`}>{t("fc2.home")}</a></footer>
   </main>;
 }
