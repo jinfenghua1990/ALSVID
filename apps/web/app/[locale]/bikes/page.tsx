@@ -43,7 +43,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
     { id: "fc2", name: t("fc2.model"), status: t("catalog.bikes.models.fc2"), image: "/products/fc2/side-studio-1536.webp", alt: t("fc2.gallery.alt.side") },
   ];
   return <CatalogShell locale={locale} active="bikes">
-    <main className={styles.page} data-bikes-catalog="1">
+    <main className={styles.page} lang={locale} data-bikes-catalog="1">
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <span className={styles.kicker}>{t("catalog.bikes.hero.kicker")}</span>
