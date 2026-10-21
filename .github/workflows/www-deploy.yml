@@ -180,6 +180,23 @@ jobs:
               }
             });
           ' "$RELEASE_SHA"
+          # A release is not accepted if the new public catalog URLs are missing,
+          # even when the root page and release-check endpoint are healthy.
+          for locale in zh de en; do
+            for section in bikes accessories; do
+              url="https://www.alsvidbike.com/$locale/$section"
+              case "$section" in
+                bikes) marker='data-bikes-catalog="1"' ;;
+                accessories) marker='data-accessories-catalog="1"' ;;
+              esac
+              html="$(curl --location --fail --silent --show-error --retry 5 --retry-delay 3 --max-time 35 "$url")"
+              if ! grep -Fq "$marker" <<< "$html"; then
+                echo "Missing catalog page marker at $url" >&2
+                exit 1
+              fi
+              echo "Verified catalog: $url" >> "$GITHUB_STEP_SUMMARY"
+            done
+          done
           echo "WWW live: $PUBLIC_SITE_URL" >> "$GITHUB_STEP_SUMMARY"
           echo "Verified public release: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "API, database, worker and transactional sender: unchanged" >> "$GITHUB_STEP_SUMMARY"
