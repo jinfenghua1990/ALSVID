@@ -12,6 +12,7 @@ test('Admin password login uses a dedicated flag at every trust boundary', () =>
   assert.match(api, /identityService\.login\(identifier, body\.password\)/);
   assert.match(login, /portal === 'admin'[\s\S]*ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'/);
   assert.match(login, /ALSVID_PASSWORD_LOGIN_ENABLED === 'true'/);
+  assert.match(ui, /portal === 'admin' && passwordLoginEnabled \? 'password' : 'email'/);
   assert.match(ui, /passwordLoginEnabled = false/);
   assert.match(ui, /passwordLoginEnabled && method === 'password'/);
   assert.match(ui, /if \(!passwordLoginEnabled\) return;/);
