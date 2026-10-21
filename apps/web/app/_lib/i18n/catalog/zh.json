@@ -71,5 +71,7 @@
   "catalog.cart.total": "预计总额",
   "catalog.cart.pricePending": "价格待公布",
   "catalog.cart.notForSale": "商品仍处展示阶段，暂不能购买。",
-  "catalog.cart.storageError": "无法保存购物车，请检查浏览器存储设置后重试。"
+  "catalog.cart.storageError": "无法保存购物车，请检查浏览器存储设置后重试。",
+  "catalog.cart.previewSelection": "此处仅保存车型或配件类别的选购意向；并非可售 SKU，不保证配件适配、价格或库存。",
+  "catalog.cart.selectionConcept": "选购意向 · 待确认具体版本 / 适配车型"
 }
