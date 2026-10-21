@@ -8,6 +8,7 @@ on:
       - 'apps/web/app/login/**'
       - 'apps/web/app/[locale]/login/**'
       - 'apps/web/app/_components/portal-login*'
+      - 'apps/web/app/reset-password/**'
       - 'apps/web/app/_lib/i18n/**'
       - 'scripts/portal-login-browser-smoke.mjs'
       - '.github/workflows/portal-login-preview.yml'
@@ -36,6 +37,9 @@ jobs:
       - run: pnpm --filter @alsvid/web build
         env:
           ALSVID_ENV: production
+          ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED: 'true'
+          ALSVID_DEALER_PASSWORD_LOGIN_ENABLED: 'true'
+          ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED: 'true'
       - name: Start isolated web preview
         run: |
           pnpm --filter @alsvid/web start > /tmp/portal-login-web.log 2>&1 &
@@ -47,6 +51,9 @@ jobs:
           exit 1
         env:
           ALSVID_ENV: production
+          ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED: 'true'
+          ALSVID_DEALER_PASSWORD_LOGIN_ENABLED: 'true'
+          ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED: 'true'
       - name: Install browser in disposable runner only
         run: |
           npm install --prefix "$RUNNER_TEMP/portal-login-browser" playwright@1.58.2
