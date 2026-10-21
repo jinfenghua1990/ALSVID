@@ -461,6 +461,12 @@ jobs:
           curl --fail --silent --show-error --retry 6 --retry-delay 5 "$api_url/api/health"
           echo "url=$api_url" >> "$GITHUB_OUTPUT"
 
+      - name: Verify public Dealer API after database and API rollout
+        if: ${{ steps.release.outputs.rollback != 'true' }}
+        env:
+          ALSVID_API_URL: ${{ steps.api.outputs.url }}
+        run: node scripts/check-dealer-api-readiness.mjs
+
       - name: Verify production mail configuration on the deployed revision
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}

@@ -91,6 +91,11 @@ jobs:
           echo "previous_revision=$previous_revision" >> "$GITHUB_OUTPUT"
           echo "Preserving existing API, database, identity base URL, email sender and worker pool."
 
+      - name: Verify public Dealer API before Web-only rollout
+        env:
+          ALSVID_API_URL: ${{ steps.current.outputs.api_url }}
+        run: node scripts/check-dealer-api-readiness.mjs
+
       - name: Configure Artifact Registry
         env:
           GCP_REGION: ${{ vars.GCP_REGION }}
