@@ -25,6 +25,8 @@ try{
     assert.ok(await page.locator('a[href="/'+locale+'/dealers/locations"]').count()>=1);
     assert.ok(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count()>=1,'dealer portal login included in shared header');
     assert.equal(await page.locator('header[data-public-site-header]').count(),1,'dealer page reuses homepage header');
+    assert.equal(await page.locator('header a[class*="homeLink"]').getAttribute('href'),'/' + locale + '/','explicit return-home link targets the localized homepage');
+    if(device==='desktop')assert.equal(await page.locator('header a[class*="homeLink"]').isVisible(),true,'return-home link is visible on desktop');
     assert.ok(await page.locator('header a[href="/'+locale+'/dealers#apply"]').count()>=1,'direct applicant navigation exists');
     assert.equal(await page.locator('header details[class*="switcher"] summary').count(),1,'homepage globe language switcher reused');
     assert.equal(await page.locator('[class*=heroActions] a[href="#apply"]').count(),1,'hero CTA leads to application form');
