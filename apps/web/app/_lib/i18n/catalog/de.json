@@ -71,5 +71,7 @@
   "catalog.cart.total": "Voraussichtlicher Betrag",
   "catalog.cart.pricePending": "Preis folgt",
   "catalog.cart.notForSale": "Dieses Produkt ist nur zur Ansicht verfügbar und kann noch nicht gekauft werden.",
-  "catalog.cart.storageError": "Der Warenkorb konnte nicht gespeichert werden. Bitte Browser-Einstellungen prüfen."
+  "catalog.cart.storageError": "Der Warenkorb konnte nicht gespeichert werden. Bitte Browser-Einstellungen prüfen.",
+  "catalog.cart.previewSelection": "Nur eine unverbindliche Merkliste, keine kaufbare SKU. Kompatibilität, Preis und Bestand sind unbestätigt.",
+  "catalog.cart.selectionConcept": "Unverbindliche Auswahl · Variante / Kompatibilität offen"
 }
