@@ -94,7 +94,7 @@ export function DealerApplicationDialog({ locale, initialOpen = false, children 
   );
 }
 
-export function DealerApplicationTrigger({ children, className }: { children: ReactNode; className?: string }) {
+export function DealerApplicationTrigger({ children, className }: { children: ReactNode; className?: string | undefined }) {
   const openDialog = useContext(DealerApplicationContext);
   if (!openDialog) throw new Error('DealerApplicationTrigger must be inside DealerApplicationDialog.');
   return <button type="button" className={className} onClick={openDialog}>{children}</button>;
