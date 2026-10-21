@@ -3,7 +3,8 @@
 .header{box-sizing:border-box;height:70px;position:relative;z-index:30;display:grid;grid-template-columns:minmax(155px,1fr) auto minmax(60px,1fr);align-items:center;gap:clamp(12px,1.4vw,22px);padding:0 clamp(18px,3vw,48px);border-bottom:1px solid #ffffff1a;background:#151c2b;color:#fff;font:12px/1.5 Inter,"Noto Sans SC",Arial,sans-serif}
 .header *{box-sizing:border-box}
 .header a{text-decoration:none}
-.homeOverlay{position:absolute;left:0;right:0;top:34px}
+/* Production has no 34px announcement bar; keep the overlay flush with the viewport. */
+.homeOverlay{position:absolute;left:0;right:0;top:0}
 .logo{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;min-width:0;color:#fff;white-space:nowrap}
 .brandLine{display:flex;align-items:center;gap:8px;font-size:23px;font-weight:850;letter-spacing:.16em;line-height:1.14}
 .brandBike{display:block;object-fit:contain;transition:transform .35s ease}
