@@ -77,7 +77,7 @@ export default function FinanceClient() {
   }
 
   async function createDocument(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget);
+    event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement);
     const dueDate = String(form.get('dueDate') ?? '');
     const externalReference = String(form.get('externalReference') ?? '');
     try {
@@ -86,15 +86,15 @@ export default function FinanceClient() {
         ...(dueDate ? { dueDate } : {}), ...(externalReference ? { externalReference } : {}),
         lines: [{ category: form.get('category'), description: form.get('description'), netAmount: form.get('netAmount'), taxAmount: form.get('taxAmount') || '0' }],
       }) });
-      event.currentTarget.reset(); setMessage('财务单据已创建。'); await reload();
+      formElement.reset(); setMessage('财务单据已创建。'); await reload();
     } catch (error) { setMessage(error instanceof Error ? error.message : '无法创建财务单据'); }
   }
 
   async function createPayment(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const partnerId = String(form.get('partnerId') ?? '');
+    event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement); const partnerId = String(form.get('partnerId') ?? '');
     try {
       await api('/v1/finance/payments', { method: 'POST', body: JSON.stringify({ direction: form.get('direction'), ...(partnerId ? { partnerId } : {}), currency: form.get('currency'), amount: form.get('amount'), valueDate: form.get('valueDate'), provider: form.get('provider'), idempotencyKey: form.get('idempotencyKey') }) });
-      event.currentTarget.reset(); setMessage('付款 / 收款证据已记录。'); await reload();
+      formElement.reset(); setMessage('付款 / 收款证据已记录。'); await reload();
     } catch (error) { setMessage(error instanceof Error ? error.message : '无法记录付款 / 收款'); }
   }
 
