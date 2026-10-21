@@ -6,6 +6,7 @@ on:
       - 'apps/web/**'
       - 'scripts/fc1-browser-review.mjs'
       - 'scripts/official-browser-smoke.mjs'
+      - 'scripts/dealer-browser-smoke.mjs'
       - '.github/workflows/fc1-preview.yml'
   workflow_dispatch:
 permissions:
@@ -50,6 +51,7 @@ jobs:
           done
           node scripts/fc1-browser-review.mjs
           node scripts/official-browser-smoke.mjs
+          node scripts/dealer-browser-smoke.mjs
       - uses: actions/upload-artifact@v6
         if: always()
         with:
