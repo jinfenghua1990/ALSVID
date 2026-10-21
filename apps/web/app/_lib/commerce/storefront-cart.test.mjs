@@ -44,7 +44,7 @@ test("unpriced configuration can be safely added, incremented and removed withou
 });
 test("cart rejects spoofed variants, quantities and corrupted browser storage",()=>{
  const c=createCart();
- for(const line of [{...example,product:"FC2"},{...example,model:"turbo"},{...example,colour:"red"},{...example,quantity:0},{...example,quantity:10},{...example,quantity:1.5}]){
+ for(const line of [{...example,product:"FC2"},{product:"FC2",model:"turbo",quantity:1},{...example,model:"turbo"},{...example,colour:"red"},{...example,quantity:0},{...example,quantity:10},{...example,quantity:1.5},{product:"ACCESSORY",category:"unknown",quantity:1},{product:"ACCESSORY",category:"rack",model:"pro",quantity:1}]){
   assert.equal(c.addCartLine(line),false);
  }
  assert.equal(c.addCartLine({...example,quantity:9}),true);
@@ -65,4 +65,31 @@ test("restricted storage fails closed without invented order or price",()=>{
  assert.equal(c.addCartLine(example),false);
  assert.equal(c.readStorefrontCart().items.length,0);
  assert.doesNotMatch(source,/fetch\(|XMLHttpRequest|paymentIntent|createOrder/);
+});
+
+test("FC1, FC2 and five unpriced accessory concepts share one cart without price or payment",()=>{
+ const c=createCart();
+ assert.equal(c.addCartLine(example),true);
+ assert.equal(c.addCartLine({product:"FC2",quantity:1}),true);
+ for(const category of ["basket","rack","mudguard","light","parts"]){
+  assert.equal(c.addCartLine({product:"ACCESSORY",category,quantity:1}),true);
+ }
+ assert.equal(c.cartQuantity(c.readStorefrontCart()),7);
+ assert.equal(c.addCartLine({product:"FC2",quantity:2}),true);
+ assert.equal(c.setCartLineQuantity("ACCESSORY:basket",3),true);
+ assert.equal(c.cartQuantity(c.readStorefrontCart()),11);
+ assert.equal(c.readStorefrontCart().items.length,7);
+ assert.equal(c.removeCartLine("FC2"),true);
+ assert.equal(c.cartQuantity(c.readStorefrontCart()),8);
+ assert.ok(!source.includes("fetch("));
+});
+test("existing saved FC1 lines survive new mixed-cart normalization",()=>{
+ const c=createCart();
+ c.data.set(c.CART_STORAGE_KEY,JSON.stringify({version:1,items:[example]}));
+ assert.equal(c.addCartLine({product:"FC2",quantity:1}),true);
+ assert.equal(c.addCartLine({product:"ACCESSORY",category:"parts",quantity:1}),true);
+ assert.deepEqual(json(c.readStorefrontCart().items),[example,{product:"FC2",quantity:1},{product:"ACCESSORY",category:"parts",quantity:1}]);
+ assert.equal(c.normalizeCart({version:1,items:[example,example]}),null);
+ assert.equal(c.normalizeCart({version:1,items:[{product:"FC2",quantity:1},{product:"FC2",quantity:1}]}),null);
+ assert.equal(c.normalizeCart({version:1,items:[{product:"ACCESSORY",category:"rack",quantity:1},{product:"ACCESSORY",category:"rack",quantity:1}]}),null);
 });
