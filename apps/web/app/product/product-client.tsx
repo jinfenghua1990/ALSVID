@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 import styles from './product.module.css';
+import { matchesModelRegisterSearch, modelBomSummary, modelEngineeringStage } from './model-register';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
 type Model = { id: string; platform_id: string; code: string; name: string; description: string; status: string; version: number };
@@ -52,27 +53,6 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
-function modelEngineeringStage(modelId: string, catalog: Catalog, engineering: Engineering) {
-  const variants = catalog.variants.filter((variant) => variant.model_id === modelId);
-  const skuIds = catalog.skus
-    .filter((sku) => variants.some((variant) => variant.id === sku.variant_id))
-    .map((sku) => sku.id);
-  const specs = engineering.buildSpecs.filter((spec) => skuIds.includes(spec.sku_id));
-  const boms = engineering.boms.filter((bom) => bom.model_id === modelId);
-  if (specs.some((spec) => spec.status === 'RELEASED')) return '生产规格已发布';
-  if (specs.some((spec) => spec.status === 'DRAFT')) return '生产规格编制中';
-  if (boms.some((bom) => bom.revision_status === 'RELEASED')) return 'BOM 已发布';
-  if (boms.some((bom) => bom.revision_status === 'DRAFT')) return 'BOM 编制中';
-  if (boms.length) return 'BOM 已建，待建版本';
-  return '待建立 BOM';
-}
-
-function modelBomSummary(modelId: string, engineering: Engineering) {
-  const boms = engineering.boms.filter((bom) => bom.model_id === modelId);
-  if (!boms.length) return '未关联 BOM';
-  return boms.map((bom) => `${bom.code}${bom.revision_code ? ` / ${bom.revision_code}` : '（待建版本）'}`).join('、');
-}
-
 export default function ProductClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
@@ -98,7 +78,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     return payload.data;
   }
 
-  async function reload() {
+  async function reload(): Promise<boolean> {
     setLoading(true);
     setCatalogError('');
     setEngineeringError('');
@@ -109,14 +89,17 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     if (catalogResult.status === 'fulfilled') {
       setCatalog(catalogResult.value as Catalog);
     } else {
+      setCatalog(emptyCatalog);
       setCatalogError(catalogResult.reason instanceof Error ? catalogResult.reason.message : '请求异常');
     }
     if (engineeringResult.status === 'fulfilled') {
       setEngineering(engineeringResult.value as Engineering);
     } else {
+      setEngineering(emptyEngineering);
       setEngineeringError(engineeringResult.reason instanceof Error ? engineeringResult.reason.message : '请求异常');
     }
     setLoading(false);
+    return catalogResult.status === 'fulfilled' && engineeringResult.status === 'fulfilled';
   }
 
   useEffect(() => { void reload(); }, []);
@@ -129,14 +112,17 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       variants: catalog.variants.filter((item) => item.model_id === model.id),
     })), [catalog]);
 
-  const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) => {
-    const query = modelSearch.trim().toLocaleLowerCase();
-    const searchable = [model.code, model.name, platform?.code, platform ? platformName(platform) : '']
-      .filter(Boolean)
-      .join(' ')
-      .toLocaleLowerCase();
-    return (!query || searchable.includes(query)) && (statusFilter === 'ALL' || model.status === statusFilter);
-  }), [hierarchyRows, modelSearch, statusFilter]);
+  const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) =>
+    (statusFilter === 'ALL' || model.status === statusFilter)
+    && matchesModelRegisterSearch(
+      model,
+      platform ? { code: platform.code, name: platformName(platform) } : undefined,
+      catalog,
+      engineering,
+      modelSearch,
+      !loading && !engineeringError,
+    ),
+  ), [hierarchyRows, catalog, engineering, modelSearch, statusFilter, engineeringError, loading]);
 
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown) {
     event.preventDefault();
@@ -144,8 +130,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(body(form)) });
       event.currentTarget.reset();
-      setMessage('已保存。');
-      await reload();
+      const verified = await reload();
+      setMessage(verified ? '已保存，列表已重新核对。' : '写入请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败');
     }
@@ -154,8 +140,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   async function release(endpoint: string) {
     try {
       await api(endpoint, { method: 'POST', body: '{}' });
-      setMessage('已发布。该工程版本进入不可静默修改状态。');
-      await reload();
+      const verified = await reload();
+      setMessage(verified ? '工程发布成功，已重新核对版本。' : '发布请求成功，但列表刷新失败；请先核对版本，不要重复发布。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '发布失败');
     }
@@ -179,8 +165,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         }),
       });
       setEdit(null);
-      setMessage('产品信息已更新。');
-      await reload();
+      const verified = await reload();
+      setMessage(verified ? '产品信息已更新，列表已重新核对。' : '更新请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '更新失败');
     }
@@ -242,7 +228,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             aria-label="搜索产品型号"
             value={modelSearch}
             onChange={(event) => setModelSearch(event.target.value)}
-            placeholder="搜索型号、名称或技术平台"
+            placeholder="搜索型号、平台、版本、SKU、BOM（VIN 请到车辆查询）"
           />
           <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
             <option value="ALL">全部状态</option>
@@ -250,6 +236,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             <option value="ACTIVE">启用</option>
             <option value="RETIRED">已退役</option>
           </select>
+          <a href="/admin/production/vin">VIN / 车辆查询 →</a>
           <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
         </div>
         {loading && catalog.models.length === 0 ? (
@@ -275,8 +262,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                     <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
                     <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
                     <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
-                    <td><span className={styles.stageBadge}>{modelEngineeringStage(model.id, catalog, engineering)}</span></td>
-                    <td>{modelBomSummary(model.id, engineering)}</td>
+                    <td><span className={styles.stageBadge}>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelEngineeringStage(model.id, catalog, engineering)}</span></td>
+                    <td>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelBomSummary(model.id, engineering)}</td>
                     <td><button type="button" className={styles.tableAction} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
                   </tr>
                 ))}
@@ -369,7 +356,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           <div className={styles.listCard} id="parts">
             <h3>零部件</h3>
             {engineering.parts.map((part) => <div className={styles.listRow} key={part.id}><b>{part.part_number}</b><span>{part.name}</span><small>{part.category} · {part.default_unit} · {statusLabel(part.status)}</small></div>)}
-            {!engineering.parts.length ? <small>暂无零部件</small> : null}
+            {!engineering.parts.length ? <small>{loading ? '正在同步零部件…' : engineeringError ? '零部件读取失败' : '暂无零部件'}</small> : null}
           </div>
           <div className={styles.listCard}>
             <h3>BOM 版本</h3>
@@ -390,7 +377,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                 {spec.status === 'DRAFT' ? <button onClick={() => void release(`/v1/engineering/build-specs/${spec.id}/release`)}>发布生产规格</button> : null}
               </div>
             ))}
-            {!engineering.buildSpecs.length ? <small>暂无生产规格</small> : null}
+            {!engineering.buildSpecs.length ? <small>{loading ? '正在同步生产规格…' : engineeringError ? '生产规格读取失败' : '暂无生产规格'}</small> : null}
           </div>
         </div>
       </section>
