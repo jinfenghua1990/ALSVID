@@ -32,9 +32,10 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
   const portalAuthenticated = Boolean(session && canAccessPortal(portal, session));
   if (portalAuthenticated && !session?.passwordSetupRequired) redirect(redirectTo);
 
+  const queryLocale = firstValue(params.locale);
   const requestedLocale = requestHeaders.get('x-alsvid-locale');
   const savedLocale = (await cookies()).get(localeCookie)?.value;
-  const locale = isLocale(requestedLocale) ? requestedLocale : preferredLocale(savedLocale, requestHeaders.get('accept-language') ?? '');
+  const locale = isLocale(queryLocale) ? queryLocale : isLocale(requestedLocale) ? requestedLocale : preferredLocale(savedLocale, requestHeaders.get('accept-language') ?? '');
   return (
     <PortalLoginGate
       portal={portal}
