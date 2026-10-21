@@ -35,6 +35,7 @@ try {
       await page.goto(base + '/' + locale + '/login?portal=' + portal);
       const root = page.locator('[data-portal-login="' + portal + '"]');
       await root.waitFor();
+      if(portal==='dealer')assert.equal(await root.locator('a[href="https://www.alsvidbike.com/'+locale+'/dealers?apply=1"]').count(),1,'dealer login links to the application dialog');
       const action = root.getByRole('button',{name:copy['auth.'+portal+'.entry'],exact:true});
       const initial = await root.locator('h1').boundingBox();
       assert.equal(await root.locator('input[name=email]').count(),1);

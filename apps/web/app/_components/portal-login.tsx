@@ -185,7 +185,7 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     {!setupRequired ? <div className={styles.utilities}>
       <label><input type="checkbox" checked={remember} onChange={event => { setRemember(event.target.checked); if (!event.target.checked) { try { localStorage.removeItem('alsvid-login-email:' + portal); } catch { /* Optional storage. */ } } }} />{t('auth.remember')}</label>
       <button type="button" onClick={openForgotPassword}>{t('auth.forgot')}</button>
-      {portal === 'dealer' ? <a href={'https://www.alsvidbike.com/' + locale + '/#dealer'}>{t('auth.apply')}</a> : null}
+      {portal === 'dealer' ? <a href={'https://www.alsvidbike.com/' + locale + '/dealers?apply=1'}>{t('auth.apply')}</a> : null}
       {codeRequested ? <button type="button" disabled={busy} onClick={() => { setCodeRequested(false); setVerificationCode(''); setNotice(''); setError(''); }}>{t('auth.resend')}</button> : null}
     </div> : null}
     </PortalLoginScene>

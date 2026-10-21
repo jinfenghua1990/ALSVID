@@ -551,7 +551,7 @@ export function HomePage({
             {t("dealer.title_second")}
           </h2>
           <p>{t("dealer.description")}</p>
-          <a className={styles["btn-white"]} href={"/" + locale + "/dealers#apply"}>
+          <a className={styles["btn-white"]} href={"/" + locale + "/dealers?apply=1"}>
             {t("dealer.apply")}
           </a>
           <a className={styles["btn-outline"]} href={dealerUrl}>
@@ -605,7 +605,7 @@ export function HomePage({
           <div className={styles["footer-col"]}>
             <h4>{t("footer.contact")}</h4>
             <a href={"/" + locale + "/dealers"}>{t("footer.dealer")}</a>
-            <a href={"/" + locale + "/dealers#apply"}>{t("footer.apply")}</a>
+            <a href={"/" + locale + "/dealers?apply=1"}>{t("footer.apply")}</a>
             <a href={new URL("/my/service", myUrl).toString()}>
               {t("footer.contact_us")}
             </a>

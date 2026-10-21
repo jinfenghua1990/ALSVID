@@ -17,7 +17,7 @@ export async function DirectoryPage({ locale, kind }: { locale: Locale; kind: 's
      <p className={styles.eyebrow}>{t(sales?'network.locations.eyebrow':'network.service.eyebrow')}</p>
      <h1>{t(sales?'network.locations.title':'network.service.title')}</h1>
      <p>{t(sales?'network.locations.body':'network.service.body')}</p>
-     <a className={styles.outlineButton} href={sales?base+'/dealers#apply':'https://my.alsvidbike.com'}>
+     <a className={styles.outlineButton} href={sales?base+'/dealers?apply=1':'https://my.alsvidbike.com'}>
       {t(sales?'network.locations.apply':'network.service.owner')}
      </a>
     </div>

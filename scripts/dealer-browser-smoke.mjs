@@ -23,39 +23,47 @@ try{
     await page.getByRole('heading',{level:1}).first().waitFor();
     assert.equal(await page.locator('[class*=platformCard]').count(),4);
     assert.ok(await page.locator('a[href="/'+locale+'/dealers/locations"]').count()>=1);
-    assert.ok(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count()>=1,'dealer portal login included in shared header');
+    assert.ok(await page.locator('header a[href="https://dealer.alsvidbike.com/login?portal=dealer&locale='+locale+'"]').count()>=1,'dealer portal login opens the designed login page');
     assert.equal(await page.locator('header[data-public-site-header]').count(),1,'dealer page reuses homepage header');
     assert.equal(await page.locator('header a[class*="homeLink"]').getAttribute('href'),'/' + locale + '/','explicit return-home link targets the localized homepage');
     if(device==='desktop')assert.equal(await page.locator('header a[class*="homeLink"]').isVisible(),true,'return-home link is visible on desktop');
-    assert.ok(await page.locator('header a[href="/'+locale+'/dealers#apply"]').count()>=1,'direct applicant navigation exists');
+    assert.ok(await page.locator('header a[href="/'+locale+'/dealers?apply=1"]').count()>=1,'header application entry opens the application dialog');
     assert.equal(await page.locator('header details[class*="switcher"] summary').count(),1,'homepage globe language switcher reused');
-    assert.equal(await page.locator('[class*=heroActions] a[href="#apply"]').count(),1,'hero CTA leads to application form');
-    assert.equal(await page.locator('[class*=heroActions] a[href="https://dealer.alsvidbike.com"]').count(),1,'existing partners can sign in from hero');
-    assert.equal(await page.locator('section[id="apply"] form').count(),1,'applicant form target exists');
-    assert.equal(await page.locator('input[name=companyName]').isDisabled(),false,'applicant form enabled');
-    assert.equal(await page.locator('select[name=country] option').count(),4);
+    assert.equal(await page.locator('[class*=heroActions] button').count(),1,'hero CTA opens the application dialog');
+    assert.equal(await page.locator('[class*=heroActions] a[href="https://dealer.alsvidbike.com/login?portal=dealer&locale='+locale+'"]').count(),1,'existing partners open the designed login page');
+    assert.equal(await page.getByRole('dialog').count(),0,'application dialog is closed on initial page load');
+    assert.equal(await page.locator('section[id="apply"] form').count(),0,'application form is not embedded in the page');
+    assert.ok(await page.locator('section[id="apply"] button').count()>=1,'dedicated application CTA remains on the page');
     assert.equal(await page.locator('details[class*=faqItem]').count(),3);
     assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://www.alsvidbike.com/'+locale+'/dealers');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),locale+' '+device+' page must not overflow');
     await page.screenshot({path:out+'/dealer-'+locale+'-'+device+'.png',fullPage:true});
+    await page.locator('[class*=heroActions] button').click();
+    const dialog=page.getByRole('dialog');
+    await dialog.waitFor();
+    assert.equal(await dialog.locator('input[name=companyName]').isDisabled(),false,'application form enabled inside modal');
+    assert.equal(await dialog.locator('select[name=country] option').count(),4);
     let payload=null;
     await page.route('**/api/public/dealer-application',async route=>{
      payload=route.request().postDataJSON();
      await route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({data:{received:true,reference:'demo-ref'}})});
     });
-    await page.locator('input[name=companyName]').fill('Example Bicycle Shop');
-    await page.locator('select[name=country]').selectOption('DE');
-    await page.locator('input[name=contactName]').fill('Demo Contact');
-    await page.locator('input[name=email]').fill('test@example.invalid');
-    await page.locator('select[name=partnershipType]').selectOption('retail');
-    await page.locator('input[name=consent]').check();
-    await page.locator('button[type=submit]').click();
-    await page.locator('[role=status]').waitFor();
+    await dialog.locator('input[name=companyName]').fill('Example Bicycle Shop');
+    await dialog.locator('select[name=country]').selectOption('DE');
+    await dialog.locator('input[name=contactName]').fill('Demo Contact');
+    await dialog.locator('input[name=email]').fill('test@example.invalid');
+    await dialog.locator('select[name=partnershipType]').selectOption('retail');
+    await dialog.locator('input[name=consent]').check();
+    await dialog.locator('button[type=submit]').click();
+    await dialog.locator('[role=status]').waitFor();
     assert.equal(payload?.locale,locale);
     assert.equal(payload?.email,'test@example.invalid');
     assert.equal(payload?.consent,true);
     assert.deepEqual(errors,[]);
-    report.checks.push(locale+' '+device+': dealer CTA, form submission mock, locales, FAQ, viewport');
+    const queryContext=await browser.newContext({viewport,reducedMotion:'reduce'});
+    try { const queryPage=await queryContext.newPage(); await queryPage.goto(base+'/'+locale+'/dealers?apply=1',{waitUntil:'domcontentloaded'}); await queryPage.getByRole('dialog').waitFor(); }
+    finally { await queryContext.close(); }
+    report.checks.push(locale+' '+device+': dealer CTA, modal submission, query-open modal, locales, FAQ, viewport');
    }finally{await context.close();}
   }
   // Reuse and locale-check the identical public-site header across the entire WWW.
