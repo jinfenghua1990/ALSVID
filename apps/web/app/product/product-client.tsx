@@ -179,12 +179,13 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         <div>
           <div className={styles.eyebrow}>ALSVID PRODUCT CENTER</div>
           <h1>ALSVID 产品中心</h1>
-          <p>统一维护技术平台、车型、配置版本、SKU 与工程发布关系；生产和销售系统以这里的产品主数据为准。</p>
+          <p>统一维护技术平台、商品 ID、商业版本与 SKU。一个商品 ID 对应一个商品详情页，颜色/版本切换只改变 SKU，不新建商品。</p>
         </div>
         <div className={styles.releaseBadge}>产品主数据 · 工程控制</div>
       </header>
 
       {message ? <div className={styles.notice} role="status">{message}</div> : null}
+      <div className={styles.notice} role="note">商品 ID = 同一个 Model 主记录；Variant 是 Standard / Pro 等版本选项；SKU 是最终可销售组合。切换颜色时商品 ID 保持不变，SKU 编码随所选规格变化。价格、库存与公开发布状态以各自正式数据源为准。</div>
       {catalogError || engineeringError ? (
         <div className={`${styles.notice} ${styles.errorNotice}`} role="alert">
           {[catalogError ? `产品主数据加载失败：${catalogError}` : '', engineeringError ? `工程数据加载失败：${engineeringError}` : ''].filter(Boolean).join('；')}
@@ -259,7 +260,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
               <tbody>
                 {filteredModels.map(({ model, platform, variants }) => (
                   <tr key={model.id}>
-                    <td><strong>{model.code}</strong><small>{model.name}</small></td>
+                    <td><strong>{model.code}</strong><small>{model.name}</small><small>商品 ID：{model.id}</small></td>
                     <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
                     <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
                     <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
@@ -291,7 +292,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           {hierarchyRows.map(({ model, platform, variants }) => (
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
-                <div><small>{platform?.code}</small><b>{model.code}</b><span>{model.name}</span><small>{statusLabel(model.status)}</small></div>
+                <div><small>{platform?.code}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
                 <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button>
               </div>
               {variants.map((variant) => (
@@ -306,7 +307,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                         <div>
                           <b>{sku.sku}</b>
                           <span>{sku.name}</span>
-                          <small>{[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '基础配置'} · {statusLabel(sku.status)}</small>
+                          <small>SKU 编码 · {[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '基础配置'} · {statusLabel(sku.status)}</small>
                         </div>
                         <button onClick={() => setEdit({ entity: 'sku', id: sku.id, version: sku.version, name: sku.name, status: sku.status, marketCode: sku.market_code, colorCode: sku.color_code, sizeCode: sku.size_code })}>编辑</button>
                       </div>
@@ -330,7 +331,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         </form>
 
         <form onSubmit={(e) => void submitForm(e, '/v1/product/variants', (f) => ({ modelId: f.get('modelId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
-          <span>新建商业版本</span><h3>创建 Variant</h3>
+          <span>商品 ID 不变</span><h3>添加商业版本</h3>
           <select name="modelId" required defaultValue=""><option value="" disabled>选择车型</option>{catalog.models.map((m) => <option key={m.id} value={m.id}>{m.code}</option>)}</select>
           <input name="code" placeholder="例如：PRO" required />
           <input name="name" placeholder="例如：Pro" required />
@@ -339,10 +340,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         </form>
 
         <form onSubmit={(e) => void submitForm(e, '/v1/product/skus', (f) => ({ variantId: f.get('variantId'), sku: f.get('sku'), name: f.get('name'), marketCode: f.get('marketCode') || undefined, colorCode: f.get('colorCode') || undefined, sizeCode: f.get('sizeCode') || undefined }))}>
-          <span>新建 SKU</span><h3>创建可销售身份</h3>
+          <span>归属当前商品 ID</span><h3>添加 SKU 规格</h3>
           <select name="variantId" required defaultValue=""><option value="" disabled>选择 Variant</option>{catalog.variants.map((v) => <option key={v.id} value={v.id}>{catalog.models.find((m) => m.id === v.model_id)?.code} · {v.code}</option>)}</select>
-          <input name="sku" placeholder="例如：FC1-PRO-DE-BLK" required />
-          <input name="name" placeholder="SKU 名称" required />
+          <input name="sku" placeholder="例如：ALS-FC1-STD-DE-BLK" required />
+          <input name="name" placeholder="SKU 名称（如 FC1 Standard 石墨黑）" required />
           <div className={styles.inline}><input name="marketCode" maxLength={2} placeholder="市场 DE" /><input name="colorCode" placeholder="颜色 BLACK" /><input name="sizeCode" placeholder="尺寸 20" /></div>
           <button>创建 SKU</button>
         </form>
