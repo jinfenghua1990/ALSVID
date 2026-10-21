@@ -151,11 +151,29 @@ try {
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').count(),1,'No live payment is possible');
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] article').count(),1,'Order preview retains chosen selection');
         await shopping.goto(base+'/'+locale+'/explore/fc2',{waitUntil:'domcontentloaded'});
-        assert.equal(await shopping.locator('[data-purchase-disabled="true"] button:disabled').count(),2,'Unpriced FC2 cannot be purchased');
+        const fc2Selection=shopping.locator('[data-preview-selection="fc2"]');
+        await fc2Selection.waitFor({state:'visible'});
+        assert.equal(await fc2Selection.locator('button:disabled').count(),1,'FC2 buy now is blocked without approved price and SKU');
+        await fc2Selection.locator('button:not(:disabled)').click();
+        await shopping.waitForFunction(()=>{const badges=[...document.querySelectorAll('header [data-site-cart] strong')];return badges.length===2 && badges.every(node=>node.textContent?.trim()==='3');});
         await shopping.goto(base+'/'+locale+'/explore/accessory-basket',{waitUntil:'domcontentloaded'});
-        assert.equal(await shopping.locator('[data-purchase-disabled="true"] button:disabled').count(),2,'Unpriced accessory cannot be purchased');
+        const accessorySelection=shopping.locator('[data-preview-selection="accessory-basket"]');
+        await accessorySelection.waitFor({state:'visible'});
+        assert.equal(await accessorySelection.locator('button:disabled').count(),1,'Unverified accessory purchase stays disabled');
+        await accessorySelection.locator('select').selectOption('2');
+        await accessorySelection.locator('button:not(:disabled)').click();
+        await shopping.waitForFunction(()=>{const badges=[...document.querySelectorAll('header [data-site-cart] strong')];return badges.length===2 && badges.every(node=>node.textContent?.trim()==='5');});
+        await shopping.goto(base+'/'+locale+'/cart',{waitUntil:'domcontentloaded'});
+        await shopping.locator('main[data-storefront-cart="cart"] article').first().waitFor();
+        assert.equal(await shopping.locator('main[data-storefront-cart="cart"] article').count(),3,'Cart retains FC1, FC2 and accessory interests');
+        assert.equal(await shopping.locator('article[data-cart-product="FC2"]').count(),1);
+        assert.equal(await shopping.locator('article[data-cart-product="ACCESSORY"]').count(),1);
+        assert.equal(await shopping.locator('main[data-storefront-cart="cart"] button:disabled').count(),2,'No payment and minimum quantity controls stay gated');
+        await shopping.goto(base+'/'+locale+'/checkout',{waitUntil:'domcontentloaded'});
+        assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] article').count(),3,'Unpriced mixed selections appear in checkout preview');
+        assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').count(),1,'Real checkout remains blocked');
         assert.ok(await shopping.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Cart and product pages do not overflow');
-        report.checks.push(locale+' '+device+': configured cart, checkout gate and unavailable items');
+        report.checks.push(locale+' '+device+': FC1/FC2/accessory preview cart, quantity badge and disabled checkout');
         await shopping.close();
 
 

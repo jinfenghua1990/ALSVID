@@ -7,6 +7,7 @@ import { getHomeDetail } from "../../../_lib/home-details";
 import { portalUrlFor } from "../../../_lib/portal-routing";
 import { PublicSiteHeader } from "../../../_components/public-site-header";
 import { PendingPurchaseActions } from "../../../_components/product/pending-purchase-actions";
+import type { AccessoryCategory } from "../../../_lib/commerce/storefront-cart";
 import { Fc1ProductPage, generateFc1Metadata } from "../../../_components/product/fc1-product";
 import { Fc1StoryPage } from "../../../_components/product/fc1-story-v4";
 import styles from "../../../_components/home/original-home.module.css";
@@ -49,6 +50,8 @@ export default async function HomeDetailPage({ params, searchParams }: Props) {
     redirect(`/${prefix}`);
   const t = translator(locale);
   const home = `/${locale}`;
+  const accessoryCategories: AccessoryCategory[] = ["basket","rack","mudguard","light","parts"];
+  const accessory = accessoryCategories.find(id => slug === "accessory-" + id);
   return (
     <main
       translate="no"
@@ -84,7 +87,7 @@ export default async function HomeDetailPage({ params, searchParams }: Props) {
               <a href={`${home}#tech`}>{t("common.learn_more")}</a>
             </>
           ) : null}
-          {detail.category === "accessory" ? <PendingPurchaseActions locale={locale}/> : null}
+          {detail.category === "accessory" && accessory ? <PendingPurchaseActions locale={locale} selection={{product:"ACCESSORY",category:accessory}}/> : null}
           <h2>{t("detail.next_title")}</h2>
           <p>{t("commerce.body")}</p>
           <a className={styles["btn-dark"]} href={portalUrlFor(host, "my")}>
