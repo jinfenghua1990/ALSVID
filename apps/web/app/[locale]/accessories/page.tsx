@@ -34,7 +34,7 @@ export default async function AccessoriesPage({ params, searchParams }: Props) {
   const visible = selected ? [selected] : categories;
   const base = "/" + locale;
   return <CatalogShell locale={locale} active="accessories">
-    <main className={styles.page} data-accessories-catalog="1">
+    <main className={styles.page} lang={locale} data-accessories-catalog="1">
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>{t("catalog.accessories.hero.kicker")}</p>
