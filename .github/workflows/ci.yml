@@ -303,14 +303,16 @@ jobs:
             fi
           fi
 
-          # This temporary staged release publishes only the shared Web service.
-          # Backend/schema/infrastructure changes must never sneak into that path.
+          # Backend, schema, infrastructure, and release-pipeline changes require the
+          # full production workflow so API routes and database migrations ship together.
+          full_stack=false
           if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
             while IFS= read -r file; do
               case "$file" in
-                apps/api/*|apps/worker/*|packages/*|infra/docker/Dockerfile.api|infra/docker/Dockerfile.worker|infra/gcp/*)
-                  echo "Backend/shared-schema/infra change detected: $file. Manual full-stack release required."
-                  exit 0
+                apps/api/*|apps/worker/*|packages/*|infra/docker/Dockerfile.api|infra/docker/Dockerfile.worker|infra/gcp/*|.github/workflows/ci.yml|.github/workflows/production-deploy.yml)
+                  full_stack=true
+                  echo "Full-stack production change detected: $file."
+                  break
                   ;;
               esac
             done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
@@ -322,9 +324,15 @@ jobs:
             exit 0
           fi
 
-          # During staged hostname migration, protect existing API, DB, mail and worker services.
-          # Full-platform releases remain an explicit separate production workflow.
-          gh workflow run www-deploy.yml --ref main \
-            -f confirm=deploy \
-            -f release_sha="$RELEASE_SHA"
-          echo "WWW-only production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$full_stack" == "true" ]]; then
+            gh workflow run production-deploy.yml --ref main \
+              -f confirm=deploy \
+              -f release_sha="$RELEASE_SHA"
+            echo "Full-stack production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          else
+            # Web-only changes preserve the existing API, database, mail and worker services.
+            gh workflow run www-deploy.yml --ref main \
+              -f confirm=deploy \
+              -f release_sha="$RELEASE_SHA"
+            echo "WWW-only production deployment dispatched for $RELEASE_SHA." >> "$GITHUB_STEP_SUMMARY"
+          fi
