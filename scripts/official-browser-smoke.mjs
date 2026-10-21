@@ -66,10 +66,28 @@ try {
         assert.equal(await bicycles.locator('main[data-bikes-catalog]').count(), 1, 'Bicycle catalog renders');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc1"]').count() > 0, true, 'FC1 detail link exists');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc2"]').count() > 0, true, 'FC2 detail link exists');
+        const modelNavigator = bicycles.locator('nav[data-bikes-model-nav]');
+        assert.equal(await modelNavigator.count(), 0, 'Floating navigator stays hidden over the hero');
+        await bicycles.locator('#model-fc1').scrollIntoViewIfNeeded();
+        await modelNavigator.waitFor({ state: 'visible', timeout: 8000 });
+        assert.equal(await modelNavigator.locator('a').count(), 2, 'Only the FC1 and FC2 models have quick links');
+        await bicycles.waitForFunction(() =>
+          document.querySelector('nav[data-bikes-model-nav] a[href="#model-fc1"]')?.getAttribute('aria-current') === 'location');
+        await modelNavigator.locator('a[href="#model-fc2"]').click();
+        await bicycles.waitForFunction(() => location.hash === '#model-fc2');
+        await bicycles.waitForFunction(() =>
+          document.querySelector('nav[data-bikes-model-nav] a[href="#model-fc2"]')?.getAttribute('aria-current') === 'location');
+        assert.ok(await bicycles.locator('#model-fc2').evaluate(node => node.getBoundingClientRect().top >= 45),
+          'Floating navigation does not obscure the FC2 title');
+        assert.ok(await bicycles.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+          'Floating navigation fits the viewport');
+        await bicycles.screenshot({ path: output + '/bikes-nav-' + locale + '-' + device + '.png' });
+
         assert.ok(await bicycles.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Bicycle catalog should not overflow at ' + device);
         const gtResponse = await bicycles.goto(base + '/' + locale + '/bikes?platform=gt#models', { waitUntil: 'domcontentloaded' });
         assert.equal(gtResponse?.status(), 200, 'Platform filter loads');
         assert.equal(await bicycles.locator('#models article').count(), 0, 'Unconfirmed GT bikes do not appear as real listings');
+        assert.equal(await bicycles.locator('nav[data-bikes-model-nav]').count(), 0, 'Do not link to unpublished models');
         await bicycles.close();
         const accessories = await context.newPage();
         const accessoriesResponse = await accessories.goto(base + '/' + locale + '/accessories', { waitUntil: 'domcontentloaded' });
