@@ -11,7 +11,7 @@ export type TestRideLead={
 };
 export type TestRidePartnerLocation={
  id:string;name:string;country:"DE"|"AT";city:string;address:string;
- approved:boolean;active:boolean;testRideAuthorized:boolean;
+ approved:boolean;active:boolean;testRideAuthorized:boolean;partnerEligible:boolean;
 };
 const statusNames:Record<TestRideStatus,string>={
  NEW:"新申请",REVIEWING:"处理中",CONTACTED:"已联系",CLOSED:"已关闭"
@@ -30,7 +30,7 @@ export function TestRideAdmin({
  const [error,setError]=useState("");
  const count=(status:TestRideStatus)=>requests.filter(x=>x.status===status).length;
  const eligible=(lead:TestRideLead)=>locations.filter(loc=>loc.country===lead.country&&
-  loc.approved&&loc.active&&loc.testRideAuthorized);
+  loc.approved&&loc.active&&loc.partnerEligible&&loc.testRideAuthorized);
  async function changeLead(id:string,status:TestRideStatus,locationId:string|null){
   setBusy(id);setError("");
   try{
@@ -105,9 +105,9 @@ export function TestRideAdmin({
     :<div className={styles.locationGrid}>{locations.map(loc=><article className={styles.locationCard} key={loc.id}>
      <div><strong>{loc.name}</strong><p>{loc.country} · {loc.city}</p><small>{loc.address}</small></div>
      <div className={styles.locationFoot}>
-      <span>{!loc.approved?"待公开审核":!loc.active?"授权未生效":loc.testRideAuthorized?"已开放试骑意向":"未开放试骑"}</span>
+      <span>{!loc.approved?"待公开审核":!loc.active?"授权未生效":!loc.partnerEligible?"非有效经销商":loc.testRideAuthorized?"已开放试骑意向":"未开放试骑"}</span>
       <label className={styles.toggle}><input type="checkbox" checked={loc.testRideAuthorized}
-        disabled={busy==="location:"+loc.id||!loc.approved||!loc.active}
+        disabled={busy==="location:"+loc.id||!loc.approved||!loc.active||!loc.partnerEligible}
         onChange={event=>void changeLocation(loc.id,event.target.checked)}/>试骑可分配</label>
      </div>
     </article>)}</div>}
