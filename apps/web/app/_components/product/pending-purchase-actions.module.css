@@ -1,0 +1,5 @@
+.wrap{margin:21px 0 27px;color:#718077;font:13px/1.65 Inter,"Noto Sans SC",Arial,sans-serif}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.actions button{font:inherit;font-weight:650;min-height:46px;min-width:132px;border:1px solid #d8dfd8;border-radius:4px;background:#e4eae3;color:#718075;cursor:not-allowed;padding:10px 18px}
+.wrap p{margin:11px 0;color:#728079;font-size:12px}
+.wrap a{color:#395f46;font-weight:650;font-size:12px;text-decoration:underline}

@@ -35,9 +35,10 @@ try {
           : root.locator('header > nav').first();
         if (isMobile) await headerNav.locator('summary').click();
         const navLinks = isMobile
-          ? headerNav.locator(':scope > nav > a')
+          ? headerNav.locator(':scope > nav > a:not([data-site-cart])')
           : headerNav.locator(':scope > a');
         assert.equal(await navLinks.count(), 6, 'Approved product/dealer/owner/story navigation exists');
+        assert.equal(await root.locator('header [data-site-cart]').count(),2,'Desktop and mobile shopping-bag entries coexist');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
         assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
@@ -105,6 +106,38 @@ try {
         assert.equal(await accessories.locator('section[data-accessories-catalog="1"] article').count(), 1, 'Rack filter shows only its category');
         assert.ok(await accessories.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Merged product center has no horizontal overflow');
         await accessories.close();
+
+        // Cart phase one: the configured FC1 selection survives navigation, but cannot be purchased.
+        const shopping=await context.newPage();
+        const cartResponse=await shopping.goto(base+'/'+locale+'/cart',{waitUntil:'domcontentloaded'});
+        assert.equal(cartResponse?.status(),200,'Cart is a real accessible page');
+        assert.equal(await shopping.locator('main[data-storefront-cart="cart"]').count(),1);
+        assert.equal(await shopping.locator('main[data-storefront-cart="cart"] article').count(),0,'Empty cart starts with zero lines');
+        await shopping.goto(base+'/'+locale+'/explore/fc1#configure',{waitUntil:'domcontentloaded'});
+        const purchase=shopping.locator('[data-product-purchase="fc1"]');
+        await purchase.waitFor({state:'visible',timeout:15000});
+        assert.equal(await purchase.locator('button').count(),2,'Detail page exposes add and buy controls');
+        assert.equal(await purchase.locator('button').nth(1).isDisabled(),true,'Buy now is gated until PSP, SKU and price readiness');
+        await purchase.locator('button').first().click();
+        await purchase.locator('a[href="/'+locale+'/cart"]').waitFor({state:'visible'});
+        const cartWithItem=await shopping.goto(base+'/'+locale+'/cart',{waitUntil:'domcontentloaded'});
+        assert.equal(cartWithItem?.status(),200);
+        await shopping.locator('main[data-storefront-cart="cart"] article').first().waitFor();
+        assert.equal(await shopping.locator('main[data-storefront-cart="cart"] article').count(),1,'Configured FC1 persists into cart');
+        await shopping.locator('main[data-storefront-cart="cart"] article button[aria-label]').last().click();
+        await shopping.waitForFunction(()=>document.querySelector('main[data-storefront-cart="cart"] strong[aria-live="polite"]')?.textContent==="2");
+        const checkoutResponse=await shopping.goto(base+'/'+locale+'/checkout',{waitUntil:'domcontentloaded'});
+        assert.equal(checkoutResponse?.status(),200);
+        assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').count(),1,'No live payment is possible');
+        assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] article').count(),1,'Order preview retains chosen selection');
+        await shopping.goto(base+'/'+locale+'/explore/fc2',{waitUntil:'domcontentloaded'});
+        assert.equal(await shopping.locator('[data-purchase-disabled="true"] button:disabled').count(),2,'Unpriced FC2 cannot be purchased');
+        await shopping.goto(base+'/'+locale+'/explore/accessory-basket',{waitUntil:'domcontentloaded'});
+        assert.equal(await shopping.locator('[data-purchase-disabled="true"] button:disabled').count(),2,'Unpriced accessory cannot be purchased');
+        assert.ok(await shopping.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Cart and product pages do not overflow');
+        report.checks.push(locale+' '+device+': configured cart, checkout gate and unavailable items');
+        await shopping.close();
+
 
         const hero = root.locator(':scope > section').first();
         const mobileModels = root.locator('header > nav').nth(1);
