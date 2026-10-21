@@ -35,7 +35,7 @@ export function HomePage({
         <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
           <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
           <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
-          <a href="#platforms">{t("navigation.products")}</a>
+          <a href={`/${locale}/bikes`}>{t("navigation.products")}</a>
           <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
           <a href={"/" + locale + "/dealers"}>{t("navigation.global_dealers")}</a>
           <a href={myUrl}>{t("navigation.owner_account")}</a>
@@ -49,7 +49,7 @@ export function HomePage({
           <nav aria-label={t("navigation.primary")}>
             <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
             <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
-            <a href="#platforms">{t("navigation.products")}</a>
+            <a href={`/${locale}/bikes`}>{t("navigation.products")}</a>
             <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
             <a href={"/" + locale + "/dealers"}>{t("navigation.global_dealers")}</a>
             <a href={myUrl}>{t("navigation.owner_account")}</a>
