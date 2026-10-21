@@ -40,7 +40,7 @@ export default async function DealerPartnershipPage({ params }: Props) {
           <p>{t('network.hero.body')}</p>
           <div className={styles.heroActions}>
             <a className={styles.outlineButton} href="#apply">{t('network.hero.apply')} <span aria-hidden="true">↗</span></a>
-            <a className={styles.textButton} href={base + '/dealers/locations'}>{t('network.hero.find')} <span aria-hidden="true">↗</span></a>
+            <a className={styles.textButton} href="https://dealer.alsvidbike.com">{t('network.nav.account')} <span aria-hidden="true">↗</span></a>
           </div>
           <div className={styles.heroNote}>{t('network.hero.note')}</div>
         </div>

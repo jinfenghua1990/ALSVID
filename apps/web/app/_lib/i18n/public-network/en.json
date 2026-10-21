@@ -1,5 +1,6 @@
 {
   "network.nav.partnership": "Dealer partnership",
+  "network.nav.apply": "Apply to partner",
   "network.nav.locations": "Find a dealer",
   "network.nav.service": "Service locations",
   "network.nav.account": "Dealer sign in",
@@ -8,7 +9,7 @@
   "network.hero.eyebrow": "ALSVID · European partnerships",
   "network.hero.title": "Move forward with ALSVID.",
   "network.hero.body": "We are exploring retail, demo and service partnerships in Germany and Austria to build a trusted cycling experience.",
-  "network.hero.apply": "Explore partnership",
+  "network.hero.apply": "Apply to become a dealer",
   "network.hero.find": "Find authorized dealers",
   "network.hero.note": "Initial regions · Germany / Austria",
   "network.benefits.eyebrow": "Why partner",
