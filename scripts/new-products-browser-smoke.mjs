@@ -75,7 +75,7 @@ try {
         for (const button of await cupGallery.locator("[data-cup-colour]").all()) {
           const contrast = await button.evaluate(el => {
             const luminance = colour => {
-              const channels = colour.match(/[\\d.]+/g).slice(0, 3).map(Number).map(value => {
+              const channels = colour.match(/[0-9.]+/g).slice(0, 3).map(Number).map(value => {
                 const channel = value / 255;
                 return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
               });
