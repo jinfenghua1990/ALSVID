@@ -40,7 +40,9 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
       locale={locale}
       authenticated={portalAuthenticated}
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
-      passwordLoginEnabled={process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'}
+      passwordLoginEnabled={portal === 'admin'
+        ? process.env.ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'
+        : process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'}
       redirectTo={redirectTo}
     />
   );
