@@ -3,36 +3,26 @@
 import { useEffect, useState } from "react";
 import styles from "./bikes-model-navigator.module.css";
 
-type Model = { id: string; name: string };
+type NavLink = { id: string; label: string; href: string };
 
-/** Floating shortcuts appear after the hero and follow actual model chapters. */
-export function BikesModelNavigator({ title, models }: { title: string; models: Model[] }) {
-  const [visible, setVisible] = useState(false);
+/** A compact sticky product index. The current chapter follows the page scroll. */
+export function BikesModelNavigator({ title, links }: { title: string; links: NavLink[] }) {
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
-      const hero = document.querySelector("[data-bikes-hero]");
-      if (!hero) return;
-      const modelSection = document.getElementById("models");
-      const accessorySection = document.getElementById("accessories");
-      // The rail belongs to the vehicle collection, not the accessories chapter.
-      const shouldShow = hero.getBoundingClientRect().bottom <= 0
-        && Boolean(modelSection && modelSection.getBoundingClientRect().top < window.innerHeight * 0.65)
-        && Boolean(!accessorySection || accessorySection.getBoundingClientRect().top > window.innerHeight * 0.5);
-      setVisible(previous => previous === shouldShow ? previous : shouldShow);
-      if (!shouldShow) {
-        setActive(previous => previous === null ? previous : null);
-        return;
-      }
-      const probe = window.scrollY + Math.max(120, window.innerHeight * 0.38);
-      let current: string | null = null;
-      for (const model of models) {
-        const element = document.getElementById("model-" + model.id);
-        if (element && probe >= element.getBoundingClientRect().top + window.scrollY) current = model.id;
-      }
+      const stickyOffset = window.innerWidth <= 760 ? 64 + 50 : 70 + 58;
+      const probe = window.scrollY + stickyOffset + 100;
+      const candidates = links
+        .map(link => {
+          const element = document.getElementById(link.id);
+          return element ? { id: link.id, top: element.getBoundingClientRect().top + window.scrollY } : null;
+        })
+        .filter((item): item is { id: string; top: number } => item !== null && item.top <= probe)
+        .sort((a, b) => b.top - a.top);
+      const current = candidates[0]?.id ?? null;
       setActive(previous => previous === current ? previous : current);
     };
     const onScroll = () => {
@@ -40,24 +30,31 @@ export function BikesModelNavigator({ title, models }: { title: string; models: 
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    window.addEventListener("hashchange", onScroll);
     update();
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener("hashchange", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [models]);
+  }, [links]);
 
-  return visible ? (
+  return (
     <nav className={styles.bar} aria-label={title} data-bikes-model-nav>
-      <span className={styles.brand} aria-hidden="true">ALSVID <span className={styles.dot}>/</span> {title}</span>
       <div className={styles.links}>
-        {models.map(model => (
-          <a key={model.id} href={"#model-" + model.id}
-            aria-current={active === model.id ? "location" : undefined}
-            className={styles.link}>{model.name}</a>
+        {links.map(link => (
+          <a
+            key={link.id}
+            href={link.href}
+            aria-current={active === link.id ? "location" : undefined}
+            className={styles.link}
+            data-nav-target={link.id}
+          >
+            {link.label}
+          </a>
         ))}
       </div>
     </nav>
-  ) : null;
+  );
 }

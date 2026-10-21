@@ -68,27 +68,39 @@ try {
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc1"]').count() > 0, true, 'FC1 detail link exists');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc2"]').count() > 0, true, 'FC2 detail link exists');
         const modelNavigator = bicycles.locator('nav[data-bikes-model-nav]');
-        assert.equal(await modelNavigator.count(), 0, 'Floating navigator stays hidden over the hero');
-        await bicycles.locator('#model-fc1').scrollIntoViewIfNeeded();
         await modelNavigator.waitFor({ state: 'visible', timeout: 8000 });
-        assert.equal(await modelNavigator.locator('a').count(), 2, 'Only the FC1 and FC2 models have quick links');
+        assert.equal(await modelNavigator.count(), 1, 'Sticky product navigation is present from the top of the page');
+        assert.equal(await modelNavigator.locator('a').count(), 5, 'Top navigation links to all products, FC1, FC2, platforms and accessories');
+        assert.equal(await modelNavigator.evaluate(element => getComputedStyle(element).position), 'sticky',
+          'Product navigation stays in the document flow and sticks below the global header');
+        assert.equal(await bicycles.locator('header[data-public-site-header]').evaluate(element => getComputedStyle(element).position), 'sticky',
+          'Global header and cart remain visible while scrolling');
+        await modelNavigator.locator('a[data-nav-target="model-fc1"]').click();
+        await bicycles.waitForFunction(() => location.hash === '#model-fc1' && new URLSearchParams(location.search).get('platform') === 'fc');
         await bicycles.waitForFunction(() =>
-          document.querySelector('nav[data-bikes-model-nav] a[href="#model-fc1"]')?.getAttribute('aria-current') === 'location');
-        await modelNavigator.locator('a[href="#model-fc2"]').click();
+          document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc1"]')?.getAttribute('aria-current') === 'location');
+        await modelNavigator.locator('a[data-nav-target="model-fc2"]').click();
         await bicycles.waitForFunction(() => location.hash === '#model-fc2');
         await bicycles.waitForFunction(() =>
-          document.querySelector('nav[data-bikes-model-nav] a[href="#model-fc2"]')?.getAttribute('aria-current') === 'location');
-        assert.ok(await bicycles.locator('#model-fc2').evaluate(node => node.getBoundingClientRect().top >= 45),
-          'Floating navigation does not obscure the FC2 title');
+          document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc2"]')?.getAttribute('aria-current') === 'location');
+        await bicycles.waitForFunction(() => {
+          const header = document.querySelector('header[data-public-site-header]')?.getBoundingClientRect();
+          const nav = document.querySelector('nav[data-bikes-model-nav]')?.getBoundingClientRect();
+          const target = document.querySelector('#model-fc2')?.getBoundingClientRect();
+          return Boolean(header && nav && target &&
+            Math.abs(header.top) < 1 &&
+            Math.abs(nav.top - header.bottom) < 2 &&
+            target.top >= 110 && target.top <= 165);
+        }, { timeout: 8000 });
         assert.ok(await bicycles.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
-          'Floating navigation fits the viewport');
+          'Sticky product navigation fits the viewport');
         await bicycles.screenshot({ path: output + '/bikes-nav-' + locale + '-' + device + '.png' });
 
         assert.ok(await bicycles.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Bicycle catalog should not overflow at ' + device);
         const gtResponse = await bicycles.goto(base + '/' + locale + '/bikes?platform=gt#models', { waitUntil: 'domcontentloaded' });
         assert.equal(gtResponse?.status(), 200, 'Platform filter loads');
         assert.equal(await bicycles.locator('#models article').count(), 0, 'Unconfirmed GT bikes do not appear as real listings');
-        assert.equal(await bicycles.locator('nav[data-bikes-model-nav]').count(), 0, 'Do not link to unpublished models');
+        assert.equal(await bicycles.locator('nav[data-bikes-model-nav] a').count(), 5, 'The sticky navigation remains available for switching back to published models');
         await bicycles.close();
         // The public catalog has a single product center with two categories.
         const accessories = await context.newPage();
@@ -120,12 +132,20 @@ try {
         assert.equal(await purchase.locator('button').nth(1).isDisabled(),true,'Buy now is gated until PSP, SKU and price readiness');
         await purchase.locator('button').first().click();
         await purchase.locator('a[href="/'+locale+'/cart"]').waitFor({state:'visible'});
+        await shopping.waitForFunction(() => {
+          const badges = [...document.querySelectorAll('header [data-site-cart] strong')];
+          return badges.length === 2 && badges.every(node => node.textContent?.trim() === '1');
+        });
         const cartWithItem=await shopping.goto(base+'/'+locale+'/cart',{waitUntil:'domcontentloaded'});
         assert.equal(cartWithItem?.status(),200);
         await shopping.locator('main[data-storefront-cart="cart"] article').first().waitFor();
         assert.equal(await shopping.locator('main[data-storefront-cart="cart"] article').count(),1,'Configured FC1 persists into cart');
         await shopping.locator('main[data-storefront-cart="cart"] article button[aria-label]').last().click();
         await shopping.waitForFunction(()=>document.querySelector('main[data-storefront-cart="cart"] strong[aria-live="polite"]')?.textContent==="2");
+        await shopping.waitForFunction(() => {
+          const badges = [...document.querySelectorAll('header [data-site-cart] strong')];
+          return badges.length === 2 && badges.every(node => node.textContent?.trim() === '2');
+        });
         const checkoutResponse=await shopping.goto(base+'/'+locale+'/checkout',{waitUntil:'domcontentloaded'});
         assert.equal(checkoutResponse?.status(),200);
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').count(),1,'No live payment is possible');
