@@ -70,15 +70,42 @@ try {
         await page.locator('[data-cup-holder-product="1"]').waitFor();
         assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://www.alsvidbike.com/" + locale + "/explore/accessory-cup-holder");
         const cupGallery = page.locator("[data-cup-holder-gallery]");
-        await cupGallery.locator("button").nth(1).focus();
-        await cupGallery.locator("button").nth(1).press("Enter");
-        await page.waitForFunction(() => { const image = document.querySelector('[data-cup-holder-gallery] img'); return image?.src.includes("cream") && image.complete && image.naturalWidth > 0; });
-        assert.equal(await cupGallery.locator("button").nth(1).getAttribute("aria-pressed"), "true");
+        assert.equal(await cupGallery.locator("[data-cup-colour]").count(), 6);
+        assert.equal(await cupGallery.locator("[data-cup-photo]").count(), 5);
+        for (const photo of ["01", "02", "03", "04", "05"]) {
+          await cupGallery.locator('[data-cup-photo="' + photo + '"]').click();
+          await page.waitForFunction(id => { const image = document.querySelector("[data-cup-holder-gallery] figure img"); return image?.src.includes("gallery-" + id) && image.complete && image.naturalWidth > 0; }, photo);
+        }
+        for (const colour of ["black", "green", "pink", "violet", "orange", "cream"]) {
+          const button = cupGallery.locator('[data-cup-colour="' + colour + '"]');
+          await button.focus();
+          await button.press("Enter");
+          await page.waitForFunction(id => { const image = document.querySelector("[data-cup-holder-gallery] figure img"); return image?.src.includes("cup-holder-" + id) && image.complete && image.naturalWidth > 0; }, colour);
+          assert.equal(await button.getAttribute("aria-pressed"), "true");
+        }
+        const detailFigures = page.locator("[data-cup-full-details] figure");
+        assert.equal(await detailFigures.count(), 17, "Every source product-detail image is present");
+        for (let index = 0; index < 17; index++) {
+          const figure = detailFigures.nth(index);
+          const id = String(index + 1).padStart(2, "0");
+          assert.equal(await figure.getAttribute("data-cup-detail"), id, "Original detail order is preserved");
+          assert.ok((await figure.locator("figcaption").innerText()).length > 20, "Every detail has localized accessible copy");
+          const image = figure.locator("img");
+          await image.scrollIntoViewIfNeeded();
+          await page.waitForFunction(id => { const image = document.querySelector('[data-cup-detail="' + id + '"] img'); return image?.complete && image.naturalWidth === 790 && image.naturalHeight === Number(image.getAttribute("height")); }, id);
+          assert.ok(await image.evaluate(el => Math.abs(el.clientWidth / el.clientHeight - el.naturalWidth / el.naturalHeight) < 0.01), "The complete image is displayed without cropping");
+        }
+        assert.equal(await page.locator('[data-cup-holder-product] dl > div').count(), 17);
+        await detailFigures.first().scrollIntoViewIfNeeded();
+        await page.screenshot({ path: output + "/cup-holder-details-" + locale + "-" + device + ".png" });
+        await page.locator('[data-cup-holder-product] dl').scrollIntoViewIfNeeded();
+        await page.screenshot({ path: output + "/cup-holder-specs-" + locale + "-" + device + ".png" });
+        await page.evaluate(() => scrollTo(0, 0));
         assert.equal(await page.locator('[data-cup-holder-product] a[href*="checkout"],[data-cup-holder-product] a[href*="reserve"]').count(), 0);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "Cup holder fits viewport");
         await page.screenshot({ path: output + "/cup-holder-top-" + locale + "-" + device + ".png" });
         assert.deepEqual(errors, []);
-        report.checks.push(locale + " " + device + ": visible L7/L8 top links, four mobile models fit, L7 navigation/gallery/specs/locale, accessory catalog link, cup gallery and responsive width");
+        report.checks.push(locale + " " + device + ": visible L7/L8 top links, four mobile models fit, L7 navigation/gallery/specs/locale, accessory catalog link, all five main photos/six colours/17 ordered uncropped detail images/source specs and responsive width");
       } finally { await context.close(); }
     }
   }
