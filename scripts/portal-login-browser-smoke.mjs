@@ -87,6 +87,20 @@ try {
     }
   }
 
+  const mobileContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  const mobilePage = await mobileContext.newPage();
+  const enCopy = JSON.parse(readFileSync('apps/web/app/_lib/i18n/auth/en.json', 'utf8'));
+  await mobilePage.goto(base+'/en/login?portal=supplier');
+  const mobileRoot = mobilePage.locator('[data-portal-login="supplier"]');
+  await mobileRoot.waitFor();
+  await mobileRoot.getByRole('button',{name:enCopy['auth.supplier.entry'],exact:true}).focus();
+  await mobileRoot.locator('[inert]').waitFor({state:'detached'});
+  await mobileRoot.getByRole('button',{name:enCopy['auth.forgot'],exact:true}).click();
+  await mobilePage.getByRole('dialog').waitFor();
+  assert.ok(await mobilePage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Reset modal fits mobile viewport');
+  await mobilePage.screenshot({path:output+'/en-supplier-reset-mobile.png',fullPage:true});
+  await mobileContext.close();
+
   const resetContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const resetPage = await resetContext.newPage();
   await resetPage.goto(base+'/reset-password?portal=dealer&locale=de');
