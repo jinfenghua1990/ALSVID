@@ -246,31 +246,45 @@ jobs:
         run: |
           set -euo pipefail
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
-          images=(alsvid-web alsvid-api alsvid-worker)
-          found=0
-          for image in "${images[@]}"; do
-            if gcloud artifacts docker images describe "$REGISTRY/$image:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
-              found=$((found + 1))
-            fi
-          done
-          if [[ "$IS_ROLLBACK" == "true" && "$found" != "${#images[@]}" ]]; then
+          # The WWW release pipeline (www-deploy.yml) publishes alsvid-web:<sha> from the
+          # same Dockerfile and build args right after main CI succeeds. A pre-existing
+          # web image for this exact commit is therefore reusable; api and worker images
+          # are only produced by this workflow and must stay consistent with each other.
+          web_exists=false
+          api_exists=false
+          worker_exists=false
+          if gcloud artifacts docker images describe "$REGISTRY/alsvid-web:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+            web_exists=true
+          fi
+          if gcloud artifacts docker images describe "$REGISTRY/alsvid-api:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+            api_exists=true
+          fi
+          if gcloud artifacts docker images describe "$REGISTRY/alsvid-worker:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+            worker_exists=true
+          fi
+          if [[ "$IS_ROLLBACK" == "true" && ( "$web_exists" != "true" || "$api_exists" != "true" || "$worker_exists" != "true" ) ]]; then
             echo "Rollback requires all previously published release images; refusing to rebuild an older commit." >&2
             exit 1
           fi
-          if [[ "$found" == "${#images[@]}" ]]; then
+          if [[ "$web_exists" == "true" && "$api_exists" == "true" && "$worker_exists" == "true" ]]; then
             echo "reused=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$found" == "0" ]]; then
-            echo "reused=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Only some release images exist; refusing to mix builds and historical images." >&2
+          elif [[ "$api_exists" != "$worker_exists" ]]; then
+            echo "Refusing to mix release images: alsvid-api and alsvid-worker must be built together for $RELEASE_SHA." >&2
             exit 1
+          else
+            echo "reused=false" >> "$GITHUB_OUTPUT"
           fi
+          {
+            echo "web_exists=$web_exists"
+            echo "api_exists=$api_exists"
+            echo "worker_exists=$worker_exists"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
       - name: Build web image with cache
-        if: steps.image_lookup.outputs.reused != 'true'
+        if: steps.image_lookup.outputs.reused != 'true' && steps.image_lookup.outputs.web_exists != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -285,7 +299,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
 
       - name: Build api image with cache
-        if: steps.image_lookup.outputs.reused != 'true'
+        if: steps.image_lookup.outputs.reused != 'true' && steps.image_lookup.outputs.api_exists != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -297,7 +311,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
 
       - name: Build worker image with cache
-        if: steps.image_lookup.outputs.reused != 'true'
+        if: steps.image_lookup.outputs.reused != 'true' && steps.image_lookup.outputs.worker_exists != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -325,7 +339,11 @@ jobs:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
+          if [[ "${{ steps.image_lookup.outputs.web_exists }}" != "true" ]]; then
+            docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
+          else
+            echo "Reusing alsvid-web:$RELEASE_SHA published by the WWW release pipeline."
+          fi
           docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
           docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
 
@@ -442,6 +460,35 @@ jobs:
           api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
           curl --fail --silent --show-error --retry 6 --retry-delay 5 "$api_url/api/health"
           echo "url=$api_url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify production mail configuration on the deployed revision
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+        run: |
+          set -euo pipefail
+          service_json="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format=json)"
+          env_value() {
+            echo "$service_json" | jq -r --arg name "$1" \
+              '.spec.template.spec.containers[0].env[] | select(.name == $name) | (.value // .valueFrom.secretKeyRef.name // "")'
+          }
+          binding="$(env_value MAIL_API_KEY)"
+          from="$(env_value MAIL_FROM_ADDRESS)"
+          test_mode="$(env_value ALSVID_EMAIL_TEST_MODE)"
+          if [[ "$binding" != "alsvidbike-mail-api-key" ]]; then
+            echo "::error title=Mail secret binding mismatch::MAIL_API_KEY must reference alsvidbike-mail-api-key; got: ${binding:-none}" >&2
+            exit 1
+          fi
+          if [[ "$from" != "$MAIL_FROM_ADDRESS" ]]; then
+            echo "::error title=Mail sender mismatch::MAIL_FROM_ADDRESS on the service ($from) does not match the production variable ($MAIL_FROM_ADDRESS)" >&2
+            exit 1
+          fi
+          if [[ "$test_mode" != "false" ]]; then
+            echo "::error title=Email test mode must stay off::ALSVID_EMAIL_TEST_MODE is '$test_mode'; production requires 'false'" >&2
+            exit 1
+          fi
+          echo "Production mail configuration verified: secret=$binding from=$from test_mode=$test_mode"
 
       - name: Deploy Web service
         env:
