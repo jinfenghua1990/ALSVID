@@ -14,11 +14,13 @@ export function PublicShell({ locale, children }: { locale: Locale; children: Re
       </a>
       <nav className={styles.nav} aria-label={t('navigation.primary')}>
         <a href={base + '/dealers'}>{t('network.nav.partnership')}</a>
+        <a className={styles.navApply} href={base + '/dealers#apply'}>{t('network.nav.apply')}</a>
         <a href={base + '/dealers/locations'}>{t('network.nav.locations')}</a>
         <a href={base + '/service-locations'}>{t('network.nav.service')}</a>
       </nav>
       <div className={styles.headerRight}>
         <LanguageSwitcher locale={locale} label={t('navigation.language')} />
+        <a className={styles.headerLogin} href="https://dealer.alsvidbike.com">{t('network.nav.account')} <span aria-hidden="true">↗</span></a>
         <a className={styles.headerHome} href={base + '/'}>{t('network.nav.home')} ↗</a>
       </div>
     </header>

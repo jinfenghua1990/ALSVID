@@ -23,6 +23,11 @@ try{
     await page.getByRole('heading',{level:1}).first().waitFor();
     assert.equal(await page.locator('[class*=platformCard]').count(),4);
     assert.ok(await page.locator('a[href="/'+locale+'/dealers/locations"]').count()>=1);
+    assert.equal(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count(),1,'dealer portal login visible in header');
+    assert.equal(await page.locator('header a[href="/'+locale+'/dealers#apply"]').count(),1,'direct applicant navigation visible');
+    assert.equal(await page.locator('[class*=heroActions] a[href="#apply"]').count(),1,'hero CTA leads to application form');
+    assert.equal(await page.locator('[class*=heroActions] a[href="https://dealer.alsvidbike.com"]').count(),1,'existing partners can sign in from hero');
+    assert.equal(await page.locator('section[id="apply"] form').count(),1,'applicant form target exists');
     assert.equal(await page.locator('input[name=companyName]').isDisabled(),false,'applicant form enabled');
     assert.equal(await page.locator('select[name=country] option').count(),4);
     assert.equal(await page.locator('details[class*=faqItem]').count(),3);
