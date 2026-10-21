@@ -32,7 +32,7 @@ const portalConfig: Record<PortalKind, PortalConfig> = {
     name: 'ALSVID 内部管理',
     subtitle: '产品中心',
     brandHref: '/admin',
-    launcher: { label: '管理首页 ↗', href: '/admin' },
+    launcher: { label: '管理首页', href: '/admin' },
     primaryLinks: [...adminPrimaryNavigation],
     secondaryLinks: [
       { label: '产品系列', href: '/product#series' },
@@ -49,7 +49,7 @@ const portalConfig: Record<PortalKind, PortalConfig> = {
     name: 'ALSVID 经销商门户',
     subtitle: '经销商业务',
     brandHref: '/dealer',
-    launcher: { label: '经销商账户 ↗', href: '/dealer/account' },
+    launcher: { label: '经销商账户', href: '/dealer/account' },
     primaryLinks: [
       { label: '工作台', href: '/dealer' },
       { label: '产品目录', href: '/dealer/catalog' },
@@ -68,14 +68,14 @@ const portalConfig: Record<PortalKind, PortalConfig> = {
   },
   supplier: {
     name: 'ALSVID 供应商门户',subtitle: '上游采购协同',brandHref: '/supplier',
-    launcher: {label: '供应商采购单 ↗',href:'/supplier'},
+    launcher: {label: '供应商采购单',href:'/supplier'},
     primaryLinks: [{label:'采购单',href:'/supplier'}],secondaryLinks: [],
   },
   my: {
     name: '我的 ALSVID',
     subtitle: '车主服务',
     brandHref: '/my',
-    launcher: { label: '我的账户 ↗', href: '/my/account' },
+    launcher: { label: '我的账户', href: '/my/account' },
     primaryLinks: [
       { label: '首页', href: '/my' },
       { label: '我的车辆', href: '/my/vehicles' },

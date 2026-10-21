@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LanguageSwitcher } from "../language-switcher";
+import { PublicSiteHeader } from "../public-site-header";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { ProductGallery, ProductConfigurator, FoldStatePreview, SuspensionCards, SpecificationFilters } from "./fc1-interactions";
@@ -42,16 +42,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
   return (
     <main className={styles.page} lang={locale}>
       <div className={styles.reviewBanner}>{key("fc1.preview")}</div>
-      <header className={styles.header}>
-        <a className={styles.logo} href={`/${locale}/`}><img src="/home/alsvid-bike-motion.svg" alt="" width="74" height="42" /> <span>ALSVID</span></a>
-        <div className={styles.headerActions}>
-          <a href={`/${locale}/`}>{key("fc1.home")}</a>
-          <a href="#specifications">{key("fc1.specifications")}</a>
-          <a href="#faq">{key("fc1.questions")}</a>
-          <a className={styles.headerShop} href="#configure">{key("fc1.selection.cta_configure")} ↗</a>
-          <LanguageSwitcher locale={locale} label={key("fc1.language")} />
-        </div>
-      </header>
+      <PublicSiteHeader locale={locale} myUrl={myUrl} active="fc1" />
       <div className={styles.main}>
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
@@ -61,8 +52,8 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
             <p className={styles.heroDescription}>{key("fc1.intro")}</p>
             <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
             <div className={styles.heroCtas}>
-              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↘</span></a>
-              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")} <span aria-hidden="true">↘</span></a>
+              <a className={styles.buttonDark} href="#configure">{key("fc1.selection.cta_configure")}</a>
+              <a className={styles.buttonLight} href="#entry">{key("fc1.explore_features")}</a>
             </div>
           </div>
           <img className={styles.heroProduct} {...fc1Photos.side} alt={key("fc1.photo.alt")} fetchPriority="high" />
@@ -190,7 +181,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")}</a>
           <p className={styles.smallNote}>{key("fc1.reservation.note")}</p>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>

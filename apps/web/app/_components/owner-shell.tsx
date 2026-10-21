@@ -49,7 +49,7 @@ export async function OwnerShell({ activeHref, children }: { activeHref: string;
           <div className={styles.tools}>
             <ThemeToggle />
             <a className={styles.officialHome} href={officialHomeUrl} target="_blank" rel="noopener noreferrer">
-              官方首页 <span aria-hidden="true">↗</span>
+              官方首页
             </a>
             <Link className={`${styles.account}${activeHref.startsWith('/my/account') ? ` ${styles.accountActive}` : ''}`} href="/my/account">
               账户

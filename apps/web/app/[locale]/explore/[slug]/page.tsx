@@ -5,7 +5,7 @@ import { translator } from "../../../_lib/i18n";
 import { isLocale } from "../../../_lib/i18n/routing";
 import { getHomeDetail } from "../../../_lib/home-details";
 import { portalUrlFor } from "../../../_lib/portal-routing";
-import { LanguageSwitcher } from "../../../_components/language-switcher";
+import { PublicSiteHeader } from "../../../_components/public-site-header";
 import { Fc1ProductPage, generateFc1Metadata } from "../../../_components/product/fc1-product";
 import { Fc1StoryPage } from "../../../_components/product/fc1-story-v4";
 import styles from "../../../_components/home/original-home.module.css";
@@ -55,13 +55,7 @@ export default async function HomeDetailPage({ params, searchParams }: Props) {
       lang={locale}
       data-home-detail={slug}
     >
-      <header className={styles.detailHeader}>
-        <a className={styles.logo} href={home}>
-          {t("brand.name")}
-        </a>
-        <a href={home}>{t("common.back_home")}</a>
-        <LanguageSwitcher locale={locale} label={t("language.label")} />
-      </header>
+      <PublicSiteHeader locale={locale} myUrl={portalUrlFor(host, "my")} active={slug === "about-story" ? "story" : undefined} />
       <article className={styles.detailArticle}>
         <div className={styles.detailIntro}>
           <div>

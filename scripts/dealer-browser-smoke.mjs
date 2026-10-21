@@ -23,8 +23,10 @@ try{
     await page.getByRole('heading',{level:1}).first().waitFor();
     assert.equal(await page.locator('[class*=platformCard]').count(),4);
     assert.ok(await page.locator('a[href="/'+locale+'/dealers/locations"]').count()>=1);
-    assert.equal(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count(),1,'dealer portal login visible in header');
-    assert.equal(await page.locator('header a[href="/'+locale+'/dealers#apply"]').count(),1,'direct applicant navigation visible');
+    assert.ok(await page.locator('header a[href="https://dealer.alsvidbike.com"]').count()>=1,'dealer portal login included in shared header');
+    assert.equal(await page.locator('header[data-public-site-header]').count(),1,'dealer page reuses homepage header');
+    assert.ok(await page.locator('header a[href="/'+locale+'/dealers#apply"]').count()>=1,'direct applicant navigation exists');
+    assert.equal(await page.locator('header details[class*="switcher"] summary').count(),1,'homepage globe language switcher reused');
     assert.equal(await page.locator('[class*=heroActions] a[href="#apply"]').count(),1,'hero CTA leads to application form');
     assert.equal(await page.locator('[class*=heroActions] a[href="https://dealer.alsvidbike.com"]').count(),1,'existing partners can sign in from hero');
     assert.equal(await page.locator('section[id="apply"] form').count(),1,'applicant form target exists');
@@ -53,6 +55,23 @@ try{
     assert.deepEqual(errors,[]);
     report.checks.push(locale+' '+device+': dealer CTA, form submission mock, locales, FAQ, viewport');
    }finally{await context.close();}
+  }
+  // Reuse and locale-check the identical public-site header across the entire WWW.
+  for(const route of ['/','/bikes','/accessories','/explore/fc1','/explore/fc2','/explore/about-story']) {
+   for(const viewport of [{width:1440,height:900},{width:390,height:844}]) {
+    const context=await browser.newContext({viewport,reducedMotion:'reduce'});
+    try {
+     const page=await context.newPage();
+     const response=await page.goto(base+'/'+locale+route,{waitUntil:'domcontentloaded'});
+     assert.equal(response?.status(),200,locale+route+' must load');
+     assert.equal(await page.locator('header[data-public-site-header]').count(),1,locale+route+' must share header');
+     assert.equal(await page.locator('header details[class*="switcher"] summary').count(),1,'globe language switcher');
+     assert.ok(await page.locator('header a[href="/'+locale+'/bikes"]').count()>=1,'shared product link');
+     assert.ok(await page.locator('header a[href="/'+locale+'/dealers"]').count()>=1,'shared dealers link');
+     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),locale+route+' viewport overflow');
+     report.checks.push(locale+route+' '+viewport.width+': public nav, globe and layout');
+    }finally{await context.close();}
+   }
   }
   const context=await browser.newContext();
   try{

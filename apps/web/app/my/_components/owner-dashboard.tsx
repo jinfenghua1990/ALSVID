@@ -168,7 +168,6 @@ export function OwnerDashboard({ displayName, userKey, updatedAt, vehicles }: { 
               </Link>
             ))}
             <Link className={`${garage.tile} ${garage.tileAccent}`} href={primary ? '/my/service/new?vehicle=' + encodeURIComponent(primary.id) : '/my/service/new'}>
-              <span className={garage.tileIcon} aria-hidden="true">↗</span>
               <span>
                 <strong>售后申请</strong>
                 <small>带上车辆 VIN 提交，无需重复填写。</small>

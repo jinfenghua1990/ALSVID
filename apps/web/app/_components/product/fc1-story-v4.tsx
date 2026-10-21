@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LanguageSwitcher } from "../language-switcher";
+import { PublicSiteHeader } from "../public-site-header";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { ProductGallery, FoldStatePreview, SpecificationFilters } from "./fc1-interactions";
@@ -52,16 +52,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
     <Fc1ScrollStory>
     <main className={styles.page} lang={locale} data-fc1-version="4">
       <div className={styles.reviewBanner}>{key("fc1.preview")}</div>
-      <header className={styles.header}>
-        <a className={styles.logo} href={`/${locale}/`}><img src="/home/alsvid-bike-motion.svg" alt="" width="74" height="42" /> <span>ALSVID</span></a>
-        <div className={styles.headerActions}>
-          <a href={`/${locale}/`}>{key("fc1.home")}</a>
-          <a href="#specifications">{key("fc1.specifications")}</a>
-          <a href="#faq">{key("fc1.questions")}</a>
-          <a className={styles.headerShop} href="#configure">{key("fc1.selection.cta_configure")} ↗</a>
-          <LanguageSwitcher locale={locale} label={key("fc1.language")} variant="globe" />
-        </div>
-      </header>
+      <PublicSiteHeader locale={locale} myUrl={myUrl} active="fc1" />
       <div className={styles.main}>
         <section id="overview" className={`${styles.hero} ${styles.interestHero}`} data-fc1-chapter>
           <Fc1ColourConfigurator locale={locale} />
@@ -87,7 +78,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureNumber}>01 / ALSVID FC1</span>
                 <h3>{key("fc1.story.feature.ride")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.ride.body")}</p>
-                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardFold}`} href="#folding" data-feature="fold">
@@ -96,7 +86,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureNumber}>02 / ALSVID FC1</span>
                 <h3>{key("fc1.story.feature.fold")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.fold.body")}</p>
-                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardFrame}`} href="#entry" data-feature="frame">
@@ -105,7 +94,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureNumber}>03 / ALSVID FC1</span>
                 <h3>{key("fc1.story.feature.frame")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.frame.body")}</p>
-                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardComfort}`} href="#details" data-feature="comfort">
@@ -114,7 +102,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureNumber}>04 / ALSVID FC1</span>
                 <h3>{key("fc1.story.feature.comfortBrakes")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.comfortBrakes.body")}</p>
-                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
             <a className={`${styles.featureCard} ${styles.featureCardDrive}`} href="#drive" data-feature="drive">
@@ -123,7 +110,6 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
                 <span className={styles.featureNumber}>05 / ALSVID FC1</span>
                 <h3>{key("fc1.story.feature.driveBattery")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.driveBattery.body")}</p>
-                <span className={styles.featureArrow} aria-hidden="true">↗</span>
               </div>
             </a>
           </div>
@@ -219,7 +205,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <div>
               <article><span>01</span><h3>{key("fc1.story.safety.brakes")}</h3><p>{key("fc1.spec.brakes.value")}</p></article>
               <article><span>02</span><h3>{key("fc1.story.safety.everyday")}</h3><p>{key("fc1.story.safety.everyday.body")}</p></article>
-              <a className={styles.buttonDark} href="#specifications">{key("fc1.selection.cta")} <span aria-hidden="true">↗</span></a>
+              <a className={styles.buttonDark} href="#specifications">{key("fc1.selection.cta")}</a>
             </div>
           </div>
         </section>
@@ -261,7 +247,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           <p className={styles.eyebrow}>ALSVID FC1</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
-          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")} <span aria-hidden="true">↗</span></a>
+          <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")}</a>
           <p className={styles.smallNote}>{key("fc1.reservation.note")}</p>
         </section>
 

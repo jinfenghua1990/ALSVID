@@ -47,3 +47,11 @@
 @media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{min-height:500px}.heroCopy{padding:75px 5vw}.artOrb{width:70%}}
 @media(max-width:700px){.hero{grid-template-columns:1fr;display:flex;flex-direction:column;min-height:0}.heroCopy{padding:60px 23px 28px}.hero h1{font-size:47px}.heroCopy>p:not(.kicker){font-size:15px}.art{min-height:250px}.artOrb{width:190px}.artOrb span{font-size:20px}.artOrb i{font-size:24px}.section{padding:70px 20px}.sectionHeading{display:block}.sectionHeading>p{margin-top:16px}.grid{grid-template-columns:1fr;gap:16px}.visual{height:210px}.cardInfo p{min-height:auto}.compat{display:block;padding:66px 22px}.compatPanel{margin-top:35px;padding:28px 22px}.mockSelector span{padding:10px 15px}}
 @media(prefers-reduced-motion:reduce){.heroButton{transition:none}}
+
+/* Use the homepage primary-action shape and left-to-right hover movement. */
+.heroButton{border-radius:4px;position:relative;isolation:isolate;overflow:hidden;transition:color .35s,border-color .35s}
+.heroButton::before{content:"";position:absolute;inset:0;background:#acd132;transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.22,.61,.36,1);z-index:-1}
+.heroButton:hover{background:transparent;border-color:#acd132;color:#fff}
+.heroButton:hover::before,.heroButton:focus-visible::before{transform:scaleX(1)}
+.card{border-radius:12px;overflow:hidden}
+@media(prefers-reduced-motion:reduce){.heroButton,.heroButton::before{transition:none}}

@@ -90,7 +90,7 @@ export function DealerApplicationForm({locale}:{locale:Locale}) {
    {status==='error'?<p className={styles.formError} role="alert">{t('network.apply.error')}</p>:null}
    {status==='limited'?<p className={styles.formError} role="alert">{t('network.apply.limited')}</p>:null}
    <button type="submit" className={styles.submitButton} disabled={status==='sending'}>
-    {status==='sending'?t('network.apply.sending'):t('network.apply.pending')} <span aria-hidden="true">↗</span>
+    {status==='sending'?t('network.apply.sending'):t('network.apply.pending')}
    </button>
    <p className={styles.formFootnote}>{t('network.apply.disclaimer')}</p>
   </form>}

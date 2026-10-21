@@ -87,3 +87,18 @@
 @media(max-width:1000px){.headerRight{gap:12px}.nav{gap:14px}.headerLogin{padding:9px 11px}}
 @media(max-width:700px){.header{row-gap:6px}.headerRight{gap:9px}.headerLogin{font-size:11px;padding:9px 11px}.nav{gap:20px}.navApply{padding-bottom:2px}}
 @media(max-width:360px){.headerRight{width:100%;justify-content:space-between;margin-left:0}.headerHome{display:none}}
+
+
+/* Public WWW design tokens match the homepage: graphite, restrained white
+   typography and a single lime-on-hover action. No decorative arrow glyphs. */
+.site{--alsvid-www-accent:#acd132;--alsvid-www-ink:#121619;--alsvid-www-paper:#f5f5f2;color:var(--alsvid-www-ink)}
+.site .outlineButton{position:relative;isolation:isolate;overflow:hidden;border-radius:4px;min-height:44px;gap:0;font-size:13px;font-weight:600;transition:border-color .35s,color .35s;background:transparent}
+.site .outlineButton::before{content:"";position:absolute;inset:0;background:var(--alsvid-www-accent);transform:scaleX(0);transform-origin:left center;transition:transform .35s cubic-bezier(.22,.61,.36,1);z-index:-1}
+.site .outlineButton:hover,.site .outlineButton:focus-visible{background:transparent;border-color:var(--alsvid-www-accent);color:#fff}
+.site .outlineButton:hover::before,.site .outlineButton:focus-visible::before{transform:scaleX(1)}
+.site .textButton{text-decoration:underline;text-underline-offset:6px;font-size:13px;font-weight:600}
+.site .benefitCard,.site .modeCard{border-radius:12px}
+.site .platformCard{border-radius:12px}
+.site .submitButton{border-radius:4px;min-height:50px}
+.site .headerLogin{border-radius:4px}
+@media(prefers-reduced-motion:reduce){.site .outlineButton,.site .outlineButton::before{transition:none}}

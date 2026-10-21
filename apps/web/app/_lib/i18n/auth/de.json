@@ -39,7 +39,7 @@
   "auth.code_placeholder": "Code aus der E-Mail eingeben",
   "auth.remember": "E-Mail merken",
   "auth.forgot": "Passwort vergessen?",
-  "auth.apply": "Händler werden ↗",
+  "auth.apply": "Händler werden",
   "auth.resend": "E-Mail ändern / erneut anfordern",
   "auth.send_code": "Anmeldecode senden",
   "auth.verify": "Bestätigen und anmelden",

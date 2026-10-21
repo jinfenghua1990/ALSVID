@@ -38,7 +38,6 @@ export function ProductGallery({ locale }: { locale: Locale }) {
           onClick={() => dialog.current?.showModal()}
         >
           <img {...fc1Photos[image[0]]} alt={t(image[2])} fetchPriority="high" />
-          <span aria-hidden="true">↗</span>
         </button>
         <p className={styles.photoCaption}>{t("fc1.photo.note")}</p>
       </div>

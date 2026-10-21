@@ -1,6 +1,6 @@
 import { HomePosterHero, FoldingSteps } from "./home-interactions";
 import { Fc2LaunchCard } from "../product/fc2-product";
-import { LanguageSwitcher } from "../language-switcher";
+import { PublicSiteHeader } from "../public-site-header";
 import { translator, type Locale } from "../../_lib/i18n";
 import styles from "./original-home.module.css";
 
@@ -24,50 +24,7 @@ export function HomePage({
       lang={locale}
       data-home-design="original-migration"
     >
-      <header className={styles["header"]}>
-        <div className={styles["brand-lockup"]}>
-          <a href={`/${locale}`} className={styles["logo"]}>
-            <img className={styles.brandBike} src="/home/alsvid-bike-motion.svg" alt="" width="74" height="42" />
-            <span>{t("brand.name")}</span>
-          </a>
-          <span className={styles["brand-strapline"]}>{t("announcement")}</span>
-        </div>
-        <nav className={styles["nav"]} aria-label={t("navigation.primary")}>
-          <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
-          <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
-          <a href={`/${locale}/bikes`}>{t("navigation.products")}</a>
-          <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
-          <a href={"/" + locale + "/dealers"}>{t("navigation.global_dealers")}</a>
-          <a href={myUrl}>{t("navigation.owner_account")}</a>
-          <a href={detail("about-story")}>{t("brand.story")}</a>
-        </nav>
-        <div className={styles["actions"]}>
-          <LanguageSwitcher locale={locale} label={t("language.label")} variant="globe" />
-        </div>
-        <details className={styles.mobileNav}>
-          <summary aria-label={t("navigation.mobile_menu")}><span aria-hidden="true">☰</span></summary>
-          <nav aria-label={t("navigation.primary")}>
-            <a href={detail("fc1")} className={styles.newModelLink}>{t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span></a>
-            <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
-            <a href={`/${locale}/bikes`}>{t("navigation.products")}</a>
-            <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
-            <a href={"/" + locale + "/dealers"}>{t("navigation.global_dealers")}</a>
-            <a href={myUrl}>{t("navigation.owner_account")}</a>
-            <a href={detail("about-story")}>{t("brand.story")}</a>
-            <div className={styles.mobileLanguage}>
-              <LanguageSwitcher locale={locale} label={t("language.label")} variant="inline" />
-            </div>
-          </nav>
-        </details>
-        <nav className={styles.mobileModelLinks} aria-label={t("navigation.products")}>
-          <a href={detail("fc1")} className={styles.newModelLink}>
-            {t("product.model_fc1")}<span className={styles.reserveBadge}>{t("navigation.reserve_badge")}</span>
-          </a>
-          <a href={detail("fc2")} className={styles.newModelLink}>
-            {t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span>
-          </a>
-        </nav>
-      </header>
+      <PublicSiteHeader locale={locale} myUrl={myUrl} home />
       <HomePosterHero
         title={t("hero.poster_title")}
         tagline={t("hero.poster_tagline")}
