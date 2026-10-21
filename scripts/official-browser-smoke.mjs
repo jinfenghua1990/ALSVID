@@ -155,14 +155,14 @@ try {
         await fc2Selection.waitFor({state:'visible'});
         assert.equal(await fc2Selection.locator('button:disabled').count(),1,'FC2 buy now is blocked without approved price and SKU');
         await fc2Selection.locator('button:not(:disabled)').click();
-        await shopping.waitForFunction(()=>[...document.querySelectorAll('header [data-site-cart] strong')].every(node=>node.textContent?.trim()==='3'));
+        await shopping.waitForFunction(()=>{const badges=[...document.querySelectorAll('header [data-site-cart] strong')];return badges.length===2 && badges.every(node=>node.textContent?.trim()==='3');});
         await shopping.goto(base+'/'+locale+'/explore/accessory-basket',{waitUntil:'domcontentloaded'});
         const accessorySelection=shopping.locator('[data-preview-selection="accessory-basket"]');
         await accessorySelection.waitFor({state:'visible'});
         assert.equal(await accessorySelection.locator('button:disabled').count(),1,'Unverified accessory purchase stays disabled');
         await accessorySelection.locator('select').selectOption('2');
         await accessorySelection.locator('button:not(:disabled)').click();
-        await shopping.waitForFunction(()=>[...document.querySelectorAll('header [data-site-cart] strong')].every(node=>node.textContent?.trim()==='5'));
+        await shopping.waitForFunction(()=>{const badges=[...document.querySelectorAll('header [data-site-cart] strong')];return badges.length===2 && badges.every(node=>node.textContent?.trim()==='5');});
         await shopping.goto(base+'/'+locale+'/cart',{waitUntil:'domcontentloaded'});
         await shopping.locator('main[data-storefront-cart="cart"] article').first().waitFor();
         assert.equal(await shopping.locator('main[data-storefront-cart="cart"] article').count(),3,'Cart retains FC1, FC2 and accessory interests');
