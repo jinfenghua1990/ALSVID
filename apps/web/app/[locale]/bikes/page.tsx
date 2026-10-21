@@ -47,9 +47,9 @@ export default async function BikesPage({ params, searchParams }: Props) {
   ];
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
-    { id: "model-fc1", label: models[0].name, href: prefix + "/bikes?platform=fc#model-fc1" },
-    { id: "model-fc2", label: models[1].name, href: prefix + "/bikes?platform=fc#model-fc2" },
-    { id: "platforms", label: t("catalog.bikes.platforms.title"), href: prefix + "/bikes#platforms" },
+    { id: "model-fc1", label: t("product.model_fc1"), href: prefix + "/bikes?platform=fc#model-fc1" },
+    { id: "model-fc2", label: t("fc2.model"), href: prefix + "/bikes?platform=fc#model-fc2" },
+    { id: "platforms", label: t("catalog.product.tabs.platforms"), href: prefix + "/bikes#platforms" },
     { id: "accessories", label: t("catalog.product.tabs.accessories"), href: prefix + "/bikes#accessories" },
   ];
   return <CatalogShell locale={locale} active="bikes">
