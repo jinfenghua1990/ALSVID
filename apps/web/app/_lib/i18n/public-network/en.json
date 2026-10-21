@@ -88,5 +88,6 @@
   "network.faq.two.q": "Does sending an enquiry make me a dealer?",
   "network.faq.two.a": "No. Dealer status, commercial terms and access require separate review and agreement.",
   "network.faq.three.q": "Are sales and service the same authorization?",
-  "network.faq.three.a": "No. Sales, demos and service are reviewed separately. Service locations require specific authorization."
+  "network.faq.three.a": "No. Sales, demos and service are reviewed separately. Service locations require specific authorization.",
+  "network.locations.unavailable": "The dealer directory is temporarily unavailable. Please try again later."
 }

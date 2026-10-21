@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode,
- HttpException, HttpStatus, Post, Query, Req, ServiceUnavailableException } from '@nestjs/common';
+ HttpException, HttpStatus, Patch, Param, Post, Query, Req, ServiceUnavailableException } from '@nestjs/common';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { Public } from './public.decorator.js';
@@ -69,4 +69,18 @@ export class DealerPartnershipController {
     partnershipType:row.partnership_type,website:row.website,message:row.message,
     locale:row.locale,status:row.status,submittedAt:row.submitted_at.toISOString()}))};
  }
+ @Patch('dealer-applications/:id/status')
+ async setApplicationStatus(@Req() request:AuthenticatedRequest,
+   @Param('id') id:string,@Body() body:unknown) {
+  const actor=requireAuth(request);
+  if(!actor.roles.includes('system_admin'))throw new ForbiddenException('Admin access required');
+  if(!/^[0-9a-f-]{36}$/i.test(id) || !body || typeof body!=='object' ||
+     !('status' in body) || !['NEW','REVIEWING','CONTACTED','CLOSED'].includes(String(body.status)))
+    throw new BadRequestException('Invalid application status');
+  const result=await database.query<{id:string;status:string}>(
+   'UPDATE partners.dealer_applications SET status=$2 WHERE id=$1 RETURNING id,status',[id,String(body.status)]);
+  if(!result.rows.length)throw new BadRequestException('Application not found');
+  return {data:result.rows[0]};
+ }
+
 }

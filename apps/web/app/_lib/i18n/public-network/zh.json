@@ -88,5 +88,6 @@
   "network.faq.two.q": "申请后会自动获得经销商资格吗？",
   "network.faq.two.a": "不会。经销商身份、产品价格及销售权限都需要经过独立评估和双方确认。",
   "network.faq.three.q": "销售合作和售后维修是同一种授权吗？",
-  "network.faq.three.a": "不是。销售、试骑和售后维修分别确认资质，售后网点仅展示取得有效维修授权的门店。"
+  "network.faq.three.a": "不是。销售、试骑和售后维修分别确认资质，售后网点仅展示取得有效维修授权的门店。",
+  "network.locations.unavailable": "网点数据暂时无法连接，请稍后重试。"
 }

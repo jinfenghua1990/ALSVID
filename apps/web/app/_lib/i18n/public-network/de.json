@@ -88,5 +88,6 @@
   "network.faq.two.q": "Wird meine Anfrage automatisch genehmigt?",
   "network.faq.two.a": "Nein. Händlerstatus, Konditionen und Zugangsrechte werden gesondert vereinbart.",
   "network.faq.three.q": "Ist die Serviceautorisierung gleich der Verkaufserlaubnis?",
-  "network.faq.three.a": "Nein. Verkauf, Probefahrten und Service haben getrennte Freigaben. Servicestellen benötigen eine ausdrückliche Autorisierung."
+  "network.faq.three.a": "Nein. Verkauf, Probefahrten und Service haben getrennte Freigaben. Servicestellen benötigen eine ausdrückliche Autorisierung.",
+  "network.locations.unavailable": "Das Händlerverzeichnis ist vorübergehend nicht erreichbar."
 }
