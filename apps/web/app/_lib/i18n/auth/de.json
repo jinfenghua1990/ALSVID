@@ -67,5 +67,21 @@
   "auth.pause": "Hintergrund pausieren",
   "auth.play": "Hintergrund fortsetzen",
   "auth.background": "Kühle Farben · sanfter Verlauf",
-  "auth.rights": "© {year} ALSVID. Alle Rechte vorbehalten."
+  "auth.rights": "© {year} ALSVID. Alle Rechte vorbehalten.",
+  "auth.reset_modal_description": "Gib deine Konto-E-Mail ein. Falls das Konto existiert, senden wir einen einmaligen Link.",
+  "auth.reset_send": "Reset-Link senden",
+  "auth.reset_sending": "Wird gesendet…",
+  "auth.reset_sent": "Falls diese E-Mail registriert ist, wurde ein Link gesendet. Prüfe Posteingang und Spam.",
+  "auth.reset_failed": "Die Reset-E-Mail konnte gerade nicht gesendet werden. Bitte versuche es erneut.",
+  "auth.reset_service_failed": "Der Passwortdienst ist nicht erreichbar. Bitte versuche es erneut.",
+  "auth.reset_close": "Schließen",
+  "auth.reset_title": "Neues Passwort festlegen",
+  "auth.reset_description": "Wähle ein neues sicheres Passwort. Nach dem Speichern werden alle Sitzungen beendet.",
+  "auth.reset_password_label": "Neues Passwort",
+  "auth.reset_password_placeholder": "Mindestens 8 Zeichen",
+  "auth.reset_saving": "Wird gesendet…",
+  "auth.reset_submit": "Neues Passwort speichern",
+  "auth.reset_success": "Dein Passwort wurde aktualisiert. Melde dich mit dem neuen Passwort an.",
+  "auth.reset_invalid": "Dieser Link ist ungültig oder abgelaufen. Fordere einen neuen an.",
+  "auth.reset_back": "Zur Anmeldung"
 }
