@@ -47,7 +47,7 @@ export function PublicSiteHeader({
       </span>
       <span className={styles.strapline}>{t('announcement')}</span>
     </a>
-    <nav className={styles.desktopNav} aria-label={t('navigation.primary')}>{menu(false)}</nav>
+    <nav className={styles.desktopNav} aria-label={t('navigation.primary')}>{!home && <a className={styles.homeLink} href={prefix + '/'}>{t('common.back_home')}</a>}{menu(false)}</nav>
     <div className={styles.actions}>
       {dealerLogin && <a className={styles.dealerApply} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
       {dealerLogin && <a className={styles.dealerLogin} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
@@ -56,6 +56,7 @@ export function PublicSiteHeader({
     <details className={styles.mobileMenu}>
       <summary aria-label={t('navigation.mobile_menu')} title={t('navigation.mobile_menu')}>☰</summary>
       <nav aria-label={t('navigation.primary')}>
+        {!home && <a className={styles.mobileLink} href={prefix + '/'}>{t('common.back_home')}</a>}
         {menu(true)}
         {dealerLogin && <a className={styles.mobileLink} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
         {dealerLogin && <a className={styles.mobileLink} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
