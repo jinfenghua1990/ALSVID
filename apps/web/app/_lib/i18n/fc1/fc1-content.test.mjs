@@ -38,7 +38,7 @@ test("customer-facing FC1 source note omits the supplier brand and former model 
   }
 });
 
-test("FC1 clearly offers email reservation only, with a safe missing-email fallback", async () => {
+test("FC1 keeps explicit email reservation and safe cart preview, with no live purchase", async () => {
   for (const [locale, copy] of Object.entries(locales)) {
     for (const key of ["fc1.reservation.cta", "fc1.reservation.pending", "fc1.reservation.note", "fc1.reservation.email_subject", "fc1.reservation.email_body"]) {
       assert.equal(typeof copy[key], "string", `${locale} missing ${key}`);
@@ -54,10 +54,12 @@ test("FC1 clearly offers email reservation only, with a safe missing-email fallb
   assert.match(configurator, /disabled=\{!reservationEmailConfigured/);
   assert.doesNotMatch(configurator, /mailto:/);
   assert.match(configurator, /fc1\.reservation\.pending/);
-  assert.doesNotMatch(configurator, /saveFc1PreviewCart|fc1\.cart\.|\/cart|\/checkout/);
+  assert.match(configurator, /addCartLine\(/);
+  assert.match(configurator, /className=\{styles\.cartBuyButton\} disabled/);
+  assert.doesNotMatch(configurator, /saveFc1PreviewCart|paymentIntent|createOrder|\/checkout/);
 });
 
-test("FC1 story and product layouts contain no cart or checkout CTA", async () => {
+test("FC1 story and classic product layouts retain no direct paid checkout links", async () => {
   for (const file of ["../../../_components/product/fc1-product.tsx", "../../../_components/product/fc1-story-v4.tsx"]) {
     const source = await readFile(path.join(directory, file), "utf8");
     assert.equal(source.includes("ALSVID_SHOPIFY_FC1_PRODUCT_URL"), false);
@@ -68,13 +70,16 @@ test("FC1 story and product layouts contain no cart or checkout CTA", async () =
   }
 });
 
-test("legacy cart and checkout URLs redirect back to FC1 reservation configuration", async () => {
+test("cart and checkout now display selections but cannot take payment or create orders", async () => {
   const cart = await readFile(path.join(directory, "../../../[locale]/cart/page.tsx"), "utf8");
   const checkout = await readFile(path.join(directory, "../../../[locale]/checkout/page.tsx"), "utf8");
-  assert.ok(cart.includes("redirect(`/${locale}/explore/fc1#configure`)"));
-  assert.ok(checkout.includes("redirect(`/${locale}/explore/fc1#configure`)"));
-  assert.doesNotMatch(cart + checkout, /Fc1PreviewCartPanel|paymentIntent|createOrder|onSubmit|<form/);
+  const panel = await readFile(path.join(directory, "../../../_components/commerce/storefront-cart-panel.tsx"), "utf8");
+  assert.match(cart, /StorefrontCartPanel/);
+  assert.match(checkout, /StorefrontCartPanel/);
+  assert.match(panel, /disabled className=\{styles\.disabledBuy\}/);
+  assert.doesNotMatch(cart+checkout+panel, /paymentIntent|createOrder|paymentConfirmed|fetch\(|<form/);
 });
+
 
 test("FC1 public preview copy does not claim paid preorder, stock or Shopify checkout", async () => {
   for (const [locale, copy] of Object.entries(locales)) {
