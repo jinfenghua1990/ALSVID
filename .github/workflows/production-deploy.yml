@@ -193,7 +193,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -z "${RESEND_DOMAIN_AUDIT_API_KEY:-}" ]]; then
-            echo "::error title=Missing Resend domain audit credential::Add RESEND_DOMAIN_AUDIT_API_KEY as a GitHub production environment secret. It must be a Resend Full access key; keep the Cloud Run alsvid-mail-api-key send-only."
+            echo "::error title=Missing Resend domain audit credential::Add RESEND_DOMAIN_AUDIT_API_KEY as a GitHub production environment secret. It must be a Resend Full access key; keep the Cloud Run alsvidbike-mail-api-key send-only."
             exit 1
           fi
 
@@ -313,8 +313,8 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
         run: |
           set -euo pipefail
-          if ! gcloud secrets describe alsvid-mail-api-key --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
-            echo "Missing required Google Secret Manager secret: alsvid-mail-api-key" >&2
+          if ! gcloud secrets describe alsvidbike-mail-api-key --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+            echo "Missing required Google Secret Manager secret: alsvidbike-mail-api-key" >&2
             exit 1
           fi
 
@@ -392,7 +392,7 @@ jobs:
         run: |
           set -euo pipefail
           env_vars="NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_EMAIL_TEST_MODE=false,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,ALSVID_INTERNAL_EMAIL_DOMAINS=${ALSVID_INTERNAL_EMAIL_DOMAINS:-},ALSVID_INTERNAL_REGISTRATION_MODE=${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain},ALSVID_INITIAL_ADMIN_EMAIL=${ALSVID_INITIAL_ADMIN_EMAIL:-},MAIL_PROVIDER=${MAIL_PROVIDER:-resend},MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@alsvidbike.com},MAIL_FROM_NAME=ALSVID,FC1_RESERVATION_EMAIL=${NEXT_PUBLIC_FC1_RESERVATION_EMAIL:-},AUTH_BASE_URL=$AUTH_BASE_URL"
-          secret_bindings="DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest,MAIL_API_KEY=alsvid-mail-api-key:latest"
+          secret_bindings="DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest,MAIL_API_KEY=alsvidbike-mail-api-key:latest"
 
           gcloud run deploy "$API_SERVICE" \
             --project "$GCP_PROJECT_ID" \
