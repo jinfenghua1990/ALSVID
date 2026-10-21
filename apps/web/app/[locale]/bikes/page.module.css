@@ -71,3 +71,11 @@
 .modelInfo a:hover{color:#18221d;border-color:#acd132}
 @media(max-width:850px){.modelCard{grid-template-columns:1fr;min-height:0}.modelImageLink img{height:310px;min-height:0}.modelInfo{gap:22px;padding:26px}.modelInfo h3{font-size:42px}}
 @media(max-width:700px){.modelGrid{gap:18px}.modelCard{scroll-margin-top:76px}.modelInfo h3{font-size:38px}.modelImageLink img{height:290px}}
+
+/* Unified product center: category tabs and reserved space for desktop vehicle rail. */
+.catalogTabs{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border-bottom:1px solid #e0e7df;padding:15px clamp(20px,6vw,110px)}
+.catalogTabs a{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:10px 22px;border:1px solid #cad5ca;border-radius:4px;color:#263b30;text-decoration:none;font-size:14px;font-weight:650;transition:background .2s,border-color .2s}
+.catalogTabs a:hover,.catalogTabs a:focus-visible{background:#e8f2d3;border-color:#acd132}
+#models,#accessories{scroll-margin-top:80px}
+@media(min-width:1101px){.modelSection{padding-left:clamp(156px,14vw,218px)}}
+@media(max-width:700px){.catalogTabs{padding:12px 20px}.catalogTabs a{flex:1;min-width:0}}

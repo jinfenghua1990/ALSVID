@@ -1,0 +1,24 @@
+.section{scroll-margin-top:84px;padding:96px clamp(22px,6vw,110px);background:#f5f7f3;color:#1b2821}
+.heading{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:36px}
+.kicker{color:#547f68;font-size:11px;font-weight:700;letter-spacing:.19em;text-transform:uppercase}
+.heading h2{font-size:clamp(36px,4.3vw,65px);font-weight:620;line-height:1.08;letter-spacing:-.045em;margin:12px 0 0}
+.heading>p{color:#68766e;max-width:390px;font-size:15px;line-height:1.85}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+.filters a{padding:9px 16px;display:inline-flex;align-items:center;border:1px solid #d8e0d8;border-radius:4px;color:#425548;text-decoration:none;font-weight:600;font-size:13px}
+.filters a:hover,.filters a[aria-current=page]{background:#1b2a20;border-color:#1b2a20;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{min-width:0;background:#fff;border:1px solid #e7ebe5;border-radius:12px;overflow:hidden}
+.visual{position:relative;height:205px;display:grid;place-items:center;background:linear-gradient(145deg,#dbe5de,#f1f3ef);color:#658271}
+.visual span{font-size:78px;font-weight:300;line-height:1}
+.visual small{position:absolute;bottom:15px;left:20px;letter-spacing:.12em;color:#607568;font-size:10px}
+.info{padding:24px}
+.pending{display:inline-flex;color:#41714f;background:#e8f0e5;font-size:11px;padding:5px 8px}
+.info h3{font-size:24px;font-weight:600;margin:15px 0 9px}
+.info p{font-size:14px;line-height:1.7;color:#65776a;min-height:68px;margin-bottom:17px}
+.info a{color:#244d31;font-size:13px;font-weight:650;text-decoration:none;border-bottom:1px solid #8aab92;padding-bottom:4px}
+.info a:hover{border-color:#acd132}
+.compat{margin-top:45px;border-top:1px solid #d9e2d8;padding-top:26px}
+.compat h3{font-size:22px;font-weight:650;letter-spacing:-.025em;margin:0 0 10px}
+.compat p{max-width:850px;color:#6b7a70;line-height:1.8;margin:0}
+@media(max-width:960px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.section{padding:72px 20px}.heading{display:block}.heading>p{margin-top:16px}.grid{grid-template-columns:1fr}.visual{height:195px}.info p{min-height:0}}

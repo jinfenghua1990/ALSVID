@@ -16,7 +16,12 @@ export function BikesModelNavigator({ title, models }: { title: string; models: 
       frame = 0;
       const hero = document.querySelector("[data-bikes-hero]");
       if (!hero) return;
-      const shouldShow = hero.getBoundingClientRect().bottom <= 0;
+      const modelSection = document.getElementById("models");
+      const accessorySection = document.getElementById("accessories");
+      // The rail belongs to the vehicle collection, not the accessories chapter.
+      const shouldShow = hero.getBoundingClientRect().bottom <= 0
+        && Boolean(modelSection && modelSection.getBoundingClientRect().top < window.innerHeight * 0.65)
+        && Boolean(!accessorySection || accessorySection.getBoundingClientRect().top > window.innerHeight * 0.5);
       setVisible(previous => previous === shouldShow ? previous : shouldShow);
       if (!shouldShow) {
         setActive(previous => previous === null ? previous : null);

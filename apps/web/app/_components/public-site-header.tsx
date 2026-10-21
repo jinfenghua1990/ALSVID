@@ -2,7 +2,7 @@ import { LanguageSwitcher } from './language-switcher';
 import { translator, type Locale } from '../_lib/i18n';
 import styles from './public-site-header.module.css';
 
-type Section = 'fc1' | 'fc2' | 'bikes' | 'accessories' | 'dealers' | 'story';
+type Section = 'fc1' | 'fc2' | 'bikes' | 'dealers' | 'story';
 
 /** ALSVID WWW navigation has the same structure and breakpoint behavior as the homepage.
  *  Portal dashboards keep their own independent navigation. */
@@ -25,7 +25,6 @@ export function PublicSiteHeader({
     { href: prefix + '/explore/fc1', label: t('product.model_fc1'), id: 'fc1', badge: t('navigation.reserve_badge') },
     { href: prefix + '/explore/fc2', label: t('fc2.model'), id: 'fc2', badge: t('product.new_badge') },
     { href: prefix + '/bikes', label: t('navigation.products'), id: 'bikes' },
-    { href: prefix + '/accessories', label: t('footer.accessories'), id: 'accessories' },
     { href: prefix + '/dealers', label: t('navigation.global_dealers'), id: 'dealers' },
     { href: myUrl, label: t('navigation.owner_account') },
     { href: prefix + '/explore/about-story', label: t('brand.story'), id: 'story' },

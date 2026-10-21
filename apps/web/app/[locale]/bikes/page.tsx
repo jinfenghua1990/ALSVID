@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CatalogShell } from "../../_components/catalog/catalog-shell";
 import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navigator";
+import { AccessoriesCatalogSection } from "../../_components/catalog/accessories-catalog-section";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { isLocale, locales } from "../../_lib/i18n/routing";
 import styles from "./page.module.css";
 
-type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ platform?: string }> };
+type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ platform?: string; category?: string }> };
 const platformIds = ["fc", "ct", "ft", "gt"] as const;
 type PlatformId = typeof platformIds[number];
 const platformAssets: Record<PlatformId, string> = {
@@ -36,7 +37,8 @@ export default async function BikesPage({ params, searchParams }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
-  const requested = (await searchParams).platform?.toLowerCase();
+  const query = await searchParams;
+  const requested = query.platform?.toLowerCase();
   const active: PlatformId | null = platformIds.find(id => id === requested) ?? null;
   const prefix = "/" + locale;
   const models = [
@@ -56,6 +58,11 @@ export default async function BikesPage({ params, searchParams }: Props) {
         <img className={styles.heroImage} src="/home/original/fc1-product.webp" alt={t("images.product")} width={1536} height={1024} />
         <span className={styles.heroWatermark} aria-hidden="true">ALSVID</span>
       </section>
+
+      <nav className={styles.catalogTabs} aria-label={t("catalog.product.tabs.label")}>
+        <a href="#models">{t("catalog.product.tabs.bikes")}</a>
+        <a href="#accessories">{t("catalog.product.tabs.accessories")}</a>
+      </nav>
 
       <section className={styles.section} aria-labelledby="platforms-title" id="platforms">
         <div className={styles.sectionHeading}>
@@ -98,12 +105,13 @@ export default async function BikesPage({ params, searchParams }: Props) {
       </section>
 
       <section className={styles.guide}>
-        <div><p className={styles.kicker}>{t("catalog.bikes.compare.kicker")}</p><h2>{t("catalog.bikes.compare.title")}</h2><p>{t("catalog.bikes.compare.body")}</p><a href={prefix + "/accessories"}>{t("catalog.bikes.compare.cta")}</a></div>
+        <div><p className={styles.kicker}>{t("catalog.bikes.compare.kicker")}</p><h2>{t("catalog.bikes.compare.title")}</h2><p>{t("catalog.bikes.compare.body")}</p><a href="#accessories">{t("catalog.bikes.compare.cta")}</a></div>
         <div className={styles.guideTable} role="table" aria-label={t("catalog.bikes.compare.title")}>
           <div role="row" className={styles.guideHead}><span role="columnheader">{t("catalog.bikes.compare.model")}</span><span role="columnheader">{t("catalog.bikes.compare.platform")}</span><span role="columnheader">{t("catalog.bikes.compare.state")}</span></div>
           {models.map(model => <a role="row" key={model.id} href={prefix + "/explore/" + model.id}><strong role="cell">{model.name}</strong><span role="cell">FC</span><span role="cell">{model.status}</span></a>)}
         </div>
       </section>
+      <AccessoriesCatalogSection locale={locale} selectedCategory={query.category} />
       <div className={styles.preview}>{t("catalog.shared.preview")}</div>
     </main>
   </CatalogShell>;
