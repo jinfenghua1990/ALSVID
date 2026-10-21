@@ -6,6 +6,7 @@ import { fc1Photos } from "./fc1-photos";
 import styles from "./fc1-product.module.css";
 import { Fc1ThreeDViewer } from "./fc1-three-d-viewer";
 import {addCartLine} from "../../_lib/commerce/storefront-cart";
+import { Fc1TestRide } from "./fc1-test-ride";
 
 type ColourId = "sample" | "black" | "blue" | "silver";
 type ModelId = "standard" | "pro";
@@ -286,6 +287,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
              cartStatus==="failed"?t("catalog.cart.storageError"):t("catalog.cart.previewNotice")}
           </p>
         </div>
+        <Fc1TestRide locale={locale} model={modelLabel} colour={colourLabel} />
         <form className={styles.interestReservationActions} onSubmit={submitReservation}><label htmlFor="fc1-reservation-email">{t("fc1.reservation.cta")}</label><input id="fc1-reservation-email" type="email" required autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} placeholder="you@example.com" disabled={!reservationEmailConfigured} /><button className={styles.interestReservationButton} type={reservationEmailConfigured ? "submit" : "button"} disabled={!reservationEmailConfigured || reservationState === "sending"}>{reservationState === "sent" ? "✓" : reservationState === "sending" ? "…" : t("fc1.reservation.cta")}</button><p className={styles.interestReservationPending} role="status">{reservationState === "sent" ? t("fc1.reservation.sent") : reservationState === "failed" ? t("fc1.reservation.failed") : reservationEmailConfigured ? t("fc1.reservation.note") : t("fc1.reservation.pending")}</p></form>
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
