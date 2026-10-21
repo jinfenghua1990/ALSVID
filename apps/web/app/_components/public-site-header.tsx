@@ -21,6 +21,7 @@ export function PublicSiteHeader({
 }) {
   const t = translator(locale);
   const prefix = '/' + locale;
+  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale;
   const links = [
     { href: prefix + '/explore/fc1', label: t('product.model_fc1'), id: 'fc1', badge: t('navigation.reserve_badge') },
     { href: prefix + '/explore/fc2', label: t('fc2.model'), id: 'fc2', badge: t('product.new_badge') },
@@ -49,8 +50,8 @@ export function PublicSiteHeader({
     </a>
     <nav className={styles.desktopNav} aria-label={t('navigation.primary')}>{!home && <a className={styles.homeLink} href={prefix + '/'}>{t('common.back_home')}</a>}{menu(false)}</nav>
     <div className={styles.actions}>
-      {dealerLogin && <a className={styles.dealerApply} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
-      {dealerLogin && <a className={styles.dealerLogin} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
+      {dealerLogin && <a className={styles.dealerApply} href={prefix + '/dealers?apply=1'}>{t('network.nav.apply')}</a>}
+      {dealerLogin && <a className={styles.dealerLogin} href={dealerLoginUrl}>{t('network.nav.account')}</a>}
       <LanguageSwitcher locale={locale} label={t('language.label')} variant="globe" />
     </div>
     <details className={styles.mobileMenu}>
@@ -58,8 +59,8 @@ export function PublicSiteHeader({
       <nav aria-label={t('navigation.primary')}>
         {!home && <a className={styles.mobileLink} href={prefix + '/'}>{t('common.back_home')}</a>}
         {menu(true)}
-        {dealerLogin && <a className={styles.mobileLink} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
-        {dealerLogin && <a className={styles.mobileLink} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
+        {dealerLogin && <a className={styles.mobileLink} href={prefix + '/dealers?apply=1'}>{t('network.nav.apply')}</a>}
+        {dealerLogin && <a className={styles.mobileLink} href={dealerLoginUrl}>{t('network.nav.account')}</a>}
         <div className={styles.mobileLanguage}>
           <LanguageSwitcher locale={locale} label={t('language.label')} variant="inline" />
         </div>
