@@ -37,7 +37,7 @@ export function HomePage({
           <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
           <a href="#platforms">{t("navigation.products")}</a>
           <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
-          <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
+          <a href={"/" + locale + "/dealers"}>{t("navigation.global_dealers")}</a>
           <a href={myUrl}>{t("navigation.owner_account")}</a>
           <a href={detail("about-story")}>{t("brand.story")}</a>
         </nav>
@@ -51,7 +51,7 @@ export function HomePage({
             <a href={detail("fc2")} className={styles.newModelLink}>{t("fc2.model")}<span className={styles.newBadge}>{t("product.new_badge")}</span></a>
             <a href="#platforms">{t("navigation.products")}</a>
             <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
-            <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
+            <a href={"/" + locale + "/dealers"}>{t("navigation.global_dealers")}</a>
             <a href={myUrl}>{t("navigation.owner_account")}</a>
             <a href={detail("about-story")}>{t("brand.story")}</a>
             <div className={styles.mobileLanguage}>
@@ -492,7 +492,7 @@ export function HomePage({
               </a>
               <a
                 className={styles["service-item"]}
-                href={new URL("/my/service", myUrl).toString()}
+                href={"/" + locale + "/service-locations"}
               >
                 <b>{t("services.locations.title")}</b>
                 <span>{t("services.locations.body")}</span>
@@ -594,7 +594,7 @@ export function HomePage({
             {t("dealer.title_second")}
           </h2>
           <p>{t("dealer.description")}</p>
-          <a className={styles["btn-white"]} href={dealerUrl}>
+          <a className={styles["btn-white"]} href={"/" + locale + "/dealers#apply"}>
             {t("dealer.apply")}
           </a>
           <a className={styles["btn-outline"]} href={dealerUrl}>
@@ -632,6 +632,7 @@ export function HomePage({
             <a href={myUrl}>{t("services.registration.title")}</a>
             <a href={myUrl}>{t("services.warranty.title")}</a>
             <a href={myUrl}>{t("services.manuals.title")}</a>
+            <a href={"/" + locale + "/service-locations"}>{t("services.locations.title")}</a>
           </div>
           <div className={styles["footer-col"]}>
             <h4>{t("footer.about")}</h4>
@@ -646,8 +647,8 @@ export function HomePage({
           </div>
           <div className={styles["footer-col"]}>
             <h4>{t("footer.contact")}</h4>
-            <a href={dealerUrl}>{t("footer.dealer")}</a>
-            <a href={dealerUrl}>{t("footer.apply")}</a>
+            <a href={"/" + locale + "/dealers"}>{t("footer.dealer")}</a>
+            <a href={"/" + locale + "/dealers#apply"}>{t("footer.apply")}</a>
             <a href={new URL("/my/service", myUrl).toString()}>
               {t("footer.contact_us")}
             </a>

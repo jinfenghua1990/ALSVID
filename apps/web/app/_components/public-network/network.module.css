@@ -1,0 +1,53 @@
+.site{background:#f5f6f4;color:#141b1e;font-family:Inter,"Noto Sans SC",Arial,sans-serif;min-height:100vh}
+.site *{box-sizing:border-box}.site a{text-decoration:none}.site h1,.site h2,.site h3,.site p{margin-top:0}
+.header{height:78px;background:#101618;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:25px;padding:0 max(5vw,calc((100vw - 1480px)/2));position:relative;z-index:10}
+.logo{display:flex;align-items:center;gap:8px;color:#fff;font-size:25px;letter-spacing:.15em;font-weight:750;white-space:nowrap}.logo img{object-fit:contain}
+.nav{display:flex;gap:29px;align-items:center}.nav a,.headerHome{color:#d3d9d7;font-size:13px}.nav a:hover,.headerHome:hover{color:#fff}
+.headerRight{display:flex;align-items:center;gap:22px}.headerRight nav a{color:#cfd4d2!important;font-size:12px}
+.hero,.directoryHero{position:relative;overflow:hidden;isolation:isolate;color:#fff;background:#152126}
+.hero{min-height:min(780px,calc(100svh - 78px));display:flex;align-items:center}
+.heroImage,.directoryHero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.heroImage{object-position:65% center}.heroShade,.directoryShade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,17,21,.94) 0%,rgba(9,17,21,.76) 37%,rgba(9,17,21,.1) 100%);z-index:-1}
+.heroContent{width:min(700px,90vw);margin-left:max(7vw,calc((100vw - 1380px)/2));padding:110px 0}
+.eyebrow{font-size:12px;font-weight:650;text-transform:uppercase;letter-spacing:.17em;color:#71807e;margin-bottom:24px}
+.hero .eyebrow,.directoryHero .eyebrow,.finalBanner .eyebrow{color:#ced7d3}
+.hero h1{font-size:clamp(48px,5.7vw,90px);letter-spacing:-.058em;line-height:1.08;max-width:740px;margin-bottom:24px;font-weight:650}
+.heroContent>p:not(.eyebrow){font-size:17px;color:#d6dcda;line-height:1.85;max-width:540px;margin-bottom:32px}
+.heroActions{display:flex;align-items:center;flex-wrap:wrap;gap:26px}
+.outlineButton{border:1px solid rgba(255,255,255,.8);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;gap:32px;padding:15px 24px;color:#fff;font-size:14px;font-weight:600;transition:background .2s,color .2s}
+.outlineButton:hover{background:#fff;color:#121a1d}.textButton{color:#fff;font-weight:650;font-size:14px}
+.heroNote{font-size:12px;color:#b2bdba;letter-spacing:.06em;margin-top:78px}
+.section,.directorySection{padding:115px max(6vw,calc((100vw - 1380px)/2))}
+.sectionIntro{max-width:800px;margin-bottom:43px}.sectionIntro h2{font-size:clamp(32px,3vw,52px);letter-spacing:-.048em;line-height:1.18;font-weight:600}.sectionIntro .eyebrow{margin-bottom:17px}
+.threeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.benefitCard,.modeCard{background:#fff;padding:36px 31px;min-height:238px;border:1px solid #e5e9e6}
+.benefitCard .index{color:#657873;font-size:12px;letter-spacing:.08em}.benefitCard h3,.modeCard h3{font-size:22px;letter-spacing:-.025em;margin:30px 0 14px;font-weight:600}.benefitCard p,.modeCard p{font-size:14px;line-height:1.85;color:#5d6965;margin:0}
+.soft{background:#e8ece9}.fourGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.platformCard{color:#1b2426;background:#fff;overflow:hidden;display:block;min-width:0}
+.platformCard img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}.platformCard>div{padding:22px 20px;position:relative}
+.platformCard span{font-size:11px;letter-spacing:.14em;color:#7b8582}.platformCard h3{font-size:20px;margin:13px 28px 0 0;font-weight:600}
+.platformCard b{position:absolute;bottom:22px;right:20px;font-size:23px;font-weight:400}
+.modeCard h3{margin-top:9px}.applySection{background:#192428;color:#fff;padding:112px max(6vw,calc((100vw - 1380px)/2));display:grid;grid-template-columns:.83fr 1.17fr;gap:7vw;align-items:start}
+.applyCopy h2{font-size:clamp(35px,3.5vw,58px);line-height:1.14;letter-spacing:-.04em;font-weight:620;margin-bottom:25px}
+.applyCopy>p:not(.eyebrow){color:#b9c4c1;font-size:15px;line-height:1.85;max-width:470px}
+.applyCopy .eyebrow{color:#a8b5af}.partnerLogin{display:inline-block;margin-top:29px;color:#fff;border-bottom:1px solid #82918a;padding-bottom:8px;font-size:14px}
+.applicationPreview{background:#f8faf8;color:#172023;padding:32px}.formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.formGrid label{display:flex;flex-direction:column;gap:9px;font-size:13px;color:#394541}.formGrid label.wide{grid-column:1/-1}
+.formGrid input,.formGrid textarea{border:1px solid #d6dcd8;background:#f1f3f1;color:#52615c;min-height:46px;padding:12px;width:100%;font:inherit;border-radius:2px}
+.formGrid textarea{min-height:98px}.disabledSubmit{width:100%;border:0;background:#c3cbc6;color:#4a5650;font-size:14px;padding:15px 22px;margin-top:21px;cursor:not-allowed;opacity:1}
+.finalBanner{padding:83px max(6vw,calc((100vw - 1380px)/2));background:#233236;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:30px}
+.finalBanner h2{font-size:clamp(30px,3vw,48px);letter-spacing:-.04em;margin-bottom:10px}.finalBanner p:not(.eyebrow){color:#c4ceca;max-width:640px;font-size:14px;line-height:1.7}
+.footer{background:#0e1416;color:#9faeaa;min-height:160px;padding:40px max(6vw,calc((100vw - 1380px)/2));display:flex;align-items:start;gap:28px;flex-wrap:wrap;font-size:12px}
+.footerBrand{color:#fff;font-size:21px;font-weight:750;letter-spacing:.15em}.footer>span{margin:8px auto 0 0}
+.footer nav{display:flex;gap:24px;flex-wrap:wrap}.footer nav a{color:#adb9b5;font-size:12px}
+.directoryHero{min-height:510px;display:flex;align-items:center}.directoryHero .heroContent{padding:90px 0}
+.directoryHero h1{font-size:clamp(45px,5vw,76px);line-height:1.1;letter-spacing:-.055em;font-weight:620;margin-bottom:22px}
+.directorySection{min-height:490px}.countryGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.countryCard{background:#fff;border:1px solid #e0e6e2;min-height:300px}.countryHeader{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5eae7;padding:23px 27px}
+.countryHeader h3{margin:0;font-size:23px;font-weight:600}.countryHeader span{color:#7b8581;font-size:12px;letter-spacing:.13em}
+.empty{padding:47px 28px;display:flex;gap:22px;align-items:flex-start;color:#697671;font-size:14px;line-height:1.8}
+.empty p{margin:0;max-width:440px}.emptyIcon{font-size:27px;color:#9daaa2;line-height:1}
+.locationList{padding:14px 27px;list-style:none}.locationList li{border-bottom:1px solid #edf0ee;padding:13px 0;display:flex;flex-direction:column;gap:5px}
+.locationList span,.locationList small{color:#64716c;font-size:13px}.directoryAfter{margin-top:34px;display:flex;gap:35px}.directoryAfter a{font-size:14px;color:#1f3332;border-bottom:1px solid #92a29a;padding-bottom:6px}
+.site a:focus-visible,.site button:focus-visible{outline:3px solid #95c6ff;outline-offset:3px}
+@media(max-width:1000px){.header{padding:0 24px;gap:12px}.nav{gap:12px}.headerHome{display:none}.threeGrid{gap:12px}.fourGrid{grid-template-columns:repeat(2,1fr)}.applySection{gap:35px}}
+@media(max-width:700px){.header{height:auto;min-height:72px;padding:14px 18px;flex-wrap:wrap}.logo{font-size:20px}.logo img{width:45px}.headerRight{margin-left:auto}.nav{order:3;width:100%;overflow-x:auto;gap:20px;padding:9px 0 3px;white-space:nowrap}.nav a{font-size:12px}.hero{min-height:600px}.heroContent{width:auto;margin:0;padding:95px 24px}.heroShade,.directoryShade{background:linear-gradient(90deg,rgba(9,17,21,.9),rgba(9,17,21,.52))}.hero h1{font-size:clamp(44px,9.5vw,62px)}.heroContent>p:not(.eyebrow){font-size:15px}.heroNote{margin-top:65px}.section,.directorySection{padding:66px 20px}.threeGrid,.countryGrid{grid-template-columns:1fr}.benefitCard,.modeCard{min-height:0;padding:25px}.benefitCard h3{margin-top:19px}.fourGrid{gap:10px}.platformCard>div{padding:16px 14px}.platformCard h3{font-size:17px}.applySection{grid-template-columns:1fr;padding:67px 20px;gap:30px}.applicationPreview{padding:20px}.formGrid{grid-template-columns:1fr}.finalBanner{padding:65px 20px;display:block}.finalBanner .outlineButton{margin-top:17px}.footer{padding:40px 20px}.footer nav{gap:16px}.directoryHero{min-height:460px}.directoryHero .heroContent{padding:75px 22px}.countryHeader{padding:20px}.empty{padding:28px 20px}}
