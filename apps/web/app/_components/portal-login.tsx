@@ -46,9 +46,9 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
   useEffect(() => {
     if (!forgotOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !resetBusy) {
+      if (event.key === 'Escape') {
         event.stopImmediatePropagation();
-        setForgotOpen(false);
+        if (!resetBusy) setForgotOpen(false);
       }
     };
     document.addEventListener('keydown', onKeyDown, true);
