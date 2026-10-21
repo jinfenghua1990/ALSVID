@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import styles from './supply.module.css';
 
 type ItemType = 'PART' | 'SKU';
-type Partner = { id: string; partnerCode: string; displayName: string; roles: string[] };
+type Partner = { id: string; partnerCode: string; displayName: string; roles: string[]; kind?: 'ORGANIZATION' | 'PERSON'; legalName?: string | null; status?: string | null; countryCode?: string | null };
 type Part = { id: string; part_number: string; name: string };
 type Sku = { id: string; sku: string; name: string };
 type Quotation = { id: string; quotation_number: string; supplier_name: string; supplier_partner_id: string; supplier_reference: string | null; currency: string; status: string; valid_until: string | null; created_at: string };
@@ -26,8 +26,8 @@ const statusLabels: Record<string,string> = {
 };
 const statusLabel=(status:string)=>statusLabels[status]??status.replaceAll('_',' ');
 const statusTone = (status: string): 'neutral' | 'good' | 'warn' | 'bad' => {
-  if (['ACCEPTED', 'CONFIRMED', 'FULFILLED'].includes(status)) return 'good';
-  if (status === 'REJECTED') return 'bad';
+  if (['ACCEPTED', 'CONFIRMED', 'FULFILLED', 'ACTIVE'].includes(status)) return 'good';
+  if (['REJECTED', 'INACTIVE'].includes(status)) return 'bad';
   if (['ISSUED', 'PARTIALLY_FULFILLED', 'FACTORY_COMMITMENT'].includes(status)) return 'warn';
   return 'neutral';
 };
@@ -40,6 +40,8 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [parts, setParts] = useState<Part[]>([]);
   const [skus, setSkus] = useState<Sku[]>([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [selectedPo, setSelectedPo] = useState('');
   const [quoteItemType, setQuoteItemType] = useState<ItemType>('PART');
   const [poItemType, setPoItemType] = useState<ItemType>('PART');
@@ -63,6 +65,8 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   }
 
   async function reload() {
+    setLoading(true);
+    setLoadError('');
     try {
       const [proc, partnerData, engineering, catalog] = await Promise.all([
         api('/v1/procurement'),
@@ -75,7 +79,9 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
       setParts(engineering.parts);
       setSkus(catalog.skus);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '无法加载采购 / 供应工作台');
+      setLoadError(error instanceof Error ? error.message : '无法加载采购 / 供应工作台');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -103,7 +109,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   }), [partners, data]);
   const query = supplierQuery.trim().toLocaleLowerCase();
   const visiblePartners = partnerStats.filter(({ partner }) => {
-    const text = [partner.displayName, partner.partnerCode, ...partner.roles].join(' ').toLocaleLowerCase();
+    const text = [partner.displayName, partner.legalName ?? '', partner.partnerCode, partner.countryCode ?? '', ...partner.roles].join(' ').toLocaleLowerCase();
     return (selectedPartner === 'all' || partner.id === selectedPartner) && (!query || text.includes(query));
   });
   const visibleQuotations = data.quotations.filter((item) => {
@@ -268,16 +274,18 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
                 {selectedPartnerRecord ? <button className={styles.clearFilter} type="button" onClick={() => setSelectedPartner('all')}>清除筛选 ×</button> : <span className={styles.count}>{visiblePartners.length} 个组织</span>}
               </div>
             </div>
-            {visiblePartners.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载供应商档案</strong><p>正在读取已关联的供应商 / 工厂组织。</p></div> : loadError ? <div className={styles.emptyState}><strong>供应商数据加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visiblePartners.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
-                  <thead><tr><th>供应商 / 工厂</th><th>组织编码</th><th>合作类型</th><th>报价记录</th><th>采购订单</th><th>待履约</th><th>快捷操作</th></tr></thead>
+                  <thead><tr><th>供应商 / 工厂</th><th>国家 / 地区</th><th>组织类型</th><th>业务角色</th><th>报价</th><th>采购单</th><th>待履约</th><th>合作状态</th><th>快捷操作</th></tr></thead>
                   <tbody>{visiblePartners.map(({ partner, quotations, orders, openOrders }) => (
                     <tr key={partner.id} data-selected={selectedPartner === partner.id}>
-                      <td><button className={styles.supplierLink} type="button" onClick={() => setSelectedPartner(partner.id)}>{partner.displayName}</button><small className={styles.subText}>已关联组织</small></td>
-                      <td><span className={styles.code}>{partner.partnerCode || '—'}</span></td>
+                      <td><button className={styles.supplierLink} type="button" onClick={() => setSelectedPartner(partner.id)}>{partner.displayName}</button>{partner.legalName && partner.legalName !== partner.displayName ? <small className={styles.subText}>{partner.legalName}</small> : null}<small className={styles.subText}>{partner.partnerCode || '暂无编码'}</small></td>
+                      <td>{partner.countryCode || '—'}</td>
+                      <td>{partner.kind === 'ORGANIZATION' ? '企业 / 组织' : partner.kind === 'PERSON' ? '个人' : '—'}</td>
                       <td><div className={styles.pillRow}>{partner.roles.filter((role) => role === 'SUPPLIER' || role === 'FACTORY').map((role) => <span className={styles.pill} key={role}>{role === 'FACTORY' ? '工厂' : '供应商'}</span>)}</div></td>
                       <td>{quotations.length}</td><td>{orders.length}</td><td><strong>{openOrders}</strong></td>
+                      <td><span className={styles.status} data-tone={statusTone(partner.status ?? '')}>{partner.status === 'ACTIVE' ? '启用' : partner.status === 'INACTIVE' ? '停用' : partner.status || '未知'}</span></td>
                       <td><div className={styles.tableActions}><button className={styles.textAction} type="button" onClick={() => { setSelectedPartner(partner.id); setActiveView('quotations'); }}>报价</button><button className={styles.textAction} type="button" onClick={() => { setSelectedPartner(partner.id); setActiveView('orders'); }}>采购</button></div></td>
                     </tr>
                   ))}</tbody>
@@ -293,7 +301,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>QUOTATIONS</span><h2>报价管理</h2><p>{selectedPartnerRecord ? '当前供应商：' + selectedPartnerRecord.displayName : '查看所有供应商报价及其处理状态。'}</p></div>
               <span className={styles.count}>{visibleQuotations.length} 条报价</span>
             </div>
-            {visibleQuotations.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载报价记录</strong><p>正在读取采购域数据。</p></div> : loadError ? <div className={styles.emptyState}><strong>报价数据加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleQuotations.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>报价单号</th><th>供应商</th><th>供应商参考号</th><th>币种</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
@@ -317,7 +325,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>PURCHASE ORDERS</span><h2>采购订单</h2><p>{selectedPartnerRecord ? '当前供应商：' + selectedPartnerRecord.displayName : '查看采购单状态、金额与后续履约记录。'}</p></div>
               <span className={styles.count}>{visibleOrders.length} 张采购单</span>
             </div>
-            {visibleOrders.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载采购订单</strong><p>正在读取采购域数据。</p></div> : loadError ? <div className={styles.emptyState}><strong>采购订单加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleOrders.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>采购单号</th><th>供应商</th><th>金额</th><th>创建时间</th><th>发出时间</th><th>状态</th><th>操作</th></tr></thead>
@@ -341,7 +349,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>FULFILLMENT EVIDENCE</span><h2>履约记录</h2><p>采购履约证据仅用于追踪承诺与收货记录，不直接修改库存余额。</p></div>
               <span className={styles.count}>{visibleReceipts.length} 条记录</span>
             </div>
-            {visibleReceipts.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载履约记录</strong><p>正在读取采购域数据。</p></div> : loadError ? <div className={styles.emptyState}><strong>履约记录加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleReceipts.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>发生日期</th><th>采购单</th><th>供应商</th><th>记录类型</th><th>参考编号</th><th>登记时间</th></tr></thead>
