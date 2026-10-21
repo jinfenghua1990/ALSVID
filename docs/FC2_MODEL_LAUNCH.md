@@ -31,7 +31,7 @@ WebP exports use quality 84, no upscaling or geometric edits; desktop and mobile
 
 ## Commerce
 
-The page does not create orders or invent prices. The optional compatibility setting `ALSVID_SHOPIFY_FC2_PRODUCT_URL` accepts only HTTPS product URLs on `shop.alsvidbike.com`; keep it unset while ALSVID uses its own storefront and later payment-provider integration. Do not create or advertise a separate Shop portal merely because this compatibility hook exists. Until a purchase destination is explicitly configured, the CTA leads to buying information and the existing Dealer portal.
+The page does not create orders or invent prices. Under ADR 0005, ALSVID operates its own storefront and will use an approved third-party PSP for payments. The former `ALSVID_SHOPIFY_FC2_PRODUCT_URL` compatibility link was removed from the FC2 page in the bicycle/accessory catalog PR; the overview CTA now leads to its availability information, and the availability section can link to the existing Dealer portal. This is not a working consumer checkout, reservation of stock or approved payment connection.
 
 ## Verification and release
 
