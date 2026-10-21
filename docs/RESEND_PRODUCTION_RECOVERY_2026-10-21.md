@@ -56,3 +56,28 @@
 - 未通过 DNS 和独立审核凭据验证前，**不要移除域名验证步骤或伪造成功状态**。
 - 只修改 GitHub 文档/工作流，不等于正式环境已部署；必须查看 Actions 成功记录并核实线上访问。
 - 不使用旧域名作为回退捷径。
+
+## 切换完成验收（2026-10-21 实测）
+
+以上「恢复部署」步骤已全部执行并通过，正式切换闭环完成：
+
+| 验收项 | 结果 |
+|---|---|
+| 部署 Run | [ALSVID Production Deploy #39538438852](https://github.com/jinfenghua1990/ALSVID/actions/runs/39538438852)（success，2026-10-21 11:28 CST） |
+| Cloud Run Revision | `alsvid-api-00076-bgr`（`europe-west1`，Release `fd90e66`） |
+| Cloud Run 密钥绑定 | `MAIL_API_KEY` → `alsvidbike-mail-api-key:latest` |
+| 发件地址 | `MAIL_FROM_ADDRESS=noreply@alsvidbike.com`，`ALSVID_EMAIL_TEST_MODE=false` |
+| 健康检查 | API `/api/health`、`https://www.alsvidbike.com`、`https://admin.alsvidbike.com` 均 HTTP 200 |
+| 真实发信 | `POST /api/v1/auth/email/start` 返回 201（Resend 同步接受），验证码邮件送达 `jinfenghua1990@gmail.com` 收件箱 |
+| 验证码登录 | `POST /api/v1/auth/email/complete` 返回 201，真实会话建立（system_admin） |
+
+## 切换过程中发现并修复的两个基础设施问题
+
+1. **部署服务账号缺少新密钥的元数据读取权限**：PR #249 新增的 `Validate production mail secret exists` 步骤要求 `alsvid-github-deploy@alsvid-prod` 能 `gcloud secrets describe alsvidbike-mail-api-key`，但该账号此前只有 `artifactregistry.writer` 和 `run.admin`。已在新 Secret 上授予**密钥级** `roles/secretmanager.viewer`（仅元数据，不含明文读取；`secretViewer` 角色不支持密钥级绑定）。
+2. **`www-deploy.yml` 与 `production-deploy.yml` 的镜像竞态**：main CI 成功后 `dispatch_www_production` 会构建并推送 `alsvid-web:<SHA>` 并部署 web 服务，导致 `production-deploy.yml` 的「三个镜像全有或全无」检查（`Only some release images exist`）对新提交必然失败。临时处置：删除孤立的 `alsvid-web:<SHA>` tag（digest 保留，按 digest 引用的线上服务不受影响）后立即触发全量部署。**长期修复建议**：让 `production-deploy.yml` 容忍"仅 web 镜像已由 www 流水线发布"的情形，或 www-deploy 改用独立 tag 命名空间。
+
+## 回滚能力
+
+- 旧发送密钥 `alsvid-mail-api-key` 及旧密钥值保留未动；旧域名 `chaibenn.com` DNS 未变更。
+- 应用回滚：`ALSVID Production Deploy` 填 `release_sha=<旧 main 提交>` + `rollback=true`（要求该提交的三个发布镜像仍存在于 Artifact Registry）。
+- 密钥回滚：如需退回旧发件地址，需同时修改 production 环境变量 `MAIL_FROM_ADDRESS` 与工作流 `secret_bindings`（见 `production-deploy.yml`），二者必须成对变更，不要只改其一。
