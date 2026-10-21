@@ -10,14 +10,19 @@ import styles from './portal-login-scene.module.css';
 interface AuthResponse { data?: { testCode?: string; firstAdminActivated?: boolean; passwordSetupRequired?: boolean }; message?: string; }
 type LoginMethod = 'email' | 'password' | 'setup';
 
-export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated, passwordSetupRequired = false, redirectTo = '/admin', passwordLoginEnabled = false }: {
+export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated, passwordSetupRequired = false, redirectTo = '/admin', passwordLoginEnabled = false, forgotPasswordRequested = false }: {
   portal?: ProtectedPortalId; locale?: Locale; authenticated: boolean; passwordSetupRequired?: boolean;
-  redirectTo?: string; passwordLoginEnabled?: boolean;
+  redirectTo?: string; passwordLoginEnabled?: boolean; forgotPasswordRequested?: boolean;
 }) {
   const t = translator(locale);
   const formId = useId();
-  const [open, setOpen] = useState(passwordSetupRequired);
-  const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : portal === 'admin' && passwordLoginEnabled ? 'password' : 'email');
+  const [open, setOpen] = useState(passwordSetupRequired || forgotPasswordRequested);
+  const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : passwordLoginEnabled ? 'password' : 'email');
+  const [forgotOpen, setForgotOpen] = useState(forgotPasswordRequested);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetNotice, setResetNotice] = useState('');
   const [setupRequired, setSetupRequired] = useState(passwordSetupRequired);
   const [identifier, setIdentifier] = useState('');
   const [remember, setRemember] = useState(false);
@@ -38,6 +43,17 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
   useEffect(() => {
     try { const saved = localStorage.getItem('alsvid-login-email:' + portal); if (saved) { setIdentifier(saved); setRemember(true); } } catch { /* Storage is optional. */ }
   }, [portal]);
+  useEffect(() => {
+    if (!forgotOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !resetBusy) {
+        event.stopImmediatePropagation();
+        setForgotOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [forgotOpen, resetBusy]);
   function rememberIdentifier(value: string) {
     try { if (remember) localStorage.setItem('alsvid-login-email:' + portal, value.trim()); else localStorage.removeItem('alsvid-login-email:' + portal); } catch { /* Do not block login when storage is unavailable. */ }
   }
@@ -92,6 +108,40 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     finally { setBusy(false); }
   }
 
+  async function submitPasswordReset(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextEmail = resetEmail.trim();
+    if (!nextEmail) { setResetError(t('auth.reset_failed')); return; }
+    setResetBusy(true);
+    setResetError('');
+    setResetNotice('');
+    try {
+      const response = await fetch('/api/session/password-reset/request', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: nextEmail, portal, locale }),
+      });
+      const payload = await response.json().catch(() => null) as AuthResponse | null;
+      if (!response.ok) { setResetError(payload?.message ?? t('auth.reset_failed')); return; }
+      setResetNotice(t('auth.reset_sent'));
+    } catch {
+      setResetError(t('auth.reset_service_failed'));
+    } finally {
+      setResetBusy(false);
+    }
+  }
+
+  function openForgotPassword() {
+    setResetEmail(email || identifier);
+    setResetError('');
+    setResetNotice('');
+    setForgotOpen(true);
+  }
+
+  function closeForgotPassword() {
+    if (!resetBusy) setForgotOpen(false);
+  }
+
   async function submitPasswordSetup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('');
     try {
@@ -114,7 +164,8 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
 
   const emailLabel = t(('auth.' + portal + '.email') as TranslationKey);
   const actionLabel = setupRequired ? t('auth.save_password') : method === 'password' ? t(('auth.' + portal + '.submit') as TranslationKey) : t(codeRequested ? 'auth.verify' : 'auth.send_code');
-  return <PortalLoginScene portal={portal} locale={locale} open={open} busy={busy} locked={setupRequired} formId={formId} actionLabel={actionLabel} onOpen={openDialog} onClose={closeDialog}>
+  return <>
+    <PortalLoginScene portal={portal} locale={locale} open={open} busy={busy} locked={setupRequired} formId={formId} actionLabel={actionLabel} onOpen={openDialog} onClose={closeDialog}>
     {!setupRequired && passwordLoginEnabled ? <div className={styles.methods}>
       <button type="button" aria-pressed={method === 'email'} disabled={busy} onClick={() => switchMethod('email')}>{t('auth.email_method')}</button>
       <button type="button" aria-pressed={method === 'password'} disabled={busy} onClick={() => switchMethod('password')}>{t('auth.password_method')}</button>
@@ -133,9 +184,29 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     </form>
     {!setupRequired ? <div className={styles.utilities}>
       <label><input type="checkbox" checked={remember} onChange={event => { setRemember(event.target.checked); if (!event.target.checked) { try { localStorage.removeItem('alsvid-login-email:' + portal); } catch { /* Optional storage. */ } } }} />{t('auth.remember')}</label>
-      <a href="/reset-password">{t('auth.forgot')}</a>
+      <button type="button" onClick={openForgotPassword}>{t('auth.forgot')}</button>
       {portal === 'dealer' ? <a href={'https://www.alsvidbike.com/' + locale + '/#dealer'}>{t('auth.apply')}</a> : null}
       {codeRequested ? <button type="button" disabled={busy} onClick={() => { setCodeRequested(false); setVerificationCode(''); setNotice(''); setError(''); }}>{t('auth.resend')}</button> : null}
     </div> : null}
-  </PortalLoginScene>;
+    </PortalLoginScene>
+    {forgotOpen ? <div className={styles.resetOverlay} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeForgotPassword(); }}>
+      <section className={styles.resetDialog} role="dialog" aria-modal="true" aria-labelledby="alsvid-reset-dialog-title">
+        <button type="button" className={styles.resetClose} aria-label={t('auth.reset_close')} disabled={resetBusy} onClick={closeForgotPassword}>×</button>
+        <div className={styles.resetBrand}>ALSVID <span>ACCOUNT SECURITY</span></div>
+        <h2 id="alsvid-reset-dialog-title">{t('auth.forgot')}</h2>
+        <p className={styles.resetDescription}>{t('auth.reset_modal_description')}</p>
+        <form className={styles.resetForm} onSubmit={submitPasswordReset}>
+          <label className={styles.resetField}>{emailLabel}
+            <input name="resetEmail" type="email" autoComplete="email" placeholder={t('auth.email_placeholder')} value={resetEmail} onChange={event => setResetEmail(event.target.value)} required autoFocus />
+          </label>
+          {resetNotice ? <p className={styles.resetStatus} role="status">{resetNotice}</p> : null}
+          {resetError ? <p className={styles.resetError} role="alert">{resetError}</p> : null}
+          <div className={styles.resetActions}>
+            <button type="submit" className={styles.resetSubmit} disabled={resetBusy}>{resetBusy ? t('auth.reset_sending') : t('auth.reset_send')}</button>
+            <button type="button" className={styles.resetSecondary} disabled={resetBusy} onClick={closeForgotPassword}>{t('auth.reset_close')}</button>
+          </div>
+        </form>
+      </section>
+    </div> : null}
+  </>;
 }
