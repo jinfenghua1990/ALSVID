@@ -170,6 +170,20 @@ try {
       await page.waitForTimeout(650);
       assert.equal(implicitReservationRequests.length, 0, "selecting a colour must never submit an implicit reservation");
       assert.ok((await configure.locator('[class*="interestSwatches"]').innerText()).includes(copy["fc1.colours.blue"]));
+      // Test-ride interest is local to FC1 purchase, never an automatic booking.
+      const testRide = configure.locator("[data-fc1-test-ride]");
+      assert.equal(await testRide.count(), 1, "test-ride entry stays inside the purchase configurator");
+      await testRide.getByRole("button", { name:copy["fc1.test_ride.cta"] }).click();
+      const testRideDialog = testRide.getByRole("dialog");
+      assert.equal(await testRideDialog.isVisible(), true, "test-ride form opens as a modal");
+      const rideCopy = await testRideDialog.innerText();
+      assert.ok(rideCopy.includes(copy["fc1.test_ride.availability"]), "unconfirmed test-ride availability must be stated");
+      assert.ok(rideCopy.includes("FC1 Pro"), "selected model must reach test-ride form");
+      assert.ok(rideCopy.includes(copy["fc1.colours.blue"]), "selected colour must reach test-ride form");
+      assert.equal(await testRideDialog.locator('input[name="city"][required]').count(), 1);
+      assert.equal(await testRideDialog.locator('input[type="email"][required]').count(), 1);
+      await testRideDialog.getByRole("button", { name:copy["fc1.test_ride.close"] }).click();
+      assert.equal(await testRideDialog.isVisible(), false);
       const pendingEmail = configure.getByRole("button", { name: copy["fc1.reservation.cta"], exact:false });
       const emailLink = configure.getByRole("link", { name: copy["fc1.reservation.cta"], exact:false });
       if (await pendingEmail.count() > 0) {
