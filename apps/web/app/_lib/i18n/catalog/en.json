@@ -45,5 +45,8 @@
   "catalog.accessories.compat.body": "Future compatibility checks will use platform, model, variant and production revision. We do not claim a fit until it has been verified.",
   "catalog.accessories.compat.status": "Compatibility data pending",
   "catalog.accessories.compat.bikes": "Browse bicycles",
-  "catalog.bikes.modelNav.title": "Explore models"
+  "catalog.bikes.modelNav.title": "Explore models",
+  "catalog.product.tabs.label": "Product categories",
+  "catalog.product.tabs.bikes": "Bicycles",
+  "catalog.product.tabs.accessories": "Accessories"
 }

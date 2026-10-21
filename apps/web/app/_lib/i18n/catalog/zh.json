@@ -45,5 +45,8 @@
   "catalog.accessories.compat.body": "后续将按平台、车型、版本和生产批次核对配件兼容性。未完成核验前，不提供可能误导的“适配”标签。",
   "catalog.accessories.compat.status": "适配数据库建设中",
   "catalog.accessories.compat.bikes": "返回车型中心",
-  "catalog.bikes.modelNav.title": "车型导航"
+  "catalog.bikes.modelNav.title": "车型导航",
+  "catalog.product.tabs.label": "产品分类",
+  "catalog.product.tabs.bikes": "整车",
+  "catalog.product.tabs.accessories": "配件"
 }

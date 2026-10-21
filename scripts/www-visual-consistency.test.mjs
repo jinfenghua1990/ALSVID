@@ -52,3 +52,12 @@ test('zh/de/en public navigation and application copy cover the same controls',a
   assert.ok(network['network.hero.apply']);
  }
 });
+
+test('the WWW has one products navigation item and an integrated accessories catalog',async()=>{
+ const home=await readFile(join(appRoot,'_components/public-site-header.tsx'),'utf8');
+ assert.doesNotMatch(home,/href: prefix \+ '\/accessories'/,'No separate accessories global nav');
+ const bikes=await readFile(join(appRoot,'[locale]/bikes/page.tsx'),'utf8');
+ assert.match(bikes,/AccessoriesCatalogSection/,'Bikes and accessories share a product center');
+ const legacy=await readFile(join(appRoot,'[locale]/accessories/page.tsx'),'utf8');
+ assert.match(legacy,/redirect\(destination\)/,'Legacy accessories links remain compatible');
+});

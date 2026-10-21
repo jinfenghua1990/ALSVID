@@ -37,16 +37,16 @@ try {
         const navLinks = isMobile
           ? headerNav.locator(':scope > nav > a')
           : headerNav.locator(':scope > a');
-        assert.equal(await navLinks.count(), 7, 'Approved product/accessories/dealer/owner/story navigation exists');
+        assert.equal(await navLinks.count(), 6, 'Approved product/dealer/owner/story navigation exists');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
         assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
-        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/accessories', 'Accessories links to the standalone page');
+        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/dealers', 'Dealers follow the unified product center');
         const dealerLabel = { de: 'Händler weltweit', en: 'Global dealers', zh: '全球经销商' }[locale];
         const ownerLabel = { de: 'Service', en: 'Owner services', zh: '车主服务' }[locale];
-        assert.equal((await navLinks.nth(4).innerText()).trim(), dealerLabel, 'Global dealers precedes owner services');
-        assert.equal((await navLinks.nth(5).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
-        assert.equal(await navLinks.nth(6).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
+        assert.equal((await navLinks.nth(3).innerText()).trim(), dealerLabel, 'Global dealers follow the unified product center');
+        assert.equal((await navLinks.nth(4).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
+        assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
         const reserveBadge = navLinks.nth(0).locator('span');
         const newBadge = navLinks.nth(1).locator('span');
         assert.ok((await reserveBadge.innerText()).trim(), 'FC1 reservation badge is localized');
@@ -89,15 +89,21 @@ try {
         assert.equal(await bicycles.locator('#models article').count(), 0, 'Unconfirmed GT bikes do not appear as real listings');
         assert.equal(await bicycles.locator('nav[data-bikes-model-nav]').count(), 0, 'Do not link to unpublished models');
         await bicycles.close();
+        // The public catalog has a single product center with two categories.
         const accessories = await context.newPage();
-        const accessoriesResponse = await accessories.goto(base + '/' + locale + '/accessories', { waitUntil: 'domcontentloaded' });
-        assert.equal(accessoriesResponse?.status(), 200, locale + ' accessories page should return HTTP 200');
-        assert.equal(await accessories.locator('main').getAttribute('lang'), locale, locale + ' accessories page locale');
-        assert.equal(await accessories.locator('main[data-accessories-catalog]').count(), 1, 'Accessory catalog renders');
-        assert.ok(await accessories.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Accessories catalog should not overflow at ' + device);
-        const rackResponse = await accessories.goto(base + '/' + locale + '/accessories?category=rack#categories', { waitUntil: 'domcontentloaded' });
-        assert.equal(rackResponse?.status(), 200, 'Accessories category filter loads');
-        assert.equal(await accessories.locator('#categories article').count(), 1, 'Rack filter shows one category');
+        const accessoriesResponse = await accessories.goto(base + '/' + locale + '/accessories', {waitUntil:'domcontentloaded'});
+        assert.equal(accessoriesResponse?.status(), 200, 'Legacy accessories URL redirects to a live product center');
+        assert.equal(new URL(accessories.url()).pathname, '/' + locale + '/bikes', 'Legacy accessories route has no separate visual page');
+        assert.equal(await accessories.locator('section[data-accessories-catalog="1"]').count(), 1, 'Combined product center renders accessories');
+        assert.equal(await accessories.locator('section[data-accessories-catalog="1"] article').count(), 5, 'Product center includes five accessory categories');
+        assert.equal(await accessories.locator('main[data-bikes-catalog="1"]').count(), 1, 'Accessories are under the shared products page');
+        assert.equal(await accessories.locator('header a[href="/' + locale + '/accessories"]').count(), 0, 'Separate accessories top-level nav is removed');
+        const rackResponse = await accessories.goto(base + '/' + locale + '/accessories?category=rack', {waitUntil:'domcontentloaded'});
+        assert.equal(rackResponse?.status(), 200, 'Legacy category filter redirects successfully');
+        assert.equal(new URL(accessories.url()).pathname, '/' + locale + '/bikes');
+        assert.equal(new URL(accessories.url()).searchParams.get('category'), 'rack', 'Legacy filters are preserved');
+        assert.equal(await accessories.locator('section[data-accessories-catalog="1"] article').count(), 1, 'Rack filter shows only its category');
+        assert.ok(await accessories.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Merged product center has no horizontal overflow');
         await accessories.close();
 
         const hero = root.locator(':scope > section').first();
