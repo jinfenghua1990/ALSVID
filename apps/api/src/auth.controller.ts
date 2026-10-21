@@ -38,8 +38,11 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  async login(@Body() body: { identifier?: string; email?: string; password?: string }) {
-    if (process.env.ALSVID_PASSWORD_LOGIN_ENABLED !== 'true') throw new ForbiddenException('Password login is currently disabled. Use email verification.');
+  async login(@Body() body: { identifier?: string; email?: string; password?: string; portal?: string }) {
+    const passwordLoginEnabled = body?.portal === 'admin'
+      ? process.env.ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'
+      : process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true';
+    if (!passwordLoginEnabled) throw new ForbiddenException('Password login is currently disabled for this portal. Use email verification.');
     const identifier = body?.identifier ?? body?.email;
     if (!identifier || !body.password) throw new UnauthorizedException('Account identifier and password are required');
     try {
