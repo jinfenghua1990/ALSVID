@@ -1,6 +1,7 @@
 'use client';
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import styles from './commerce.module.css';
+import { filterStorefrontOrders } from './storefront-order-filter';
 
 type Sku={id:string;sku:string;name:string;colorCode:string|null;marketCode:string|null;modelCode:string;variantCode:string};
 type Price={id:string;skuId:string;sku:string;skuName:string;marketCountry:string;currency:string;
@@ -43,6 +44,9 @@ export function StorefrontOrderDraftPanel(){
  const [factoryId,setFactoryId]=useState('');
  const [items,setItems]=useState<ItemInput[]>([newItem()]);
  const [cancelReason,setCancelReason]=useState('');
+ const [orderSearch,setOrderSearch]=useState('');
+ const [orderStatus,setOrderStatus]=useState('ALL');
+ const [orderMarket,setOrderMarket]=useState('ALL');
  const requestKey=useRef<{fingerprint:string;id:string}|null>(null);
  const refresh=useCallback(async()=>{const data=await call<Summary>('summary');setSummary(data);
   setPriceSku(current=>data.skus.some(s=>s.id===current)?current:(data.skus[0]?.id??''));
@@ -55,6 +59,7 @@ export function StorefrontOrderDraftPanel(){
  const activePrices=summary.prices.filter(p=>p.status==='ACTIVE');
  const availableSkus=summary.skus.filter(s=>activePrices.some(p=>p.skuId===s.id&&p.marketCountry===market));
  const canAddLine=availableSkus.some(s=>!items.some(line=>line.skuId===s.id));
+ const filteredOrders=filterStorefrontOrders(summary.orders,{query:orderSearch,status:orderStatus,market:orderMarket});
  async function run(action:()=>Promise<unknown>,success:string){
   if(busy)return;setBusy(true);setError('');setNotice('');
   try{
@@ -94,7 +99,7 @@ export function StorefrontOrderDraftPanel(){
   await run(()=>call<Order>('orders/'+order.id+'/cancel',{expectedVersion:order.version,reason:cancelReason.trim()}),
    '内部订单草稿已取消；没有发生资金操作。');
  }
- return <section className={styles.firstPartyCard} aria-label="ALSVID 第一方订单与价格管理">
+ return <section id="b2c" className={styles.firstPartyCard} aria-label="ALSVID 第一方订单与价格管理">
   <div className={styles.firstPartyHeader}>
    <div><span className={styles.eyebrow}>ALSVID OWNED COMMERCE / 第一方商城</span><h2>自建商城订单与价格</h2>
     <p>与 Shopify 等外部订单分开保存。此处只创建内部订单草稿；目前没有公开结账、收款、库存预留或自动生产。</p></div>
@@ -152,7 +157,28 @@ export function StorefrontOrderDraftPanel(){
      </div>
     </form>
     {!availableSkus.length?<p className={styles.firstPartyEmpty}>该市场没有已启用价格的 SKU。先配置并启用对应市场价格，才可建立草稿。</p>:null}
-    <div className={styles.firstPartyListHead}>最近第一方订单（{summary.orders.length}）</div>
+    <div className={styles.firstPartyListHead}>已加载第一方订单（{summary.orders.length}）</div>
+     <div className={styles.firstPartyFilters} role="group" aria-label="筛选第一方订单">
+      <label>订单号 / 客户邮箱 / SKU
+       <input type="search" value={orderSearch} onChange={event=>setOrderSearch(event.target.value)} placeholder="查找已加载的订单" />
+      </label>
+      <label>订单状态
+       <select value={orderStatus} onChange={event=>setOrderStatus(event.target.value)}>
+        <option value="ALL">全部状态</option>
+        <option value="DRAFT">内部草稿</option>
+        <option value="CANCELLED">已取消</option>
+        <option value="PAYMENT_VERIFIED">已核验付款</option>
+        <option value="FULFILLMENT_PENDING">待履约</option>
+        <option value="IN_PRODUCTION">生产中</option>
+       </select>
+      </label>
+      <label>销售市场
+       <select value={orderMarket} onChange={event=>setOrderMarket(event.target.value)}>
+        <option value="ALL">全部市场</option><option value="DE">德国 DE</option><option value="AT">奥地利 AT</option>
+       </select>
+      </label>
+     </div>
+     <p className={styles.firstPartyEmpty} role="status" aria-live="polite">符合条件 {filteredOrders.length} 条，显示前 {Math.min(filteredOrders.length,30)} 条。仅筛选当前 API 已加载的订单。</p>
     <label className={styles.cancelReasonField}>生产工厂（仅已核验订单可生成生产需求）
      <select value={factoryId} onChange={e=>setFactoryId(e.target.value)} disabled={busy||!summary.factories.length}>
       {summary.factories.map(f=><option key={f.id} value={f.id}>{f.code} · {f.name}</option>)}
@@ -161,7 +187,7 @@ export function StorefrontOrderDraftPanel(){
     <label className={styles.cancelReasonField}>取消原因（至少 10 个字符）
      <input value={cancelReason} onChange={e=>setCancelReason(e.target.value)} minLength={10} maxLength={500} placeholder="例如：客户信息录入错误，重新建立订单" disabled={busy}/>
     </label>
-    {summary.orders.slice(0,30).map(o=><article className={styles.firstPartyRow} key={o.id}>
+    {filteredOrders.slice(0,30).map(o=><article className={styles.firstPartyRow} key={o.id}>
      <div><strong>{o.orderNumber} · {o.totalGrossAmount} {o.currency}</strong>
       <span>{o.customerEmail} · {o.marketCountry} · {o.lines.map(l=>l.skuCode+' × '+l.quantity).join('，')}</span>
       <small>{o.status==='DRAFT'?'内部草稿':o.status==='CANCELLED'?'已取消':o.status} · 支付：{o.paymentStatus==='NOT_CONFIGURED'?'未配置':o.paymentStatus}</small>
@@ -172,7 +198,8 @@ export function StorefrontOrderDraftPanel(){
       {o.status==='DRAFT'?<button type="button" className={styles.secondaryAction} disabled={busy||cancelReason.trim().length<10} onClick={()=>void cancelOrder(o)}>取消草稿</button>:null}
      </div>
     </article>)}
-    {!summary.orders.length?<p className={styles.firstPartyEmpty}>尚无第一方订单草稿。</p>:null}
+    {!loading&&!summary.orders.length&&!error?<p className={styles.firstPartyEmpty}>尚无第一方订单记录。</p>:null}
+     {summary.orders.length>0&&!filteredOrders.length?<p className={styles.firstPartyEmpty}>没有符合当前筛选条件的订单，可调整搜索或筛选项。</p>:null}
    </div>
   </div>
   <p className={styles.firstPartyFooter}>安全边界：所有新建订单初始状态为 DRAFT / NOT_CONFIGURED；界面和 API 都不提供“手动标记已付款”。数据库要求已核验 PSP 交易、签名验证、订单金额与币种完全匹配，才允许将订单转为已付款。生产单若关联销售订单行，还必须匹配已发布 BOM、SKU 与数量；否则数据库拒绝。</p>
