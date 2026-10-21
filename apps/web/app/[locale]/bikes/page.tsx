@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CatalogShell } from "../../_components/catalog/catalog-shell";
+import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navigator";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { isLocale, locales } from "../../_lib/i18n/routing";
 import styles from "./page.module.css";
@@ -44,7 +45,8 @@ export default async function BikesPage({ params, searchParams }: Props) {
   ];
   return <CatalogShell locale={locale} active="bikes">
     <main className={styles.page} lang={locale} data-bikes-catalog="1">
-      <section className={styles.hero}>
+      {(!active || active === "fc") && <BikesModelNavigator title={t("catalog.bikes.modelNav.title")} models={models.map(({ id, name }) => ({ id, name }))} />}
+      <section className={styles.hero} data-bikes-hero>
         <div className={styles.heroCopy}>
           <span className={styles.kicker}>{t("catalog.bikes.hero.kicker")}</span>
           <h1>{t("catalog.bikes.hero.title")}</h1>
@@ -79,11 +81,11 @@ export default async function BikesPage({ params, searchParams }: Props) {
           {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
         </nav>
         {!active || active === "fc" ? <div className={styles.modelGrid}>
-          {models.map(model => <article className={styles.modelCard} key={model.id}>
+          {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} aria-labelledby={"model-" + model.id + "-title"}>
             <a href={prefix + "/explore/" + model.id} className={styles.modelImageLink} aria-label={model.name}>
               <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
             </a>
-            <div className={styles.modelInfo}><div><span className={styles.status}>{model.status}</span><h3>{model.name}</h3><p>FC PLATFORM</p></div>
+            <div className={styles.modelInfo}><div><span className={styles.status}>{model.status}</span><h3 id={"model-" + model.id + "-title"}>{model.name}</h3><p>FC PLATFORM</p></div>
               <a href={prefix + "/explore/" + model.id}>{t("catalog.bikes.models.details")}</a>
             </div>
           </article>)}

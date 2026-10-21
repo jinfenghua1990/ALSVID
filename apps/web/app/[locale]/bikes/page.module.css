@@ -59,3 +59,15 @@
 .heroButton:hover::before,.heroButton:focus-visible::before{transform:scaleX(1)}
 .platformCard,.modelCard{border-radius:12px}
 @media(prefers-reduced-motion:reduce){.heroButton,.heroButton::before{transition:none}}
+
+/* One large editorial chapter per real model; scrolling now maps to FC1 / FC2. */
+.modelGrid{grid-template-columns:minmax(0,1fr);gap:24px}
+.modelCard{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:stretch;min-height:410px;scroll-margin-top:86px}
+.modelImageLink{display:grid;place-items:center;min-width:0}
+.modelImageLink img{height:100%;min-height:390px;max-height:520px;object-fit:contain}
+.modelInfo{align-items:stretch;justify-content:center;flex-direction:column;gap:34px;padding:clamp(30px,5vw,85px)}
+.modelInfo h3{font-size:clamp(44px,5vw,74px);line-height:1.05;letter-spacing:-.055em;margin:18px 0 12px}
+.modelInfo a{align-self:flex-start;font-size:14px;transition:color .2s,border-color .2s}
+.modelInfo a:hover{color:#18221d;border-color:#acd132}
+@media(max-width:850px){.modelCard{grid-template-columns:1fr;min-height:0}.modelImageLink img{height:310px;min-height:0}.modelInfo{gap:22px;padding:26px}.modelInfo h3{font-size:42px}}
+@media(max-width:700px){.modelGrid{gap:18px}.modelCard{scroll-margin-top:76px}.modelInfo h3{font-size:38px}.modelImageLink img{height:290px}}

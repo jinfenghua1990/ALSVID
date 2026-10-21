@@ -44,5 +44,6 @@
   "catalog.accessories.compat.title": "Beginne mit deinem Fahrrad.",
   "catalog.accessories.compat.body": "Die künftige Kompatibilitätsprüfung nutzt Plattform, Modell, Variante und Produktionsstand. Ohne Prüfung bestätigen wir keine Passform.",
   "catalog.accessories.compat.status": "Kompatibilitätsdaten in Vorbereitung",
-  "catalog.accessories.compat.bikes": "Fahrräder ansehen"
+  "catalog.accessories.compat.bikes": "Fahrräder ansehen",
+  "catalog.bikes.modelNav.title": "Modelle"
 }
