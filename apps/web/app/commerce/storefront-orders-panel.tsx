@@ -1,6 +1,7 @@
 'use client';
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import styles from './commerce.module.css';
+import { filterStorefrontOrders } from './storefront-order-filter';
 
 type Sku={id:string;sku:string;name:string;colorCode:string|null;marketCode:string|null;modelCode:string;variantCode:string};
 type Price={id:string;skuId:string;sku:string;skuName:string;marketCountry:string;currency:string;
@@ -58,14 +59,7 @@ export function StorefrontOrderDraftPanel(){
  const activePrices=summary.prices.filter(p=>p.status==='ACTIVE');
  const availableSkus=summary.skus.filter(s=>activePrices.some(p=>p.skuId===s.id&&p.marketCountry===market));
  const canAddLine=availableSkus.some(s=>!items.some(line=>line.skuId===s.id));
- const searchTerm=orderSearch.trim().toLocaleLowerCase();
- const filteredOrders=summary.orders.filter(order=>{
-  if(orderStatus!=='ALL'&&order.status!==orderStatus)return false;
-  if(orderMarket!=='ALL'&&order.marketCountry!==orderMarket)return false;
-  if(!searchTerm)return true;
-  return [order.orderNumber,order.customerEmail,...order.lines.flatMap(line=>[line.skuCode,line.skuName])]
-   .some(value=>value.toLocaleLowerCase().includes(searchTerm));
- });
+ const filteredOrders=filterStorefrontOrders(summary.orders,{query:orderSearch,status:orderStatus,market:orderMarket});
  async function run(action:()=>Promise<unknown>,success:string){
   if(busy)return;setBusy(true);setError('');setNotice('');
   try{
