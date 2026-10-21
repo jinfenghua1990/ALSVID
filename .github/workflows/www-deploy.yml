@@ -160,7 +160,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ -n "$RUNTIME_SERVICE_ACCOUNT" ]]
-          gcloud run deploy "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --no-default-url --image "${{ steps.pinned.outputs.url }}" --service-account "$RUNTIME_SERVICE_ACCOUNT" --port 3000 --cpu 1 --memory 512Mi --min 0 --max 3 --allow-unauthenticated --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_API_BASE_URL=$API_URL/api,AUTH_BASE_URL=$AUTH_BASE_URL" --quiet
+          gcloud run deploy "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --no-default-url --image "${{ steps.pinned.outputs.url }}" --service-account "$RUNTIME_SERVICE_ACCOUNT" --port 3000 --cpu 1 --memory 512Mi --min 0 --max 3 --allow-unauthenticated --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=$RELEASE_SHA,ALSVID_API_BASE_URL=$API_URL/api,AUTH_BASE_URL=$AUTH_BASE_URL,ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED=true" --quiet
 
       - name: Confirm WWW is serving the expected release
         env:
