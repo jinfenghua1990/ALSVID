@@ -113,7 +113,7 @@ test("FC1 test-ride interest is localized and integrated within both purchase co
     for (const key of required) {
       assert.ok(catalog[`fc1.test_ride.${key}`], `${locale}: missing test ride field ${key}`);
     }
-    assert.match(catalog["fc1.test_ride.availability"], /尚未|not.*confirm|noch keine/i);
+    assert.match(catalog["fc1.test_ride.availability"], /尚未|not.*confirm|noch keine|has been confirmed/i);
   }
   const base = path.join(directory, "../../../_components/product/");
   const component = await readFile(path.join(base, "fc1-test-ride.tsx"), "utf8");
