@@ -47,3 +47,68 @@ test('mail notification HTML escapes all user-controlled fields', () => {
   assert.equal(message.subject, 'ALSVID FC1 reservation enquiry');
   assert.match(message.text, /No payment or order was created/);
 });
+
+test('requires a valid city and country for a test-ride interest request', () => {
+  const base = {
+    purpose: 'test_ride',
+    email: 'rider@example.de',
+    model: 'FC1 Standard',
+    colour: 'Sample Green',
+    locale: 'de',
+    country: 'DE',
+  };
+  for (const value of [
+    { ...base },
+    { ...base, city: '' },
+    { ...base, city: 'B' },
+    { ...base, city: 'Berlin\nBcc:someone@example.com' },
+    { ...base, city: 'x'.repeat(81) },
+    { ...base, city: 'Berlin', country: 'XX' },
+    { ...base, city: 'Berlin', name: 15 },
+    { ...base, city: 'Berlin', name: '<'.repeat(81) },
+    { ...base, city: 'Berlin', name: 'User\rAdmin' },
+    { ...base, city: 'Berlin', purpose: 'unknown' },
+  ]) {
+    assert.equal(normalizeReservationEnquiry(value), null);
+  }
+  const accepted = normalizeReservationEnquiry({
+    ...base,
+    city: '  München ',
+    name: '  Rider  ',
+  });
+  assert.ok(accepted);
+  assert.equal(accepted.purpose, 'test_ride');
+  assert.equal(accepted.city, 'München');
+  assert.equal(accepted.name, 'Rider');
+  assert.equal(accepted.country, 'DE');
+});
+
+test('test-ride notification is distinct, escapes user data and never confirms a booking', () => {
+  const value = normalizeReservationEnquiry({
+    purpose: 'test_ride',
+    email: 'rider@example.de',
+    model: '<img src=x onerror=alert(1)>',
+    colour: '<b>Blue</b>',
+    country: 'AT',
+    city: '<Vienna>',
+    name: '<script>alert(1)</script>',
+    locale: 'en',
+  });
+  assert.ok(value);
+  const message = reservationNotification(value);
+  assert.match(message.subject, /test ride enquiry/);
+  assert.match(message.html, /&lt;Vienna&gt;/);
+  assert.match(message.html, /&lt;script&gt;/);
+  assert.doesNotMatch(message.html, /<script|<img|<b>/);
+  assert.match(message.text, /not a confirmed booking/);
+  assert.match(message.text, /No test ride appointment, payment or order was created/);
+});
+
+test('existing email-only reservation format remains supported', () => {
+  const value = normalizeReservationEnquiry({ email: 'member@example.com' });
+  assert.ok(value);
+  assert.equal(value.purpose, 'reservation');
+  assert.equal(value.city, '');
+  assert.equal(value.country, null);
+  assert.equal(reservationNotification(value).subject, 'ALSVID FC1 reservation enquiry');
+});
