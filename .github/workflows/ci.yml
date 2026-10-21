@@ -96,6 +96,7 @@ jobs:
         if: steps.scope.outputs.docs_only != 'true'
       - run: node --test scripts/www-visual-consistency.test.mjs
       - run: node --test scripts/release-gate.test.mjs
+      - run: node --test scripts/check-dealer-api-readiness.test.mjs
         if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm db:migrate
         if: steps.scope.outputs.docs_only != 'true'
