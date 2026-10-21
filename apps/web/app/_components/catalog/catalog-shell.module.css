@@ -1,5 +1,7 @@
 .site{min-height:100vh;background:#f6f7f5;color:#171c1d;font:14px/1.65 Inter,"Noto Sans SC",Arial,sans-serif}
 .site *{box-sizing:border-box}
+/* Keep the global cart and language controls visible while the catalog is browsed. */
+.site :global(header[data-public-site-header]){position:sticky;top:0}
 .header{position:relative;z-index:10;height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 clamp(20px,5vw,96px);background:#101719;color:#fff}
 .brand{display:inline-flex;align-items:center;gap:11px;color:#fff;text-decoration:none;letter-spacing:.18em;font-size:21px;font-weight:800;white-space:nowrap}
 .brand img{display:block}
