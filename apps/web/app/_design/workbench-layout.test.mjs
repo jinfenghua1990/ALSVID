@@ -8,7 +8,7 @@ test('workbench uses the full-width layout instead of reserving an empty seconda
   const renderer = read('./renderer.tsx');
   const css = read('./design-system.css');
 
-  assert.match(renderer, /hasSecondaryNavigation = Boolean\(screen\.secondary\?\.length\)/);
+  assert.match(renderer, /secondaryNavigation = screen\\.secondary \\?\\? \\[\\]/);
   assert.match(renderer, /av-body\$\{hasSecondaryNavigation \? '' : ' av-body--wide'\}/);
   assert.match(renderer, /\{hasSecondaryNavigation \? \(/);
   assert.doesNotMatch(renderer, /\) : \(\s*<div \/>\s*\)}/);
