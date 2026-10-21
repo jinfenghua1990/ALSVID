@@ -23,6 +23,18 @@ export function CupHolderProductPage({ locale }: { locale: Locale }) {
           <a className={styles.button} href="#source-details">{t("cup.full.title")}</a>
         </div>
       </section>
+      <section className={styles.videoSection} id="product-video" data-cup-video-section aria-labelledby="cup-video-title">
+        <div><h2 id="cup-video-title">{t("cup.video.title")}</h2><p id="cup-video-description">{t("cup.video.description")}</p></div>
+        <figure>
+          <video data-cup-video controls playsInline preload="metadata" width={720} height={960}
+            poster="/products/accessories/cup-holder/video-poster.jpg"
+            aria-label={t("cup.video.title")} aria-describedby="cup-video-description">
+            <source src="/products/accessories/cup-holder/product-demo.mp4" type="video/mp4" />
+            {t("cup.video.fallback")}
+          </video>
+          <figcaption><a href="/products/accessories/cup-holder/product-demo.mp4" target="_blank" rel="noreferrer">{t("cup.video.open")}</a></figcaption>
+        </figure>
+      </section>
       <section className={styles.fullDetails} id="source-details" data-cup-full-details>
         <div className={styles.detailHeading}><p className={styles.eyebrow}>{t("cup.eyebrow")}</p><h2>{t("cup.full.title")}</h2><p>{t("cup.full.intro")}</p></div>
         {details.map(([id, height], index) => {

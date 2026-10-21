@@ -200,7 +200,15 @@
     }
   ],
   "video": {
-    "durationSeconds": 28,
-    "status": "source_link_only_public_media_url_unavailable"
+    "status": "imported_original",
+    "source": "https://video-sh.cloudvideocdn.taobao.com/avpl/tbs_vsucai/copy/01a1-338c00b6-a1bdf227-a124cf65-35b5/20261010_e5837660943ffac5_1991192729173253_519538872963561_published_mp4_264_hd_taobao.mp4",
+    "path": "/products/accessories/cup-holder/product-demo.mp4",
+    "poster": "/products/accessories/cup-holder/video-poster.jpg",
+    "width": 720,
+    "height": 960,
+    "durationSeconds": 28.633333,
+    "sizeBytes": 6885654,
+    "sha256": "235a58cdb3feb7f3b114dbc333828b7260260593c555fda9e944e2bae24447c2",
+    "note": "Original source bytes imported on 2026-10-21; expiring signed download parameters omitted."
   }
 }
