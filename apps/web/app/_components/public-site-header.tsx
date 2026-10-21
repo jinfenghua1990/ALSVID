@@ -1,4 +1,5 @@
 import { LanguageSwitcher } from './language-switcher';
+import {CartHeaderLink} from './commerce/cart-header-link';
 import { translator, type Locale } from '../_lib/i18n';
 import styles from './public-site-header.module.css';
 
@@ -51,6 +52,7 @@ export function PublicSiteHeader({
     <div className={styles.actions}>
       {dealerLogin && <a className={styles.dealerApply} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
       {dealerLogin && <a className={styles.dealerLogin} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
+      <CartHeaderLink locale={locale}/>
       <LanguageSwitcher locale={locale} label={t('language.label')} variant="globe" />
     </div>
     <details className={styles.mobileMenu}>
@@ -60,6 +62,7 @@ export function PublicSiteHeader({
         {menu(true)}
         {dealerLogin && <a className={styles.mobileLink} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
         {dealerLogin && <a className={styles.mobileLink} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
+        <CartHeaderLink locale={locale} mobile />
         <div className={styles.mobileLanguage}>
           <LanguageSwitcher locale={locale} label={t('language.label')} variant="inline" />
         </div>

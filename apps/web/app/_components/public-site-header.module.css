@@ -63,3 +63,6 @@
  .mobileMenu summary{width:36px;height:36px}
 }
 @media(prefers-reduced-motion:reduce){.brandBike,.navLink,.homeLink,.dealerLogin{transition:none}.logo:hover .brandBike{transform:none}}
+
+/* Cart stays inside the menu at narrow widths, preserving the one-row model shortcuts. */
+@media(max-width:760px){.actions{display:none}}
