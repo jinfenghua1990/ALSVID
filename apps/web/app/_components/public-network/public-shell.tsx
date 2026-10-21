@@ -6,6 +6,7 @@ import styles from './network.module.css';
 export function PublicShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const t = translator(locale);
   const base = '/' + locale;
+  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale;
   return <div className={styles.site}>
     <PublicSiteHeader locale={locale} active="dealers" dealerLogin />
     {children}
@@ -16,7 +17,7 @@ export function PublicShell({ locale, children }: { locale: Locale; children: Re
         <a href={base + '/dealers'}>{t('network.nav.partnership')}</a>
         <a href={base + '/dealers/locations'}>{t('network.nav.locations')}</a>
         <a href={base + '/service-locations'}>{t('network.nav.service')}</a>
-        <a href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>
+        <a href={dealerLoginUrl}>{t('network.nav.account')}</a>
       </nav>
     </footer>
   </div>;
