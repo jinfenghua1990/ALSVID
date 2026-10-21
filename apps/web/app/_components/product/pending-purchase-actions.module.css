@@ -1,5 +1,10 @@
 .wrap{margin:21px 0 27px;color:#718077;font:13px/1.65 Inter,"Noto Sans SC",Arial,sans-serif}
+.quantityLabel{display:inline-flex;align-items:center;gap:14px;font-size:12px;font-weight:650;color:#344c3c;margin:0 0 14px}
+.quantityLabel select{width:80px;min-height:42px;border:1px solid #bfcbbf;border-radius:4px;background:#fff;color:#22372c;font:inherit;padding:6px 10px}
 .actions{display:flex;flex-wrap:wrap;gap:10px}
 .actions button{font:inherit;font-weight:650;min-height:46px;min-width:132px;border:1px solid #d8dfd8;border-radius:4px;background:#e4eae3;color:#718075;cursor:not-allowed;padding:10px 18px}
-.wrap p{margin:11px 0;color:#728079;font-size:12px}
-.wrap a{color:#395f46;font-weight:650;font-size:12px;text-decoration:underline}
+.actions .add{background:#1c3024;border-color:#1c3024;color:#fff;cursor:pointer}
+.actions .add:hover{background:#304d38}
+.actions .add:focus-visible{outline:3px solid #a8d35a;outline-offset:3px}
+.wrap p{margin:11px 0;color:#566b5e;font-size:12px;max-width:620px}
+.wrap a{color:#315d3f;font-weight:650;font-size:12px;text-decoration:underline}
