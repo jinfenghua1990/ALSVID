@@ -84,6 +84,24 @@
 .headerLogin{display:inline-flex;align-items:center;gap:11px;justify-content:center;white-space:nowrap;border:1px solid rgba(255,255,255,.52);border-radius:2px;color:#fff;font-size:12px;font-weight:650;padding:10px 15px;transition:background .2s,color .2s,border-color .2s}
 .headerLogin:hover{background:#fff;color:#101618;border-color:#fff}
 .applySection{scroll-margin-top:22px}
+.applyInvite{min-width:0;padding:38px;background:#f8faf8;color:#172023;border:1px solid #ffffff20;align-self:stretch;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px}
+.applyInvite .eyebrow{margin:0 0 8px;color:#71807e}
+.applyInvite h3{font-size:clamp(25px,2.4vw,36px);line-height:1.2;letter-spacing:-.035em;font-weight:600;margin:0}
+.applyInvite>p:not(.eyebrow){color:#5d6965;font-size:14px;line-height:1.85;margin:0 0 12px}
+.site button.outlineButton{font-family:inherit;cursor:pointer}
+.dialogOverlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:clamp(12px,3vw,34px);background:rgba(5,11,13,.78);backdrop-filter:blur(10px)}
+.dialogPanel{width:min(100%,960px);max-height:min(90svh,940px);overflow:auto;background:#f8faf8;color:#172023;box-shadow:0 30px 100px rgba(0,0,0,.45);border:1px solid #ffffff40}
+.dialogHeader{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:24px clamp(20px,3vw,34px);background:#192428;color:#fff}
+.dialogHeader .eyebrow{margin:0 0 10px;color:#a8b5af}
+.dialogHeader h2{font-size:clamp(25px,3vw,38px);line-height:1.15;letter-spacing:-.04em;font-weight:600;margin:0 0 10px}
+.dialogHeader p:not(.eyebrow){max-width:720px;color:#c3ceca;font-size:13px;line-height:1.75;margin:0}
+.dialogClose{display:grid;place-items:center;flex:none;width:40px;height:40px;border:1px solid #ffffff50;border-radius:50%;background:transparent;color:#fff;font-size:25px;line-height:1;cursor:pointer}
+.dialogClose:hover{background:#ffffff15;border-color:#acd132;color:#acd132}
+.dialogForm .applicationPreview{padding:clamp(20px,3vw,34px)}
+.dialogForm .formGrid{row-gap:20px}
+.dialogForm .formGrid textarea{min-height:110px}
+@media(max-width:700px){.applyInvite{padding:24px 20px}.applySection{grid-template-columns:1fr}.dialogOverlay{padding:0;place-items:stretch}.dialogPanel{width:100%;height:100svh;max-height:100svh;border:0}.dialogHeader{padding:19px 20px;gap:14px}.dialogHeader h2{font-size:26px}.dialogHeader p:not(.eyebrow){font-size:12px}.dialogClose{width:36px;height:36px}.dialogForm .applicationPreview{padding:20px}.dialogForm .formGrid{grid-template-columns:1fr;gap:16px}.dialogForm .formGrid .wide{grid-column:auto}.dialogForm .consentLine{margin-top:18px}.dialogForm .submitButton{margin-top:18px}}
+@media(prefers-reduced-motion:reduce){.dialogClose{transition:none}}
 @media(max-width:1000px){.headerRight{gap:12px}.nav{gap:14px}.headerLogin{padding:9px 11px}}
 @media(max-width:700px){.header{row-gap:6px}.headerRight{gap:9px}.headerLogin{font-size:11px;padding:9px 11px}.nav{gap:20px}.navApply{padding-bottom:2px}}
 @media(max-width:360px){.headerRight{width:100%;justify-content:space-between;margin-left:0}.headerHome{display:none}}
