@@ -13,7 +13,7 @@ export function PublicSiteHeader({
 }: {
   locale: Locale;
   myUrl?: string;
-  active?: Section;
+  active?: Section | undefined;
   home?: boolean;
   dealerLogin?: boolean;
 }) {
