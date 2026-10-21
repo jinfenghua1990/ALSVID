@@ -37,17 +37,19 @@ try {
         const navLinks = isMobile
           ? headerNav.locator(':scope > nav > a:not([data-site-cart])')
           : headerNav.locator(':scope > a');
-        assert.equal(await navLinks.count(), 6, 'Approved product/dealer/owner/story navigation exists');
+        assert.equal(await navLinks.count(), 8, 'Approved product/dealer/owner/story navigation exists');
         assert.equal(await root.locator('header [data-site-cart]').count(),2,'Desktop and mobile shopping-bag entries coexist');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
-        assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
-        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/dealers', 'Dealers follow the unified product center');
+        assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/explore/l7', 'L7 has a global model entry');
+        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/explore/l8', 'L8 has a global model entry');
+        assert.equal(await navLinks.nth(4).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
+        assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/dealers', 'Dealers follow the unified product center');
         const dealerLabel = { de: 'Händler weltweit', en: 'Global dealers', zh: '全球经销商' }[locale];
         const ownerLabel = { de: 'Service', en: 'Owner services', zh: '车主服务' }[locale];
-        assert.equal((await navLinks.nth(3).innerText()).trim(), dealerLabel, 'Global dealers follow the unified product center');
-        assert.equal((await navLinks.nth(4).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
-        assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
+        assert.equal((await navLinks.nth(5).innerText()).trim(), dealerLabel, 'Global dealers follow the unified product center');
+        assert.equal((await navLinks.nth(6).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
+        assert.equal(await navLinks.nth(7).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
         const reserveBadge = navLinks.nth(0).locator('span');
         const newBadge = navLinks.nth(1).locator('span');
         assert.ok((await reserveBadge.innerText()).trim(), 'FC1 reservation badge is localized');
@@ -180,11 +182,13 @@ try {
         const hero = root.locator(':scope > section').first();
         const mobileModels = root.locator('header > nav').nth(1);
         if (isMobile) {
-          assert.ok(await mobileModels.isVisible(), 'FC1 reservation and FC2 new must be visible in the top mobile header');
+          assert.ok(await mobileModels.isVisible(), 'All four model shortcuts must be visible in the top mobile header');
           const modelLinks = mobileModels.locator('a');
-          assert.equal(await modelLinks.count(), 2, 'The two visible model shortcuts are not hidden in the hamburger menu');
+          assert.equal(await modelLinks.count(), 4, 'All four model shortcuts are visible outside the hamburger menu');
           assert.equal(await modelLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1');
           assert.equal(await modelLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2');
+          assert.equal(await modelLinks.nth(2).getAttribute('href'), '/' + locale + '/explore/l7');
+          assert.equal(await modelLinks.nth(3).getAttribute('href'), '/' + locale + '/explore/l8');
           assert.equal(await modelLinks.nth(0).locator('span').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(184, 233, 134)');
           assert.equal(await modelLinks.nth(1).locator('span').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(230, 83, 75)');
           const headerBox = await root.locator('header').first().boundingBox();
@@ -195,12 +199,12 @@ try {
             'Header must be a single compact row, including logo and menu');
           assert.ok(Math.abs(wordmarkBox.y + wordmarkBox.height / 2 - linkBox.y - linkBox.height / 2) < 15 &&
             Math.abs(menuBox.y + menuBox.height / 2 - linkBox.y - linkBox.height / 2) < 15,
-            'FC1/FC2 must align horizontally with logo and Menu');
-          const secondLinkBox = await modelLinks.nth(1).boundingBox();
-          assert.ok(secondLinkBox && Math.abs(linkBox.y - secondLinkBox.y) < 4 &&
+            'All model shortcuts must align horizontally with logo and Menu');
+          const lastLinkBox = await modelLinks.nth(3).boundingBox();
+          assert.ok(lastLinkBox && Math.abs(linkBox.y - lastLinkBox.y) < 4 &&
             linkBox.x >= wordmarkBox.x + wordmarkBox.width - 2 &&
-            secondLinkBox.x + secondLinkBox.width <= menuBox.x + 2,
-            'FC1 and FC2 fit between wordmark and Menu with no overlap');
+            lastLinkBox.x + lastLinkBox.width <= menuBox.x + 2,
+            'All four models fit between wordmark and Menu with no overlap');
           const heroTitleBox = await hero.locator('h1').boundingBox();
           assert.ok(heroTitleBox && headerBox && heroTitleBox.y > headerBox.y + headerBox.height,
             'Hero heading must clear the taller mobile header');

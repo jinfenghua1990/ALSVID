@@ -1,8 +1,10 @@
 import { HomePosterHero, FoldingSteps } from "./home-interactions";
+import { L7LaunchCard } from "../product/l7-product";
 import { L8LaunchCard } from "../product/l8-product";
 import { Fc2LaunchCard } from "../product/fc2-product";
 import { PublicSiteHeader } from "../public-site-header";
 import { translator, type Locale } from "../../_lib/i18n";
+import cupStyles from "../product/cup-holder-product.module.css";
 import styles from "./original-home.module.css";
 
 export function HomePage({
@@ -49,6 +51,7 @@ export function HomePage({
         scrollLabel={t("navigation.products")}
       />
       <L8LaunchCard locale={locale} />
+      <L7LaunchCard locale={locale} />
       <section id="platforms" className={styles["section"]}>
         <div className={styles["inner"]}>
           <div className={styles["section-head"]}>
@@ -328,6 +331,11 @@ export function HomePage({
           </div>
           <div id="accessory-categories" className={styles["accessory-grid"]}>
             <article className={styles["accessory"]}>
+              <div className={styles["visual"]}><img className={cupStyles.thumbnail} src="/products/accessories/cup-holder-black.webp" width={800} height={800} alt={t("cup.black.alt")} loading="lazy" /></div>
+              <h3>{t("cup.name")}</h3><p>{t("cup.home.body")}</p>
+              <a className={styles.cardLink} href={detail("accessory-cup-holder")} aria-label={t("cup.explore")}>{t("common.learn_more")}</a>
+            </article>
+            <article className={styles["accessory"]}>
               <div className={styles["visual"]}>{t("icon.battery")}</div>
               <h3>{t("accessories.basket.title")}</h3>
               <p>{t("accessories.basket.description")}</p>
@@ -569,6 +577,7 @@ export function HomePage({
           </div>
           <div className={styles["footer-col"]}>
             <h4>{t("footer.bikes")}</h4>
+            <a href={detail("l7")}>{t("l7.model")}</a>
             <a href={detail("l8")}>{t("l8.model")}</a>
             <a href={detail("fc2")}>{t("fc2.model")}</a>
             <a href={detail("fc1")}>{t("product.model_fc1")}</a>

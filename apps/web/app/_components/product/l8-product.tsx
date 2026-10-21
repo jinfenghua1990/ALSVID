@@ -36,7 +36,7 @@ export function L8ProductPage({ locale, myUrl }: { locale: Locale; myUrl: string
     [t("l8.spec.brakes"), t("l8.spec.brakes.value")],
   ];
   return <main className={styles.page} lang={locale} data-l8-product="1">
-    <PublicSiteHeader locale={locale} myUrl={myUrl} active="bikes" />
+    <PublicSiteHeader locale={locale} myUrl={myUrl} active="l8" />
     <section className={styles.hero} id="overview">
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>{t("l8.eyebrow")}</p>
