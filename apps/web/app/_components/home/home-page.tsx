@@ -38,10 +38,10 @@ export function HomePage({
           <a href="#platforms">{t("navigation.products")}</a>
           <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
           <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
+          <a href={myUrl}>{t("navigation.owner_account")}</a>
           <a href={detail("about-story")}>{t("brand.story")}</a>
         </nav>
         <div className={styles["actions"]}>
-          <a href={myUrl}>{t("navigation.owner_account")}</a>
           <LanguageSwitcher locale={locale} label={t("language.label")} variant="globe" />
         </div>
         <details className={styles.mobileNav}>
@@ -52,8 +52,8 @@ export function HomePage({
             <a href="#platforms">{t("navigation.products")}</a>
             <a href={`/${locale}/accessories`}>{t("footer.accessories")}</a>
             <a href={dealerUrl}>{t("navigation.global_dealers")}</a>
-            <a href={detail("about-story")}>{t("brand.story")}</a>
             <a href={myUrl}>{t("navigation.owner_account")}</a>
+            <a href={detail("about-story")}>{t("brand.story")}</a>
             <div className={styles.mobileLanguage}>
               <LanguageSwitcher locale={locale} label={t("language.label")} variant="inline" />
             </div>
