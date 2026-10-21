@@ -126,10 +126,11 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
 
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(body(form)) });
-      event.currentTarget.reset();
+      formElement.reset();
       const verified = await reload();
       setMessage(verified ? '已保存，列表已重新核对。' : '写入请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
