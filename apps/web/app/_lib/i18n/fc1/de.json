@@ -291,8 +291,8 @@
   "fc1.test_ride.submit": "Probefahrtanfrage senden",
   "fc1.test_ride.sending": "Wird gesendet…",
   "fc1.test_ride.failed": "Senden fehlgeschlagen. Bitte versuche es später erneut.",
-  "fc1.test_ride.pending": "Der E-Mail-Anfragedienst ist noch nicht eingerichtet. Das Absenden ist daher nicht möglich.",
+  "fc1.test_ride.pending": "Deine Anfrage wird auch ohne eingerichtete interne E-Mail-Benachrichtigung im ALSVID Admin gespeichert.",
   "fc1.test_ride.no_booking": "Nur eine Interessensbekundung – keine Bestellung, Zahlung oder bestätigte Probefahrt.",
-  "fc1.test_ride.sent_title": "Anfrage gesendet",
-  "fc1.test_ride.sent_body": "Deine Probefahrtanfrage wurde versendet. Es ist noch kein Termin bestätigt. Wir melden uns, falls eine passende Möglichkeit verfügbar wird."
+  "fc1.test_ride.sent_title": "Probefahrtanfrage erfasst",
+  "fc1.test_ride.sent_body": "Deine Probefahrtanfrage wurde gespeichert. Es sind noch keine Orte oder Termine bestätigt. Wir kontaktieren dich, wenn eine passende Möglichkeit verfügbar wird."
 }

@@ -34,6 +34,7 @@ export const appNavigation: readonly AppNavItem[] = [
 
   { label: '经销商', href: '/dealers', area: '经销商', section: '经销商中心' },
   { label: '经销商档案', href: '/dealers', area: '经销商', section: '经销商中心' },
+  { label: '客户试骑申请与试骑网点', href: '/admin/dealers/test-rides', area: '经销商', section: '客户试骑' },
   { label: '区域与授权等级', href: '/partners', area: '经销商', section: '经销商中心', status: '骨架' },
   { label: '采购与销售记录', href: '/dealers#activity', area: '经销商', section: '经营关系', status: '骨架' },
 

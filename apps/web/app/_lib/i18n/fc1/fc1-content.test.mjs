@@ -121,7 +121,7 @@ test("FC1 test-ride interest is localized and integrated within both purchase co
   const classic = await readFile(path.join(base, "fc1-interactions.tsx"), "utf8");
   assert.match(component, /purpose: "test_ride"/);
   assert.match(component, /status === "sent"/);
-  assert.match(component, /disabled=\{!configured \|\| status === "sending"\}/);
+  assert.match(component, /disabled=\{status === "sending"\}/);
   assert.match(story, /<Fc1TestRide locale=\{locale\}/);
   assert.match(classic, /<Fc1TestRide locale=\{locale\}/);
   assert.doesNotMatch(component, /\/checkout|createOrder|paymentIntent|mailto:/);
