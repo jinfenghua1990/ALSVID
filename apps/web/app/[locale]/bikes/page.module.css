@@ -1,4 +1,4 @@
-.page{background:#f6f7f5;overflow:hidden}.kicker{font-size:11px;letter-spacing:.2em;font-weight:700;color:#547f68;text-transform:uppercase}
+.page{background:#f6f7f5;overflow:visible}.kicker{font-size:11px;letter-spacing:.2em;font-weight:700;color:#547f68;text-transform:uppercase}
 .hero{position:relative;min-height:650px;display:grid;grid-template-columns:44% 56%;align-items:center;background:#e4e8e4;isolation:isolate;overflow:hidden}
 .heroCopy{padding:80px 0 105px clamp(22px,7vw,125px);position:relative;z-index:2}
 .hero h1{font-size:clamp(48px,5.7vw,100px);line-height:1.04;letter-spacing:-.06em;font-weight:630;margin:23px 0;max-width:620px}
@@ -72,10 +72,6 @@
 @media(max-width:850px){.modelCard{grid-template-columns:1fr;min-height:0}.modelImageLink img{height:310px;min-height:0}.modelInfo{gap:22px;padding:26px}.modelInfo h3{font-size:42px}}
 @media(max-width:700px){.modelGrid{gap:18px}.modelCard{scroll-margin-top:76px}.modelInfo h3{font-size:38px}.modelImageLink img{height:290px}}
 
-/* Unified product center: category tabs and reserved space for desktop vehicle rail. */
-.catalogTabs{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border-bottom:1px solid #e0e7df;padding:15px clamp(20px,6vw,110px)}
-.catalogTabs a{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:10px 22px;border:1px solid #cad5ca;border-radius:4px;color:#263b30;text-decoration:none;font-size:14px;font-weight:650;transition:background .2s,border-color .2s}
-.catalogTabs a:hover,.catalogTabs a:focus-visible{background:#e8f2d3;border-color:#acd132}
-#models,#accessories{scroll-margin-top:80px}
-@media(min-width:1101px){.modelSection{padding-left:clamp(156px,14vw,218px)}}
-@media(max-width:700px){.catalogTabs{padding:12px 20px}.catalogTabs a{flex:1;min-width:0}}
+/* Sticky global header + sticky product index need enough scroll offset for every anchor. */
+#platforms,#models,#accessories,#model-fc1,#model-fc2{scroll-margin-top:142px}
+@media(max-width:760px){#platforms,#models,#accessories,#model-fc1,#model-fc2{scroll-margin-top:122px}}
