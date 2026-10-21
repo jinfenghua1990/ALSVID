@@ -35,7 +35,7 @@
 .mobileModels{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:24px;padding:0 0 8px;min-height:28px}
 .mobileModels a{color:#f0f1ef;display:inline-flex;align-items:center;gap:6px;font-size:11px}
 }
-@media(max-width:370px){.brandBike{width:40px}.brandLine{font-size:17px}.dealerLogin{padding:7px 8px}}
+@media(max-width:370px){.brandBike{width:34px}.brandLine{font-size:14px;gap:3px}.actions{gap:4px}.mobileMenu summary{width:34px;height:34px}.dealerLogin{font-size:10px;padding:6px 7px}}
 @media(prefers-reduced-motion:reduce){.logo:hover .brandBike{transform:none}.brandBike,.navLink,.dealerLogin{transition:none}}
 
 /* Partnership application is the one additional contextual action. */
