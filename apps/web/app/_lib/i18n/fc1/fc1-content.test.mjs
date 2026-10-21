@@ -101,3 +101,28 @@ test("FC1 public preview copy does not claim paid preorder, stock or Shopify che
   const css = await readFile(path.join(directory, "../../../_components/product/fc1-product.module.css"), "utf8");
   assert.match(css, /\.interestSpecs\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
 });
+
+test("FC1 test-ride interest is localized and integrated within both purchase configurations", async () => {
+  const required = [
+    "cta", "helper", "title", "description", "selection", "close",
+    "name", "name_placeholder", "country", "germany", "austria", "city",
+    "city_placeholder", "email", "privacy", "availability", "submit",
+    "sending", "failed", "pending", "no_booking", "sent_title", "sent_body",
+  ];
+  for (const [locale, catalog] of Object.entries(locales)) {
+    for (const key of required) {
+      assert.ok(catalog[`fc1.test_ride.${key}`], `${locale}: missing test ride field ${key}`);
+    }
+    assert.match(catalog["fc1.test_ride.availability"], /尚未|not.*confirm|noch keine/i);
+  }
+  const base = path.join(directory, "../../../_components/product/");
+  const component = await readFile(path.join(base, "fc1-test-ride.tsx"), "utf8");
+  const story = await readFile(path.join(base, "fc1-colour-configurator.tsx"), "utf8");
+  const classic = await readFile(path.join(base, "fc1-interactions.tsx"), "utf8");
+  assert.match(component, /purpose: "test_ride"/);
+  assert.match(component, /status === "sent"/);
+  assert.match(component, /disabled=\{!configured \|\| status === "sending"\}/);
+  assert.match(story, /<Fc1TestRide locale=\{locale\}/);
+  assert.match(classic, /<Fc1TestRide locale=\{locale\}/);
+  assert.doesNotMatch(component, /\/checkout|createOrder|paymentIntent|mailto:/);
+});
