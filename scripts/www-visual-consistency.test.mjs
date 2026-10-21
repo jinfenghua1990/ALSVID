@@ -41,6 +41,8 @@ test('home, catalog, dealer and FC1/FC2 share one multilingual header',async()=>
  assert.match(header,/variant="globe"/);
  assert.match(header,/product\.model_fc1/);
  assert.match(header,/navigation\.global_dealers/);
+ assert.match(header,/common\.back_home/,'shared public header exposes an explicit home link on subpages');
+ assert.match(header,/styles\.homeLink/,'desktop home link has a dedicated style');
 });
 
 test('zh/de/en public navigation and application copy cover the same controls',async()=>{
