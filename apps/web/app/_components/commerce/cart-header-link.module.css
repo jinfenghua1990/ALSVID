@@ -1,0 +1,6 @@
+.link{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;color:#fff;text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap}
+.link:hover{color:#b8e986}
+.count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:1px 4px;border-radius:10px;background:#b8e986;color:#17241a;font-size:10px;font-weight:700}
+.mobileLink{display:flex;align-items:center;gap:8px;min-height:44px;padding:11px 12px;color:#fff;text-decoration:none;font-size:14px;font-weight:550;border-radius:8px}
+.mobileLink:hover{background:#ffffff14}
+.link:focus-visible,.mobileLink:focus-visible{outline:2px solid #b8e986;outline-offset:4px}
