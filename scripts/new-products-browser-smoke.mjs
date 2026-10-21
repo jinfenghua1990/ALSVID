@@ -69,6 +69,32 @@ try {
         await page.waitForURL("**/" + locale + "/explore/accessory-cup-holder");
         await page.locator('[data-cup-holder-product="1"]').waitFor();
         assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://www.alsvidbike.com/" + locale + "/explore/accessory-cup-holder");
+        const video = page.locator("[data-cup-video]");
+        assert.equal(await video.count(), 1);
+        assert.notEqual(await video.getAttribute("controls"), null);
+        assert.notEqual(await video.getAttribute("playsinline"), null);
+        assert.equal(await video.getAttribute("autoplay"), null);
+        assert.equal(await video.getAttribute("preload"), "metadata");
+        assert.equal(await video.evaluate(el => el.paused), true, "Product video never autoplays");
+        await video.evaluate(el => el.load());
+        await page.waitForFunction(() => { const el = document.querySelector("[data-cup-video]"); return el.readyState >= 1 || el.error; });
+        const media = await video.evaluate(el => ({ duration: el.duration, width: el.videoWidth, height: el.videoHeight, error: el.error?.message }));
+        assert.equal(media.error, undefined);
+        assert.ok(media.duration > 28 && media.duration < 30, "The complete original video is available");
+        assert.equal(media.width, 720);
+        assert.equal(media.height, 960);
+        const range = await context.request.get(base + "/products/accessories/cup-holder/product-demo.mp4", { headers: { Range: "bytes=0-1023" } });
+        assert.equal(range.status(), 206, "The server supports video seeking via byte ranges");
+        assert.ok(range.headers()["content-type"].startsWith("video/mp4"));
+        assert.equal((await range.body()).length, 1024);
+        await video.evaluate(async el => { el.muted = true; await el.play(); });
+        await page.waitForFunction(() => document.querySelector("[data-cup-video]").currentTime > 0.2);
+        await video.evaluate(el => { el.pause(); el.currentTime = 14; });
+        await page.waitForFunction(() => { const el = document.querySelector("[data-cup-video]"); return !el.seeking && el.readyState >= 2 && Math.abs(el.currentTime - 14) < 0.5; });
+        await video.evaluate(async el => { el.currentTime = el.duration - 0.3; await el.play(); });
+        await page.waitForFunction(() => document.querySelector("[data-cup-video]").ended);
+        await video.evaluate(el => { el.pause(); el.currentTime = 0; });
+        await page.locator("[data-cup-video-section]").screenshot({ path: output + "/cup-holder-video-" + locale + "-" + device + ".png" });
         const cupGallery = page.locator("[data-cup-holder-gallery]");
         assert.equal(await cupGallery.locator("[data-cup-colour]").count(), 6);
         assert.equal(await cupGallery.locator("[data-cup-photo]").count(), 5);
@@ -120,7 +146,7 @@ try {
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "Cup holder fits viewport");
         await page.screenshot({ path: output + "/cup-holder-top-" + locale + "-" + device + ".png" });
         assert.deepEqual(errors, []);
-        report.checks.push(locale + " " + device + ": visible L7/L8 top links, four mobile models fit, L7 navigation/gallery/specs/locale, accessory catalog link, all five main photos/six colours/17 ordered uncropped detail images/source specs and responsive width");
+        report.checks.push(locale + " " + device + ": visible L7/L8 top links, four mobile models fit, L7 navigation/gallery/specs/locale, accessory catalog link, original video playback/seeking/end/byte ranges, all five main photos/six colours/17 ordered uncropped detail images/source specs and responsive width");
       } finally { await context.close(); }
     }
   }
