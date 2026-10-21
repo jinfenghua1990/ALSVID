@@ -228,6 +228,17 @@
   align-items: start;
 }
 
+/* Workbench has no left context rail: do not reserve an empty 232px column. */
+.av-body--wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+.av-body--wide > .av-workspace {
+  width: 100%;
+  max-width: 1760px;
+  margin-inline: auto;
+  padding: clamp(24px, 2vw, 36px) clamp(20px, 2vw, 36px) 48px;
+}
+
 .av-rail {
   position: sticky;
   top: 56px;
@@ -270,7 +281,7 @@
 
 /* ---------- 工作区 ---------- */
 .av-workspace {
-  padding: 20px 24px 40px;
+  padding: 24px 28px 48px;
   min-width: 0;
 }
 
@@ -282,21 +293,21 @@
   flex-wrap: wrap;
 }
 .av-eyebrow {
-  margin: 0 0 4px;
-  font-size: 11px;
+  margin: 0 0 6px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--av-brand);
 }
 .av-pagetitle {
   margin: 0;
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 .av-pagesub {
-  margin: 4px 0 0;
-  font-size: 13px;
+  margin: 6px 0 0;
+  font-size: 14px;
   color: var(--av-muted);
 }
 .av-pageactions {
@@ -338,8 +349,8 @@
 
 /* ---------- 卡片 ---------- */
 .av-card {
-  margin-top: 16px;
-  padding: 16px;
+  margin-top: 18px;
+  padding: 18px;
   background: var(--av-panel);
   border: 1px solid var(--av-line);
   border-radius: var(--av-radius);
@@ -354,12 +365,12 @@
 }
 .av-cardtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 .av-cardhint {
-  margin: 3px 0 0;
-  font-size: 12px;
+  margin: 4px 0 0;
+  font-size: 13px;
   color: var(--av-muted);
 }
 .av-shortcuts {
@@ -382,18 +393,18 @@
 }
 .av-shortcut:hover { border-color: var(--av-brand); background: var(--av-brand-soft); }
 .av-shortcut:focus-visible { outline: 2px solid var(--av-brand); outline-offset: 2px; }
-.av-shortcut strong { font-size: 13px; font-weight: 650; }
-.av-shortcut span { color: var(--av-muted); font-size: 11px; line-height: 1.5; }
+.av-shortcut strong { font-size: 14px; font-weight: 650; }
+.av-shortcut span { color: var(--av-muted); font-size: 12px; line-height: 1.6; }
 .av-shortcut i { position: absolute; right: 14px; top: 14px; color: var(--av-brand); font-style: normal; }
 .av-empty-state {
   margin: 0;
-  padding: 24px 16px;
+  padding: 24px 18px;
   border: 1px dashed var(--av-line);
   border-radius: var(--av-radius-sm);
   color: var(--av-muted);
   background: var(--av-panel-soft);
-  font-size: 12px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.75;
 }
 .av-more {
   flex: none;
@@ -406,8 +417,11 @@
 .av-kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  gap: 14px;
   margin-top: 16px;
+}
+.av-kpis > .av-card {
+  margin-top: 0;
 }
 .av-kpi {
   padding: 14px 16px;
@@ -417,13 +431,13 @@
   box-shadow: var(--av-shadow);
 }
 .av-kpivalue {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 .av-kpilabel {
-  margin-top: 2px;
-  font-size: 12px;
+  margin-top: 4px;
+  font-size: 13px;
   color: var(--av-muted);
 }
 .av-kpidelta {
@@ -770,7 +784,7 @@
 }
 
 /* ---------- 响应式 ---------- */
-.av-fixture-note { margin: 0; padding: 10px 14px; border: 1px solid var(--av-line); border-radius: 8px; color: var(--av-muted); background: var(--av-surface, #fff); font-size: 12px; }
+.av-fixture-note { margin: 0 0 18px; padding: 12px 16px; border: 1px solid var(--av-line); border-radius: 10px; color: var(--av-muted); background: var(--av-surface, #fff); font-size: 13px; line-height: 1.7; }
 .av-design-form { display: grid; gap: 16px; }
 .av-platforms { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
 .av-btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -818,9 +832,48 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
     display: none;
   }
 }
+@media (max-width: 1440px) {
+  .av-topbar {
+    gap: 10px;
+    padding-inline: 16px;
+  }
+  .av-navitem {
+    padding-inline: 8px;
+  }
+  .av-toputils {
+    gap: 8px;
+  }
+  .av-quicklinks {
+    display: none;
+  }
+}
 @media (max-width: 720px) {
+  .av-topbar {
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .av-primarynav {
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .av-user {
+    display: none;
+  }
   .av-workspace {
-    padding: 16px 14px 32px;
+    padding: 20px 14px 32px;
+  }
+  .av-body--wide > .av-workspace {
+    padding: 20px 14px 32px;
+  }
+  .av-pagehead {
+    gap: 12px;
+  }
+  .av-pagetitle {
+    font-size: 24px;
   }
   .av-quicklinks {
     display: none;
