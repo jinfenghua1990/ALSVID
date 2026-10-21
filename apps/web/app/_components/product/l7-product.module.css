@@ -1,0 +1,2 @@
+.page{--photo-stage:#fff;--fold-surface:#fff;--carbon-surface:#fff}
+.carryImage{display:block;width:100%;height:180px;object-fit:cover;object-position:center;margin-top:22px;border-radius:8px}

@@ -3,7 +3,7 @@ import { CartHeaderLink } from './commerce/cart-header-link';
 import { translator, type Locale } from '../_lib/i18n';
 import styles from './public-site-header.module.css';
 
-type Section = 'fc1' | 'fc2' | 'bikes' | 'dealers' | 'story';
+type Section = 'fc1' | 'fc2' | 'l7' | 'l8' | 'bikes' | 'dealers' | 'story';
 
 /** ALSVID WWW navigation has the same structure and breakpoint behavior as the homepage.
  *  Portal dashboards keep their own independent navigation. */
@@ -26,6 +26,8 @@ export function PublicSiteHeader({
   const links = [
     { href: prefix + '/explore/fc1', label: t('product.model_fc1'), id: 'fc1', badge: t('navigation.reserve_badge') },
     { href: prefix + '/explore/fc2', label: t('fc2.model'), id: 'fc2', badge: t('product.new_badge') },
+    { href: prefix + '/explore/l7', label: t('l7.model'), id: 'l7' },
+    { href: prefix + '/explore/l8', label: t('l8.model'), id: 'l8' },
     { href: prefix + '/bikes', label: t('navigation.products'), id: 'bikes' },
     { href: prefix + '/dealers', label: t('navigation.global_dealers'), id: 'dealers' },
     { href: myUrl, label: t('navigation.owner_account') },
@@ -70,7 +72,7 @@ export function PublicSiteHeader({
       </nav>
     </details>
     <nav className={styles.mobileModels} aria-label={t('navigation.products')}>
-      {links.slice(0, 2).map(link => <a key={link.href} href={link.href}>
+      {links.slice(0, 4).map(link => <a key={link.href} href={link.href} aria-current={active && link.id === active ? "page" : undefined}>
         {link.label}
         {'badge' in link && link.badge ? <span className={link.id === 'fc1' ? styles.reserveBadge : styles.newBadge}>{link.badge}</span> : null}
       </a>)}

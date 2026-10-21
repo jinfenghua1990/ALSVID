@@ -64,3 +64,5 @@
  .mobileMenu summary{width:36px;height:36px}
 }
 @media(prefers-reduced-motion:reduce){.brandBike,.navLink,.homeLink,.dealerLogin{transition:none}.logo:hover .brandBike{transform:none}}
+
+.mobileModels a[aria-current=page]{color:#b8e986}

@@ -37,17 +37,19 @@ try {
         const navLinks = isMobile
           ? headerNav.locator(':scope > nav > a:not([data-site-cart])')
           : headerNav.locator(':scope > a');
-        assert.equal(await navLinks.count(), 6, 'Approved product/dealer/owner/story navigation exists');
+        assert.equal(await navLinks.count(), 8, 'Approved product/dealer/owner/story navigation exists');
         assert.equal(await root.locator('header [data-site-cart]').count(),2,'Desktop and mobile shopping-bag entries coexist');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
-        assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
-        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/dealers', 'Dealers follow the unified product center');
+        assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/explore/l7', 'L7 has a global model entry');
+        assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/explore/l8', 'L8 has a global model entry');
+        assert.equal(await navLinks.nth(4).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
+        assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/dealers', 'Dealers follow the unified product center');
         const dealerLabel = { de: 'Händler weltweit', en: 'Global dealers', zh: '全球经销商' }[locale];
         const ownerLabel = { de: 'Service', en: 'Owner services', zh: '车主服务' }[locale];
-        assert.equal((await navLinks.nth(3).innerText()).trim(), dealerLabel, 'Global dealers follow the unified product center');
-        assert.equal((await navLinks.nth(4).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
-        assert.equal(await navLinks.nth(5).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
+        assert.equal((await navLinks.nth(5).innerText()).trim(), dealerLabel, 'Global dealers follow the unified product center');
+        assert.equal((await navLinks.nth(6).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
+        assert.equal(await navLinks.nth(7).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
         const reserveBadge = navLinks.nth(0).locator('span');
         const newBadge = navLinks.nth(1).locator('span');
         assert.ok((await reserveBadge.innerText()).trim(), 'FC1 reservation badge is localized');

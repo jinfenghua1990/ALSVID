@@ -7,6 +7,7 @@ on:
       - 'scripts/fc1-browser-review.mjs'
       - 'scripts/official-browser-smoke.mjs'
       - 'scripts/l8-browser-smoke.mjs'
+      - 'scripts/new-products-browser-smoke.mjs'
       - 'scripts/dealer-browser-smoke.mjs'
       - '.github/workflows/fc1-preview.yml'
   workflow_dispatch:
@@ -54,6 +55,7 @@ jobs:
           node scripts/official-browser-smoke.mjs
           node scripts/dealer-browser-smoke.mjs
           node scripts/l8-browser-smoke.mjs
+          node scripts/new-products-browser-smoke.mjs
       - uses: actions/upload-artifact@v7
         if: always()
         with:
