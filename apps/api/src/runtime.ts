@@ -9,7 +9,7 @@ import { createIdentityService } from '@alsvid/identity';
 import { createIntegrationService } from '@alsvid/integrations';
 import { createInventoryService } from '@alsvid/inventory';
 import { createLogisticsService } from '@alsvid/logistics';
-import { createPartnerService } from '@alsvid/partners';
+import { createPartnerService,createTestRideService } from '@alsvid/partners';
 import { createProcurementService, createSupplierPortalService } from '@alsvid/procurement';
 import { createProductService } from '@alsvid/product';
 import { createProductionService } from '@alsvid/production';
@@ -29,6 +29,7 @@ export const identityService = createIdentityService(database, auditService, {
   passwordResetDelivery: createIdentityPasswordResetDelivery(),
 });
 export const partnerService = createPartnerService(database, auditService);
+export const testRideService = createTestRideService(database);
 export const productService = createProductService(database, auditService);
 export const engineeringService = createEngineeringService(database, auditService);
 export const assetService = createAssetService(database, auditService);
