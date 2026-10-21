@@ -1,4 +1,5 @@
 import { HomePosterHero, FoldingSteps } from "./home-interactions";
+import { L8LaunchCard } from "../product/l8-product";
 import { Fc2LaunchCard } from "../product/fc2-product";
 import { PublicSiteHeader } from "../public-site-header";
 import { translator, type Locale } from "../../_lib/i18n";
@@ -47,6 +48,7 @@ export function HomePage({
         exploreLabel={t("hero.explore_platform")}
         scrollLabel={t("navigation.products")}
       />
+      <L8LaunchCard locale={locale} />
       <section id="platforms" className={styles["section"]}>
         <div className={styles["inner"]}>
           <div className={styles["section-head"]}>
@@ -567,6 +569,7 @@ export function HomePage({
           </div>
           <div className={styles["footer-col"]}>
             <h4>{t("footer.bikes")}</h4>
+            <a href={detail("l8")}>{t("l8.model")}</a>
             <a href={detail("fc2")}>{t("fc2.model")}</a>
             <a href={detail("fc1")}>{t("product.model_fc1")}</a>
             <a href={detail("fc")}>{t("footer.fc")}</a>
