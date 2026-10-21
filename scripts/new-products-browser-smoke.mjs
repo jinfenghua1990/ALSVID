@@ -72,6 +72,21 @@ try {
         const cupGallery = page.locator("[data-cup-holder-gallery]");
         assert.equal(await cupGallery.locator("[data-cup-colour]").count(), 6);
         assert.equal(await cupGallery.locator("[data-cup-photo]").count(), 5);
+        for (const button of await cupGallery.locator("[data-cup-colour]").all()) {
+          const contrast = await button.evaluate(el => {
+            const luminance = colour => {
+              const channels = colour.match(/[\\d.]+/g).slice(0, 3).map(Number).map(value => {
+                const channel = value / 255;
+                return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+              });
+              return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+            };
+            const text = luminance(getComputedStyle(el).color);
+            const background = luminance(getComputedStyle(el.closest("main")).backgroundColor);
+            return (Math.max(text, background) + 0.05) / (Math.min(text, background) + 0.05);
+          });
+          assert.ok(contrast >= 4.5, "Inactive colour labels have readable contrast on the light panel");
+        }
         for (const photo of ["01", "02", "03", "04", "05"]) {
           await cupGallery.locator('[data-cup-photo="' + photo + '"]').click();
           await page.waitForFunction(id => { const image = document.querySelector("[data-cup-holder-gallery] figure img"); return image?.src.includes("gallery-" + id) && image.complete && image.naturalWidth > 0; }, photo);
@@ -96,11 +111,11 @@ try {
           assert.ok(await image.evaluate(el => Math.abs(el.clientWidth / el.clientHeight - el.naturalWidth / el.naturalHeight) < 0.01), "The complete image is displayed without cropping");
         }
         assert.equal(await page.locator('[data-cup-holder-product] dl > div').count(), 17);
-        await detailFigures.first().scrollIntoViewIfNeeded();
+        await page.locator("#source-details").evaluate(el => el.scrollIntoView({ behavior: "instant", block: "start" }));
         await page.screenshot({ path: output + "/cup-holder-details-" + locale + "-" + device + ".png" });
         await page.locator('[data-cup-holder-product] dl').scrollIntoViewIfNeeded();
         await page.screenshot({ path: output + "/cup-holder-specs-" + locale + "-" + device + ".png" });
-        await page.evaluate(() => scrollTo(0, 0));
+        await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
         assert.equal(await page.locator('[data-cup-holder-product] a[href*="checkout"],[data-cup-holder-product] a[href*="reserve"]').count(), 0);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "Cup holder fits viewport");
         await page.screenshot({ path: output + "/cup-holder-top-" + locale + "-" + device + ".png" });
