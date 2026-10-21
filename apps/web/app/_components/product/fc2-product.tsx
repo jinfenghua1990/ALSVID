@@ -4,14 +4,6 @@ import { fc2Reference as data } from "../../_lib/products/fc2";
 import { Fc2Gallery } from "./fc2-gallery";
 import styles from "./fc2-product.module.css";
 
-function shopProductUrl() {
-  try {
-    const value=process.env.ALSVID_SHOPIFY_FC2_PRODUCT_URL?.trim();
-    if(!value) return null;
-    const url=new URL(value);
-    return url.protocol==="https:" && url.hostname==="shop.alsvidbike.com" && url.pathname.startsWith("/products/") ? url.toString() : null;
-  } catch { return null; }
-}
 export function Fc2LaunchCard({locale}:{locale:Locale}) {
   const t=translator(locale);
   return <section className={styles.launchCard} data-fc2-launch>
@@ -24,7 +16,6 @@ export function Fc2ProductPage({locale,dealerUrl,myUrl}:{locale:Locale;dealerUrl
   const key=(value:string)=>t(value as TranslationKey);
   const number=(value:number)=>new Intl.NumberFormat(locale,{maximumFractionDigits:1}).format(value);
   const dimensions=(values:readonly number[])=>values.map(value=>number(value)).join(" × ")+" mm";
-  const shopUrl=shopProductUrl();
   const groups=[
     {id:"platform",rows:[
       ["spec.frame",t("fc2.spec.frame.value")],["spec.fork",t("fc2.spec.fork.value")],["spec.rear",t("fc2.spec.rear.value")],
@@ -46,7 +37,7 @@ export function Fc2ProductPage({locale,dealerUrl,myUrl}:{locale:Locale;dealerUrl
       <LanguageSwitcher locale={locale} label={t("fc2.language")} variant="globe" />
     </header>
     <section className={styles.hero} id="overview">
-      <div className={styles.heroCopy}><p className={styles.eyebrow}>{t("fc2.series")}</p><h1><small>{t("brand.name")}</small>{t("fc2.model")}</h1><h2>{t("fc2.headline")}</h2><p>{t("fc2.intro")}</p><a className={styles.button} href={shopUrl??"#availability"} target={shopUrl?"_blank":undefined} rel={shopUrl?"noreferrer":undefined}>{t(shopUrl?"fc2.available.shop":"fc2.availability")} <span aria-hidden="true">↗</span></a></div>
+      <div className={styles.heroCopy}><p className={styles.eyebrow}>{t("fc2.series")}</p><h1><small>{t("brand.name")}</small>{t("fc2.model")}</h1><h2>{t("fc2.headline")}</h2><p>{t("fc2.intro")}</p><a className={styles.button} href="#availability">{t("fc2.availability")} <span aria-hidden="true">↗</span></a></div>
       <Fc2Gallery locale={locale} />
     </section>
     <div className={styles.metricWrap}><div className={styles.metrics}>
@@ -65,7 +56,7 @@ export function Fc2ProductPage({locale,dealerUrl,myUrl}:{locale:Locale;dealerUrl
     <section className={styles.batterySection}><div><p className={styles.eyebrow}>{t("fc2.battery.kicker")}</p><h2>{t("fc2.battery.title")}</h2><p>{t("fc2.battery.body")}</p></div><div className={styles.batteryNumber}><strong>{number(data.batteryVoltageV)}<small> V</small></strong><span>{number(data.batteryCapacityAh)} Ah · LG</span></div></section>
     <section id="specifications" className={styles.section}><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>{t("fc2.spec.kicker")}</p><h2>{t("fc2.spec.title")}</h2></div><p>{t("fc2.metric.note")}</p></div><div className={styles.specGrid}>{groups.map(group=><article key={group.id}><h3>{key("fc2.spec."+group.id)}</h3><dl>{group.rows.map(([label,value])=><div key={label}><dt>{key("fc2."+label)}</dt><dd>{value}</dd></div>)}</dl></article>)}</div><p className={styles.smallNote}>{t("fc2.spec.note")}</p></section>
     <section className={styles.faq}><h2>{t("fc2.faq.title")}</h2><div>{["photo","fold","buy"].map(id=><details key={id}><summary>{key("fc2.faq."+id+".q")}</summary><p>{key("fc2.faq."+id+".a")}</p></details>)}</div></section>
-    <section id="availability" className={styles.availability}><div><p className={styles.eyebrow}>{t("fc2.available.kicker")}</p><h2>{t("fc2.available.title")}</h2><p>{t("fc2.available.body")}</p><div className={styles.ctas}><a className={styles.button} href={shopUrl??dealerUrl} target={shopUrl?"_blank":undefined} rel={shopUrl?"noreferrer":undefined}>{t(shopUrl?"fc2.available.shop":"fc2.available.dealer")} <span aria-hidden="true">↗</span></a><a className={styles.textLink} href={`/${locale}/explore/fc1`}>{t("fc2.fc1")} <span aria-hidden="true">↗</span></a></div></div><span className={styles.wordmark} aria-hidden="true">FC2</span></section>
+    <section id="availability" className={styles.availability}><div><p className={styles.eyebrow}>{t("fc2.available.kicker")}</p><h2>{t("fc2.available.title")}</h2><p>{t("fc2.available.body")}</p><div className={styles.ctas}><a className={styles.button} href={dealerUrl}>{t("fc2.available.dealer")} <span aria-hidden="true">↗</span></a><a className={styles.textLink} href={`/${locale}/explore/fc1`}>{t("fc2.fc1")} <span aria-hidden="true">↗</span></a></div></div><span className={styles.wordmark} aria-hidden="true">FC2</span></section>
     <footer className={styles.footer}><a className={styles.brand} href={`/${locale}/`}>{t("brand.name")}</a><p>{t("fc2.footer")}</p><a href={`/${locale}/`}>{t("fc2.home")} ↗</a></footer>
   </main>;
 }
