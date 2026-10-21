@@ -17,7 +17,7 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
   const t = translator(locale);
   const formId = useId();
   const [open, setOpen] = useState(passwordSetupRequired);
-  const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : 'email');
+  const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : portal === 'admin' && passwordLoginEnabled ? 'password' : 'email');
   const [setupRequired, setSetupRequired] = useState(passwordSetupRequired);
   const [identifier, setIdentifier] = useState('');
   const [remember, setRemember] = useState(false);

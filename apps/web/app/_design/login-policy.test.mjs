@@ -4,20 +4,27 @@ import { readFileSync } from 'node:fs';
 
 const from = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('password login remains available in source but defaults to disabled at every trust boundary', () => {
+test('Admin password login uses a dedicated flag at every trust boundary', () => {
   const api = from('../../../api/src/auth.controller.ts');
   const proxy = from('../api/session/login/route.ts');
   const login = from('../login/page.tsx');
   const ui = from('../_components/portal-login.tsx');
+  const deploy = from('../../../../.github/workflows/production-deploy.yml');
+  const wwwDeploy = from('../../../../.github/workflows/www-deploy.yml');
 
   for (const source of [api, proxy]) {
-    assert.match(source, /process\.env\.ALSVID_PASSWORD_LOGIN_ENABLED !== 'true'/);
+    assert.match(source, /portal === 'admin'[\s\S]*ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'/);
+    assert.match(source, /ALSVID_PASSWORD_LOGIN_ENABLED === 'true'/);
   }
   assert.match(api, /identityService\.login\(identifier, body\.password\)/);
-  assert.match(login, /passwordLoginEnabled=\{process\.env\.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'\}/);
+  assert.match(login, /portal === 'admin'[\s\S]*ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'/);
+  assert.match(login, /ALSVID_PASSWORD_LOGIN_ENABLED === 'true'/);
+  assert.match(ui, /portal === 'admin' && passwordLoginEnabled \? 'password' : 'email'/);
   assert.match(ui, /passwordLoginEnabled = false/);
   assert.match(ui, /passwordLoginEnabled && method === 'password'/);
   assert.match(ui, /if \(!passwordLoginEnabled\) return;/);
+  assert.match(deploy, /ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED=true/);
+  assert.match(wwwDeploy, /ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED=true/);
 });
 
 test('first account password setup and email authentication are not removed', () => {
