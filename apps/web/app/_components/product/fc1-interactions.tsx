@@ -4,6 +4,7 @@ import React, { useRef, useState, type ReactNode } from "react";
 import { translator, type Locale, type TranslationKey } from "../../_lib/i18n";
 import styles from "./fc1-product.module.css";
 import { fc1Photos } from "./fc1-photos";
+import { Fc1TestRide } from "./fc1-test-ride";
 
 const gallery = [
   ["side", "fc1.gallery.side", "fc1.photo.alt"],
@@ -115,6 +116,7 @@ export function ProductConfigurator({ locale }: { locale: Locale }) {
         <p>{t("fc1.selection.selected", { model: model.label, colour: colourName })}</p>
         <p className={styles.deliveryText}>{t("fc1.selection.delivery")}</p>
         <p className={styles.smallNote}>{t("fc1.selection.unavailable")}</p>
+        <Fc1TestRide locale={locale} model={model.label} colour={colourName} />
         <a className={styles.buttonDark} href="#specifications">{t("fc1.selection.cta")} <span aria-hidden="true">→</span></a>
       </div>
     </div>
