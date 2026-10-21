@@ -34,9 +34,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          jobs="$(gh api "repos/$GH_REPO/actions/runs/$CI_RUN_ID/jobs?per_page=100")"
-          if ! jq -e '[.jobs[] | select((.name == "verify" or .name == "containers") and .status == "completed" and .conclusion == "success") | .name] | unique | sort == ["containers", "verify"]' <<< "$jobs" >/dev/null; then
-            echo 'Both required CI jobs must succeed.' >&2
+          # GitHub's workflow_run event can arrive before the jobs API is
+          # fully consistent. Retry transiently missing/in-progress job records,
+          # but fail immediately if either required check has failed.
+          required_checks_ready=false
+          for attempt in {1..12}; do
+            jobs="$(gh api "repos/$GH_REPO/actions/runs/$CI_RUN_ID/jobs?per_page=100")"
+            if jq -e '[.jobs[] | select(.name == "verify" or .name == "containers") | select(.status == "completed" and .conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out")] | length > 0' <<< "$jobs" >/dev/null; then
+              echo 'A required CI job failed or was cancelled; refusing to merge.' >&2
+              exit 1
+            fi
+            if jq -e '[.jobs[] | select((.name == "verify" or .name == "containers") and .status == "completed" and .conclusion == "success") | .name] | unique | sort == ["containers", "verify"]' <<< "$jobs" >/dev/null; then
+              required_checks_ready=true
+              break
+            fi
+            echo "Waiting for required CI job records to become available (attempt $attempt/12)."
+            sleep 5
+          done
+          if [[ "$required_checks_ready" != "true" ]]; then
+            echo 'Both required CI jobs did not become successful in time; refusing to merge.' >&2
             exit 1
           fi
           prs="$(gh api "repos/$GH_REPO/pulls?state=open&base=main&per_page=100")"
