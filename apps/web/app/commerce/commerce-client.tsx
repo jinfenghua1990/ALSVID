@@ -202,23 +202,29 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>电商渠道 / Commerce</div>
-          <h1>一个 Commerce，连接 Shopify、Amazon 和后续渠道。</h1>
-          <p>订单、支付与履约状态仍由外部平台负责；ALSVID 统一保存规范化事实、SKU/Partner/物流映射与异常对账，不重建第二套商城或 Seller Central。</p>
+          <h1>ALSVID 订单中心 · 自建商城与业务履约</h1>
+          <p>首期以 ALSVID 自建商城订单为主。此处可管理真实价格版本和内部订单草稿；支付、正式结账与履约仍受上线门禁约束。外部渠道仅在单独获批启用时管理必要映射和对账。</p>
         </div>
-        <div className={styles.releaseBadge}>多渠道骨架</div>
+        <div className={styles.releaseBadge}>正式结账尚未开放</div>
       </header>
 
       {message ? <div className={styles.notice}>{message}</div> : null}
 
+      <nav className={styles.orderQuickNav} aria-label="订单功能快速入口">
+        <a href="#b2c">自建商城订单与价格</a>
+        <a href="#external-orders">外部渠道订单</a>
+        <a href="#exceptions">异常与对账</a>
+        <a href="/admin/product">进入产品中心</a>
+      </nav>
       <StorefrontOrderDraftPanel />
 
       <OrderOperationsPanel />
 
-      <section className={styles.providerGrid}>
+      <section id="external-channels" className={styles.providerGrid}>
         <article className={styles.providerCard}>
           <div className={styles.providerHead}><span>SHOPIFY</span><strong>{shopifyChannels.length ? '已登记' : '未配置'}</strong></div>
           <h2>Shopify</h2>
-          <p>当前首个实际 Commerce Provider。Webhook 写入、规范化订单/履约事实与重放基础已经存在。</p>
+          <p>已保留的可选渠道适配基础；首期官网交易不依赖 Shopify，渠道登记不代表店铺已连接或正在销售。</p>
           <div className={styles.providerMeta}>{shopifyChannels.length} 个渠道 · Webhook adapter 已实现</div>
         </article>
         <article className={styles.providerCard}>
@@ -287,7 +293,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
         </form>
       </section>
 
-      <section className={styles.orderGrid}>
+      <section id="external-orders" className={styles.orderGrid}>
         <div className={styles.orderList}>
           {commerce.orders.map((item) => {
             const channel = channelFor(item.channel_id);
@@ -317,7 +323,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
         </div> : <div className={styles.detail}><p className={styles.empty}>{linkedOrderId ? '链接指定的订单不在当前已授权的订单数据中，请核对订单 ID 或刷新。' : '选择一个订单查看详情。'}</p></div>}
       </section>
 
-      <section className={styles.bottomGrid}>
+      <section id="exceptions" className={styles.bottomGrid}>
         <div className={styles.panel}>
           <div className={styles.sectionHead}><span>对账异常</span><h2>异常保留，不静默丢弃</h2></div>
           {openExceptions.map((item) => <article className={styles.exception} key={item.id}><div><b>{item.exception_type}</b><span>{item.channel_key} · {item.entity_type}</span><p>{item.message}</p></div><div className={styles.actions}><button onClick={() => void action(`/v1/commerce/exceptions/${item.id}/resolve`, { action: 'RESOLVED', resolution: { note: 'Reviewed in Commerce workspace' } })}>标记已解决</button><button className={styles.secondary} onClick={() => void action(`/v1/commerce/exceptions/${item.id}/resolve`, { action: 'IGNORED', resolution: { note: 'Explicitly ignored' } })}>忽略</button></div></article>)}
