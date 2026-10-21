@@ -159,8 +159,12 @@ try {
         await faq.locator('summary').click();
         assert.ok(await faq.evaluate(element=>element.open));
         const target=locale==='en'?'de':'en';
-        await product.locator('header details summary').click();
-        const languageLink=product.locator('header details a[hreflang="'+target+'"]');
+        if (device === 'desktop') {
+          await product.locator('header details[class*="switcher"] summary').click();
+        } else {
+          await product.locator('header > details summary').click();
+        }
+        const languageLink=product.locator('header a[hreflang="'+target+'"]:visible').first();
         assert.equal(await languageLink.getAttribute('href'),'/'+target+'/explore/fc2');
         await languageLink.click();
         await page.waitForURL('**/'+target+'/explore/fc2');
