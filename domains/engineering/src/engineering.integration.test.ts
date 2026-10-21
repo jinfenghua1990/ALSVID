@@ -80,3 +80,67 @@ test('Build Specification cannot be released against a draft BOM revision', { sk
     await db.close();
   }
 });
+
+
+test('Build Specification refuses a SKU and BOM revision from different models', { skip: !hasDatabase }, async () => {
+  const db = new Database();
+  const suffix = randomUUID().replaceAll('-', '').slice(0, 10).toUpperCase();
+  try {
+    const platform = await db.query<{ id: string }>("SELECT id FROM product.platforms WHERE code = 'FC'");
+    const first = await db.query<{ id: string }>(
+      "INSERT INTO product.models(platform_id,code,name) VALUES ($1,$2,'Model A') RETURNING id",
+      [platform.rows[0]!.id, `A${suffix}`],
+    );
+    const second = await db.query<{ id: string }>(
+      "INSERT INTO product.models(platform_id,code,name) VALUES ($1,$2,'Model B') RETURNING id",
+      [platform.rows[0]!.id, `B${suffix}`],
+    );
+    const variant = await db.query<{ id: string }>(
+      "INSERT INTO product.variants(model_id,code,name) VALUES ($1,'STANDARD','Standard') RETURNING id",
+      [first.rows[0]!.id],
+    );
+    const sku = await db.query<{ id: string }>(
+      "INSERT INTO product.skus(variant_id,sku,name) VALUES ($1,$2,'Model A SKU') RETURNING id",
+      [variant.rows[0]!.id, `S${suffix}`],
+    );
+    const correctBom = await db.query<{ id: string }>(
+      "INSERT INTO engineering.boms(model_id,code,name) VALUES ($1,$2,'Correct BOM') RETURNING id",
+      [first.rows[0]!.id, `C${suffix}`],
+    );
+    const otherBom = await db.query<{ id: string }>(
+      "INSERT INTO engineering.boms(model_id,code,name) VALUES ($1,$2,'Wrong BOM') RETURNING id",
+      [second.rows[0]!.id, `X${suffix}`],
+    );
+    const correctRevision = await db.query<{ id: string }>(
+      "INSERT INTO engineering.bom_revisions(bom_id,revision_code) VALUES ($1,'A') RETURNING id",
+      [correctBom.rows[0]!.id],
+    );
+    const wrongRevision = await db.query<{ id: string }>(
+      "INSERT INTO engineering.bom_revisions(bom_id,revision_code) VALUES ($1,'A') RETURNING id",
+      [otherBom.rows[0]!.id],
+    );
+
+    await assert.rejects(
+      db.query(
+        "INSERT INTO engineering.build_specs(code,sku_id,bom_revision_id) VALUES ($1,$2,$3)",
+        [`BAD${suffix}`, sku.rows[0]!.id, wrongRevision.rows[0]!.id],
+      ),
+      /same model/,
+    );
+
+    const valid = await db.query<{ id: string }>(
+      "INSERT INTO engineering.build_specs(code,sku_id,bom_revision_id) VALUES ($1,$2,$3) RETURNING id",
+      [`OK${suffix}`, sku.rows[0]!.id, correctRevision.rows[0]!.id],
+    );
+    assert.ok(valid.rows[0]!.id);
+    await assert.rejects(
+      db.query(
+        'UPDATE engineering.build_specs SET bom_revision_id=$2 WHERE id=$1',
+        [valid.rows[0]!.id, wrongRevision.rows[0]!.id],
+      ),
+      /same model/,
+    );
+  } finally {
+    await db.close();
+  }
+});
