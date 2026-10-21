@@ -31,6 +31,7 @@ test('home, catalog, dealer and FC1/FC2 share one multilingual header',async()=>
   '_components/product/fc1-story-v4.tsx',
   '_components/product/fc1-product.tsx',
   '_components/product/fc2-product.tsx',
+  '[locale]/explore/[slug]/page.tsx',
  ];
  for(const file of files){
   const source=await readFile(join(appRoot,file),'utf8');

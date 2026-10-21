@@ -57,7 +57,7 @@ try{
    }finally{await context.close();}
   }
   // Reuse and locale-check the identical public-site header across the entire WWW.
-  for(const route of ['/','/bikes','/accessories','/explore/fc1','/explore/fc2']) {
+  for(const route of ['/','/bikes','/accessories','/explore/fc1','/explore/fc2','/explore/about-story']) {
    for(const viewport of [{width:1440,height:900},{width:390,height:844}]) {
     const context=await browser.newContext({viewport,reducedMotion:'reduce'});
     try {
