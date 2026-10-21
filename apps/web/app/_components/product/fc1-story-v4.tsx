@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LanguageSwitcher } from "../language-switcher";
+import { PublicSiteHeader } from "../public-site-header";
 import { isLocale, locales, type Locale } from "../../_lib/i18n/routing";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { ProductGallery, FoldStatePreview, SpecificationFilters } from "./fc1-interactions";
@@ -52,16 +52,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
     <Fc1ScrollStory>
     <main className={styles.page} lang={locale} data-fc1-version="4">
       <div className={styles.reviewBanner}>{key("fc1.preview")}</div>
-      <header className={styles.header}>
-        <a className={styles.logo} href={`/${locale}/`}><img src="/home/alsvid-bike-motion.svg" alt="" width="74" height="42" /> <span>ALSVID</span></a>
-        <div className={styles.headerActions}>
-          <a href={`/${locale}/`}>{key("fc1.home")}</a>
-          <a href="#specifications">{key("fc1.specifications")}</a>
-          <a href="#faq">{key("fc1.questions")}</a>
-          <a className={styles.headerShop} href="#configure">{key("fc1.selection.cta_configure")} ↗</a>
-          <LanguageSwitcher locale={locale} label={key("fc1.language")} variant="globe" />
-        </div>
-      </header>
+      <PublicSiteHeader locale={locale} myUrl={myUrl} active="fc1" />
       <div className={styles.main}>
         <section id="overview" className={`${styles.hero} ${styles.interestHero}`} data-fc1-chapter>
           <Fc1ColourConfigurator locale={locale} />

@@ -1,4 +1,4 @@
-import { LanguageSwitcher } from "../language-switcher";
+import { PublicSiteHeader } from "../public-site-header";
 import { translator, type Locale, type TranslationKey } from "../../_lib/i18n";
 import { fc2Reference as data } from "../../_lib/products/fc2";
 import { Fc2Gallery } from "./fc2-gallery";
@@ -31,11 +31,7 @@ export function Fc2ProductPage({locale,dealerUrl,myUrl}:{locale:Locale;dealerUrl
     ]},
   ];
   return <main className={styles.page} lang={locale} data-fc2-product="1">
-    <header className={styles.header}>
-      <a className={styles.brand} href={`/${locale}/`}><img src="/home/alsvid-bike-motion.svg" width={60} height={36} alt="" /><span>{t("brand.name")}</span></a>
-      <nav aria-label={t("navigation.primary")}><a href={`/${locale}/`}>{t("fc2.home")}</a><a href={`/${locale}/explore/fc1`}>{t("fc2.fc1")}</a><a href={myUrl}>{t("navigation.owner_account")}</a></nav>
-      <LanguageSwitcher locale={locale} label={t("fc2.language")} variant="globe" />
-    </header>
+    <PublicSiteHeader locale={locale} myUrl={myUrl} active="fc2" />
     <section className={styles.hero} id="overview">
       <div className={styles.heroCopy}><p className={styles.eyebrow}>{t("fc2.series")}</p><h1><small>{t("brand.name")}</small>{t("fc2.model")}</h1><h2>{t("fc2.headline")}</h2><p>{t("fc2.intro")}</p><a className={styles.button} href="#availability">{t("fc2.availability")} <span aria-hidden="true">↗</span></a></div>
       <Fc2Gallery locale={locale} />
