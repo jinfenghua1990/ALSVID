@@ -1,3 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const from = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
+
 test('Admin password login uses a dedicated flag at every trust boundary', () => {
   const api = from('../../../api/src/auth.controller.ts');
   const proxy = from('../api/session/login/route.ts');
