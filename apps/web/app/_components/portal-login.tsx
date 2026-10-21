@@ -191,7 +191,7 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     </PortalLoginScene>
     {forgotOpen ? <div className={styles.resetOverlay} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeForgotPassword(); }}>
       <section className={styles.resetDialog} role="dialog" aria-modal="true" aria-labelledby="alsvid-reset-dialog-title">
-        <button type="button" className={styles.resetClose} aria-label={t('auth.reset_close')} disabled={resetBusy} onClick={closeForgotPassword}>×</button>
+        <button type="button" className={styles.resetClose} aria-label={t('auth.close')} disabled={resetBusy} onClick={closeForgotPassword}>×</button>
         <div className={styles.resetBrand}>ALSVID <span>ACCOUNT SECURITY</span></div>
         <h2 id="alsvid-reset-dialog-title">{t('auth.forgot')}</h2>
         <p className={styles.resetDescription}>{t('auth.reset_modal_description')}</p>
