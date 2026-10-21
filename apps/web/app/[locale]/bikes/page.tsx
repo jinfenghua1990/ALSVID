@@ -45,9 +45,16 @@ export default async function BikesPage({ params, searchParams }: Props) {
     { id: "fc1", name: t("product.model_fc1"), status: t("catalog.bikes.models.fc1"), image: "/home/original/fc1-product.webp", alt: t("images.product") },
     { id: "fc2", name: t("fc2.model"), status: t("catalog.bikes.models.fc2"), image: "/products/fc2/side-studio-1536.webp", alt: t("fc2.gallery.alt.side") },
   ];
+  const navLinks = [
+    { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
+    { id: "model-fc1", label: models[0].name, href: prefix + "/bikes?platform=fc#model-fc1" },
+    { id: "model-fc2", label: models[1].name, href: prefix + "/bikes?platform=fc#model-fc2" },
+    { id: "platforms", label: t("catalog.bikes.platforms.title"), href: prefix + "/bikes#platforms" },
+    { id: "accessories", label: t("catalog.product.tabs.accessories"), href: prefix + "/bikes#accessories" },
+  ];
   return <CatalogShell locale={locale} active="bikes">
     <main className={styles.page} lang={locale} data-bikes-catalog="1">
-      {(!active || active === "fc") && <BikesModelNavigator title={t("catalog.bikes.modelNav.title")} models={models.map(({ id, name }) => ({ id, name }))} />}
+      <BikesModelNavigator title={t("catalog.bikes.modelNav.title")} links={navLinks} />
       <section className={styles.hero} data-bikes-hero>
         <div className={styles.heroCopy}>
           <span className={styles.kicker}>{t("catalog.bikes.hero.kicker")}</span>
@@ -59,10 +66,6 @@ export default async function BikesPage({ params, searchParams }: Props) {
         <span className={styles.heroWatermark} aria-hidden="true">ALSVID</span>
       </section>
 
-      <nav className={styles.catalogTabs} aria-label={t("catalog.product.tabs.label")}>
-        <a href="#models">{t("catalog.product.tabs.bikes")}</a>
-        <a href="#accessories">{t("catalog.product.tabs.accessories")}</a>
-      </nav>
 
       <section className={styles.section} aria-labelledby="platforms-title" id="platforms">
         <div className={styles.sectionHeading}>
