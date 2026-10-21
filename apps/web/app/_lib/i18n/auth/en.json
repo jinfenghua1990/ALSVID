@@ -67,5 +67,21 @@
   "auth.pause": "Pause background",
   "auth.play": "Resume background",
   "auth.background": "Cool tones · slow transition",
-  "auth.rights": "© {year} ALSVID. All rights reserved."
+  "auth.rights": "© {year} ALSVID. All rights reserved.",
+  "auth.reset_modal_description": "Enter your account email. If it is registered, we'll send a one-time reset link.",
+  "auth.reset_send": "Send reset link",
+  "auth.reset_sending": "Sending…",
+  "auth.reset_sent": "If this email is registered, a reset link has been sent. Check your inbox and spam folder.",
+  "auth.reset_failed": "We couldn't send the reset email right now. Please try again.",
+  "auth.reset_service_failed": "Could not connect to the password service. Please try again.",
+  "auth.reset_close": "Close",
+  "auth.reset_title": "Set a new password",
+  "auth.reset_description": "Choose a new secure password. Saving it will end all existing sessions.",
+  "auth.reset_password_label": "New password",
+  "auth.reset_password_placeholder": "At least 8 characters",
+  "auth.reset_saving": "Saving…",
+  "auth.reset_submit": "Save new password",
+  "auth.reset_success": "Your password has been updated. Sign in with your new password.",
+  "auth.reset_invalid": "This reset link is invalid or expired. Request a new one.",
+  "auth.reset_back": "Back to sign in"
 }
