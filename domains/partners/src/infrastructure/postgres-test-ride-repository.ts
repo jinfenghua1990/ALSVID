@@ -9,7 +9,7 @@ type RideRow = {
 };
 type LocationRow = {
  id:string;display_name:string;country_code:'DE'|'AT';city:string;address:string;
- approved_for_publication:boolean;authorization_active:boolean;test_ride_authorized:boolean;
+ approved_for_publication:boolean;authorization_active:boolean;test_ride_authorized:boolean;partner_eligible:boolean;
 };
 const ride = (row:RideRow):TestRideRecord => ({
  id:row.id,name:row.name??'',email:row.email,country:row.country_code,city:row.city,
@@ -20,7 +20,7 @@ const ride = (row:RideRow):TestRideRecord => ({
 const location = (row:LocationRow):TestRideLocation => ({
  id:row.id,name:row.display_name,country:row.country_code,city:row.city,
  address:row.address,approved:row.approved_for_publication,active:row.authorization_active,
- testRideAuthorized:row.test_ride_authorized
+ testRideAuthorized:row.test_ride_authorized,partnerEligible:row.partner_eligible
 });
 
 /** All personal data lives in the protected Partners schema and never enters the public dealer directory. */
@@ -52,7 +52,11 @@ export class PostgresTestRideRepository implements TestRideRepository {
  async listLocations():Promise<TestRideLocation[]> {
   const r=await this.db.query<LocationRow>(
    `SELECT id,display_name,country_code,city,address,approved_for_publication,
-    authorization_active,test_ride_authorized FROM partners.public_locations
+    authorization_active,test_ride_authorized,
+    EXISTS(SELECT 1 FROM partners.partners p JOIN partners.roles role ON role.partner_id=p.id
+      WHERE p.id=partners.public_locations.partner_id AND p.status='ACTIVE'
+      AND role.role='DEALER' AND role.enabled=true) AS partner_eligible
+    FROM partners.public_locations
     ORDER BY country_code,lower(city),lower(display_name) LIMIT 250`);
   return r.rows.map(location);
  }
@@ -65,7 +69,11 @@ export class PostgresTestRideRepository implements TestRideRepository {
     const match=await tx.query<{id:string}>(
      `SELECT id FROM partners.public_locations WHERE id=$1 AND country_code=$2
       AND approved_for_publication=true AND authorization_active=true
-      AND test_ride_authorized=true FOR SHARE`,[locationId,record.rows[0].country_code]);
+      AND test_ride_authorized=true AND EXISTS (
+       SELECT 1 FROM partners.partners p JOIN partners.roles role ON role.partner_id=p.id
+       WHERE p.id=partners.public_locations.partner_id AND p.status='ACTIVE'
+       AND role.role='DEALER' AND role.enabled=true
+      ) FOR SHARE`,[locationId,record.rows[0].country_code]);
     if(!match.rows.length)return false;
    }
    const r=await tx.query(
@@ -77,7 +85,10 @@ export class PostgresTestRideRepository implements TestRideRepository {
  async authorizeLocation(id:string,enabled:boolean):Promise<boolean> {
   const r=await this.db.query(
    `UPDATE partners.public_locations SET test_ride_authorized=$2,updated_at=now()
-    WHERE id=$1 AND (NOT $2 OR (approved_for_publication=true AND authorization_active=true))
+    WHERE id=$1 AND (NOT $2 OR (approved_for_publication=true AND authorization_active=true
+      AND EXISTS(SELECT 1 FROM partners.partners p JOIN partners.roles role ON role.partner_id=p.id
+        WHERE p.id=partners.public_locations.partner_id AND p.status='ACTIVE'
+        AND role.role='DEALER' AND role.enabled=true)))
     RETURNING id`,[id,enabled]);
   return (r.rowCount??0)===1;
  }
