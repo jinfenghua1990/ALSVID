@@ -39,7 +39,7 @@
   "auth.code_placeholder": "请输入邮件中的验证码",
   "auth.remember": "记住邮箱",
   "auth.forgot": "忘记密码？",
-  "auth.apply": "申请经销商合作 ↗",
+  "auth.apply": "申请经销商合作",
   "auth.resend": "更换邮箱 / 重新获取",
   "auth.send_code": "发送验证码",
   "auth.verify": "验证并登录",

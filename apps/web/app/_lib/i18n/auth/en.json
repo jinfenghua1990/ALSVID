@@ -39,7 +39,7 @@
   "auth.code_placeholder": "Enter the code from your email",
   "auth.remember": "Remember email",
   "auth.forgot": "Forgot password?",
-  "auth.apply": "Become a dealer ↗",
+  "auth.apply": "Become a dealer",
   "auth.resend": "Change email / request again",
   "auth.send_code": "Send sign-in code",
   "auth.verify": "Verify and sign in",

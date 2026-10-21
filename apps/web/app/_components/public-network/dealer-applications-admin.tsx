@@ -45,7 +45,7 @@ export function DealerApplicationsAdmin({initial,available}:{initial:Application
        </select>
       </td>
       <td style={{padding:10,borderBottom:'1px solid #e3e7e4',maxWidth:290,overflowWrap:'anywhere'}}>
-       {row.message||'—'}{row.website&&<p><a href={row.website} target="_blank" rel="noopener noreferrer">公司网站 ↗</a></p>}
+       {row.message||'—'}{row.website&&<p><a href={row.website} target="_blank" rel="noopener noreferrer">公司网站</a></p>}
       </td>
      </tr>)}</tbody>
     </table>
