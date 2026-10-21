@@ -383,6 +383,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
+  const hasSecondaryNavigation = Boolean(screen.secondary?.length);
   const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
 
@@ -436,8 +437,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         </div>
       </header>
 
-      <div className="av-body">
-        {screen.secondary && screen.secondary.length > 0 ? (
+      <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}`}>
+        {hasSecondaryNavigation ? (
           <aside className="av-rail" aria-label="二级导航">
             {screen.secondary.map((group) => (
               <div className="av-railgroup" key={group.group}>
@@ -460,12 +461,10 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div>
           </aside>
-        ) : (
-          <div />
-        )}
+        ) : null}
 
         <main className="av-workspace">
-          {(screen.sourceNode || screen.id === 'workbench') && <p className="av-fixture-note">{screen.id === 'workbench' ? '工作台中“业务数据”区读取已有领域接口，其他未接入的任务与趋势仍显示空状态。' : isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {screen.id !== 'workbench' && screen.sourceNode && <p className="av-fixture-note">{isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
