@@ -41,7 +41,11 @@ export class AuthController {
   async login(@Body() body: { identifier?: string; email?: string; password?: string; portal?: string }) {
     const passwordLoginEnabled = body?.portal === 'admin'
       ? process.env.ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'
-      : process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true';
+      : body?.portal === 'dealer'
+        ? process.env.ALSVID_DEALER_PASSWORD_LOGIN_ENABLED === 'true'
+        : body?.portal === 'supplier'
+          ? process.env.ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED === 'true'
+          : false;
     if (!passwordLoginEnabled) throw new ForbiddenException('Password login is currently disabled for this portal. Use email verification.');
     const identifier = body?.identifier ?? body?.email;
     if (!identifier || !body.password) throw new UnauthorizedException('Account identifier and password are required');
@@ -55,10 +59,17 @@ export class AuthController {
 
   @Public()
   @Post('password-reset/request')
-  async requestPasswordReset(@Body() body: { email?: string }) {
+  async requestPasswordReset(@Body() body: { email?: string; portal?: string; locale?: string }) {
     if (!body?.email?.trim()) throw new UnauthorizedException('Email is required');
+    const portal = ['admin', 'dealer', 'supplier', 'my'].includes(body.portal ?? '') ? body.portal! : 'admin';
+    const locale = ['zh', 'de', 'en'].includes(body.locale ?? '') ? body.locale! : 'zh';
     try {
-      await identityService.requestPasswordReset(body.email, process.env.AUTH_BASE_URL ?? 'http://localhost:3000');
+      await identityService.requestPasswordReset(
+        body.email,
+        process.env.AUTH_BASE_URL ?? 'http://localhost:3000',
+        portal,
+        locale,
+      );
     } catch (error) {
       if (error instanceof IdentityValidationError) throw error;
       throw new ServiceUnavailableException('Password reset email is temporarily unavailable');
