@@ -35,9 +35,10 @@ try {
           : root.locator('header > nav').first();
         if (isMobile) await headerNav.locator('summary').click();
         const navLinks = isMobile
-          ? headerNav.locator(':scope > nav > a')
+          ? headerNav.locator(':scope > nav > a:not([data-site-cart])')
           : headerNav.locator(':scope > a');
         assert.equal(await navLinks.count(), 6, 'Approved product/dealer/owner/story navigation exists');
+        assert.equal(await root.locator('header [data-site-cart]').count(),2,'Desktop and mobile shopping-bag entries coexist');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
         assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
