@@ -37,3 +37,8 @@
 }
 @media(max-width:370px){.brandBike{width:40px}.brandLine{font-size:17px}.dealerLogin{padding:7px 8px}}
 @media(prefers-reduced-motion:reduce){.logo:hover .brandBike{transform:none}.brandBike,.navLink,.dealerLogin{transition:none}}
+
+/* Partnership application is the one additional contextual action. */
+.dealerApply{font-size:12px;font-weight:650;color:#f3f5f2;white-space:nowrap;text-underline-offset:5px}
+.dealerApply:hover{text-decoration:underline}
+@media(max-width:760px){.dealerApply{display:none}}

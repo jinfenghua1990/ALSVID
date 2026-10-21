@@ -46,11 +46,15 @@ export function PublicSiteHeader({
     </a>
     <nav className={styles.desktopNav} aria-label={t('navigation.primary')}>{menu(false)}</nav>
     <div className={styles.actions}>
+      {dealerLogin && <a className={styles.dealerApply} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
       {dealerLogin && <a className={styles.dealerLogin} href="https://dealer.alsvidbike.com">{t('network.nav.account')}</a>}
       <LanguageSwitcher locale={locale} label={t('language.label')} variant="globe" />
       <details className={styles.mobileMenu}>
         <summary aria-label={t('navigation.mobile_menu')} title={t('navigation.mobile_menu')}>☰</summary>
-        <nav aria-label={t('navigation.primary')}>{menu(true)}</nav>
+        <nav aria-label={t('navigation.primary')}>
+          {dealerLogin && <a className={styles.mobileLink} href={prefix + '/dealers#apply'}>{t('network.nav.apply')}</a>}
+          {menu(true)}
+        </nav>
       </details>
     </div>
     <nav className={styles.mobileModels} aria-label={t('navigation.products')}>

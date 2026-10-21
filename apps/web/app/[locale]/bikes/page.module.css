@@ -51,3 +51,11 @@
 @media(max-width:1000px){.platformGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.platformCard{aspect-ratio:4/3}.hero{min-height:510px}.heroCopy{padding:60px 0 70px 5vw}.heroImage{max-height:500px}}
 @media(max-width:700px){.hero{display:flex;flex-direction:column;min-height:0}.heroCopy{align-self:stretch;padding:56px 24px 18px}.hero h1{font-size:48px}.heroCopy>p{font-size:15px}.heroImage{width:100%;height:auto;max-height:360px}.heroWatermark{bottom:0;left:12%;font-size:105px}.section{padding:69px 20px}.sectionHeading{display:block}.sectionHeading>p{margin-top:16px}.platformGrid{gap:10px}.platformCard{aspect-ratio:3/4}.platformText{bottom:18px;left:14px}.platformText h3{font-size:19px}.platformText small{font-size:10px}.modelGrid{grid-template-columns:1fr}.modelImageLink img{height:270px}.modelInfo{padding:20px;align-items:center}.modelInfo h3{font-size:30px}.modelInfo a{font-size:12px}.guide{display:block;padding:65px 22px}.guideTable{margin-top:34px}.guideTable>div,.guideTable>a{padding:17px 2px;font-size:12px}.guideTable{overflow-wrap:anywhere}}
 @media(prefers-reduced-motion:reduce){.heroButton,.platformCard>img,.modelImageLink img{transition:none}}
+
+/* Shared WWW CTA language, as in the homepage and Dealer partnership page. */
+.heroButton{border-radius:4px;position:relative;isolation:isolate;overflow:hidden;transition:color .35s,border-color .35s}
+.heroButton::before{content:"";position:absolute;inset:0;background:#acd132;transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.22,.61,.36,1);z-index:-1}
+.heroButton:hover{background:transparent;border-color:#acd132;color:#15201a}
+.heroButton:hover::before,.heroButton:focus-visible::before{transform:scaleX(1)}
+.platformCard,.modelCard{border-radius:12px}
+@media(prefers-reduced-motion:reduce){.heroButton,.heroButton::before{transition:none}}
