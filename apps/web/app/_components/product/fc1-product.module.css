@@ -331,3 +331,12 @@
 .interestReservationButton:focus-visible { outline:2px solid #6e9e8d; outline-offset:3px; }
 .interestReservationPending { margin:0; color:#788b94; font-size:11px; line-height:1.65; }
 @media(prefers-reduced-motion:reduce) { .interestReservationButton { transition:none; } }
+
+.cartPurchaseActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0 19px}
+.cartAddButton,.cartBuyButton{display:inline-flex;align-items:center;justify-content:center;min-height:47px;border-radius:4px;padding:11px 10px;font-size:12px;font-weight:650;line-height:1.5;cursor:pointer;font-family:inherit}
+.cartAddButton{color:#fff;background:#1b3527;border:1px solid #1b3527}
+.cartAddButton:hover{border-color:#acd132;background:#2a4a32}
+.cartBuyButton{background:#e1e6e0;color:#819084;border:1px solid #e1e6e0;cursor:not-allowed}
+.cartPurchaseNote{grid-column:1/-1;margin:0;color:#6c7c72;font-size:11px;line-height:1.65}
+.cartPurchaseNote a{color:#27593d;text-decoration:underline;font-weight:700}
+@media(max-width:360px){.cartPurchaseActions{grid-template-columns:1fr}}

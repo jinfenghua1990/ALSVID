@@ -1,11 +1,11 @@
-import { notFound, redirect } from "next/navigation";
-import { isLocale } from "../../_lib/i18n/routing";
-
-type Props = { params: Promise<{ locale: string }> };
-
-/** Online checkout is intentionally unavailable while FC1 is promotional/email-reservation only. */
-export default async function CheckoutRedirect({ params }: Props): Promise<never> {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
-  redirect(`/${locale}/explore/fc1#configure`);
+import {notFound} from "next/navigation";
+import {isLocale} from "../../_lib/i18n/routing";
+import {CatalogShell} from "../../_components/catalog/catalog-shell";
+import {StorefrontCartPanel} from "../../_components/commerce/storefront-cart-panel";
+type Props={params:Promise<{locale:string}>};
+/** Non-transactional checkout review: no order, inventory, PSP or card collection. */
+export default async function CheckoutPage({params}:Props){
+ const {locale}=await params;
+ if(!isLocale(locale))notFound();
+ return <CatalogShell locale={locale} active="bikes"><StorefrontCartPanel locale={locale} mode="checkout" /></CatalogShell>;
 }

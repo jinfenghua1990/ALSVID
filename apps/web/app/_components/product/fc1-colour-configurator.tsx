@@ -5,6 +5,7 @@ import { translator, type Locale } from "../../_lib/i18n";
 import { fc1Photos } from "./fc1-photos";
 import styles from "./fc1-product.module.css";
 import { Fc1ThreeDViewer } from "./fc1-three-d-viewer";
+import {addCartLine} from "../../_lib/commerce/storefront-cart";
 
 type ColourId = "sample" | "black" | "blue" | "silver";
 type ModelId = "standard" | "pro";
@@ -176,6 +177,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const [visualMode, setVisualMode] = useState<"photo" | "3d">("photo");
   const [email, setEmail] = useState("");
   const [reservationState, setReservationState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const [cartStatus,setCartStatus]=useState<"idle"|"added"|"failed">("idle");
 
   const onModelFailure = useCallback(() => {
     setVisualMode("photo");
@@ -204,9 +206,10 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const submitReservation = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setReservationState("sending"); try { const response = await fetch("/api/public/fc1-reservation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, model: modelLabel, colour: colourLabel, locale }) }); if (!response.ok) throw new Error("send failed"); setReservationState("sent"); } catch { setReservationState("failed"); } };
 
   // Preview choices are local UI state. Only sending an email expresses reservation interest.
-  const chooseColour = (next: ColourId) => setColour(next);
+  const chooseColour = (next: ColourId) => {setColour(next);setCartStatus("idle");};
   const chooseModel = (next: ModelId) => {
     setModel(next);
+    setCartStatus("idle");
     setExpandedModel(previous => previous === next ? null : next);
   };
   return <div id="configure" className={styles.interestConfigurator}>
@@ -271,6 +274,18 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
       </fieldset>
       <div className={styles.interestSummary}>
         <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
+        <div className={styles.cartPurchaseActions} data-product-purchase="fc1">
+          <button type="button" className={styles.cartAddButton}
+            onClick={()=>setCartStatus(addCartLine({product:"FC1",model,colour,quantity:1})?"added":"failed")}>
+            {t("catalog.cart.add")}
+          </button>
+          <button type="button" className={styles.cartBuyButton} disabled
+            title={t("catalog.cart.checkoutUnavailable")}>{t("catalog.cart.buyNow")}</button>
+          <p role="status" className={styles.cartPurchaseNote}>
+            {cartStatus==="added"?<>{t("catalog.cart.added")} <a href={"/"+locale+"/cart"}>{t("catalog.cart.view")}</a></>:
+             cartStatus==="failed"?t("catalog.cart.storageError"):t("catalog.cart.previewNotice")}
+          </p>
+        </div>
         <form className={styles.interestReservationActions} onSubmit={submitReservation}><label htmlFor="fc1-reservation-email">{t("fc1.reservation.cta")}</label><input id="fc1-reservation-email" type="email" required autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} placeholder="you@example.com" disabled={!reservationEmailConfigured} /><button className={styles.interestReservationButton} type={reservationEmailConfigured ? "submit" : "button"} disabled={!reservationEmailConfigured || reservationState === "sending"}>{reservationState === "sent" ? "✓" : reservationState === "sending" ? "…" : t("fc1.reservation.cta")}</button><p className={styles.interestReservationPending} role="status">{reservationState === "sent" ? t("fc1.reservation.sent") : reservationState === "failed" ? t("fc1.reservation.failed") : reservationEmailConfigured ? t("fc1.reservation.note") : t("fc1.reservation.pending")}</p></form>
         <p>{copy.fineprint}</p>
         <p className={styles.interestDelivery}>{copy.delivery}</p>
