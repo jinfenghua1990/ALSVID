@@ -11,7 +11,7 @@ export interface TestRideRecord extends TestRideInput {
 }
 export interface TestRideLocation {
  id:string; name:string; country:'DE'|'AT';city:string;address:string;
- approved:boolean;active:boolean;testRideAuthorized:boolean;
+ approved:boolean;active:boolean;testRideAuthorized:boolean;partnerEligible:boolean;
 }
 export interface TestRideRepository {
  submit(input:TestRideInput):Promise<{id:string;created:boolean}>;
