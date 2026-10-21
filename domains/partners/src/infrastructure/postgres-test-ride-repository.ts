@@ -32,8 +32,9 @@ export class PostgresTestRideRepository implements TestRideRepository {
    const found=await tx.query<{id:string}>(
     `SELECT id FROM partners.test_ride_enquiries
      WHERE lower(email)=$1 AND country_code=$2 AND lower(city)=lower($3)
+     AND model=$4 AND colour=$5
      AND created_at>now()-interval '24 hours'
-     ORDER BY created_at DESC LIMIT 1`,[input.email,input.country,input.city]);
+     ORDER BY created_at DESC LIMIT 1`,[input.email,input.country,input.city,input.model,input.colour]);
    if(found.rows[0])return {id:found.rows[0].id,created:false};
    const inserted=await tx.query<{id:string}>(
     `INSERT INTO partners.test_ride_enquiries(name,email,country_code,city,model,colour,locale)
@@ -63,7 +64,7 @@ export class PostgresTestRideRepository implements TestRideRepository {
  async change(id:string,status:TestRideStatus,locationId:string|null):Promise<boolean> {
   return this.db.transaction(async tx=>{
    const record=await tx.query<{country_code:string}>(
-    'SELECT country_code FROM partners.test_ride_enquiries WHERE id=$1 FOR UPDATE',[id]);
+    'SELECT country_code FROM partners.test_ride_enquiries WHERE id=$1',[id]);
    if(!record.rows[0])return false;
    if(locationId){
     const match=await tx.query<{id:string}>(
@@ -83,14 +84,26 @@ export class PostgresTestRideRepository implements TestRideRepository {
   });
  }
  async authorizeLocation(id:string,enabled:boolean):Promise<boolean> {
-  const r=await this.db.query(
-   `UPDATE partners.public_locations SET test_ride_authorized=$2,updated_at=now()
-    WHERE id=$1 AND (NOT $2 OR (approved_for_publication=true AND authorization_active=true
-      AND EXISTS(SELECT 1 FROM partners.partners p JOIN partners.roles role ON role.partner_id=p.id
-        WHERE p.id=partners.public_locations.partner_id AND p.status='ACTIVE'
-        AND role.role='DEALER' AND role.enabled=true)))
-    RETURNING id`,[id,enabled]);
-  return (r.rowCount??0)===1;
+  return this.db.transaction(async tx=>{
+   // Lock the location first, consistent with assignment's SELECT ... FOR SHARE.
+   // Both changes happen atomically so a disabled location cannot retain open leads.
+   const r=await tx.query(
+    `UPDATE partners.public_locations SET test_ride_authorized=$2,updated_at=now()
+     WHERE id=$1 AND (NOT $2 OR (approved_for_publication=true AND authorization_active=true
+       AND EXISTS(SELECT 1 FROM partners.partners p JOIN partners.roles role ON role.partner_id=p.id
+         WHERE p.id=partners.public_locations.partner_id AND p.status='ACTIVE'
+         AND role.role='DEALER' AND role.enabled=true)))
+     RETURNING id`,[id,enabled]);
+   if((r.rowCount??0)!==1)return false;
+   if(!enabled){
+    // Keep CLOSED records as historical evidence; remove active lead assignments.
+    await tx.query(
+     `UPDATE partners.test_ride_enquiries
+      SET assigned_location_id=NULL,updated_at=now()
+      WHERE assigned_location_id=$1 AND status IN ('NEW','REVIEWING','CONTACTED')`,[id]);
+   }
+   return true;
+  });
  }
  async notification(id:string,state:'SENT'|'FAILED'|'UNCONFIGURED'):Promise<void> {
   await this.db.query('UPDATE partners.test_ride_enquiries SET notification_state=$2 WHERE id=$1',[id,state]);

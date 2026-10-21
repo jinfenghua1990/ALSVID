@@ -52,6 +52,7 @@ export function TestRideAdmin({
    });
    if(!response.ok)throw Error("Location update rejected");
    setLocations(current=>current.map(item=>item.id===id?{...item,testRideAuthorized:enabled}:item));
+   if(!enabled)setRequests(current=>current.map(item=>item.assignedLocationId===id && item.status!=="CLOSED"?{...item,assignedLocationId:null}:item));
   }catch{setError("网点状态没有保存。请确认该网点已获得正式授权并允许公开展示。");}
   finally{setBusy(null);}
  }
@@ -62,7 +63,7 @@ export function TestRideAdmin({
     <p className={styles.lead}>官网 FC1 试骑意向 · 仅登记与人工分配，不自动确认试骑日期或预约。</p></div>
    <a className={styles.back} href="/admin/dealers">返回经销商中心</a>
   </div>
-  <div className={styles.metrics} aria-label="试骑申请状态统计">
+  <div className={styles.metrics} aria-label="最近200条试骑申请状态统计">
    {(["NEW","REVIEWING","CONTACTED","CLOSED"] as const).map(key=><div key={key} className={styles.metric}>
     <span>{statusNames[key]}</span><strong>{requestsAvailable?count(key):"—"}</strong>
    </div>)}

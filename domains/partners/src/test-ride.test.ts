@@ -29,6 +29,7 @@ test('stores a new test-ride request, with a transaction and a bounded city',asy
  assert.deepEqual(response,{id:'test-id',created:true});
  assert.ok(h.calls.some(call=>call.sql.includes('INSERT INTO partners.test_ride_enquiries')));
  assert.ok(h.calls.some(call=>call.sql.includes('created_at>now()')));
+ assert.ok(h.calls.some(call=>call.sql.includes('AND model=$4 AND colour=$5')));
  assert.ok(h.calls.some(call=>call.sql.includes('pg_advisory_xact_lock')));
 });
 
@@ -60,4 +61,31 @@ test('enabling a trial location requires an eligible, published dealer',async()=
  assert.match(sql,/role.role='DEALER'/);
  assert.match(sql,/role.enabled=true/);
  assert.deepEqual(h.calls[0]!.args,['location-id',true]);
+});
+
+test('a changed model or colour is not silently treated as an identical enquiry',async()=>{
+ const h=harness([result(),result(),result([{id:'second-enquiry'}])]);
+ const changed={...sample,model:'FC1 Pro',colour:'Blue'};
+ assert.deepEqual(await h.repository.submit(changed),{id:'second-enquiry',created:true});
+ const lookup=h.calls.find(call=>call.sql.includes('SELECT id FROM partners.test_ride_enquiries'));
+ assert.ok(lookup);
+ assert.deepEqual(lookup.args,[sample.email,sample.country,sample.city,'FC1 Pro','Blue']);
+ assert.match(lookup.sql,/AND model=\$4 AND colour=\$5/);
+});
+
+test('disabling an authorized trial location atomically unassigns only open requests',async()=>{
+ const h=harness([result([{id:'location-id'}]),result()]);
+ assert.equal(await h.repository.authorizeLocation('location-id',false),true);
+ const update=h.calls.find(call=>call.sql.includes('UPDATE partners.test_ride_enquiries'));
+ assert.ok(update);
+ assert.deepEqual(update.args,['location-id']);
+ assert.match(update.sql,/assigned_location_id=NULL/);
+ assert.match(update.sql,/status IN \('NEW','REVIEWING','CONTACTED'\)/);
+ assert.doesNotMatch(update.sql,/'CLOSED'/);
+});
+
+test('a failed location update never unassigns leads',async()=>{
+ const h=harness([result()]);
+ assert.equal(await h.repository.authorizeLocation('location-id',false),false);
+ assert.equal(h.calls.length,1);
 });
