@@ -13,7 +13,7 @@ import { DealerPartnershipController } from './dealer-partnership.controller.js'
 import { EngineeringController } from './engineering.controller.js';
 import { FinanceController } from './finance.controller.js';
 import { Fc1ReservationController } from './fc1-reservation.controller.js';
-import { TestRideAdminController } from './test-ride-admin.controller.js';
+import { TestRideAdminController } from './fc1-trial-lead-admin.controller.js';
 import { HealthController } from './health.controller.js';
 import { IntegrationsController } from './integrations.controller.js';
 import { InventoryController } from './inventory.controller.js';
