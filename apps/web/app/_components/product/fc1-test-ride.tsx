@@ -29,7 +29,7 @@ export function Fc1TestRide({
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!configured || status === "sending") return;
+    if (status === "sending") return;
     setStatus("sending");
     try {
       const response = await fetch("/api/public/fc1-reservation", {
@@ -114,11 +114,11 @@ export function Fc1TestRide({
               </label>
               <p className={styles.privacy}>{t("fc1.test_ride.privacy")}</p>
               <p className={styles.availability}>{t("fc1.test_ride.availability")}</p>
-              <button className={styles.submit} type="submit" disabled={!configured || status === "sending"}>
+              <button className={styles.submit} type="submit" disabled={status === "sending"}>
                 {status === "sending" ? t("fc1.test_ride.sending") : t("fc1.test_ride.submit")}
               </button>
               <p role="status" className={status === "failed" ? styles.error : styles.status}>
-                {status === "failed" ? t("fc1.test_ride.failed") : !configured ? t("fc1.test_ride.pending") : t("fc1.test_ride.no_booking")}
+                {status === "failed" ? t("fc1.test_ride.failed") : t("fc1.test_ride.no_booking")}
               </p>
             </form>
           )}
