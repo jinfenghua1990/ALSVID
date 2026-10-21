@@ -83,13 +83,15 @@ try {
         await bicycles.waitForFunction(() => location.hash === '#model-fc2');
         await bicycles.waitForFunction(() =>
           document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc2"]')?.getAttribute('aria-current') === 'location');
-        assert.ok(await bicycles.locator('#model-fc2').evaluate(node => node.getBoundingClientRect().top >= 110),
-          'Sticky navigation does not obscure the FC2 title');
-        assert.ok(await bicycles.evaluate(() => {
+        await bicycles.waitForFunction(() => {
           const header = document.querySelector('header[data-public-site-header]')?.getBoundingClientRect();
           const nav = document.querySelector('nav[data-bikes-model-nav]')?.getBoundingClientRect();
-          return Boolean(header && nav && Math.abs(nav.top - header.bottom) < 2);
-        }), 'Sticky product navigation remains directly under the global header');
+          const target = document.querySelector('#model-fc2')?.getBoundingClientRect();
+          return Boolean(header && nav && target &&
+            Math.abs(header.top) < 1 &&
+            Math.abs(nav.top - header.bottom) < 2 &&
+            target.top >= 110 && target.top <= 165);
+        }, { timeout: 8000 });
         assert.ok(await bicycles.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
           'Sticky product navigation fits the viewport');
         await bicycles.screenshot({ path: output + '/bikes-nav-' + locale + '-' + device + '.png' });
