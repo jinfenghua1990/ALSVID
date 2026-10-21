@@ -78,7 +78,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     return payload.data;
   }
 
-  async function reload() {
+  async function reload(): Promise<boolean> {
     setLoading(true);
     setCatalogError('');
     setEngineeringError('');
@@ -99,6 +99,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       setEngineeringError(engineeringResult.reason instanceof Error ? engineeringResult.reason.message : '请求异常');
     }
     setLoading(false);
+    return catalogResult.status === 'fulfilled' && engineeringResult.status === 'fulfilled';
   }
 
   useEffect(() => { void reload(); }, []);
@@ -129,8 +130,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(body(form)) });
       event.currentTarget.reset();
-      setMessage('已保存。');
-      await reload();
+      const verified = await reload();
+      setMessage(verified ? '已保存，列表已重新核对。' : '写入请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败');
     }
@@ -139,8 +140,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   async function release(endpoint: string) {
     try {
       await api(endpoint, { method: 'POST', body: '{}' });
-      setMessage('已发布。该工程版本进入不可静默修改状态。');
-      await reload();
+      const verified = await reload();
+      setMessage(verified ? '工程发布成功，已重新核对版本。' : '发布请求成功，但列表刷新失败；请先核对版本，不要重复发布。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '发布失败');
     }
@@ -164,8 +165,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         }),
       });
       setEdit(null);
-      setMessage('产品信息已更新。');
-      await reload();
+      const verified = await reload();
+      setMessage(verified ? '产品信息已更新，列表已重新核对。' : '更新请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '更新失败');
     }
