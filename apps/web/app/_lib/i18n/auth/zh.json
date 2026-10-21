@@ -67,5 +67,21 @@
   "auth.pause": "暂停背景流转",
   "auth.play": "继续背景流转",
   "auth.background": "冷色渐变 · 自动流转",
-  "auth.rights": "© {year} ALSVID. 保留所有权利。"
+  "auth.rights": "© {year} ALSVID. 保留所有权利。",
+  "auth.reset_modal_description": "输入注册邮箱。如果邮箱已注册，我们会发送一次性重置链接。",
+  "auth.reset_send": "发送重置链接",
+  "auth.reset_sending": "正在发送…",
+  "auth.reset_sent": "如果该邮箱已注册，重置链接已发送。请检查收件箱和垃圾邮件。",
+  "auth.reset_failed": "暂时无法发送重置邮件，请稍后重试。",
+  "auth.reset_service_failed": "无法连接密码服务，请稍后重试。",
+  "auth.reset_close": "关闭",
+  "auth.reset_title": "设置新密码",
+  "auth.reset_description": "设置一个新的安全密码。保存后，所有现有登录会话都会失效。",
+  "auth.reset_password_label": "新密码",
+  "auth.reset_password_placeholder": "至少 8 个字符",
+  "auth.reset_saving": "正在保存…",
+  "auth.reset_submit": "保存新密码",
+  "auth.reset_success": "密码已更新，请使用新密码登录。",
+  "auth.reset_invalid": "重置链接无效或已过期，请重新申请。",
+  "auth.reset_back": "返回登录"
 }

@@ -27,6 +27,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
   if (hostPortal === 'www') redirect('/');
 
   const redirectTo = safeReturnTo(firstValue(params.returnTo), portal);
+  const forgotPasswordRequested = firstValue(params.forgot) === '1';
   const session = await readPortalSession(portal);
   const portalAuthenticated = Boolean(session && canAccessPortal(portal, session));
   if (portalAuthenticated && !session?.passwordSetupRequired) redirect(redirectTo);
@@ -42,7 +43,12 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
       passwordSetupRequired={Boolean(session?.passwordSetupRequired)}
       passwordLoginEnabled={portal === 'admin'
         ? process.env.ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'
-        : process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true'}
+        : portal === 'dealer'
+          ? process.env.ALSVID_DEALER_PASSWORD_LOGIN_ENABLED === 'true'
+          : portal === 'supplier'
+            ? process.env.ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED === 'true'
+            : false}
+      forgotPasswordRequested={forgotPasswordRequested}
       redirectTo={redirectTo}
     />
   );

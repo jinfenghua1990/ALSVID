@@ -236,7 +236,7 @@ export class IdentityService {
     });
   }
 
-  async requestPasswordReset(email: string, resetUrlBase: string): Promise<void> {
+  async requestPasswordReset(email: string, resetUrlBase: string, portal?: string, locale?: string): Promise<void> {
     if (!this.passwordResetDelivery.configured) throw new IdentityMailUnavailableError();
     const normalizedEmail = normalizeEmail(email);
     const allowed = await this.repository.consumeAuthRateLimit(this.tokens.hash(`password-reset:${normalizedEmail}`), 60 * 60 * 1000, 3);
@@ -251,9 +251,12 @@ export class IdentityService {
       await this.audit.record({ action: 'identity.password_reset_requested', targetType: 'user', targetId: user.userId }, executor);
     });
 
-    const resetUrl = `${resetUrlBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+    const resetUrl = new URL('/reset-password', resetUrlBase);
+    resetUrl.searchParams.set('token', token);
+    if (['admin', 'dealer', 'supplier', 'my'].includes(portal ?? '')) resetUrl.searchParams.set('portal', portal!);
+    if (['zh', 'de', 'en'].includes(locale ?? '')) resetUrl.searchParams.set('locale', locale!);
     try {
-      await this.passwordResetDelivery.sendResetEmail({ email: user.email, displayName: user.displayName, resetUrl, expiresAt });
+      await this.passwordResetDelivery.sendResetEmail({ email: user.email, displayName: user.displayName, resetUrl: resetUrl.toString(), expiresAt });
     } catch {
       throw new IdentityMailUnavailableError();
     }

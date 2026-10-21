@@ -9,7 +9,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   try { portal = JSON.parse(body).portal; } catch { /* Forward malformed JSON to the API for validation. */ }
   const passwordLoginEnabled = portal === 'admin'
     ? process.env.ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED === 'true'
-    : process.env.ALSVID_PASSWORD_LOGIN_ENABLED === 'true';
+    : portal === 'dealer'
+      ? process.env.ALSVID_DEALER_PASSWORD_LOGIN_ENABLED === 'true'
+      : portal === 'supplier'
+        ? process.env.ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED === 'true'
+        : false;
   if (!passwordLoginEnabled) {
     return NextResponse.json({ message: '账户密码登录暂未启用，请使用邮箱验证码。' }, { status: 403 });
   }
