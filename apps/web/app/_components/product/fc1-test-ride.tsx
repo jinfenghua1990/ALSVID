@@ -23,9 +23,6 @@ export function Fc1TestRide({
   const [city, setCity] = useState("");
   const [country, setCountry] = useState<"DE" | "AT">("DE");
   const [status, setStatus] = useState<RequestState>("idle");
-  const configured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-    process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "",
-  );
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
