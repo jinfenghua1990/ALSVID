@@ -10,11 +10,14 @@ import fc2En from './fc2/en.json';
 import authZh from './auth/zh.json';
 import authDe from './auth/de.json';
 import authEn from './auth/en.json';
+import networkZh from './public-network/zh.json';
+import networkDe from './public-network/de.json';
+import networkEn from './public-network/en.json';
 import type { Locale } from './routing';
 export type { Locale } from './routing';
-const zhCatalog = { ...zh, ...fc1Zh, ...fc2Zh, ...authZh };
-const deCatalog = { ...de, ...fc1De, ...fc2De, ...authDe };
-const enCatalog = { ...en, ...fc1En, ...fc2En, ...authEn };
+const zhCatalog = { ...zh, ...fc1Zh, ...fc2Zh, ...authZh, ...networkZh };
+const deCatalog = { ...de, ...fc1De, ...fc2De, ...authDe, ...networkDe };
+const enCatalog = { ...en, ...fc1En, ...fc2En, ...authEn, ...networkEn };
 export type TranslationKey = keyof typeof enCatalog;
 const catalogs: Record<Locale, Record<TranslationKey, string>> = {
   zh: zhCatalog,
