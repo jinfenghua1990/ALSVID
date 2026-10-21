@@ -32,21 +32,32 @@ export function StorefrontCartPanel({locale,mode}:{locale:Locale;mode:"cart"|"ch
       <p>{t("catalog.cart.empty")}</p><a href={"/"+locale+"/bikes"}>{t("catalog.cart.continue")}</a>
     </div>:<div className={styles.layout}>
       <div className={styles.lines}>
-       {cart.items.map(item=><article key={lineKey(item)} className={styles.line}>
-        <a href={"/"+locale+"/explore/fc1#configure"} className={styles.productImage}><img src="/home/original/fc1-product.webp" width={360} height={240} alt="ALSVID FC1" /></a>
-        <div className={styles.lineCopy}>
-         <h2>ALSVID FC1 {item.model==="standard"?"Standard":"Pro"}</h2>
-         <p>{t(colorKeys[item.colour]!)}</p>
-         <p className={styles.pending}>{t("catalog.cart.notForSale")}</p>
-         {mode==="cart"?<div className={styles.controls}>
-          <label>{t("catalog.cart.quantity")}</label>
-          <button type="button" aria-label={t("fc1.cart.decrease")} disabled={item.quantity<=1} onClick={()=>mutate(()=>setCartLineQuantity(lineKey(item),item.quantity-1))}>−</button>
-          <strong aria-live="polite">{item.quantity}</strong>
-          <button type="button" aria-label={t("fc1.cart.increase")} disabled={item.quantity>=9} onClick={()=>mutate(()=>setCartLineQuantity(lineKey(item),item.quantity+1))}>+</button>
-          <button type="button" className={styles.remove} onClick={()=>mutate(()=>removeCartLine(lineKey(item)))}>{t("catalog.cart.remove")}</button>
-         </div>:<p className={styles.reviewQty}>{t("catalog.cart.quantity")} × {item.quantity}</p>}
-        </div>
-       </article>)}
+       {cart.items.map(item=>{
+        const title=item.product==="FC1"?"ALSVID FC1 "+(item.model==="standard"?"Standard":"Pro"):
+          item.product==="FC2"?"ALSVID FC2":t(("accessories."+item.category+".title") as TranslationKey);
+        const detail=item.product==="FC1"?"/"+locale+"/explore/fc1#configure":
+          item.product==="FC2"?"/"+locale+"/explore/fc2#availability":
+          "/"+locale+"/explore/accessory-"+item.category;
+        return <article key={lineKey(item)} className={styles.line} data-cart-product={item.product}>
+         <a href={detail} className={styles.productImage} aria-label={title}>
+          {item.product==="ACCESSORY"?
+            <span className={styles.categoryImage} aria-hidden="true"><strong>ALSVID</strong><small>{t("catalog.product.tabs.accessories")}</small></span>:
+            <img src={item.product==="FC1"?"/home/original/fc1-product.webp":"/products/fc2/side-studio-768.webp"} width={360} height={240} alt={title}/>}
+         </a>
+         <div className={styles.lineCopy}>
+          <h2><a href={detail}>{title}</a></h2>
+          {item.product==="FC1"?<p>{t(colorKeys[item.colour]!)}</p>:<p>{t("catalog.cart.selectionConcept")}</p>}
+          <p className={styles.pending}>{t("catalog.cart.notForSale")}</p>
+          {mode==="cart"?<div className={styles.controls}>
+           <label>{t("catalog.cart.quantity")}</label>
+           <button type="button" aria-label={t("fc1.cart.decrease")} disabled={item.quantity<=1} onClick={()=>mutate(()=>setCartLineQuantity(lineKey(item),item.quantity-1))}>−</button>
+           <strong aria-live="polite">{item.quantity}</strong>
+           <button type="button" aria-label={t("fc1.cart.increase")} disabled={item.quantity>=9} onClick={()=>mutate(()=>setCartLineQuantity(lineKey(item),item.quantity+1))}>+</button>
+           <button type="button" className={styles.remove} onClick={()=>mutate(()=>removeCartLine(lineKey(item)))}>{t("catalog.cart.remove")}</button>
+          </div>:<p className={styles.reviewQty}>{t("catalog.cart.quantity")} × {item.quantity}</p>}
+         </div>
+        </article>;
+       })}
        {error?<p className={styles.error} role="alert">{t("catalog.cart.storageError")}</p>:null}
       </div>
       <aside className={styles.summary}>
