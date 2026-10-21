@@ -291,8 +291,8 @@
   "fc1.test_ride.submit": "提交试骑意向",
   "fc1.test_ride.sending": "正在发送…",
   "fc1.test_ride.failed": "发送失败，请稍后重试。",
-  "fc1.test_ride.pending": "试骑申请邮件服务尚未配置，暂无法提交。",
+  "fc1.test_ride.pending": "如果邮件通知暂未配置，申请仍会安全保存至 ALSVID 运营后台。",
   "fc1.test_ride.no_booking": "仅登记意向，不产生付款、订单或已确认的试骑预约。",
-  "fc1.test_ride.sent_title": "试骑意向已发送",
-  "fc1.test_ride.sent_body": "我们已收到你的试骑意向邮件请求。这不是已确认的试骑预约；如后续有可用机会，我们会联系你。"
+  "fc1.test_ride.sent_title": "试骑意向已登记",
+  "fc1.test_ride.sent_body": "你的试骑意向已保存。当前还没有确认的试骑网点或时段；后续有合适的体验机会，我们会联系你。"
 }
