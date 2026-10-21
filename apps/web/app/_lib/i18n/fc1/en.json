@@ -291,8 +291,8 @@
   "fc1.test_ride.submit": "Send test-ride request",
   "fc1.test_ride.sending": "Sending…",
   "fc1.test_ride.failed": "Could not send. Please try again later.",
-  "fc1.test_ride.pending": "The email enquiry service is not configured yet, so submission is unavailable.",
+  "fc1.test_ride.pending": "Your request is saved in ALSVID Admin even if internal email notifications are unavailable.",
   "fc1.test_ride.no_booking": "An enquiry only — no order, payment or confirmed appointment is created.",
-  "fc1.test_ride.sent_title": "Request sent",
-  "fc1.test_ride.sent_body": "Your test-ride interest has been sent. This is not a confirmed appointment. We will contact you if a suitable opportunity becomes available."
+  "fc1.test_ride.sent_title": "Test-ride interest registered",
+  "fc1.test_ride.sent_body": "Your test-ride interest has been saved. No location or date has been confirmed. We may contact you when an opportunity becomes available."
 }
