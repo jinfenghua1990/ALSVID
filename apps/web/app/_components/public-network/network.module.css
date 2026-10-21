@@ -51,3 +51,30 @@
 .site a:focus-visible,.site button:focus-visible{outline:3px solid #95c6ff;outline-offset:3px}
 @media(max-width:1000px){.header{padding:0 24px;gap:12px}.nav{gap:12px}.headerHome{display:none}.threeGrid{gap:12px}.fourGrid{grid-template-columns:repeat(2,1fr)}.applySection{gap:35px}}
 @media(max-width:700px){.header{height:auto;min-height:72px;padding:14px 18px;flex-wrap:wrap}.logo{font-size:20px}.logo img{width:45px}.headerRight{margin-left:auto}.nav{order:3;width:100%;overflow-x:auto;gap:20px;padding:9px 0 3px;white-space:nowrap}.nav a{font-size:12px}.hero{min-height:600px}.heroContent{width:auto;margin:0;padding:95px 24px}.heroShade,.directoryShade{background:linear-gradient(90deg,rgba(9,17,21,.9),rgba(9,17,21,.52))}.hero h1{font-size:clamp(44px,9.5vw,62px)}.heroContent>p:not(.eyebrow){font-size:15px}.heroNote{margin-top:65px}.section,.directorySection{padding:66px 20px}.threeGrid,.countryGrid{grid-template-columns:1fr}.benefitCard,.modeCard{min-height:0;padding:25px}.benefitCard h3{margin-top:19px}.fourGrid{gap:10px}.platformCard>div{padding:16px 14px}.platformCard h3{font-size:17px}.applySection{grid-template-columns:1fr;padding:67px 20px;gap:30px}.applicationPreview{padding:20px}.formGrid{grid-template-columns:1fr}.finalBanner{padding:65px 20px;display:block}.finalBanner .outlineButton{margin-top:17px}.footer{padding:40px 20px}.footer nav{gap:16px}.directoryHero{min-height:460px}.directoryHero .heroContent{padding:75px 22px}.countryHeader{padding:20px}.empty{padding:28px 20px}}
+
+/* Dealer partnership refinement — mobile-first accessible application */
+.applicationPreview fieldset{border:0;margin:0;padding:0}
+.formGrid select{border:1px solid #d6dcd8;background:#fff;color:#273530;min-height:46px;padding:12px;width:100%;font:inherit;border-radius:2px}
+.formGrid input,.formGrid textarea{background:#fff}
+.formGrid input:focus,.formGrid select:focus,.formGrid textarea:focus{outline:2px solid #426b5a;outline-offset:1px}
+.required{color:#b54e36;font-weight:750}
+.consentLine{display:flex;align-items:flex-start;gap:12px;margin-top:23px;font-size:12px;line-height:1.75;color:#5b6861}
+.consentLine input{width:17px;height:17px;margin-top:2px;flex:none;accent-color:#163b2b}
+.submitButton{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:#192c26;color:#fff;font-size:15px;font-weight:650;padding:18px 21px;margin-top:23px;cursor:pointer;transition:background .2s ease}
+.submitButton:hover:not(:disabled){background:#2e5843}.submitButton:disabled{opacity:.65;cursor:wait}
+.formFootnote{font-size:11px;line-height:1.65;color:#718077;margin:14px 0 0}
+.formError{font-size:13px;color:#9f301e;margin:15px 0 0}
+.honey{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.successPanel{padding:55px 12px;text-align:center}.successMark{font-size:45px;color:#247148}
+.successPanel h3{font-size:28px;margin:17px 0}.successPanel p{font-size:14px;line-height:1.8;color:#4d5d56}
+.reference{font-size:12px!important;overflow-wrap:anywhere}
+.processSection{background:#edf1ee;padding:102px max(6vw,calc((100vw - 1380px)/2))}
+.processGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;border-top:1px solid #c6d0ca;padding-top:35px}
+.processStep>span{font-size:14px;color:#628274}.processStep h3{font-size:22px;font-weight:650;margin:22px 0 12px}
+.processStep p{font-size:14px;line-height:1.8;color:#63716b;max-width:325px}
+.faqSection{background:#f6f8f6}.faqItems{max-width:920px;border-top:1px solid #d3dcd6}
+.faqItem{border-bottom:1px solid #d3dcd6;padding:21px 0}.faqItem summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:19px;font-weight:600}
+.faqItem summary::-webkit-details-marker{display:none}.faqItem summary::after{content:'+';font-size:28px;font-weight:300}.faqItem[open] summary::after{content:'−'}
+.faqItem p{max-width:770px;margin:16px 0 7px!important;font-size:14px;line-height:1.85;color:#66716d}
+@media(max-width:700px){.processSection{padding:65px 20px}.processGrid{grid-template-columns:1fr;gap:24px}.processStep h3{margin:12px 0}
+.faqItem summary{font-size:16px}.heroActions{gap:18px}.formGrid{grid-template-columns:1fr}.formGrid .wide{grid-column:auto}}
