@@ -182,33 +182,58 @@ jobs:
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
 
+      # Runtime mail credentials should stay send-only. The domain read endpoint
+      # requires a separate full-access Resend key, isolated to GitHub's production
+      # environment and never injected into Cloud Run.
       - name: Verify configured Resend sender domain before changing Production
         env:
-          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
+          RESEND_DOMAIN_AUDIT_API_KEY: ${{ secrets.RESEND_DOMAIN_AUDIT_API_KEY }}
+        shell: bash
         run: |
           set -euo pipefail
-          api_key="$(gcloud secrets versions access latest --secret=alsvid-mail-api-key --project "$GCP_PROJECT_ID")"
-          domains="$(curl --fail --silent --show-error -H "Authorization: Bearer $api_key" https://api.resend.com/domains)"
-          unset api_key
-          node --input-type=module -e '
-            const response = JSON.parse(process.argv[1]);
-            const address = process.env.MAIL_FROM_ADDRESS ?? "";
-            const match = address.match(/^[^@]+@([^@]+)$/);
-            if (!match || [...address].some((character) => character.trim() === "")) {
-              console.error("Refusing deployment: MAIL_FROM_ADDRESS is not a valid email address.");
-              process.exit(1);
-            }
-            const senderDomain = match[1].toLowerCase();
-            const domain = (response.data ?? response.domains ?? []).find(
-              (item) => item.name.toLowerCase() === senderDomain
-            );
-            if (!domain || domain.status !== "verified") {
-              console.error(`Refusing deployment: Resend sender domain ${senderDomain} must be verified before Production changes.`);
-              process.exit(1);
-            }
-            console.log(`Verified Resend sender domain: ${senderDomain}`);
-          ' "$domains"
+          if [[ -z "${RESEND_DOMAIN_AUDIT_API_KEY:-}" ]]; then
+            echo "::error title=Missing Resend domain audit credential::Add RESEND_DOMAIN_AUDIT_API_KEY as a GitHub production environment secret. It must be a Resend Full access key; keep the Cloud Run alsvid-mail-api-key send-only."
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          http_code="$(curl --silent --show-error --retry 2 --retry-delay 3 \
+            --output "$response_file" --write-out '%{http_code}' \
+            -H "Authorization: Bearer $RESEND_DOMAIN_AUDIT_API_KEY" \
+            https://api.resend.com/domains)"
+          if [[ "$http_code" != "200" ]]; then
+            if [[ "$http_code" == "401" || "$http_code" == "403" ]]; then
+              echo "::error title=Resend domain audit credential rejected::The audit key must be active and have Full access to list domains. Do not elevate the application send-only key."
+            else
+              echo "::error title=Resend domain check failed::GET /domains returned HTTP $http_code. Production was not changed."
+            fi
+            exit 1
+          fi
+
+          node --input-type=module - "$response_file" <<'NODE'
+          import fs from 'node:fs';
+          const response = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const address = process.env.MAIL_FROM_ADDRESS ?? '';
+          const match = address.match(/^[^@\s]+@([^@\s]+)$/);
+          if (!match) {
+            console.error('::error::MAIL_FROM_ADDRESS must be an email address.');
+            process.exit(1);
+          }
+          const senderDomain = match[1].toLowerCase();
+          const domains = response.data ?? response.domains ?? [];
+          if (!Array.isArray(domains)) {
+            console.error('::error::Resend /domains returned an unexpected response.');
+            process.exit(1);
+          }
+          const domain = domains.find(item => item.name?.toLowerCase() === senderDomain);
+          if (!domain || domain.status !== 'verified') {
+            console.error(`::error title=Resend sender domain not verified::Verify DNS for ${senderDomain} in Resend before deploying. Current status: ${domain?.status ?? 'not found'}.`);
+            process.exit(1);
+          }
+          console.log(`Verified Resend sender domain: ${senderDomain}`);
+          NODE
 
       - name: Configure registry and reuse existing release images when available
         id: image_lookup
