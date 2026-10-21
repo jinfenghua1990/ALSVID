@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { isLocale } from '../../_lib/i18n/routing';
 import { translator } from '../../_lib/i18n';
 import { PublicShell } from '../../_components/public-network/public-shell';
+import { DealerApplicationForm } from '../../_components/public-network/application-form';
 import styles from '../../_components/public-network/network.module.css';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -77,6 +78,18 @@ export default async function DealerPartnershipPage({ params }: Props) {
           <p>{t(('network.modes.' + item + '.body') as 'network.modes.retail.body')}</p>
         </article>)}</div>
       </section>
+      <section className={styles.processSection}>
+        <div className={styles.sectionIntro}>
+          <p className={styles.eyebrow}>{t('network.process.eyebrow')}</p>
+          <h2>{t('network.process.title')}</h2>
+        </div>
+        <div className={styles.processGrid}>
+          {(['one','two','three'] as const).map((step,i)=><div key={step} className={styles.processStep}>
+            <span>0{i+1}</span><h3>{t(('network.process.'+step+'.title') as 'network.process.one.title')}</h3>
+            <p>{t(('network.process.'+step+'.body') as 'network.process.one.body')}</p>
+          </div>)}
+        </div>
+      </section>
       <section className={styles.applySection} id="apply">
         <div className={styles.applyCopy}>
           <p className={styles.eyebrow}>{t('network.apply.eyebrow')}</p>
@@ -84,21 +97,18 @@ export default async function DealerPartnershipPage({ params }: Props) {
           <p>{t('network.apply.body')}</p>
           <a className={styles.partnerLogin} href="https://dealer.alsvidbike.com">{t('network.apply.login')} ↗</a>
         </div>
-        <div className={styles.applicationPreview}>
-          <form aria-label={t('network.apply.title')}>
-            <fieldset disabled>
-              <div className={styles.formGrid}>
-                <label>{t('network.apply.company')}<input name="company" autoComplete="organization" /></label>
-                <label>{t('network.apply.country')}<input name="country" autoComplete="country-name"/></label>
-                <label>{t('network.apply.contact')}<input name="contact" autoComplete="name"/></label>
-                <label>{t('network.apply.email')}<input name="email" type="email" autoComplete="email"/></label>
-                <label>{t('network.apply.type')}<input name="type"/></label>
-                <label className={styles.wide}>{t('network.apply.message')}<textarea name="message" rows={3}/></label>
-              </div>
-              <button className={styles.disabledSubmit} type="submit" disabled>{t('network.apply.pending')}</button>
-            </fieldset>
-          </form>
+        <DealerApplicationForm locale={locale}/>
+      </section>
+      <section className={styles.section + ' ' + styles.faqSection}>
+        <div className={styles.sectionIntro}>
+          <p className={styles.eyebrow}>{t('network.faq.eyebrow')}</p>
+          <h2>{t('network.faq.title')}</h2>
         </div>
+        <div className={styles.faqItems}>{(['one','two','three'] as const).map(f=>
+          <details key={f} className={styles.faqItem}>
+            <summary>{t(('network.faq.'+f+'.q') as 'network.faq.one.q')}</summary>
+            <p>{t(('network.faq.'+f+'.a') as 'network.faq.one.a')}</p>
+          </details>)}</div>
       </section>
       <section className={styles.finalBanner}>
         <div><p className={styles.eyebrow}>{t('network.locations.eyebrow')}</p><h2>{t('network.locations.title')}</h2><p>{t('network.locations.body')}</p></div>

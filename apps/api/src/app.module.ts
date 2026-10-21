@@ -9,6 +9,7 @@ import { CommerceOrderOperationsController } from './commerce-order-operations.c
 import { StorefrontOrdersController } from './storefront-orders.controller.js';
 import { ColourInterestController } from './colour-interest.controller.js';
 import { DealerController } from './dealer.controller.js';
+import { DealerPartnershipController } from './dealer-partnership.controller.js';
 import { EngineeringController } from './engineering.controller.js';
 import { FinanceController } from './finance.controller.js';
 import { Fc1ReservationController } from './fc1-reservation.controller.js';
@@ -50,6 +51,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     WarehouseController,
     LogisticsController,
     DealerController,
+    DealerPartnershipController,
     CommerceController,
     CommerceOrderOperationsController,
     StorefrontOrdersController,
