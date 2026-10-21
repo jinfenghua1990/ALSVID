@@ -46,6 +46,7 @@ export function DealerApplicationDialog({ locale, initialOpen = false, children 
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -93,7 +94,7 @@ export function DealerApplicationDialog({ locale, initialOpen = false, children 
   );
 }
 
-export function DealerApplicationTrigger({ children, className }: { children: ReactNode; className: string }) {
+export function DealerApplicationTrigger({ children, className }: { children: ReactNode; className?: string }) {
   const openDialog = useContext(DealerApplicationContext);
   if (!openDialog) throw new Error('DealerApplicationTrigger must be inside DealerApplicationDialog.');
   return <button type="button" className={className} onClick={openDialog}>{children}</button>;
