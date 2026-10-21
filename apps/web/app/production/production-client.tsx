@@ -49,6 +49,7 @@ export default function ProductionClient({ embedded = false }: { embedded?: bool
   const [selectedUnitId,setSelectedUnitId]=useState('');
   const [linkedVehicleId,setLinkedVehicleId]=useState<string|null>(null);
   const [message,setMessage]=useState('');
+  const [loadState,setLoadState]=useState<'loading'|'ready'|'error'>('loading');
 
   async function api(path:string,init?:RequestInit){
     const headers=new Headers(init?.headers);headers.set('content-type','application/json');
@@ -58,10 +59,17 @@ export default function ProductionClient({ embedded = false }: { embedded?: bool
   }
 
   async function reload(){
+    setLoadState('loading');
     try{
       const [prod,vehicleRows,partnerRows,engineering,procurement]=await Promise.all([api('/v1/production'),api('/v1/vehicles'),api('/v1/partners'),api('/v1/engineering'),api('/v1/procurement')]);
       setSummary(prod);setVehicles(vehicleRows);setFactories(partnerRows.filter((p:Partner)=>p.roles.includes('FACTORY')));setBuildSpecs(engineering.buildSpecs.filter((spec:BuildSpec)=>spec.status==='RELEASED'));setParts(engineering.parts);setPurchaseOrders(procurement.purchaseOrders.filter((po:PurchaseOrder)=>['CONFIRMED','PARTIALLY_FULFILLED','FULFILLED'].includes(po.status)));
-    }catch(error){setMessage(error instanceof Error?error.message:'无法加载生产工作台');}
+      setLoadState('ready');
+    }catch(error){
+      setSummary(empty);setVehicles([]);setFactories([]);setBuildSpecs([]);setParts([]);setPurchaseOrders([]);
+      setSelectedOrderId('');setSelectedUnitId('');setLinkedVehicleId(null);
+      setLoadState('error');
+      setMessage('生产数据读取失败：' + (error instanceof Error ? error.message : '未知错误'));
+    }
   }
   useEffect(()=>{
     setLinkedVehicleId(queryRecordId('vehicleId'));
@@ -82,15 +90,15 @@ export default function ProductionClient({ embedded = false }: { embedded?: bool
     <section>
       <header className={styles.header}><div><div className={styles.eyebrow}>生产 / 质检追踪</div><h1>从已发布配置，制造真实车辆。</h1><p>每一个生产单元都继承不可变的 Build Specification 基线。只有通过质检并形成证据后，车辆才可以出生并绑定唯一车架号。</p></div></header>
       {message?<div className={styles.notice}>{message}</div>:null}
-      <div className={styles.metrics}>{metrics.map(([status,count])=><div key={status}><span>{statusLabel(status)}</span><b>{count}</b></div>)}</div>
+      <div className={styles.metrics}>{metrics.map(([status,count])=><div key={status}><span>{statusLabel(status)}</span><b>{loadState==='ready'?count:'—'}</b></div>)}</div>
 
       <section className={styles.topGrid}>
         <form className={styles.formCard} onSubmit={(event)=>void submit(event,'/v1/production/orders',(form)=>({buildSpecId:form.get('buildSpecId'),factoryPartnerId:form.get('factoryPartnerId'),sourcePurchaseOrderId:form.get('sourcePurchaseOrderId')||undefined,plannedQuantity:Number(form.get('plannedQuantity')),plannedStartDate:form.get('plannedStartDate')||undefined,plannedCompletionDate:form.get('plannedCompletionDate')||undefined,note:form.get('note')||undefined}))}><span>新建生产订单</span><h2>发布可执行的生产需求</h2><select name="buildSpecId" required defaultValue=""><option value="" disabled>选择已发布 Build Specification</option>{buildSpecs.map(spec=><option key={spec.id} value={spec.id}>{spec.code} · {spec.sku}</option>)}</select><select name="factoryPartnerId" required defaultValue=""><option value="" disabled>选择工厂</option>{factories.map(factory=><option key={factory.id} value={factory.id}>{factory.partnerCode} · {factory.displayName}</option>)}</select><select name="sourcePurchaseOrderId" defaultValue=""><option value="">不关联采购订单</option>{purchaseOrders.map(po=><option key={po.id} value={po.id}>{po.po_number} · {po.supplier_name}</option>)}</select><div className={styles.inline}><input name="plannedQuantity" type="number" min="1" placeholder="数量" required/><input name="plannedStartDate" type="date"/><input name="plannedCompletionDate" type="date"/></div><input name="note" placeholder="生产备注"/><button>创建草稿订单</button></form>
-        <div className={styles.vehicleCard}><span>车辆出生</span><h2>已出生车辆</h2><b>{vehicles.length}</b><p>每台车辆只绑定一个质检通过的生产单元和一个不可重复、不可随意修改的车架号。</p></div>
+        <div className={styles.vehicleCard}><span>车辆出生</span><h2>已出生车辆</h2><b>{loadState==='ready'?vehicles.length:'—'}</b><p>每台车辆只绑定一个质检通过的生产单元和一个不可重复、不可随意修改的车架号。</p></div>
       </section>
 
       <section className={styles.layout}>
-        <div className={styles.orders}><div className={styles.sectionHead}><span>生产订单</span><h2>工厂执行队列</h2></div>{summary.orders.map(order=><article key={order.id} className={`${styles.orderRow} ${selectedOrderId===order.id?styles.selected:''}`} onClick={()=>setSelectedOrderId(order.id)}><div><b>{order.production_order_number}</b><span>{order.sku} · {order.build_spec_code}</span><small>{order.factory_name} · {order.planned_quantity} 台</small></div><div><i>{statusLabel(order.status)}</i><small>已生成 {order.unit_count} 个生产单元</small></div></article>)}{!summary.orders.length?<p className={styles.empty}>暂无生产订单。</p>:null}</div>
+        <div className={styles.orders}><div className={styles.sectionHead}><span>生产订单</span><h2>工厂执行队列</h2></div>{summary.orders.map(order=><article key={order.id} className={`${styles.orderRow} ${selectedOrderId===order.id?styles.selected:''}`} onClick={()=>setSelectedOrderId(order.id)}><div><b>{order.production_order_number}</b><span>{order.sku} · {order.build_spec_code}</span><small>{order.factory_name} · {order.planned_quantity} 台</small></div><div><i>{statusLabel(order.status)}</i><small>已生成 {order.unit_count} 个生产单元</small></div></article>)}{!summary.orders.length?<p className={styles.empty}>{loadState==='loading'?'正在读取生产订单…':loadState==='error'?'生产数据不可用，无法确认订单记录。':'暂无生产订单。'}</p>:null}</div>
 
         <aside className={styles.orderDetail}>{selectedOrder?<><div className={styles.detailHead}><span>{selectedOrder.production_order_number}</span><h2>{selectedOrder.sku}</h2><p>{statusLabel(selectedOrder.status)} · {selectedOrder.factory_name}</p></div><div className={styles.orderActions}>{selectedOrder.status==='DRAFT'?<button onClick={()=>void action(`/v1/production/orders/${selectedOrder.id}/release`)}>发布订单</button>:null}{selectedOrder.status==='RELEASED'?<button onClick={()=>void action(`/v1/production/orders/${selectedOrder.id}/start`)}>开始生产</button>:null}{selectedOrder.status==='IN_PROGRESS'?<button onClick={()=>void action(`/v1/production/orders/${selectedOrder.id}/qc`)}>转入质检</button>:null}{selectedOrder.status==='QC_PENDING'?<button onClick={()=>void action(`/v1/production/orders/${selectedOrder.id}/complete`)}>完成订单</button>:null}</div><div className={styles.unitList}>{units.map(unit=><button key={unit.id} className={selectedUnitId===unit.id?styles.unitSelected:''} onClick={()=>setSelectedUnitId(unit.id)}><b>生产单元 {unit.unit_no}</b><span>{statusLabel(unit.status)}</span>{bornUnitIds.has(unit.id)?<i>车辆已出生</i>:null}</button>)}</div></>:<p className={styles.empty}>选择一个生产订单查看详情。</p>}</aside>
       </section>
@@ -112,7 +120,7 @@ export default function ProductionClient({ embedded = false }: { embedded?: bool
           <p>{vehicle.sku} · {vehicle.build_spec_code}</p>
           <small>{vehicle.production_order_number} / 单元 {vehicle.unit_no} · {vehicle.factory_name}</small>
           <p><a href={adminRecordHref('service-intake',vehicle.id)}>查看 / 创建此车售后 →</a></p>
-        </article>)}{!vehicles.length?<p className={styles.empty}>暂无已出生车辆。</p>:null}</div>
+        </article>)}{!vehicles.length?<p className={styles.empty}>{loadState==='loading'?'正在读取车辆记录…':loadState==='error'?'车辆数据不可用，无法确认出生记录。':'暂无已出生车辆。'}</p>:null}</div>
       </section>
     </section>
   </OperationsFrame>;
