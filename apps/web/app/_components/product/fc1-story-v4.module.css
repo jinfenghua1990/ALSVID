@@ -427,3 +427,6 @@
  .story[data-fc1-motion=ready] .gallerySection .galleryPin :global([data-fc1-gallery-thumbs]){opacity:1!important}
  .story[data-fc1-motion=ready] .gallerySection .galleryPin .sectionHeader{opacity:1!important;transform:none!important}
 }
+
+/* Chapter navigation remains sticky after adoption of the shared public header. */
+.chapterNav{top:0}
