@@ -383,7 +383,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
-  const hasSecondaryNavigation = Boolean(screen.secondary?.length);
+  const secondaryNavigation = screen.secondary ?? [];
+  const hasSecondaryNavigation = secondaryNavigation.length > 0;
   const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
 
@@ -440,7 +441,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
       <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}`}>
         {hasSecondaryNavigation ? (
           <aside className="av-rail" aria-label="二级导航">
-            {screen.secondary.map((group) => (
+            {secondaryNavigation.map((group) => (
               <div className="av-railgroup" key={group.group}>
                 <div className="av-railtitle">{group.group}</div>
                 {group.items.map((item) => (
