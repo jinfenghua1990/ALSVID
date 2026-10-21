@@ -40,7 +40,7 @@ try {
         assert.equal(await navLinks.count(), 7, 'Approved product/accessories/dealer/owner/story navigation exists');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
         assert.equal(await navLinks.nth(1).getAttribute('href'), '/' + locale + '/explore/fc2', 'FC2 model links to its own page');
-        assert.equal(await navLinks.nth(2).getAttribute('href'), '#platforms');
+        assert.equal(await navLinks.nth(2).getAttribute('href'), '/' + locale + '/bikes', 'Products link to bicycle catalog');
         assert.equal(await navLinks.nth(3).getAttribute('href'), '/' + locale + '/accessories', 'Accessories links to the standalone page');
         const dealerLabel = { de: 'Händler weltweit', en: 'Global dealers', zh: '全球经销商' }[locale];
         const ownerLabel = { de: 'Service', en: 'Owner services', zh: '车主服务' }[locale];
@@ -60,10 +60,18 @@ try {
           await headerNav.locator('summary').click();
         }
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'Navigation must not cause horizontal overflow');
+        const bicycles = await context.newPage();
+        const bicyclesResponse = await bicycles.goto(base + '/' + locale + '/bikes', { waitUntil: 'domcontentloaded' });
+        assert.equal(bicyclesResponse?.status(), 200, locale + ' bicycle catalog should return HTTP 200');
+        assert.equal(await bicycles.locator('main[data-bikes-catalog]').count(), 1, 'Bicycle catalog renders');
+        assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc1"]').count() > 0, true, 'FC1 detail link exists');
+        assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc2"]').count() > 0, true, 'FC2 detail link exists');
+        await bicycles.close();
         const accessories = await context.newPage();
         const accessoriesResponse = await accessories.goto(base + '/' + locale + '/accessories', { waitUntil: 'domcontentloaded' });
         assert.equal(accessoriesResponse?.status(), 200, locale + ' accessories page should return HTTP 200');
         assert.equal(await accessories.locator('main').getAttribute('lang'), locale, locale + ' accessories page locale');
+        assert.equal(await accessories.locator('main[data-accessories-catalog]').count(), 1, 'Accessory catalog renders');
         await accessories.close();
 
         const hero = root.locator(':scope > section').first();
