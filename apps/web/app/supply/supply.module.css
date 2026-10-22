@@ -93,3 +93,18 @@
 .emptyInline{margin:0;padding:10px 0;color:var(--alsvid-muted);font-size:11px}
 @media(max-width:1100px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.header{align-items:flex-start;flex-direction:column}.headerActions{align-self:flex-start}.formGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.headerActions{width:100%}.headerActions button{flex:1}.workspaceBar{align-items:stretch}.tabs{width:100%;overflow-x:auto;flex-wrap:nowrap}.tabButton{white-space:nowrap}.filters{min-width:0;width:100%;flex-direction:column;align-items:stretch}.searchField,.filterSelect{width:100%;max-width:none}.panelHeader,.detailHead{align-items:flex-start;flex-direction:column}.panelHeader{padding:17px}.formGrid{grid-template-columns:1fr;padding:0 17px 17px}.formPair,.formPair:has(label:nth-child(3)){grid-template-columns:1fr}.formFooter{align-items:stretch;flex-direction:column}.formFooter button{width:100%}.lineGrid{grid-template-columns:1fr;padding:16px 17px}.detailForms{grid-template-columns:1fr;padding:0 17px 17px}.history{margin:0 17px 17px}.historyRow{align-items:flex-start;flex-direction:column}.table{min-width:900px}}
+
+/* Purchase order line-by-line confirmation must not inherit the one-line form layout. */
+.lineInput{display:grid;gap:8px;border:1px solid var(--alsvid-line);border-radius:10px;background:var(--alsvid-panel);padding:12px}
+.lineInput>strong{font-size:11px;line-height:1.45;color:var(--alsvid-text);overflow-wrap:anywhere}
+.lineInput label{display:grid;gap:6px}
+.lineInput label>span{font-size:10px;color:var(--alsvid-text-2)}
+.lineInput input{min-width:0}
+
+.poLines{grid-column:1/-1;display:grid;gap:10px;padding:12px;border:1px solid var(--alsvid-line);border-radius:11px;background:var(--alsvid-bg-soft)}
+.poLine{display:grid;gap:12px;border:1px solid var(--alsvid-line);border-radius:9px;background:var(--alsvid-panel);padding:14px}
+.lineHeading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.lineHeading strong{font-size:11px;font-weight:700;color:var(--alsvid-text)}
+.poLine .formPair{grid-column:auto}
+.poLine label{min-width:0}
+@media(max-width:760px){.poLines{padding:10px}.poLine{padding:11px}}
