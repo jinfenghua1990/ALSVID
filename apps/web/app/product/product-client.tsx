@@ -91,7 +91,9 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       api('/v1/engineering'),
     ]);
     if (catalogResult.status === 'fulfilled') {
-      setCatalog(catalogResult.value as Catalog);
+      // WWW-only releases can precede the separately approved API/database migration.
+      // Keep the existing model/SKU editor usable until the full domain release is verified.
+      setCatalog({ ...emptyCatalog, ...(catalogResult.value as Partial<Catalog>) });
     } else {
       setCatalog(emptyCatalog);
       setCatalogError(catalogResult.reason instanceof Error ? catalogResult.reason.message : '请求异常');
@@ -275,7 +277,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                 {filteredModels.map(({ model, platform, variants }) => (
                   <tr key={model.id}>
                     <td><strong>{model.code}</strong><small>{model.name}</small><small>商品 ID：{model.id}</small></td>
-                    <td>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? model.product_type_code}</td>
+                    <td>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')}</td>
                     <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
                     <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
                     <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
@@ -307,7 +309,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           {hierarchyRows.map(({ model, platform, variants }) => (
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
-                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? model.product_type_code} · {platform?.code ?? '不适用技术平台'}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
+                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
                 <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button>
               </div>
               {variants.map((variant) => (
