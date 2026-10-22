@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { HomepageProductBindingPanel } from '../product/homepage-product-binding-panel';
 import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
 import { StorefrontOrderDraftPanel } from '../commerce/storefront-orders-panel';
+import { EcommerceInventoryPanel } from './ecommerce-inventory-panel';
 
 type Model = { id: string; code: string; name: string; status: string; product_type_code: string };
 
@@ -53,6 +54,7 @@ export function EcommerceAdminWorkspace() {
       <section id="homepage" aria-label="首页商品绑定"><HomepageProductBindingPanel models={models} loadError="" /></section>
       <section id="publications" aria-label="官网商品审核与发布"><CatalogPublicationPanel models={models} /></section>
     </> : null}
+    <EcommerceInventoryPanel />
     <StorefrontOrderDraftPanel />
   </div>;
 }
