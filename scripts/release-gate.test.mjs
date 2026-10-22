@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns, mainReleaseRuns, mainProductionRuns } from './release-gate.mjs';
+import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns, mainReleaseRuns, mainProductionRuns, releaseCandidates, failedRequiredJobs } from './release-gate.mjs';
 
 const passed = (head_sha, conclusion = 'success') => ({
   head_sha, status: 'completed', conclusion,
@@ -59,4 +59,22 @@ test('previous production releases can be rolled back only when explicitly enabl
   assert.equal(await acceptedRollback([passed('released-sha')], 'released-sha', true), true);
   assert.equal(await acceptedRollback([passed('released-sha')], 'released-sha', false), false);
   assert.equal(await acceptedRollback([passed('released-sha')], 'never-released', true), false);
+});
+
+
+test('release gate accepts the same-SHA main CI run while required jobs pass but dispatch is still finishing', () => {
+  const runs = [
+    { head_sha: 'same-sha', head_branch: 'main', event: 'workflow_dispatch', status: 'in_progress', conclusion: null },
+    { head_sha: 'same-sha', head_branch: 'main', event: 'push', status: 'completed', conclusion: 'success' },
+    { head_sha: 'same-sha', head_branch: 'main', event: 'push', status: 'completed', conclusion: 'failure' },
+    { head_sha: 'other-sha', head_branch: 'main', event: 'push', status: 'completed', conclusion: 'success' },
+    { head_sha: 'same-sha', head_branch: 'feature', event: 'workflow_dispatch', status: 'in_progress', conclusion: null },
+  ];
+  assert.deepEqual(releaseCandidates(runs, 'same-sha'), runs.slice(0, 2));
+});
+
+test('release gate retries missing job records but recognizes explicit required-job failures', () => {
+  assert.equal(failedRequiredJobs([job('verify'), job('containers', 'failure')]), true);
+  assert.equal(failedRequiredJobs([job('verify'), job('containers', null, 'in_progress')]), false);
+  assert.equal(failedRequiredJobs([job('verify'), job('containers')]), false);
 });
