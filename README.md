@@ -39,7 +39,7 @@ ALSVID 的核心价值是把这些长期事实连接起来：
 
 ALSVID 明确不做以下事情：
 
-- 不是 Shopify 替代品；
+- 不是通用电商平台或支付机构；首期 B2C 商城由 ALSVID Commerce 负责，支付由获批 PSP 处理；
 - 不是通用 OMS；
 - 不是 WMS；
 - 不是为了把所有 ERP/电商/仓储功能重新造一遍；
@@ -51,7 +51,8 @@ ALSVID 明确不做以下事情：
 
 | 系统 | 主要负责 | ALSVID 与它的关系 |
 | --- | --- | --- |
-| Shopify | 商城、商品、B2C 订单、支付、退款等交易事实 | ALSVID 获取与车辆/客户/售后相关的必要事实，不接管完整订单执行 |
+| ALSVID Commerce + PSP | 自建 WWW B2C 商品/购物袋/订单；获批 PSP 执行支付 | ALSVID 自有订单由 Commerce 维护；真实支付仍受 ADR 0005 门禁约束 |
+| 外部电商渠道（如 Shopify，未来可选） | 仅在负责人单独批准后提供外部渠道事实 | 不作为首期交易依赖，不自动接管 ALSVID Commerce 的订单权威 |
 | WMS | 收货、库存、拣货、包装、出库、仓库侧履约事实 | ALSVID 获取必要发货/物流事实；售后补发等场景可向 WMS 下发明确执行请求 |
 | ALSVID | Vehicle/VIN、客户、经销商、保修、服务、维修、售后、车辆生命周期 | 作为品牌自己的长期业务主档和服务中枢 |
 
@@ -63,7 +64,7 @@ ALSVID 明确不做以下事情：
 
 > **AI 开发执行入口（2026-10-21）：** 先阅读 [Admin 当前优先级和分批验收要求](docs/admin/ALSVID_ADMIN_EXECUTION_PRIORITY_2026-10-21.md)，再对照 [已恢复的十大模块设计规范](docs/admin/ALSVID_ADMIN_MODULE_OPTIMIZATION_V1.md)。设计示例、已提交代码、CI 通过、正式发布和业务实测是不同状态，不得将演示数据当成真实业务。
 
-这里讨论的是 **ALSVID 内部运营后台**，不是官网、不是 Shopify 商城，也不是客户公开门户。
+这里讨论的是 **ALSVID 内部运营后台**，不是 ALSVID Official 官网/自建商城，也不是客户公开门户。
 
 后台服务对象包括管理层、运营、销售、生产、仓库、采购、经销商运营和售后团队。其目标是形成品牌自己的内部运营中枢，但**不做传统 ERP 那种部门驱动、密集表格堆叠的产品形态**。
 
@@ -120,7 +121,7 @@ ALSVID Admin
 - 配件订单
 - 售后订单
 
-订单模块是内部业务凭证与流程入口，不把 Shopify 商城交易系统重新做一遍。
+订单模块是内部业务凭证与流程入口，不重建通用多渠道 OMS；自建 WWW B2C 订单由 ALSVID Commerce 管理，Admin 负责内部业务操作和跨域履约协同。
 
 #### 生产 Manufacturing
 
@@ -510,7 +511,7 @@ The system begins as a modular monolith with explicit domain boundaries and cont
 
 ALSVID 官网采用：
 
-> 品牌官网 = Shopify 商城
+> 品牌官网 + ALSVID 自建商城（首期不依赖 Shopify）
 
 不是：
 
@@ -668,7 +669,7 @@ ALSVID
 └── 维修零件
 ```
 
-配件通过 Shopify 销售。
+配件在 ALSVID 自建产品中心展示；真实售价、库存、适配和支付未核验前不开放真实购买。
 
 未来支持：
 
@@ -787,7 +788,7 @@ Dealer Portal
 
 内部供应商档案、采购批准、生产与质量管理留在 Admin；外部供应商通过独立 Supplier Portal 自助提交报价/提案、确认 PO、交期、进度、发货通知和文件。Supplier Portal 是已确认的后续建设目标，当前尚未交付，不再把它解释为“永远只有内部档案”。
 
-“供应商自己下单”区分为：上游供货的提案与履约协同，或同一企业作为 B2B 买家向 ALSVID 买货。前者由 ALSVID Procurement 管理；后者才走 Shopify B2B。正式采购批准、收货/QC、入账和付款仍由授权流程处理。
+“供应商自己下单”区分为：上游供货的提案与履约协同，或同一企业作为 B2B 买家向 ALSVID 买货。前者由 ALSVID Procurement 管理；后者走获批的 Dealer/B2B 采购路径，首期不默认依赖 Shopify B2B。正式采购批准、收货/QC、入账和付款仍由授权流程处理。
 
 官网不因预留 Supplier 就新增普通消费者主导航；通过邀请或经过验收的合作入口访问。执行与验收见 [门户实施台账](docs/PORTAL_DELIVERY_PLAN_2026-10-16.md)。
 
@@ -795,23 +796,21 @@ Dealer Portal
 
 ### 13.8 官网与后台系统边界
 
-#### Shopify
+#### ALSVID Commerce 与外部渠道边界
 
-负责：
+首期由 ALSVID Commerce 管理：
 
 ```text
-商品
+商品 / Variant / SKU 选择
 
-购物车
+浏览器本地预览购物袋
 
-订单
+自建 B2C 订单编排（真实订单尚未开放）
 
-支付
-
-退款
-
-物流状态
+订单可见状态
 ```
+
+获批 PSP 负责支付处理；支付状态必须服务端验证。Shopify 仅是未来可能的外部渠道，未获负责人明确批准前不接入、不复制其订单事实，也不把其作为首期结账依赖。
 
 ---
 
@@ -850,11 +849,11 @@ ALSVID 官网
 
    |
 
-Shopify订单
+ALSVID Commerce 订单 / 获批 PSP 支付事实
 
    |
 
-ALSVID后台
+ALSVID Admin 运营与履约
 
    |
 
