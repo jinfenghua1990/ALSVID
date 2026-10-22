@@ -36,6 +36,7 @@ Every business fact has exactly one write authority.
 - Payment service provider (PSP): external payment authentication/processing, transaction identifiers and provider-generated payment events. ALSVID verifies signatures and transaction binding before recording state; card PAN/CVV are never stored by ALSVID.
 - Optional future sales channels (including Shopify): external systems only when explicitly approved; ALSVID records required mappings and reconciles without dual-write authority for ALSVID-owned storefront orders.
 - Email provider: transport mailbox/service. ALSVID stores normalized communication state and marketing evidence.
+- Third-party warehouse / 3PL WMS: authoritative external execution evidence for stock physically held by that provider, picking, packing, receipt, dispatch and returns. ALSVID Inventory owns its reconciled movement/reservation ledger and never overwrites history with raw provider snapshot. Warehouse/Logistics consume verified external execution facts; Integrations owns webhook receipts, mapping references, sync cursors, retries and provider health. The existence of an integration plan does **not** mean any real provider is connected. See [third-party warehouse integration contract](THIRD_PARTY_WAREHOUSE_INTEGRATION_2026-10-22.md).
 - R2/S3: binary object store only; not business metadata authority.
 - Carriers/customs/payment providers: external execution sources normalized through Integrations.
 - 1688 and JackYun/吉客云: intentionally outside ALSVID; they belong to the separate domestic CoffeeBear boundary.
