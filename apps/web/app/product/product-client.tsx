@@ -7,19 +7,20 @@ import { useRouter } from 'next/navigation';
 import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
 import { matchesModelRegisterSearch, modelBomSummary, modelEngineeringStage } from './model-register';
+import { HomepageProductBindingPanel } from './homepage-product-binding-panel';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
-type Model = { id: string; platform_id: string; code: string; name: string; description: string; status: string; version: number };
+type Model = { id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
 type Variant = { id: string; model_id: string; code: string; name: string; description: string; status: string; version: number };
 type Sku = { id: string; variant_id: string; sku: string; name: string; market_code: string | null; color_code: string | null; size_code: string | null; status: string; version: number };
-type Catalog = { platforms: Platform[]; models: Model[]; variants: Variant[]; skus: Sku[] };
+type Catalog = { productTypes: {code:string;name:string;description:string;status:string}[]; platforms: Platform[]; models: Model[]; variants: Variant[]; skus: Sku[] };
 type Part = { id: string; part_number: string; name: string; category: string; default_unit: string; status: string };
 type BomRow = { id: string; code: string; name: string; model_id: string; model_code: string; revision_id: string | null; revision_code: string | null; revision_status: string | null; line_count: number | null };
 type BuildSpec = { id: string; code: string; status: string; version: number; sku_id: string; sku: string; bom_revision_id: string; revision_code: string; bom_code: string };
 type Engineering = { parts: Part[]; boms: BomRow[]; buildSpecs: BuildSpec[] };
 type EditTarget = { entity: 'model' | 'variant' | 'sku'; id: string; version: number; name: string; status: string; description?: string; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null };
 
-const emptyCatalog: Catalog = { platforms: [], models: [], variants: [], skus: [] };
+const emptyCatalog: Catalog = { productTypes: [], platforms: [], models: [], variants: [], skus: [] };
 const emptyEngineering: Engineering = { parts: [], boms: [], buildSpecs: [] };
 
 const PLATFORM_PRESENTATION: Record<string, { name: string; description: string; order: number }> = {
@@ -64,6 +65,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   const [loading, setLoading] = useState(true);
   const [modelSearch, setModelSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [typeFilter, setTypeFilter] = useState('ALL');
+  const [newModelType, setNewModelType] = useState('BIKE');
   const [edit, setEdit] = useState<EditTarget | null>(null);
 
   async function api(path: string, init?: RequestInit) {
@@ -88,7 +91,9 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       api('/v1/engineering'),
     ]);
     if (catalogResult.status === 'fulfilled') {
-      setCatalog(catalogResult.value as Catalog);
+      // WWW-only releases can precede the separately approved API/database migration.
+      // Keep the existing model/SKU editor usable until the full domain release is verified.
+      setCatalog({ ...emptyCatalog, ...(catalogResult.value as Partial<Catalog>) });
     } else {
       setCatalog(emptyCatalog);
       setCatalogError(catalogResult.reason instanceof Error ? catalogResult.reason.message : '请求异常');
@@ -109,6 +114,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     void reload();
   }, []);
 
+  const selectableProductTypes = catalog.productTypes.length
+    ? catalog.productTypes.filter(type=>type.status==='ACTIVE')
+    : [{code:'BIKE',name:'整车（兼容旧版 API）',description:'',status:'ACTIVE'}];
+
   const hierarchyRows = useMemo(() => [...catalog.models]
     .sort((a, b) => a.code.localeCompare(b.code))
     .map((model) => ({
@@ -119,6 +128,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
 
   const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) =>
     (statusFilter === 'ALL' || model.status === statusFilter)
+    && (typeFilter === 'ALL' || model.product_type_code === typeFilter)
     && matchesModelRegisterSearch(
       model,
       platform ? { code: platform.code, name: platformName(platform) } : undefined,
@@ -127,7 +137,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       modelSearch,
       !loading && !engineeringError,
     ),
-  ), [hierarchyRows, catalog, engineering, modelSearch, statusFilter, engineeringError, loading]);
+  ), [hierarchyRows, catalog, engineering, modelSearch, statusFilter, typeFilter, engineeringError, loading]);
 
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown) {
     event.preventDefault();
@@ -200,12 +210,27 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
 
       <div className={styles.metrics} aria-label="产品数据概览">
         <div><span>技术平台</span><strong>{loading || catalogError ? '—' : catalog.platforms.length}</strong></div>
-        <div><span>产品型号</span><strong>{loading || catalogError ? '—' : catalog.models.length}</strong></div>
+        <div><span>商品主记录</span><strong>{loading || catalogError ? '—' : catalog.models.length}</strong></div>
         <div><span>配置版本</span><strong>{loading || catalogError ? '—' : catalog.variants.length}</strong></div>
         <div><span>SKU</span><strong>{loading || catalogError ? '—' : catalog.skus.length}</strong></div>
         <div><span>BOM</span><strong>{loading || engineeringError ? '—' : engineering.boms.length}</strong></div>
         <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
       </div>
+
+      <section className={styles.section} id="product-types" aria-label="产品类型">
+        <div className={styles.sectionHead}>
+          <div><span>COMMERCIAL PRODUCT TYPES</span><h2>产品类型</h2></div>
+          <p>类型决定商品属于整车、配件还是维修零件；FC/CT/FT/GT 是整车技术平台，不与商品类型混用。</p>
+        </div>
+        <div className={styles.typeGrid}>
+          {catalog.productTypes.map(type=><article key={type.code} className={styles.typeCard}>
+            <small>{type.code}</small><strong>{type.name}</strong>
+            <span>{type.description}</span>
+            <b>{catalog.models.filter(model=>model.product_type_code===type.code).length} 个商品主记录</b>
+          </article>)}
+        </div>
+        {!catalog.productTypes.length?<p className={styles.emptyState}>产品类型尚不可用。请确认后台 API 与数据库迁移版本；原有产品操作继续保留。</p>:null}
+      </section>
 
       <section className={styles.seriesSection} id="series">
         <div className={styles.sectionHead}>
@@ -228,7 +253,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       <section className={styles.section} id="model-register">
         <div className={styles.sectionHead}>
           <div><span>MODEL REGISTER</span><h2>产品型号总表</h2></div>
-          <p>先按型号查看平台、配置版本、产品状态、工程阶段和 BOM 关联；工程阶段仅根据当前真实 BOM / 生产规格记录判断。</p>
+          <p>商品类型与技术平台分开管理：整车可选择 FC/CT/FT/GT；配件和维修零件不强行挂到自行车技术平台。</p>
         </div>
         <div className={styles.modelToolbar}>
           <input
@@ -237,6 +262,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             onChange={(event) => setModelSearch(event.target.value)}
             placeholder="搜索型号、平台、版本、SKU、BOM（VIN 请到车辆查询）"
           />
+          <select aria-label="按产品类型筛选" value={typeFilter} onChange={event=>setTypeFilter(event.target.value)}>
+            <option value="ALL">全部商品类型</option>
+            {catalog.productTypes.filter(t=>t.status==='ACTIVE').map(t=><option key={t.code} value={t.code}>{t.name}</option>)}
+          </select>
           <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
             <option value="ALL">全部状态</option>
             <option value="DRAFT">草稿</option>
@@ -254,6 +283,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
               <thead>
                 <tr>
                   <th>型号</th>
+                  <th>商品类型</th>
                   <th>技术平台</th>
                   <th>配置版本</th>
                   <th>状态</th>
@@ -266,6 +296,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                 {filteredModels.map(({ model, platform, variants }) => (
                   <tr key={model.id}>
                     <td><strong>{model.code}</strong><small>{model.name}</small><small>商品 ID：{model.id}</small></td>
+                    <td>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')}</td>
                     <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
                     <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
                     <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
@@ -281,7 +312,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           <div className={styles.emptyState}>
             {catalogError
               ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
-              : modelSearch || statusFilter !== 'ALL'
+              : modelSearch || statusFilter !== 'ALL' || typeFilter !== 'ALL'
                 ? '没有符合当前筛选条件的型号。'
                 : '当前没有已登记的真实型号。请在下方创建车型；系统不会自动填充示例记录。'}
           </div>
@@ -297,7 +328,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           {hierarchyRows.map(({ model, platform, variants }) => (
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
-                <div><small>{platform?.code}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
+                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
                 <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button>
               </div>
               {variants.map((variant) => (
@@ -329,13 +360,18 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       </section>
 
       <section className={styles.formsGrid} id="configuration">
-        <form onSubmit={(e) => void submitForm(e, '/v1/product/models', (f) => ({ platformId: f.get('platformId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
-          <span>新建车型</span><h3>创建车型</h3>
-          <select name="platformId" required defaultValue=""><option value="" disabled>选择产品系列</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {platformName(p)}</option>)}</select>
-          <input name="code" placeholder="例如：FC1" required />
+        <form onSubmit={(e) => void submitForm(e, '/v1/product/models', (f) => ({ productTypeCode: f.get('productTypeCode'), platformId: newModelType==='BIKE' ? f.get('platformId') : null, code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
+          <span>新建商品</span><h3>创建商品主记录</h3>
+          <label>产品类型
+            <select name="productTypeCode" value={newModelType} onChange={event=>setNewModelType(event.target.value)} required>
+              {selectableProductTypes.map(type=><option key={type.code} value={type.code}>{type.name}</option>)}
+            </select>
+          </label>
+          {newModelType==='BIKE'?<select name="platformId" required defaultValue=""><option value="" disabled>选择技术平台（整车）</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {platformName(p)}</option>)}</select>:<p>非整车不关联 FC / CT / FT / GT 技术平台；仍使用同一套商品 ID → Variant → SKU。</p>}
+          <input name="code" placeholder={newModelType==='BIKE'?'例如：FC1':'例如：ACCESSORY-RACK'} required />
           <input name="name" placeholder="车型名称" required />
           <input name="description" placeholder="车型说明" />
-          <button>创建车型</button>
+          <button>创建商品</button>
         </form>
 
         <form onSubmit={(e) => void submitForm(e, '/v1/product/variants', (f) => ({ modelId: f.get('modelId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
@@ -357,6 +393,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         </form>
       </section>
 
+      <HomepageProductBindingPanel models={catalog.models} loadError={catalogError} />
       <section className={styles.section} id="engineering">
         <div className={styles.sectionHead}>
           <div><span>工程发布</span><h2>零部件、BOM 与生产规格</h2></div>

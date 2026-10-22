@@ -5,9 +5,9 @@ import { Fc2Gallery } from "./fc2-gallery";
 import {PendingPurchaseActions} from "./pending-purchase-actions";
 import styles from "./fc2-product.module.css";
 
-export function Fc2LaunchCard({locale}:{locale:Locale}) {
+export function Fc2LaunchCard({locale,productModelId}:{locale:Locale;productModelId?:string|null}) {
   const t=translator(locale);
-  return <section className={styles.launchCard} data-fc2-launch>
+  return <section className={styles.launchCard} data-fc2-launch data-product-model-id={productModelId??undefined}>
     <div className={styles.launchCopy}><span className={styles.eyebrow}>{t("fc2.new")}</span><h2>{t("brand.name")} {t("fc2.model")}</h2><p>{t("fc2.launch.body")}</p><a className={styles.button} href={`/${locale}/explore/fc2`}>{t("fc2.explore")}</a></div>
     <a className={styles.launchImage} href={`/${locale}/explore/fc2`} aria-label={t("fc2.explore")}><img src="/products/fc2/side-studio-768.webp" srcSet="/products/fc2/side-studio-768.webp 768w, /products/fc2/side-studio-1536.webp 1536w" sizes="(max-width:760px) 100vw, 60vw" width={1536} height={1024} alt={t("fc2.gallery.alt.side")} loading="lazy" /></a>
   </section>;

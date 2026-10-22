@@ -1,17 +1,38 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
-import type { ProductStatus } from '@alsvid/product';
+import type { HomepageBindingMode, HomepageSlotCode, ProductStatus, ProductTypeCode } from '@alsvid/product';
+import { Public } from './public.decorator.js';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
 import { productService } from './runtime.js';
 
-interface CreateModelBody { platformId: string; code: string; name: string; description?: string }
+interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string }
+interface UpdateHomepageBindingBody { slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
 interface CreateSkuBody { variantId: string; sku: string; name: string; marketCode?: string; colorCode?: string; sizeCode?: string; attributes?: Record<string, unknown> }
 interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }
 
 @Controller('v1/product')
 export class ProductController {
+  @Public()
+  @Get('public/homepage-bindings')
+  async publicHomepageBindings() {
+    try { return { data: await productService.publicHomepageBindings() }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Get('homepage-bindings')
+  async homepageBindings(@Req() request: AuthenticatedRequest) {
+    try { return { data: await productService.homepageBindings(requireAuth(request)) }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Post('homepage-bindings')
+  async setHomepageBinding(@Req() request: AuthenticatedRequest, @Body() input: UpdateHomepageBindingBody) {
+    try { return { data: await productService.setHomepageBinding(requireAuth(request),input) }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
   @Get('catalog')
   async catalog(@Req() request: AuthenticatedRequest) {
     try { return { data: await productService.catalog(requireAuth(request)) }; }

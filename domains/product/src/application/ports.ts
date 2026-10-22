@@ -1,4 +1,4 @@
-import type { ProductCatalog, ProductEntityKind, ProductStatus } from '../core/model.js';
+import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
 
 export interface ProductActor {
   userId: string;
@@ -16,7 +16,8 @@ export interface ProductAuditPort {
 }
 
 export interface CreateModelRecord {
-  platformId: string;
+  platformId: string | null;
+  productTypeCode: ProductTypeCode;
   code: string;
   name: string;
   description: string;
@@ -61,6 +62,10 @@ export interface UpdateProductRecord {
 }
 
 export interface ProductRepository {
+  homepageBindings(): Promise<HomepageBinding[]>;
+  updateHomepageBinding(input: {slot: HomepageSlotCode; mode: HomepageBindingMode; modelId: string | null; expectedVersion: number; actorUserId: string}): Promise<HomepageBinding | null>;
+  homepageBindingExists(slot: HomepageSlotCode): Promise<boolean>;
+  modelForHomepageSlot(slot: HomepageSlotCode, modelId: string): Promise<boolean>;
   catalog(): Promise<ProductCatalog>;
   createModel(input: CreateModelRecord): Promise<any>;
   createVariant(input: CreateVariantRecord): Promise<any>;

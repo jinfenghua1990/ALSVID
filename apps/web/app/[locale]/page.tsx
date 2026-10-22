@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { HomePage } from '../_components/home/home-page';
+import { homepageProductBindings } from '../_components/home/public-product-bindings';
 import { isLocale } from '../_lib/i18n/routing';
 import { translator } from '../_lib/i18n';
 import { portalUrlFor } from '../_lib/portal-routing';
@@ -22,5 +23,6 @@ export default async function LocalizedHome({ params }: Props) {
   const host = requestHeaders.get('host') ?? '';
   const prefix = host.toLowerCase().split('.')[0];
   if (prefix === 'admin' || prefix === 'my' || prefix === 'dealer') redirect(`/${prefix}`);
-  return <HomePage locale={locale} myUrl={portalUrlFor(host, 'my')} dealerUrl={portalUrlFor(host, 'dealer')} />;
+  const productBindings = await homepageProductBindings();
+  return <HomePage locale={locale} myUrl={portalUrlFor(host, 'my')} dealerUrl={portalUrlFor(host, 'dealer')} productBindings={productBindings} />;
 }

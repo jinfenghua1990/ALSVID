@@ -4,6 +4,14 @@ export const ProductCapability = {
 } as const;
 
 export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'RETIRED';
+export type ProductTypeCode = 'BIKE' | 'ACCESSORY' | 'SERVICE_PART';
+export type HomepageSlotCode = 'FC1_HERO' | 'FC1_FEATURED' | 'FC2_LAUNCH';
+export type HomepageBindingMode = 'AUTO' | 'MANUAL';
+export type HomepageBinding = {
+  slot_code: HomepageSlotCode; target_model_code: string; mode: HomepageBindingMode;
+  manual_model_id: string | null; resolved_model_id: string | null;
+  resolved_model_code: string | null; version: number;
+};
 export type ProductEntityKind = 'model' | 'variant' | 'sku';
 
 export interface ProductRowBase {
@@ -22,7 +30,8 @@ export interface ProductRowBase {
 export interface PlatformRow extends ProductRowBase {}
 
 export interface ModelRow extends ProductRowBase {
-  platform_id: string;
+  platform_id: string | null;
+  product_type_code: ProductTypeCode;
 }
 
 export interface VariantRow extends ProductRowBase {
@@ -40,6 +49,7 @@ export interface SkuRow extends ProductRowBase {
 }
 
 export interface ProductCatalog {
+  productTypes: { code: ProductTypeCode; name: string; description: string; status: ProductStatus }[];
   platforms: PlatformRow[];
   models: ModelRow[];
   variants: VariantRow[];
