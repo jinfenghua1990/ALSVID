@@ -4,7 +4,7 @@
 
 > ALSVID 是自行车品牌的企业数字化平台。这个仓库是 ALSVID 的新实现权威源（implementation authority），不是 ChaiBen-OS 或旧 ALSVID 代码的迁移副本。
 
-> **门户执行基线（2026-10-16）：** 先读[设计与门户边界](docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)、[实施证据与执行顺序](docs/PORTAL_DELIVERY_PLAN_2026-10-16.md)及 [ADR 0004](docs/adr/0004-portal-experience-commerce-and-supplier.md)。Ardot 负责内部 Admin；Figma 负责外部门户最终 UI；Shopify 负责买方交易；Supplier 自助按 #185 分阶段交付。目标、演示页面、真实 API 与上线验收分开记录；历史段落不能覆盖该基线。
+> **当前执行基线（2026-10-22）：** 先读 [项目记忆索引](docs/PROJECT_MEMORY_INDEX.md) 与 [当前实现状态](docs/CURRENT_STATE.md)，再按 [ADR 0004](docs/adr/0004-portal-experience-commerce-and-supplier.md)、[ADR 0005](docs/adr/0005-alsvid-owned-storefront-and-third-party-payments.md)、[ADR 0006](docs/adr/0006-first-party-portal-auth-and-login-experience.md) 执行。Ardot 负责内部 Admin；Figma 负责外部门户 UI；ALSVID Official 承担自建 B2C 商城与订单编排，获批 PSP 处理支付；首期不依赖 Shopify。Supplier 自助按 #185 分阶段交付。本文后部保留的旧 Shopify-first 段落仅作历史背景，与 ADR 0005/0006 冲突时一律以新 ADR 和 CURRENT_STATE 为准。
 
 这份 README 同时服务于三类读者：
 
@@ -1028,16 +1028,16 @@ Use repository scripts/infra definitions documented in the current branch rather
 
 ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 
-> **把品牌最重要、最长期的 Vehicle / VIN / Customer / Dealer / Warranty / Service 数据掌握在自己手里，同时让 Shopify、WMS、云数据库、对象存储和运行平台都保持可替换。**
+> **把品牌最重要、最长期的 Vehicle / VIN / Customer / Dealer / Warranty / Service 数据掌握在自己手里，同时让 PSP、WMS、云数据库、对象存储和运行平台都保持可替换；Shopify 不是首期 B2C 交易依赖。**
 
 
-## 四大门户与 Shopify 官网商城一体化（2026-10-13 最新业务决策）
+## 四大门户与自建商城边界（当前执行基准）
 
-**请所有 AI / 开发人员在设计官网、商城、后台、经销商或会员功能前，先阅读 [`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md)。**
+**所有 AI / 开发人员在设计官网、商城、Admin、Dealer 或 My 功能前，先阅读 [`docs/PROJECT_MEMORY_INDEX.md`](docs/PROJECT_MEMORY_INDEX.md)、[`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) 和 ADR 0005/0006。**
 
-四个核心产品边界：**ALSVID Official**（www.alsvidbike.com，品牌官网与商城体验）、**ALSVID Admin**（admin.alsvidbike.com，内部运营）、**ALSVID Dealer Portal**（dealer.alsvidbike.com，经销商 B2B）、**My ALSVID**（my.alsvidbike.com，车主会员与售后），另有分阶段交付的 Supplier Portal。新链接统一采用 `alsvidbike.com`；旧 `chaibenn.com` 为迁移/历史域名，DNS、TLS 和生产配置需独立验收。当前开发在本地、CI 临时运行；不恢复旧 `*.dev.chaibenn.com` 云发布链。**不把 ALSVID Shop 拆成额外公开站点，也不把内部 Portal Launcher 当成公开首页。**
+四个核心产品边界：**ALSVID Official**（www.alsvidbike.com，品牌官网 + 自建 B2C 商城）、**ALSVID Admin**（admin.alsvidbike.com，内部运营）、**ALSVID Dealer Portal**（dealer.alsvidbike.com，经销商业务）、**My ALSVID**（my.alsvidbike.com，车主会员与售后），另有分阶段交付的 Supplier Portal。B2C 商品、购物袋、订单与结账由 ALSVID 自有 Commerce 负责；支付由获批 PSP 处理，未通过发布门禁前不得真实收款。首期不依赖 Shopify，也不拆出独立公开 Shop 站点；不把内部 Portal Launcher 当成公开首页。
 
-此文档逐项规定四门户页面结构、导航、角色、Shopify 边界、产品视觉、VIN/售后集成、测试与上线状态判断；与旧架构描述有冲突时，门户与官网商城的业务规划以该最新决策为准，实际代码与部署状态以 CURRENT_STATE 和验收证据为准。
+[`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md) 是早期规划，其中 Shopify-first 交易与 My 登录方案已分别被 ADR 0005 和 ADR 0006 取代。它保留为历史依据，不再作为当前实现指令。正式域名、上线证据与未完成项以 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)、[`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) 和对应 Issue/PR 为准。
 
 门户固定地址、历史开发地址与当前验证范围见 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)。
 
