@@ -1,6 +1,8 @@
 # ALSVID 官网商城架构规划
 
-> 状态：**已确认 / Frozen**
+> 状态：**历史规划；首期交易边界已由 ADR 0005 取代**
+>
+> 本文中的 Shopify-first 交易结构不再作为当前实施方案。首期消费者商城整合在 ALSVID Official，由 ALSVID Commerce 管理商品选择、购物袋、结账编排与订单，获批 PSP 执行支付；见 [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md)。本文仅保留历史结构参考，真实完成状态以 [CURRENT_STATE.md](CURRENT_STATE.md) 为准。
 >
 > 本文定义 ALSVID Official 的长期官网与商城边界。系统正式命名以 [`SYSTEM_NAMING.md`](SYSTEM_NAMING.md) 为权威来源。
 
@@ -16,7 +18,7 @@ ALSVID Official
 
 `ALSVID Official` 是架构、代码、文档和部署使用的系统名称；消费者访问网站时，品牌展示仍然只显示 `ALSVID`，不会在前台 Logo 或导航中展示 `WWW`。
 
-ALSVID Official 不是单纯企业展示网站，而是品牌官网 + Shopify 商城融合体系。
+ALSVID Official 不是单纯企业展示网站，而是品牌官网 + ALSVID 自建商城一体化体系。
 
 目标：
 
