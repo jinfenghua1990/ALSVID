@@ -10,23 +10,23 @@ For portal UI, design-tool ownership, supplier work, and storefront checkout/pay
 
 1. `docs/PROJECT_MEMORY_INDEX.md` (统一入口：Admin 只读架构页，GitHub 长期记忆源)
 2. `knowledge/README.md`
-2. `knowledge/00-Company/Architecture.md`
-3. `docs/AI_CONTEXT.md`
-2. `docs/ARCHITECTURE_DECISIONS.md`
-3. `docs/BUSINESS_BOUNDARY.md`
-4. `docs/DATABASE_DECISION.md`
-5. `docs/RUNTIME_DECISION.md`
-6. `docs/STORAGE_DECISION.md`
-7. `docs/ENVIRONMENT_STRATEGY.md`
-8. `docs/OPERATIONS.md`
-9. `docs/CURRENT_STATE.md`
-10. `docs/ARCHITECTURE.md`
-11. `docs/DOMAIN_STRUCTURE.md`
-12. `docs/DATA_OWNERSHIP.md`
-13. `docs/BUSINESS_FLOWS.md`
-14. relevant ADRs under `docs/adr/`
-15. the current issue/PR and affected `domain.json`
-17. `docs/ENVIRONMENT_ARCHITECTURE.md`
+3. `knowledge/00-Company/Architecture.md`
+4. `docs/AI_CONTEXT.md`
+5. `docs/ARCHITECTURE_DECISIONS.md`
+6. `docs/BUSINESS_BOUNDARY.md`
+7. `docs/DATABASE_DECISION.md`
+8. `docs/RUNTIME_DECISION.md`
+9. `docs/STORAGE_DECISION.md`
+10. `docs/ENVIRONMENT_STRATEGY.md`
+11. `docs/OPERATIONS.md`
+12. `docs/CURRENT_STATE.md`
+13. `docs/ARCHITECTURE.md`
+14. `docs/DOMAIN_STRUCTURE.md`
+15. `docs/DATA_OWNERSHIP.md`
+16. `docs/BUSINESS_FLOWS.md`
+17. relevant ADRs under `docs/adr/`
+18. the current issue/PR and affected `domain.json`
+19. `docs/ENVIRONMENT_ARCHITECTURE.md`
 
 For product, brand, website, dealer, customer-support, commerce or AI work, also read the relevant files under `knowledge/`. The knowledge base is the shared ALSVID business context; this file and the `docs/` files remain authoritative for engineering constraints. For ALSVID WWW, My ALSVID or Dealer Portal web UI, follow `docs/ALSVID_WEB_I18N_STANDARD.md`. ALSVID-owned storefront copy must use the shared locale catalogs; any future provider-hosted payment UI must be reviewed for locale coverage separately.
 
