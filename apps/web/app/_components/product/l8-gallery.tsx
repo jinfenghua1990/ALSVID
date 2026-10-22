@@ -11,7 +11,7 @@ export function L8Gallery({ locale }: { locale: Locale }) {
   return <div className={styles.gallery} data-l8-gallery>
     <div className={styles.stage} id="l8-photo" aria-live="polite">
       <span className={styles.backdrop} aria-hidden="true">L8</span>
-      <img key={photo} src={`/products/l8/reference-${photo}.png`} width={1024} height={1024}
+      <img key={photo} src={`/products/l8/retouched-${photo}.webp`} width={1024} height={1024}
         alt={t(`l8.gallery.${photo}.alt`)} fetchPriority="high" data-l8-photo={photo} />
     </div>
     <div className={styles.galleryControls} role="group" aria-label={t("l8.gallery.label")}>
@@ -19,5 +19,6 @@ export function L8Gallery({ locale }: { locale: Locale }) {
         onClick={() => setPhoto(id)}>{t(`l8.gallery.${id}`)}</button>)}
     </div>
     <p className={styles.note}>{t("l8.photo.note")}</p>
+    <a className={styles.note} data-l8-original href={`/products/l8/reference-${photo}.png`} target="_blank" rel="noreferrer">{t("l8.original")}</a>
   </div>;
 }

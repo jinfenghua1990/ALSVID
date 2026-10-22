@@ -20,7 +20,7 @@ export function AccessoriesCatalogSection({locale,selectedCategory}:{locale:Loca
       {categories.map(id=><a key={id} href={base+"/bikes?category="+id+"#accessories"} aria-current={selected===id ? "page" : undefined}>{t(`accessories.${id}.title` as TranslationKey)}</a>)}
     </nav>
     {(!selected || selected === "parts") && <div className={styles.product} data-accessory-product="cup-holder">
-      <a href={base + "/explore/accessory-cup-holder"} aria-label={t("cup.explore")}><img src="/products/accessories/cup-holder-black.webp" width={800} height={800} alt={t("cup.black.alt")} loading="lazy" /></a>
+      <a href={base + "/explore/accessory-cup-holder"} aria-label={t("cup.explore")}><img src="/products/accessories/cup-holder/retouched/cup-holder-black.webp" width={800} height={800} alt={t("cup.black.alt")} loading="lazy" /></a>
       <div><p className={styles.kicker}>{t("cup.eyebrow")}</p><h3>{t("cup.name")}</h3><p>{t("cup.home.body")}</p><a href={base + "/explore/accessory-cup-holder"}>{t("cup.explore")}</a></div>
     </div>}
     <div className={styles.grid}>

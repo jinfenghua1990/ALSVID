@@ -335,7 +335,7 @@ export function HomePage({
           </div>
           <div id="accessory-categories" className={styles["accessory-grid"]}>
             <article className={styles["accessory"]}>
-              <div className={styles["visual"]}><img className={cupStyles.thumbnail} src="/products/accessories/cup-holder-black.webp" width={800} height={800} alt={t("cup.black.alt")} loading="lazy" /></div>
+              <div className={styles["visual"]}><img className={cupStyles.thumbnail} src="/products/accessories/cup-holder/retouched/cup-holder-black.webp" width={800} height={800} alt={t("cup.black.alt")} loading="lazy" /></div>
               <h3>{t("cup.name")}</h3><p>{t("cup.home.body")}</p>
               <a className={styles.cardLink} href={detail("accessory-cup-holder")} aria-label={t("cup.explore")}>{t("common.learn_more")}</a>
             </article>

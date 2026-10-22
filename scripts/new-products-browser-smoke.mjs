@@ -98,7 +98,8 @@ try {
         const cupGallery = page.locator("[data-cup-holder-gallery]");
         assert.equal(await cupGallery.locator("[data-cup-colour]").count(), 6);
         assert.equal(await cupGallery.locator("[data-cup-photo]").count(), 5);
-        for (const button of await cupGallery.locator("[data-cup-colour]").all()) {
+        assert.match(await cupGallery.locator("figure img").getAttribute("src"), /retouched\/cup-holder-black\.webp$/);
+        for (const button of await cupGallery.locator('[data-cup-colour][aria-pressed="false"]').all()) {
           const contrast = await button.evaluate(el => {
             const luminance = colour => {
               const channels = colour.match(/[0-9.]+/g).slice(0, 3).map(Number).map(value => {
@@ -123,6 +124,9 @@ try {
           await button.press("Enter");
           await page.waitForFunction(id => { const image = document.querySelector("[data-cup-holder-gallery] figure img"); return image?.src.includes("cup-holder-" + id) && image.complete && image.naturalWidth > 0; }, colour);
           assert.equal(await button.getAttribute("aria-pressed"), "true");
+          assert.match(await cupGallery.locator("figure img").getAttribute("src"), /\/retouched\//);
+          assert.ok((await cupGallery.locator("[data-cup-original]").getAttribute("href")).endsWith("cup-holder-" + colour + ".webp"));
+          if (locale === "zh" && device === "desktop") await cupGallery.screenshot({ path: output + "/cup-retouched-" + colour + ".png" });
         }
         const detailFigures = page.locator("[data-cup-full-details] figure");
         assert.equal(await detailFigures.count(), 17, "Every source product-detail image is present");
