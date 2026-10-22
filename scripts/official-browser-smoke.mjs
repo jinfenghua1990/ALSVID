@@ -248,6 +248,12 @@ try {
           'Selected homepage scene must have a successfully decoded image before visual review');
         assert.ok(loadedHeroImage.source.includes('scene-city.webp'),
           'Second homepage scene should load the city riding image');
+        if (isMobile) {
+          const copyTop = await hero.locator('h1').evaluate(element => Number.parseFloat(getComputedStyle(element.parentElement).top));
+          const imagePosition = await activeHeroImage.evaluate(image => getComputedStyle(image).objectPosition);
+          assert.ok(copyTop <= 70, 'Mobile hero copy should remain in the top safe area above the rider');
+          assert.ok(imagePosition.startsWith('51%'), 'Mobile hero crop should preserve the full bicycle focal area');
+        }
         assert.ok(await root.locator('[data-fc2-launch] a[href="/' + locale + '/explore/fc2"]').count() > 0, 'New model is discoverable from homepage');
         const title = hero.locator('h1');
         assert.ok((await title.innerText()).trim().length > 0, 'Hero retains readable headline');
