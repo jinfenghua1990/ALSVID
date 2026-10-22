@@ -237,6 +237,17 @@ try {
         await tabs.nth(1).click();
         assert.equal(await tabs.nth(1).getAttribute('aria-pressed'), 'true', 'Manual platform selection works');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'false', 'Previous scene is deselected');
+        // The scene image is replaced on tab selection. Decode it before taking
+        // the visual snapshot so a fast screenshot cannot hide a missing/late image.
+        const activeHeroImage = hero.locator('img').first();
+        const loadedHeroImage = await activeHeroImage.evaluate(async image => {
+          await image.decode();
+          return { width: image.naturalWidth, height: image.naturalHeight, source: image.currentSrc || image.src };
+        });
+        assert.ok(loadedHeroImage.width > 0 && loadedHeroImage.height > 0,
+          'Selected homepage scene must have a successfully decoded image before visual review');
+        assert.ok(loadedHeroImage.source.includes('scene-city.webp'),
+          'Second homepage scene should load the city riding image');
         assert.ok(await root.locator('[data-fc2-launch] a[href="/' + locale + '/explore/fc2"]').count() > 0, 'New model is discoverable from homepage');
         const title = hero.locator('h1');
         assert.ok((await title.innerText()).trim().length > 0, 'Hero retains readable headline');
