@@ -14,6 +14,15 @@ type Order={id:string;orderNumber:string;source:'ALSVID_WWW';customerEmail:strin
  status:string;paymentStatus:string;taxConfigurationStatus:string;totalNetAmount:string;totalTaxAmount:string;
  totalGrossAmount:string;version:number;createdAt:string;lines:Line[];checkoutEnabled:false;
  productionDemandAllowed:false;blockers:string[]};
+type OrderEvent={id:string;eventType:'ORDER_CREATED'|'STATUS_CHANGED'|'PAYMENT_STATUS_CHANGED';
+ fromStatus:string|null;toStatus:string;fromPaymentStatus:string|null;toPaymentStatus:string;
+ actorUserId:string|null;metadata:Record<string,unknown>;occurredAt:string};
+type OrderDetail=Order&{events:OrderEvent[]};
+const orderStatusLabel=(status:string):string=>({
+ DRAFT:'内部草稿',SUBMITTED:'已提交（待支付通道）',AWAITING_PAYMENT:'等待支付',
+ PAYMENT_PENDING:'支付处理中',PAYMENT_VERIFIED:'付款已核验',FULFILLMENT_PENDING:'待履约',
+ IN_PRODUCTION:'生产中',FULFILLED:'已交付',CLOSED:'已关闭',CANCELLED:'已取消',
+} as Record<string,string>)[status]??status;
 type Factory={id:string;code:string;name:string};
 type Summary={checkoutEnabled:false;skus:Sku[];prices:Price[];orders:Order[];factories:Factory[]};
 type ItemInput={skuId:string;quantity:string};
@@ -49,6 +58,7 @@ export function StorefrontOrderDraftPanel(){
  const [orderSearch,setOrderSearch]=useState('');
  const [orderStatus,setOrderStatus]=useState('ALL');
  const [orderMarket,setOrderMarket]=useState('ALL');
+ const [detail,setDetail]=useState<OrderDetail|null>(null);
  const requestKey=useRef<{fingerprint:string;id:string}|null>(null);
  const refresh=useCallback(async()=>{const data=await call<Summary>('summary');setSummary(data);
   setPriceSku(current=>data.skus.some(s=>s.id===current)?current:(data.skus[0]?.id??''));
@@ -109,6 +119,19 @@ export function StorefrontOrderDraftPanel(){
  async function cancelOrder(order:Order){
   await run(()=>call<Order>('orders/'+order.id+'/cancel',{expectedVersion:order.version,reason:cancelReason.trim()}),
    '内部订单草稿已取消；没有发生资金操作。');
+ }
+ async function openDetail(order:Order){
+  if(busy)return;setBusy(true);setError('');setNotice('');
+  try{setDetail(await call<OrderDetail>('orders/'+order.id));}
+  catch(e){setError(e instanceof Error?e.message:'无法读取订单详情');}
+  finally{setBusy(false);}
+ }
+ async function submitOrder(order:Order){
+  await run(async()=>{
+   const updated=await call<Order>('orders/'+order.id+'/submit',{expectedVersion:order.version});
+   setDetail(current=>current&&current.id===order.id?{...current,...updated}:current);
+   return '订单 '+updated.orderNumber+' 已提交，等待支付通道接入；尚未发起任何支付尝试，也没有资金变动。';
+  },'订单已提交。');
  }
  return <section id="b2c" className={styles.firstPartyCard} aria-label="ALSVID 第一方订单与价格管理">
   <div className={styles.firstPartyHeader}>
@@ -204,16 +227,39 @@ export function StorefrontOrderDraftPanel(){
     {filteredOrders.slice(0,30).map(o=><article className={styles.firstPartyRow} key={o.id}>
      <div><strong>{o.orderNumber} · {o.totalGrossAmount} {o.currency}</strong>
       <span>{o.customerEmail} · {o.marketCountry} · {o.lines.map(l=>l.skuCode+' × '+l.quantity).join('，')}</span>
-      <small>{o.status==='DRAFT'?'内部草稿':o.status==='CANCELLED'?'已取消':o.status} · 支付：{o.paymentStatus==='NOT_CONFIGURED'?'未配置':o.paymentStatus}</small>
+      <small>{orderStatusLabel(o.status)} · 支付：{o.paymentStatus==='NOT_CONFIGURED'?'未配置':o.paymentStatus}</small>
       {o.status==='DRAFT'?<small>生产门槛未通过：尚无已核验付款证据。</small>:null}
+      {o.status==='SUBMITTED'?<small>已提交待支付：支付通道尚未接入，订单无法继续流转。</small>:null}
      </div>
      <div className={styles.firstPartyActions}>
       {['PAYMENT_VERIFIED','FULFILLMENT_PENDING','IN_PRODUCTION'].includes(o.status)?<button type="button" disabled={busy||!factoryId} onClick={()=>void createProductionDemand(o)}>创建 / 核对生产需求</button>:null}
+      {o.status==='DRAFT'?<button type="button" disabled={busy} onClick={()=>void submitOrder(o)}>提交订单</button>:null}
       {o.status==='DRAFT'?<button type="button" className={styles.secondaryAction} disabled={busy||cancelReason.trim().length<10} onClick={()=>void cancelOrder(o)}>取消草稿</button>:null}
+      <button type="button" className={styles.secondaryAction} disabled={busy} onClick={()=>void openDetail(o)}>详情</button>
      </div>
     </article>)}
     {!loading&&!summary.orders.length&&!error?<p className={styles.firstPartyEmpty}>尚无第一方订单记录。</p>:null}
      {summary.orders.length>0&&!filteredOrders.length?<p className={styles.firstPartyEmpty}>没有符合当前筛选条件的订单，可调整搜索或筛选项。</p>:null}
+     {detail?<section className={styles.firstPartyRow} aria-label="订单详情">
+      <div>
+       <strong>{detail.orderNumber} · {detail.totalGrossAmount} {detail.currency}</strong>
+       <span>{detail.customerEmail} · {detail.marketCountry} · 状态：{orderStatusLabel(detail.status)} · 支付：{detail.paymentStatus==='NOT_CONFIGURED'?'未配置':detail.paymentStatus}</span>
+       <small>版本 V{detail.version} · 净额 {detail.totalNetAmount} + 税额 {detail.totalTaxAmount} = 含税 {detail.totalGrossAmount} {detail.currency}</small>
+       <small>创建时间 {new Date(detail.createdAt).toLocaleString('zh-CN')}</small>
+       <small>订单行（{detail.lines.length}）</small>
+       <ul>
+        {detail.lines.map(line=><li key={line.id}>{line.skuCode} · {line.skuName}{line.colorCode?' · '+line.colorCode:''} × {line.quantity} — 含税 {line.lineGrossAmount}（净 {line.lineNetAmount} + 税 {line.lineTaxAmount}），税率 {line.taxRateBasisPoints/100}%</li>)}
+       </ul>
+       <small>流转记录（{detail.events.length}）</small>
+       <ul>
+        {detail.events.map(event=><li key={event.id}>{new Date(event.occurredAt).toLocaleString('zh-CN')} · {event.eventType} · {event.fromStatus?orderStatusLabel(event.fromStatus)+' → ':''}{orderStatusLabel(event.toStatus)} · 支付 {event.toPaymentStatus}</li>)}
+       </ul>
+       {detail.blockers.length?<small>阻塞项：{detail.blockers.join('；')}</small>:null}
+      </div>
+      <div className={styles.firstPartyActions}>
+       <button type="button" className={styles.secondaryAction} disabled={busy} onClick={()=>setDetail(null)}>收起详情</button>
+      </div>
+     </section>:null}
    </div>
   </div>
   <p className={styles.firstPartyFooter}>安全边界：所有新建订单初始状态为 DRAFT / NOT_CONFIGURED；界面和 API 都不提供“手动标记已付款”。数据库要求已核验 PSP 交易、签名验证、订单金额与币种完全匹配，才允许将订单转为已付款。生产单若关联销售订单行，还必须匹配已发布 BOM、SKU 与数量；否则数据库拒绝。</p>
