@@ -17,6 +17,8 @@
   "catalog.bikes.models.kicker": "02 / 车型目录",
   "catalog.bikes.models.title": "认识 ALSVID 车型",
   "catalog.bikes.models.body": "点击车型进入现有详情页。价格、库存与购买方式以正式发布为准。",
+  "catalog.bikes.models.unpublished": "尚无经过审核发布的整车商品。品牌与车型详情仍可通过相应入口了解，暂不开放购买。",
+  "catalog.bikes.models.unavailable": "暂时无法核对官网已审核商品目录，请稍后重试；当前不显示未经确认的商品。",
   "catalog.bikes.models.published": "官方已审核展示",
   "catalog.bikes.models.fc1": "邮箱预约咨询",
   "catalog.bikes.models.fc2": "新品展示",
