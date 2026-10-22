@@ -100,3 +100,11 @@
 .lineInput label{display:grid;gap:6px}
 .lineInput label>span{font-size:10px;color:var(--alsvid-text-2)}
 .lineInput input{min-width:0}
+
+.poLines{grid-column:1/-1;display:grid;gap:10px;padding:12px;border:1px solid var(--alsvid-line);border-radius:11px;background:var(--alsvid-bg-soft)}
+.poLine{display:grid;gap:12px;border:1px solid var(--alsvid-line);border-radius:9px;background:var(--alsvid-panel);padding:14px}
+.lineHeading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.lineHeading strong{font-size:11px;font-weight:700;color:var(--alsvid-text)}
+.poLine .formPair{grid-column:auto}
+.poLine label{min-width:0}
+@media(max-width:760px){.poLines{padding:10px}.poLine{padding:11px}}
