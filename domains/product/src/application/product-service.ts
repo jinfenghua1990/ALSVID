@@ -1,7 +1,7 @@
 import { ForbiddenError } from '@alsvid/kernel';
 import { postgresErrorCode } from '@alsvid/database';
 import { ProductConflictError, ProductNotFoundError, ProductValidationError } from '../core/errors.js';
-import { ProductCapability, type ProductCatalog, type ProductEntityKind, type ProductStatus } from '../core/model.js';
+import { ProductCapability, type HomepageBinding, type HomepageBindingMode, type HomepageSlotCode, type ProductCatalog, type ProductEntityKind, type ProductStatus, type ProductTypeCode } from '../core/model.js';
 import { normalizeProductCode, normalizeProductCountry } from '../core/normalization.js';
 import type { ProductActor, ProductAuditPort, ProductRepository } from './ports.js';
 
@@ -13,12 +13,51 @@ export class ProductService {
     return this.repository.catalog();
   }
 
-  async createModel(actor: ProductActor, input: { platformId: string; code: string; name: string; description?: string }): Promise<any> {
+  async homepageBindings(actor: ProductActor): Promise<HomepageBinding[]> {
+    requireCapability(actor, ProductCapability.Read);
+    return this.repository.homepageBindings();
+  }
+
+  /** Public projection contains only the validated internal model ID and fixed code; no inventory, price or sale status. */
+  async publicHomepageBindings(): Promise<Array<{slot: HomepageSlotCode; modelId: string | null; modelCode: string | null}>> {
+    const bindings = await this.repository.homepageBindings();
+    return bindings.map(row => ({slot:row.slot_code,modelId:row.resolved_model_id,modelCode:row.resolved_model_code}));
+  }
+
+  async setHomepageBinding(actor: ProductActor, input: {slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number}): Promise<HomepageBinding> {
+    requireCapability(actor, ProductCapability.Write);
+    if (!['FC1_HERO','FC1_FEATURED','FC2_LAUNCH'].includes(input.slot)) throw new ProductValidationError('Unknown homepage slot');
+    if (!Number.isInteger(input.expectedVersion) || input.expectedVersion < 1) throw new ProductValidationError('Expected binding version');
+    if (input.mode !== 'AUTO' && input.mode !== 'MANUAL') throw new ProductValidationError('Unknown binding mode');
+    const modelId = input.mode === 'MANUAL' ? input.modelId : null;
+    if (input.mode === 'MANUAL') {
+      if (!modelId || !await this.repository.modelForHomepageSlot(input.slot, modelId)) {
+        throw new ProductValidationError('Selected model does not match this homepage slot or is not ACTIVE');
+      }
+    } else if (input.modelId) {
+      throw new ProductValidationError('AUTO mode cannot specify a manual model');
+    }
+    const updated = await this.repository.updateHomepageBinding({slot:input.slot,mode:input.mode,modelId:modelId ?? null,
+      expectedVersion:input.expectedVersion,actorUserId:actor.userId});
+    if (!updated) {
+      if (!await this.repository.homepageBindingExists(input.slot)) throw new ProductNotFoundError('Homepage slot not found');
+      throw new ProductConflictError('Homepage binding changed; reload before saving');
+    }
+    await this.audit.record({actorUserId:actor.userId,action:'product.homepage_binding_updated',targetType:'product.homepage_slot',
+      targetId:input.slot,metadata:{mode:input.mode,modelId:modelId ?? null}});
+    return updated;
+  }
+
+  async createModel(actor: ProductActor, input: { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
     const code = normalizeProductCode(input.code);
+    const productTypeCode = input.productTypeCode ?? 'BIKE';
+    if (!['BIKE','ACCESSORY','SERVICE_PART'].includes(productTypeCode)) throw new ProductValidationError('Unsupported product type');
+    if (productTypeCode === 'BIKE' && !input.platformId) throw new ProductValidationError('Bicycle requires technical platform');
+    if (productTypeCode !== 'BIKE' && input.platformId) throw new ProductValidationError('Accessory/service part cannot use a bicycle platform');
     if (!input.name?.trim()) throw new ProductValidationError('Model name is required');
     try {
-      const row = await this.repository.createModel({ platformId: input.platformId, code, name: input.name.trim(), description: input.description?.trim() ?? '', actorUserId: actor.userId });
+      const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', actorUserId: actor.userId });
       await this.audit.record({ actorUserId: actor.userId, action: 'product.model_created', targetType: 'product.model', targetId: row.id, metadata: { code } });
       return row;
     } catch (error) {
