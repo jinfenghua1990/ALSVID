@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "./original-home.module.css";
 
 export function InfoDialog({
@@ -110,7 +111,7 @@ export function HomePosterHero({
         }
         touchStart.current = null;
       }}>
-        <img key={slide.image} className={`${styles.posterImage} ${styles.carouselImage}`} src={slide.image} alt={active === 0 ? posterAlt : slide.alt} width="1672" height="941" fetchPriority={active === 0 ? "high" : "auto"} />
+        <Image key={slide.image} className={`${styles.posterImage} ${styles.carouselImage}`} src={slide.image} alt={active === 0 ? posterAlt : slide.alt} fill sizes="100vw" preload={active === 0} />
         {active !== 0 && <div className={styles.slideShade} />}
         <div className={styles.posterContent}>
           <h1 id={headingId}>{active === 0 ? title : slide.label}</h1>
