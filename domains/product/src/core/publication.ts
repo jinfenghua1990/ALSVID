@@ -33,6 +33,7 @@ export function curatedCatalogImage(modelCode: string, modelStatus: string, type
 }
 
 export function validatePublicationDraft(input: PublicationDraft): PublicationDraft {
+  if (!input || typeof input !== 'object') throw new ProductValidationError('Publication draft is required');
   const normalize = (s: unknown, max: number, name: string) => {
     if (typeof s !== 'string' || s.trim().length < 2 || s.trim().length > max) {
       throw new ProductValidationError(name + ' is required and must fit the configured length');
@@ -59,7 +60,7 @@ export function assertPublicationTransition(current: PublicationStatus, action: 
 }
 
 export function toPublicCatalogItem(row: PublicationRow): PublicCatalogItem | null {
-  if(row.status!=='PUBLISHED')return null;
+  if(row.status!=='PUBLISHED'||row.model_status!=='ACTIVE'||row.product_type_code!=='BIKE'||!approvedCatalogAssets[row.model_code])return null;
   const image=curatedCatalogImage(row.model_code,row.model_status,row.product_type_code);
   if(row.image_path!==image || !row.title_zh || !row.title_de || !row.title_en)return null;
   return {modelId:row.model_id,code:row.model_code,type:'BIKE',image,
