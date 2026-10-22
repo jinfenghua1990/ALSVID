@@ -528,11 +528,11 @@ ALSVID 官网
 
         |
         |
-        +---- Shopify Commerce
-        |        商品
-        |        B2C订单
-        |        支付
-        |        退款
+        +---- ALSVID Commerce
+        |        商品 / Variant / 预览购物袋
+        |        自建 B2C 订单编排（发布门禁后）
+        |        +---- 获批 PSP 负责支付
+        |        +---- Finance 记录验证后的支付事实
         |
         +---- My ALSVID
         |        会员体系
