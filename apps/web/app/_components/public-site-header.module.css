@@ -66,3 +66,27 @@
 @media(prefers-reduced-motion:reduce){.brandBike,.navLink,.homeLink,.dealerLogin{transition:none}.logo:hover .brandBike{transform:none}}
 
 .mobileModels a[aria-current=page]{color:#b8e986}
+
+
+/* Owner / after-sales choice: one clear modal, not an unexpected portal jump. */
+.header button.navLink,.header button.mobileLink{border:0;background:transparent;font:inherit;cursor:pointer;text-align:left}
+.header button.navLink{font-size:18px;color:#f0f1ef;white-space:nowrap;letter-spacing:-.015em;font-weight:500}
+.header button.navLink:hover,.header button.navLink:focus-visible{color:#b8e986}
+.header button.mobileLink{width:100%;font-size:14px;color:#fff}
+.header button.mobileLink:hover,.header button.mobileLink:focus-visible{background:#ffffff16}
+.ownerOverlay{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;padding:24px;background:rgba(6,11,19,.78);backdrop-filter:blur(16px)}
+.ownerDialog{width:min(94vw,720px);overflow:hidden;border:1px solid #a6b4c344;border-radius:16px;background:linear-gradient(145deg,#182433,#101823);box-shadow:0 28px 90px #0009;color:#fff;text-align:left}
+.ownerHeading{display:flex;align-items:start;justify-content:space-between;gap:20px;padding:30px 32px 23px;border-bottom:1px solid #ffffff16}
+.ownerHeading p{font-size:10px;font-weight:700;letter-spacing:.2em;color:#a9c5ca;margin:0 0 8px}
+.ownerHeading h2{font-size:clamp(25px,3vw,34px);font-weight:650;letter-spacing:-.04em;line-height:1.2;margin:0}
+.ownerClose{flex:none;width:36px;height:36px;border:1px solid #ffffff4d;border-radius:50%;background:transparent;color:#fff;font-size:24px;line-height:1;cursor:pointer}
+.ownerClose:hover,.ownerClose:focus-visible{border-color:#b8e986;color:#b8e986}
+.ownerOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:24px 32px 32px}
+.ownerOption{display:grid;gap:11px;position:relative;min-height:192px;padding:23px 21px;border:1px solid #ffffff30;border-radius:12px;background:#ffffff08;color:#fff;text-decoration:none;transition:border-color .2s,background .2s,transform .2s}
+.ownerOption:hover,.ownerOption:focus-visible{border-color:#b8e986;background:#ffffff10;transform:translateY(-2px)}
+.ownerOption strong{font-size:19px;font-weight:700;color:#fff}
+.ownerOption small{font-size:12px;line-height:1.6;color:#b2c0cb}
+.ownerSymbol{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:#b8e98622;color:#b8e986;font-size:23px}
+.ownerArrow{position:absolute;right:18px;top:22px;font-size:21px;color:#aabac7}
+@media(max-width:680px){.ownerOverlay{padding:14px}.ownerHeading{padding:22px 20px 16px}.ownerOptions{grid-template-columns:1fr;padding:16px 20px 24px}.ownerOption{min-height:134px}.ownerDialog{max-height:90svh;overflow:auto}}
+@media(prefers-reduced-motion:reduce){.ownerOption{transition:none}}

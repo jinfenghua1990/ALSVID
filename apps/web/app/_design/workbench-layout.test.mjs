@@ -8,7 +8,8 @@ test('workbench uses the full-width layout instead of reserving an empty seconda
   const renderer = read('./renderer.tsx');
   const css = read('./design-system.css');
 
-  assert.match(renderer, /const secondaryNavigation = screen\.area === '设置'/);
+  assert.match(renderer, /const secondaryNavigation = isLiveProductRoot/);
+  assert.match(renderer, /screen\.area === '设置'/);
   assert.match(renderer, /\? \[\.\.\.\(screen\.secondary \?\? \[\]\), \{ group: '架构与知识', items: \['系统架构'\] \}\]/);
   assert.match(renderer, /: \(screen\.secondary \?\? \[\]\);/);
   assert.match(renderer, /av-body\$\{hasSecondaryNavigation \? '' : ' av-body--wide'\}/);

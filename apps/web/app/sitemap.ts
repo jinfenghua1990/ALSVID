@@ -21,11 +21,11 @@ const dedicatedProductPaths = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const detailPaths = Object.keys(homeDetails).map((slug) => `/explore/${slug}`);
-  const paths = [
+  const paths = Array.from(new Set([
     ...publicPagePaths,
     ...detailPaths,
     ...dedicatedProductPaths,
-  ];
+  ]));
 
   return locales.flatMap((locale) => {
     const homePath = `/${locale}/`;
@@ -33,6 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     return localizedPaths.map((path) => ({
       url: `${siteUrl}${path}`,
+      alternates: {
+        languages: Object.fromEntries(locales.map((lang) => [
+          lang,
+          `${siteUrl}/${lang}${path === homePath ? '/' : path.slice(locale.length + 1)}`,
+        ])),
+      },
       changeFrequency: path === homePath ? "weekly" as const : "monthly" as const,
       priority: path === homePath ? 1 : path.includes("/explore/") ? 0.8 : 0.7,
     }));

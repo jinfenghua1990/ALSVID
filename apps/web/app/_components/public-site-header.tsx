@@ -1,5 +1,6 @@
 import { LanguageSwitcher } from './language-switcher';
 import { CartHeaderLink } from './commerce/cart-header-link';
+import { OwnerServiceMenu } from './owner-service-menu';
 import { translator, type Locale } from '../_lib/i18n';
 import styles from './public-site-header.module.css';
 
@@ -30,10 +31,11 @@ export function PublicSiteHeader({
     { href: prefix + '/explore/l8', label: t('l8.model'), id: 'l8' },
     { href: prefix + '/bikes', label: t('navigation.products'), id: 'bikes' },
     { href: prefix + '/dealers', label: t('navigation.global_dealers'), id: 'dealers' },
-    { href: myUrl, label: t('navigation.owner_account') },
+    { href: myUrl, label: t('network.nav.owner'), id: 'owner' },
     { href: prefix + '/explore/about-story', label: t('brand.story'), id: 'story' },
   ];
   const menu = (mobile: boolean) => links.map(link => (
+    link.id === 'owner' ? <OwnerServiceMenu key={link.href} locale={locale} myUrl={myUrl} mobile={mobile} /> :
     <a key={link.href} href={link.href}
       aria-current={active && link.id === active ? 'page' : undefined}
       className={mobile ? styles.mobileLink : styles.navLink}>

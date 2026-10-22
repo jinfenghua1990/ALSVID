@@ -37,6 +37,18 @@ function isAreaActive(area: string, label: string): boolean {
 }
 
 function menuDestination(screen: Screen, label: string): string | undefined {
+  if (screen.area === '产品') {
+    const destinations: Record<string, string> = {
+      '产品总览': '/admin/product',
+      '产品类型': '/admin/product#product-types',
+      '技术平台': '/admin/product#series',
+      '产品型号': '/admin/product#model-register',
+      '型号配置与 SKU': '/admin/product#models',
+      '新建型号与配置': '/admin/product#configuration',
+      'BOM 与零件库': '/admin/product#engineering',
+    };
+    if (destinations[label]) return destinations[label];
+  }
   if (screen.area === '设置' && label === '系统架构') return '/admin/architecture';
   if (screen.area === '产品' && /商品发布|商品审核|官网发布|产品发布/.test(label)) return '/admin/product#catalog-publications';
   // Go to the persisted first-party Commerce workflow, not a design-only order screen.
@@ -390,9 +402,15 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
-  const secondaryNavigation = screen.area === '设置'
-    ? [...(screen.secondary ?? []), { group: '架构与知识', items: ['系统架构'] }]
-    : (screen.secondary ?? []);
+  const isLiveProductRoot = screen.id === 'product' && screen.route === '/admin/product';
+  const secondaryNavigation = isLiveProductRoot
+    ? [
+        { group: '产品工作区', items: ['产品总览', '产品类型', '技术平台', '产品型号'] },
+        { group: '型号与工程', items: ['型号配置与 SKU', '新建型号与配置', 'BOM 与零件库'] },
+      ]
+    : screen.area === '设置'
+      ? [...(screen.secondary ?? []), { group: '架构与知识', items: ['系统架构'] }]
+      : (screen.secondary ?? []);
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
   const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
@@ -445,7 +463,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         </div>
       </header>
 
-      <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}`}>
+      <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}${isLiveProductRoot ? ' av-body--product' : ''}`}>
         {hasSecondaryNavigation ? (
           <aside className="av-rail" aria-label="二级导航">
             {secondaryNavigation.map((group) => (
@@ -464,16 +482,16 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                 <div className="av-railspacer" />
               </div>
             ))}
-            <div className="av-railgroup">
+            {!isLiveProductRoot ? <div className="av-railgroup">
               <div className="av-railtitle">设计页面与流程 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
-            </div>
+            </div> : null}
           </aside>
         ) : null}
 
         <main className="av-workspace">
-          {screen.id !== 'workbench' && screen.sourceNode && <p className="av-fixture-note">{isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
-          <div className="av-pagehead">
+          {screen.id !== 'workbench' && screen.sourceNode && !isLiveProductRoot && <p className="av-fixture-note">{isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {!isLiveProductRoot && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
@@ -499,7 +517,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                 })}
               </div>
             ) : null}
-          </div>
+          </div>}
 
           {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
           {screen.id === 'workbench' ? (
@@ -520,10 +538,10 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           ) : isIntegratedOverview ? (
             <>
               <IntegratedOperations area={screen.area} />
-              <details className="av-card av-design-archive">
+              {!isLiveProductRoot && <details className="av-card av-design-archive">
                 <summary>查看原 Ardot 页面示例（仅设计预览，不保存）</summary>
                 <Blocks blocks={screen.blocks} stacked />
-              </details>
+              </details>}
             </>
           ) : (
             <>
@@ -533,7 +551,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
             </>
           )}
-          {moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
+          {!isLiveProductRoot && moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>
     </div>

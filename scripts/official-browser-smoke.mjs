@@ -35,8 +35,8 @@ try {
           : root.locator('header > nav').first();
         if (isMobile) await headerNav.locator('summary').click();
         const navLinks = isMobile
-          ? headerNav.locator(':scope > nav > a:not([data-site-cart])')
-          : headerNav.locator(':scope > a');
+          ? headerNav.locator(':scope > nav > a:not([data-site-cart]), :scope > nav > button[class*="mobileLink"]')
+          : headerNav.locator(':scope > a, :scope > button[class*="navLink"]');
         assert.equal(await navLinks.count(), 8, 'Approved product/dealer/owner/story navigation exists');
         assert.equal(await root.locator('header [data-site-cart]').count(),2,'Desktop and mobile shopping-bag entries coexist');
         assert.equal(await navLinks.nth(0).getAttribute('href'), '/' + locale + '/explore/fc1', 'FC1 must come before FC2');
@@ -50,6 +50,19 @@ try {
         assert.equal((await navLinks.nth(5).innerText()).trim(), dealerLabel, 'Global dealers follow the unified product center');
         assert.equal((await navLinks.nth(6).innerText()).trim(), ownerLabel, 'Owner services follows global dealers');
         assert.equal(await navLinks.nth(7).getAttribute('href'), '/' + locale + '/explore/about-story', 'Brand story follows owner services');
+        assert.equal(await navLinks.nth(6).getAttribute('aria-haspopup'), 'dialog', 'Owner services opens a choice dialog');
+        await navLinks.nth(6).click();
+        const ownerDialog = page.getByRole('dialog');
+        await ownerDialog.waitFor({ state: 'visible' });
+        assert.ok(await ownerDialog.locator('a[href="/' + locale + '/service-locations"]').count(), 'Service option stays on verified public service directory');
+        const ownerHref = await ownerDialog.locator('a').first().getAttribute('href');
+        const ownerDestination = new URL(ownerHref, base);
+        const publicOwnerPortal = ownerDestination.hostname === 'my.alsvidbike.com';
+        const localOwnerPortal = ['127.0.0.1', 'localhost'].includes(ownerDestination.hostname) && ownerDestination.pathname === '/my';
+        assert.ok(publicOwnerPortal || localOwnerPortal,
+          'Owner option leads to My ALSVID in production and preserves the local /my portal route in browser previews');
+        await ownerDialog.locator('button').first().click();
+        await ownerDialog.waitFor({ state: 'hidden' });
         const reserveBadge = navLinks.nth(0).locator('span');
         const newBadge = navLinks.nth(1).locator('span');
         assert.ok((await reserveBadge.innerText()).trim(), 'FC1 reservation badge is localized');

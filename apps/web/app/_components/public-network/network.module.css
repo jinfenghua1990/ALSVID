@@ -120,3 +120,34 @@
 .site .submitButton{border-radius:4px;min-height:50px}
 .site .headerLogin{border-radius:4px}
 @media(prefers-reduced-motion:reduce){.site .outlineButton,.site .outlineButton::before{transition:none}}
+
+
+/* Dealer application modal: cohesive midnight glass instead of a white form with dark patches.
+   This is scoped to the dialog; the embedded non-modal preview is unchanged. */
+.site .dialogOverlay{background:rgba(6,11,18,.80);backdrop-filter:blur(14px)}
+.site .dialogPanel{width:min(100%,900px);max-height:min(91svh,900px);border:1px solid rgba(162,192,204,.34);border-radius:16px;background:linear-gradient(155deg,#182633,#101a26 68%,#0e1721);color:#f5f8fa;box-shadow:0 32px 110px rgba(0,0,0,.6);scrollbar-color:#64798d #15212d}
+.site .dialogHeader{position:relative;padding:clamp(23px,3vw,40px);background:radial-gradient(ellipse at 86% 0%,rgba(65,108,124,.26),transparent 60%),linear-gradient(112deg,#1b2936,#111d29);border-bottom:1px solid rgba(166,201,210,.14)}
+.site .dialogHeader .eyebrow{color:#9ecbcb;margin-bottom:14px;letter-spacing:.16em;font-size:10px}
+.site .dialogHeader h2{font-size:clamp(26px,3.5vw,38px);font-weight:670;letter-spacing:-.045em;line-height:1.15;margin:0 0 10px;color:#fff}
+.site .dialogHeader p:not(.eyebrow){color:#b8c6d1;font-size:12px;line-height:1.75;max-width:690px}
+.site .dialogClose{width:36px;height:36px;min-width:36px;border:1px solid rgba(226,240,244,.32);background:#ffffff08;font-size:23px;transition:background .2s,border-color .2s}
+.site .dialogClose:hover,.site .dialogClose:focus-visible{color:#b8e986;border-color:#b8e986;background:#ffffff12}
+.site .dialogForm .applicationPreview{padding:clamp(22px,3vw,36px);background:transparent;color:#f1f6fa}
+.site .dialogForm .formGrid{column-gap:22px;row-gap:19px}
+.site .dialogForm .formGrid label{display:block;min-width:0;color:#e6edf2;font-size:12px;font-weight:580;line-height:1.4}
+.site .dialogForm .formGrid label.wide{grid-column:1/-1}
+.site .dialogForm .formGrid label .required{display:inline;margin-left:4px;color:#f4b199}
+.site .dialogForm .formGrid input,.site .dialogForm .formGrid select,.site .dialogForm .formGrid textarea{display:block;width:100%;min-width:0;margin-top:9px;min-height:46px;padding:11px 14px;border:1px solid #72889a91;border-radius:9px;background:rgba(15,28,40,.58);color:#f7fafd;font:inherit;font-size:13px;line-height:1.5;box-shadow:inset 0 1px 4px #0002;outline:0}
+.site .dialogForm .formGrid select{appearance:auto}
+.site .dialogForm .formGrid :is(input,textarea)::placeholder{color:#a1b0bc}
+.site .dialogForm .formGrid :is(input,select,textarea):focus-visible{outline:2px solid #7cc2c3;outline-offset:1px;border-color:#7cc2c3}
+.site .dialogForm .formGrid textarea{min-height:104px;resize:vertical}
+.site .dialogForm .consentLine{margin-top:23px;align-items:start;gap:11px;color:#c3d0d9;font-size:12px;line-height:1.7}
+.site .dialogForm .consentLine input{width:18px;height:18px;margin-top:1px;accent-color:#83c1a7}
+.site .dialogForm .formFootnote{margin-top:10px;color:#96a7b5;font-size:10px;line-height:1.6}
+.site .dialogForm .formError{color:#ffb7a0;font-size:12px}
+.site .dialogForm .submitButton{min-height:52px;justify-content:center;gap:16px;border:1px solid #7bc4b2a6;border-radius:9px;margin-top:22px;padding:14px 20px;background:linear-gradient(100deg,#155447,#1b7563 52%,#155447);font-size:14px;font-weight:700;letter-spacing:.02em;color:#fff;transition:filter .2s,transform .2s}
+.site .dialogForm .submitButton:hover:not(:disabled){background:linear-gradient(100deg,#176453,#24826f 52%,#176453);filter:brightness(1.07);transform:translateY(-1px)}
+.site .dialogForm .successPanel p{color:#c3d0d9}.site .dialogForm .successPanel h3{color:#fff}
+@media(max-width:700px){.site .dialogPanel{width:100%;height:100svh;max-height:100svh;border:0;border-radius:0}.site .dialogHeader{padding:22px 20px}.site .dialogForm .applicationPreview{padding:21px 20px}.site .dialogForm .formGrid{grid-template-columns:1fr;row-gap:16px}.site .dialogForm .formGrid .wide{grid-column:auto}.site .dialogForm .submitButton{min-height:50px}}
+@media(prefers-reduced-motion:reduce){.site .dialogForm .submitButton,.site .dialogClose{transition:none}}
