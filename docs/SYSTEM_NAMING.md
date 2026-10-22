@@ -9,7 +9,7 @@
 | Canonical name | 中文定义 | 主要对象 | 说明 |
 | --- | --- | --- | --- |
 | **ALSVID Official** | ALSVID 官网 | 消费者、访客 | 品牌官网、产品展示、内容和消费者主入口 |
-| **ALSVID Shop** | ALSVID 商城 | 消费者 / 买家 | Shopify 商品、购物车、结账与支付承载面；是正式入口，但不等于必须新建独立自研项目 |
+| **ALSVID Shop** | 自建商城（整合于官网） | 消费者 / 买家 | 当前购物袋与消费者交易体验整合在 ALSVID Official；首期不部署独立公开 Shop 站点，也不默认依赖 Shopify。旧交易方案以 ADR 0005 为准。 |
 | **ALSVID Admin** | 内部运营中心 | 内部员工 | 产品、订单、生产、库存、经销商、客户、售后、供应链、数据和系统管理 |
 | **ALSVID Dealer Portal** | 经销商平台 | 经销商 / B2B 客户 | 经销商登录、采购、订单、合作与服务入口 |
 | **My ALSVID** | 车主中心 / 我的车库 | 车主 / 会员 | 我的车辆、注册、保修、维修、服务记录与会员能力 |
@@ -72,7 +72,7 @@ alsvid-dealer-prod
 alsvid-my-prod
 ```
 
-Shop 由 Shopify 承载时不要求创建 `alsvid-shop-prod`；Service 是否建立独立资源，以实际实现为准。资源名只是约定目标；只有真实资源被创建并验证后，才可以声称已经部署。
+商城当前整合在 ALSVID Official，不要求创建 `alsvid-shop-prod` 或独立 Shopify 商店；Service 是否建立独立资源，以实际实现为准。资源名只是约定目标；只有真实资源被创建并验证后，才可以声称已经部署。
 
 ## 6. Product surface boundary
 
@@ -82,10 +82,10 @@ ALSVID
 ├── ALSVID Official
 │   ├── Brand / Content
 │   ├── Bicycle / Accessories
-│   └── Navigation to Shop / My / Dealer / Service
+│   └── Product catalogue / preview cart / My / Dealer / Service
 │
-├── ALSVID Shop
-│   └── Shopify commerce surface
+├── ALSVID Commerce (within ALSVID Official)
+│   └── First-party product / cart / order orchestration; PSP handles payment when approved
 │
 ├── ALSVID Admin
 │   └── Internal operations
@@ -100,27 +100,27 @@ ALSVID
     └── After-sales / warranty / repair entry
 ```
 
-核心自研前端项目仍按既定四项目管理：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID。Shop 是独立正式访问入口，但由 Shopify 承载时不等于增加第五个自研项目；Service 是正式服务入口，是否独立部署以实际实现为准。
+核心自研前端项目仍按既定四项目管理：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID。当前商城整合在 ALSVID Official 内，不建立独立公开 Shop 项目或默认 Shopify 交易依赖；Service 是正式服务入口，是否独立部署以实际实现为准。
 
-## 7. Shopify boundary
+## 7. Commerce and external-channel boundary
 
-Shopify 是 `ALSVID Shop` 的交易基础，并与 `ALSVID Official` 消费者体验联动，不替代 ALSVID Admin、ALSVID Dealer Portal 或 My ALSVID。
+ALSVID Official 的首期 B2C 商品选择、购物袋、结账编排与订单由 ALSVID Commerce 负责；获批的第三方 PSP 执行支付。Shopify 不是首期依赖，任何未来 Shopify 或其他外部销售渠道都必须经负责人单独批准，并明确身份、订单与库存事实的权威边界。
 
 ```text
 Visitor / Customer
        ↓
    ALSVID Official
        ↓
-  ALSVID Shop
+Product / Variant / preview cart
        ↓
-Product / Cart / Purchase
+   ALSVID Commerce
        ↓
-     Shopify
+Approved PSP (payment stays disabled until launch gate)
        ↓
-必要交易事实通过 integration 同步到 ALSVID
+ALSVID order / payment facts, with auditable provider references
 ```
 
-ALSVID 不重复实现 Shopify 自己负责的 checkout、支付捕获和平台履约编排。
+不存储银行卡完整卡号或安全码，不以浏览器跳转或前端状态认定付款成功；真实结账、收款与库存预留必须通过 ADR 0005 的发布门禁。
 
 ## 8. Canonical entrypoints
 
@@ -144,7 +144,7 @@ ALSVID Official
 ├── 服务 → ALSVID Service
 ├── 关于我们
 ├── 经销商合作 / 经销商登录 → ALSVID Dealer Portal
-├── 购买 → ALSVID Shop
+├── 购买 → ALSVID Official 产品中心 / ALSVID Commerce
 └── 登录 / 我的车库 → My ALSVID
 ```
 
@@ -152,12 +152,12 @@ ALSVID Official
 
 ## 9. Environment surface matrix
 
-当前四个核心自研 surface 保持相同产品名称；Shop 与 Service 按正式入口管理；Supplier Portal 是后续交付目标。
+当前四个核心自研 surface 保持相同产品名称；商城整合在 Official 内，Service 是正式服务入口目标；Supplier Portal 是后续交付目标。
 
 ```text
 ALSVID Production
 ├── ALSVID Official
-├── ALSVID Shop
+├── ALSVID Official（含 ALSVID Commerce）
 ├── ALSVID Admin
 ├── ALSVID Dealer Portal
 ├── My ALSVID
@@ -203,6 +203,6 @@ Cloud Run 的 `*.run.app` 地址仅作为技术服务地址，不是用户正式
 
 ## 13. Admin 应用切换器与场景名称
 
-Admin 顶部右侧采用应用切换器（App Switcher），按钮建议为 `ALSVID Apps`；入口显示为 **官网、商城、车主中心、经销商平台、售后服务**，分别跳转 ALSVID Official、ALSVID Shop、My ALSVID、ALSVID Dealer Portal、ALSVID Service，在新标签打开并保留当前 Admin 状态。
+Admin 顶部右侧采用应用切换器（App Switcher），按钮建议为 `ALSVID Apps`；入口显示为 **官网、商城、车主中心、经销商平台、售后服务**。官网与商城入口都进入 ALSVID Official 的相应产品中心/购物袋；其余入口分别跳转 My ALSVID、ALSVID Dealer Portal、ALSVID Service，在新标签打开并保留当前 Admin 状态。
 
 My ALSVID 的消费者车辆资产区域可使用“我的车库”；内部员工入口使用“车主中心”。项目名称与入口显示名称分开维护。目标项目仍独立检查访问权限，跨应用跳转不等于角色切换。完整规范及实施状态边界见 [APP_ENTRY_ARCHITECTURE.md](APP_ENTRY_ARCHITECTURE.md)。
