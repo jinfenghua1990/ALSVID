@@ -40,6 +40,8 @@ test('ecommerce reuses Product and Commerce API components and Product no longer
   const stock = read('./ecommerce-inventory-panel.tsx');
   assert.match(stock, /\/api\/control\/v1\/inventory/);
   assert.match(stock, /row\.item_kind === 'SKU'/);
+  assert.match(stock, /row\.item_kind === 'VEHICLE'/);
+  assert.match(stock, /二者分别展示，不能叠加算总库存/);
   assert.match(stock, /库存未知，不代表缺货或零库存/);
   assert.match(stock, /台账可用量不等于商城可售量/);
   assert.doesNotMatch(stock, /method:\s*'POST'/);
