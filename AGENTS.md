@@ -8,7 +8,8 @@ Before changing application behavior or architecture, read in this order:
 
 For portal UI, design-tool ownership, supplier work, and storefront checkout/payment work, also read `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`, `docs/PORTAL_DELIVERY_PLAN_2026-10-16.md`, ADR 0004 and [ADR 0005](docs/adr/0005-alsvid-owned-storefront-and-third-party-payments.md). ADR 0005 supersedes the earlier Shopify-first storefront transaction decision. Do not infer delivered capability from a design file, a role seed or a route alone.
 
-1. `knowledge/README.md`
+1. `docs/PROJECT_MEMORY_INDEX.md` (统一入口：Admin 只读架构页，GitHub 长期记忆源)
+2. `knowledge/README.md`
 2. `knowledge/00-Company/Architecture.md`
 3. `docs/AI_CONTEXT.md`
 2. `docs/ARCHITECTURE_DECISIONS.md`
