@@ -59,7 +59,7 @@ export function ArchitectureOverview() {
               <strong>{portal.name} <span className="av-tag">{portal.state}</span></strong>
               <span>{portal.role}</span>
               <span>查看 GitHub 规则</span>
-              <i aria-hidden="true">↗</i>
+              <i aria-hidden="true"></i>
             </a>
           ))}
         </div>
@@ -94,14 +94,14 @@ export function ArchitectureOverview() {
             <h2 className="av-cardtitle">GitHub 统一记忆库</h2>
             <p className="av-cardhint">这里只提供目录入口，不复制文档，也不另建一套可以与 GitHub 冲突的内容。</p>
           </div>
-          <a className="av-more" href={repository} target="_blank" rel="noopener noreferrer">仓库首页 ↗</a>
+          <a className="av-more" href={repository} target="_blank" rel="noopener noreferrer">仓库首页 </a>
         </div>
         <div className="av-shortcuts">
           {memory.map(item => (
             <a className="av-shortcut" href={repository + (item.path === 'docs/adr' ? '/tree/main/' : '/blob/main/') + item.path} key={item.path} target="_blank" rel="noopener noreferrer">
               <strong>{item.title}</strong>
               <span>{item.info}</span>
-              <i aria-hidden="true">↗</i>
+              <i aria-hidden="true"></i>
             </a>
           ))}
         </div>
