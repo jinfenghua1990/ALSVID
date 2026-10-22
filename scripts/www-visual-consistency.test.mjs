@@ -39,8 +39,11 @@ test('home, catalog, dealer and FC1/FC2 share one multilingual header',async()=>
  }
  const header=await readFile(join(appRoot,'_components/public-site-header.tsx'),'utf8');
  assert.match(header,/variant="globe"/);
- assert.match(header,/product\.model_fc1/);
+ assert.match(header,/navigation\.products/,'the shared header has one unified product-centre link');
+ assert.match(header,/navigation\.technology/,'technology is a shared global navigation destination');
  assert.match(header,/navigation\.global_dealers/);
+ assert.match(header,/network\.nav\.owner/);
+ assert.doesNotMatch(header,/href: prefix \+ '\/explore\/fc1'/,'individual model links stay in the catalogue instead of crowding the global header');
  assert.match(header,/common\.back_home/,'shared public header exposes an explicit home link on subpages');
  assert.match(header,/styles\.homeLink/,'desktop home link has a dedicated style');
 });
@@ -70,4 +73,16 @@ test('the WWW has one products navigation item and an integrated accessories cat
  assert.match(bikes,/AccessoriesCatalogSection/,'Bikes and accessories share a product center');
  const legacy=await readFile(join(appRoot,'[locale]/accessories/page.tsx'),'utf8');
  assert.match(legacy,/redirect\(destination\)/,'Legacy accessories links remain compatible');
+});
+
+
+test('homepage KV follows the approved left-copy layout and exposes an in-page model discovery action',async()=>{
+ const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
+ const css=await readFile(join(appRoot,'_components/home/original-home.module.css'),'utf8');
+ assert.match(css,/\.posterStage\s*\{[^}]*height:\s*100vh;\s*height:\s*100svh;/s,
+   'desktop and mobile hero stage should fill the viewport');
+ assert.match(css,/\.posterContent\s*\{[^}]*left:\s*clamp\(32px,\s*6vw,\s*160px\);[^}]*text-align:\s*left;/s,
+   'desktop hero copy should stay in the left safe area');
+ assert.match(hero,/href="#featured"/,'secondary hero CTA should lead to the featured model section');
+ assert.match(hero,/discoverLabel/,'the localized model discovery CTA must be rendered');
 });
