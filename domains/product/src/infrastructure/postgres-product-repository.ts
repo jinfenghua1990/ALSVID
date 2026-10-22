@@ -53,6 +53,86 @@ export class PostgresProductRepository implements ProductRepository {
     return bindings.find(binding => binding.slot_code === input.slot) ?? null;
   }
 
+
+  private readonly publicationProjection = `
+    SELECT p.model_id,m.code AS model_code,m.product_type_code,m.status AS model_status,
+      p.status,p.title_zh,p.title_de,p.title_en,p.image_path,p.evidence_note,
+      p.version,p.submitted_at,p.published_at,p.withdrawn_at
+    FROM product.catalog_publications p
+    JOIN product.models m ON m.id=p.model_id`;
+
+  async publications(): Promise<PublicationRow[]> {
+    const result = await this.database.query<PublicationRow>(
+      this.publicationProjection + ' ORDER BY m.code');
+    return result.rows;
+  }
+
+  async publishedPublications(): Promise<PublicationRow[]> {
+    const result = await this.database.query<PublicationRow>(
+      this.publicationProjection + `
+        WHERE p.status='PUBLISHED' AND m.status='ACTIVE'
+        AND m.product_type_code='BIKE' AND m.code IN ('FC1','FC2')
+        ORDER BY p.published_at DESC`);
+    return result.rows;
+  }
+
+  async publication(modelId:string):Promise<PublicationRow|null> {
+    const result=await this.database.query<PublicationRow>(
+      this.publicationProjection+' WHERE p.model_id=$1',[modelId]);
+    return result.rows[0]??null;
+  }
+
+  async createPublication(modelId:string,actorUserId:string):Promise<PublicationRow|null> {
+    const result=await this.database.query(`
+      INSERT INTO product.catalog_publications(model_id,created_by,updated_by)
+      SELECT m.id,$2,$2 FROM product.models m
+      WHERE m.id=$1 AND m.status='ACTIVE' AND m.product_type_code='BIKE'
+        AND m.code IN ('FC1','FC2')
+      ON CONFLICT (model_id) DO NOTHING RETURNING model_id`,
+      [modelId,actorUserId]);
+    if(!result.rows.length)return null;
+    return this.publication(modelId);
+  }
+
+  async savePublication(modelId:string,expectedVersion:number,body:PublicationDraft,imagePath:string,actorUserId:string):Promise<PublicationRow|null> {
+    const result=await this.database.query(`
+      UPDATE product.catalog_publications p
+      SET title_zh=$3,title_de=$4,title_en=$5,image_path=$6,evidence_note=$7,
+        status='DRAFT',version=version+1,updated_by=$8,updated_at=now(),
+        submitted_at=NULL,withdrawn_at=NULL
+      WHERE p.model_id=$1 AND p.version=$2 AND p.status IN ('DRAFT','WITHDRAWN')
+        AND EXISTS(SELECT 1 FROM product.models m WHERE m.id=p.model_id
+        AND m.status='ACTIVE' AND m.product_type_code='BIKE'
+        AND (($6='/home/original/fc1-product.webp' AND m.code='FC1')
+          OR ($6='/products/fc2/side-studio-1536.webp' AND m.code='FC2')))
+      RETURNING model_id`,
+      [modelId,expectedVersion,body.titleZh,body.titleDe,body.titleEn,imagePath,body.evidenceNote,actorUserId]);
+    if(!result.rows.length)return null;
+    return this.publication(modelId);
+  }
+
+  async transitionPublication(modelId:string,expectedVersion:number,fromStatus:PublicationStatus,
+    toStatus:PublicationStatus,actorUserId:string):Promise<PublicationRow|null> {
+    const result=await this.database.query(`
+      UPDATE product.catalog_publications p
+      SET status=$4,version=version+1,updated_by=$5,updated_at=now(),
+        submitted_at=CASE WHEN $4='IN_REVIEW' THEN now() ELSE submitted_at END,
+        published_at=CASE WHEN $4='PUBLISHED' THEN now() ELSE published_at END,
+        withdrawn_at=CASE WHEN $4='WITHDRAWN' THEN now() ELSE withdrawn_at END,
+        reviewed_by=CASE WHEN $4='PUBLISHED' THEN $5 ELSE reviewed_by END
+      WHERE p.model_id=$1 AND p.version=$2 AND p.status=$3
+        AND ($4='WITHDRAWN' OR EXISTS(
+          SELECT 1 FROM product.models m WHERE m.id=p.model_id AND m.status='ACTIVE'
+          AND m.product_type_code='BIKE'
+          AND (($4='PUBLISHED' AND ((m.code='FC1' AND p.image_path='/home/original/fc1-product.webp')
+          OR (m.code='FC2' AND p.image_path='/products/fc2/side-studio-1536.webp')))
+          OR $4='IN_REVIEW')))
+      RETURNING model_id`,
+      [modelId,expectedVersion,fromStatus,toStatus,actorUserId]);
+    if(!result.rows.length)return null;
+    return this.publication(modelId);
+  }
+
   async createModel(input: CreateModelRecord): Promise<any> {
     const result = await this.database.query<any>(
       `INSERT INTO product.models(platform_id,product_type_code,code,name,description,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING *`,
