@@ -10,13 +10,13 @@ import styles from './portal-login-scene.module.css';
 interface AuthResponse { data?: { testCode?: string; firstAdminActivated?: boolean; passwordSetupRequired?: boolean }; message?: string; }
 type LoginMethod = 'email' | 'password' | 'setup';
 
-export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated, passwordSetupRequired = false, redirectTo = '/admin', passwordLoginEnabled = false, forgotPasswordRequested = false }: {
+export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated, passwordSetupRequired = false, redirectTo = '/admin', passwordLoginEnabled = false, forgotPasswordRequested = false, openOnLoad = false }: {
   portal?: ProtectedPortalId; locale?: Locale; authenticated: boolean; passwordSetupRequired?: boolean;
-  redirectTo?: string; passwordLoginEnabled?: boolean; forgotPasswordRequested?: boolean;
+  redirectTo?: string; passwordLoginEnabled?: boolean; forgotPasswordRequested?: boolean; openOnLoad?: boolean;
 }) {
   const t = translator(locale);
   const formId = useId();
-  const [open, setOpen] = useState(passwordSetupRequired || forgotPasswordRequested);
+  const [open, setOpen] = useState(passwordSetupRequired || forgotPasswordRequested || openOnLoad);
   const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : passwordLoginEnabled ? 'password' : 'email');
   const [forgotOpen, setForgotOpen] = useState(forgotPasswordRequested);
   const [resetEmail, setResetEmail] = useState('');
