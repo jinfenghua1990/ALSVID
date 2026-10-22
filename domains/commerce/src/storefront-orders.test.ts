@@ -30,3 +30,28 @@ test('storefront operations require explicit permissions before touching storage
   marketCountry:'DE',items:[{skuId:'11111111-1111-4111-8111-111111111111',quantity:1}],
  }),{code:'COMMERCE_FORBIDDEN'});
 });
+
+test('submitting a storefront order needs its own permission and a valid version',async()=>{
+ const db={} as DatabasePort;
+ const audit={record:async()=>{}} as unknown as CommerceAuditPort;
+ const service=new StorefrontOrderService(db,audit);
+ const orderId='33333333-3333-4333-8333-333333333333';
+ await assert.rejects(service.submitOrder({userId:'u',permissions:['commerce.storefront.write']},orderId,1),
+  {code:'COMMERCE_FORBIDDEN'});
+ await assert.rejects(service.submitOrder({userId:'u',permissions:['commerce.storefront.submit']},'not-a-uuid',1),
+  {code:'COMMERCE_VALIDATION'});
+ await assert.rejects(service.submitOrder({userId:'u',permissions:['commerce.storefront.submit']},orderId,0),
+  {code:'COMMERCE_VALIDATION'});
+ await assert.rejects(service.submitOrder({userId:'u',permissions:['commerce.storefront.submit']},orderId,1.5),
+  {code:'COMMERCE_VALIDATION'});
+});
+
+test('order detail requires read permission and rejects a malformed identifier',async()=>{
+ const db={} as DatabasePort;
+ const audit={record:async()=>{}} as unknown as CommerceAuditPort;
+ const service=new StorefrontOrderService(db,audit);
+ await assert.rejects(service.loadOrderDetail({userId:'u',permissions:[]},'33333333-3333-4333-8333-333333333333'),
+  {code:'COMMERCE_FORBIDDEN'});
+ await assert.rejects(service.loadOrderDetail({userId:'u',permissions:['commerce.storefront.read']},'draft-1'),
+  {code:'COMMERCE_VALIDATION'});
+});
