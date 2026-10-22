@@ -1,6 +1,6 @@
 # ALSVID Knowledge Base
 
-这是 ALSVID 主仓库中的共享业务知识层。网页、系统、架构、商城、AI 和运营工作都应从这里读取业务背景和长期规则。
+这是 ALSVID 主仓库中的共享业务知识层。网页、系统、架构、自建商城、AI 和运营工作都应从这里读取业务背景和长期规则。
 
 **统一入口：** [ALSVID 项目记忆索引](../docs/PROJECT_MEMORY_INDEX.md)。Admin 的“设置 → 系统架构”仅展示框架并链接这里，不存储第二套记忆。
 
@@ -20,7 +20,7 @@
 03-Systems/       Official/Shop、Admin、Dealer、My、Supplier 后续目标
 04-SOP/           产品、制造、质量、销售、售后流程
 05-AI-Knowledge/  客服、导购、经销商和售后答案
-06-Shopify/       商品、内容、客服和自动化规则
+06-Shopify/       旧 Shopify 集成资料（历史/未来可选渠道，非首期依赖）
 99-Templates/     新建知识文件模板
 ```
 
