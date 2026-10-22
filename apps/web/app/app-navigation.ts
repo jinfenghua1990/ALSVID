@@ -16,6 +16,7 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '电商', href: '/admin/ecommerce', area: '电商', section: '商城运营' },
   { label: '商城商品与发布', href: '/admin/ecommerce#publications', area: '电商', section: '商城运营' },
   { label: '首页商品绑定', href: '/admin/ecommerce#homepage', area: '电商', section: '商城运营' },
+  { label: '电商库存', href: '/admin/ecommerce#inventory', area: '电商', section: '库存查询' },
   { label: 'DE / AT 售价', href: '/admin/ecommerce#b2c', area: '电商', section: '商城交易' },
   { label: 'B2C 商城订单', href: '/admin/ecommerce#b2c', area: '电商', section: '商城交易' },
   { label: '商城促销与支付配置', href: '/admin/ecommerce', area: '电商', section: '后续能力', status: '骨架' },
