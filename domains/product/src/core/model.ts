@@ -1,6 +1,7 @@
 export const ProductCapability = {
   Read: 'product.read',
   Write: 'product.write',
+  Publish: 'product.publish',
 } as const;
 
 export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'RETIRED';

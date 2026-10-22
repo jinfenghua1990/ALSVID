@@ -1,4 +1,5 @@
 import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
+import type { PublicationRow,PublicationStatus,PublicationDraft } from '../core/publication.js';
 
 export interface ProductActor {
   userId: string;
@@ -62,6 +63,13 @@ export interface UpdateProductRecord {
 }
 
 export interface ProductRepository {
+  publications(): Promise<PublicationRow[]>;
+  publishedPublications(): Promise<PublicationRow[]>;
+  suppressedPublishedCodes():Promise<string[]>;
+  publication(modelId:string): Promise<PublicationRow | null>;
+  createPublication(modelId:string,actorUserId:string): Promise<PublicationRow | null>;
+  savePublication(modelId:string,expectedVersion:number,body:PublicationDraft,imagePath:string,actorUserId:string): Promise<PublicationRow | null>;
+  transitionPublication(modelId:string,expectedVersion:number,fromStatus:PublicationStatus,toStatus:PublicationStatus,actorUserId:string): Promise<PublicationRow | null>;
   homepageBindings(): Promise<HomepageBinding[]>;
   updateHomepageBinding(input: {slot: HomepageSlotCode; mode: HomepageBindingMode; modelId: string | null; expectedVersion: number; actorUserId: string}): Promise<HomepageBinding | null>;
   homepageBindingExists(slot: HomepageSlotCode): Promise<boolean>;

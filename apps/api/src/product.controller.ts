@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
-import type { HomepageBindingMode, HomepageSlotCode, ProductStatus, ProductTypeCode } from '@alsvid/product';
+import type { HomepageBindingMode, HomepageSlotCode, PublicationAction, ProductStatus, ProductTypeCode } from '@alsvid/product';
 import { Public } from './public.decorator.js';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
@@ -10,6 +10,8 @@ interface CreateModelBody { platformId?: string | null; productTypeCode?: Produc
 interface UpdateHomepageBindingBody { slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
 interface CreateSkuBody { variantId: string; sku: string; name: string; marketCode?: string; colorCode?: string; sizeCode?: string; attributes?: Record<string, unknown> }
+interface PublicationDraftBody { expectedVersion: number; titleZh: string; titleDe: string; titleEn: string; evidenceNote: string }
+interface PublicationActionBody { action: PublicationAction; expectedVersion: number }
 interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }
 
 @Controller('v1/product')
@@ -31,6 +33,39 @@ export class ProductController {
   async setHomepageBinding(@Req() request: AuthenticatedRequest, @Body() input: UpdateHomepageBindingBody) {
     try { return { data: await productService.setHomepageBinding(requireAuth(request),input) }; }
     catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Public()
+  @Get('public/catalog')
+  async publishedCatalog() {
+    try { return {data:await productService.publishedCatalog()}; }
+    catch(error) { return throwHttpDomainError(error); }
+  }
+
+  @Get('publications')
+  async publications(@Req() request:AuthenticatedRequest) {
+    try { return {data:await productService.publications(requireAuth(request))}; }
+    catch(error) { return throwHttpDomainError(error); }
+  }
+
+  @Post('publications/:modelId/start')
+  async startPublication(@Req() request:AuthenticatedRequest,@Param('modelId') modelId:string) {
+    try { return {data:await productService.startPublication(requireAuth(request),modelId)}; }
+    catch(error) { return throwHttpDomainError(error); }
+  }
+
+  @Patch('publications/:modelId/draft')
+  async savePublicationDraft(@Req() request:AuthenticatedRequest,@Param('modelId') modelId:string,
+    @Body() input:PublicationDraftBody) {
+    try { return {data:await productService.savePublicationDraft(requireAuth(request),modelId,input)}; }
+    catch(error) { return throwHttpDomainError(error); }
+  }
+
+  @Post('publications/:modelId/transition')
+  async transitionPublication(@Req() request:AuthenticatedRequest,@Param('modelId') modelId:string,
+    @Body() input:PublicationActionBody) {
+    try { return {data:await productService.transitionPublication(requireAuth(request),modelId,input)}; }
+    catch(error) { return throwHttpDomainError(error); }
   }
 
   @Get('catalog')

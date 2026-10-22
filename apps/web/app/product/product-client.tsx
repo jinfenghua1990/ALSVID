@@ -8,6 +8,7 @@ import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
 import { matchesModelRegisterSearch, modelBomSummary, modelEngineeringStage } from './model-register';
 import { HomepageProductBindingPanel } from './homepage-product-binding-panel';
+import { CatalogPublicationPanel } from './catalog-publication-panel';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
 type Model = { id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
@@ -394,6 +395,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       </section>
 
       <HomepageProductBindingPanel models={catalog.models} loadError={catalogError} />
+      <CatalogPublicationPanel models={catalog.models} />
       <section className={styles.section} id="engineering">
         <div className={styles.sectionHead}>
           <div><span>工程发布</span><h2>零部件、BOM 与生产规格</h2></div>
