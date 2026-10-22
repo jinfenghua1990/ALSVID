@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CatalogShell } from "../../_components/catalog/catalog-shell";
 import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navigator";
 import { AccessoriesCatalogSection } from "../../_components/catalog/accessories-catalog-section";
+import { publishedBikeCatalog } from "../../_components/catalog/published-product-catalog";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { isLocale, locales } from "../../_lib/i18n/routing";
 import styles from "./page.module.css";
@@ -41,14 +42,14 @@ export default async function BikesPage({ params, searchParams }: Props) {
   const requested = query.platform?.toLowerCase();
   const active: PlatformId | null = platformIds.find(id => id === requested) ?? null;
   const prefix = "/" + locale;
-  const models = [
-    { id: "fc1", name: t("product.model_fc1"), status: t("catalog.bikes.models.fc1"), image: "/home/original/fc1-product.webp", alt: t("images.product") },
-    { id: "fc2", name: t("fc2.model"), status: t("catalog.bikes.models.fc2"), image: "/products/fc2/side-studio-1536.webp", alt: t("fc2.gallery.alt.side") },
-  ];
+  const publicCatalog = await publishedBikeCatalog();
+  const models = publicCatalog.items.map(item => ({
+    id:item.code.toLowerCase(), name:item.title[locale], status:t("catalog.bikes.models.published"),
+    image:item.image, alt:item.title[locale], modelId:item.modelId,
+  }));
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
-    { id: "model-fc1", label: t("product.model_fc1"), href: prefix + "/bikes?platform=fc#model-fc1" },
-    { id: "model-fc2", label: t("fc2.model"), href: prefix + "/bikes?platform=fc#model-fc2" },
+    ...models.map(model=>({id:"model-"+model.id,label:model.name,href:prefix+"/bikes?platform=fc#model-"+model.id})),
     { id: "platforms", label: t("catalog.product.tabs.platforms"), href: prefix + "/bikes#platforms" },
     { id: "accessories", label: t("catalog.product.tabs.accessories"), href: prefix + "/bikes#accessories" },
   ];
@@ -62,7 +63,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
           <p>{t("catalog.bikes.hero.body")}</p>
           <a className={styles.heroButton} href="#models">{t("catalog.bikes.hero.cta")}</a>
         </div>
-        <img className={styles.heroImage} src="/home/original/fc1-product.webp" alt={t("images.product")} width={1536} height={1024} />
+        <img className={styles.heroImage} src={models.find(item=>item.id==='fc1')?.image??'/home/original/scene-city.webp'} alt={t("images.city")} width={1536} height={1024} />
         <span className={styles.heroWatermark} aria-hidden="true">ALSVID</span>
       </section>
 
@@ -90,8 +91,10 @@ export default async function BikesPage({ params, searchParams }: Props) {
           <a href={prefix + "/bikes#models"} aria-current={!active ? "page" : undefined}>{t("catalog.bikes.filter.all")}</a>
           {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
         </nav>
-        {!active || active === "fc" ? <div className={styles.modelGrid}>
-          {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} aria-labelledby={"model-" + model.id + "-title"}>
+        {!publicCatalog.available?<p className={styles.empty} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
+        {publicCatalog.available && !models.length?<p className={styles.empty}>{t("catalog.bikes.models.unpublished")}</p>:null}
+        {publicCatalog.available && (!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
+          {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed="true" aria-labelledby={"model-" + model.id + "-title"}>
             <a href={prefix + "/explore/" + model.id} className={styles.modelImageLink} aria-label={model.name}>
               <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
             </a>
@@ -99,12 +102,12 @@ export default async function BikesPage({ params, searchParams }: Props) {
               <a href={prefix + "/explore/" + model.id}>{t("catalog.bikes.models.details")}</a>
             </div>
           </article>)}
-        </div> : <div className={styles.empty}>
+        </div> : active && active !== 'fc' ? <div className={styles.empty}>
           <span>{active.toUpperCase()} PLATFORM</span>
           <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
           <p>{t("catalog.bikes.models.none")}</p>
           <a href={prefix + "/explore/" + active}>{t("catalog.bikes.platforms.link")}</a>
-        </div>}
+        </div> : null}
       </section>
 
       <section className={styles.guide}>
