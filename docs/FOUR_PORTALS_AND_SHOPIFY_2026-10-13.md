@@ -48,7 +48,7 @@
 - 目标是**统一 www 域名和品牌体验**，不是承诺 Shopify 原生主题与 Next.js 页面能无损一键迁移。
 - 可评估 Next.js Headless + Shopify Storefront/Checkout API，也可用 Shopify 原生主题；**技术路线尚待验证，不得把 Headless 写成已实施事实**。
 - 优先复用品牌素材、内容、设计 tokens、组件规范、产品信息结构；商品、SKU、价格、库存、支付与结账须按 Shopify API/主题机制逐项对接。
-- 商城订单由 Shopify 负责；ALSVID 仅保存车辆绑定、售后、客户服务所需的订单引用与最小事实，遵守 docs/BUSINESS_BOUNDARY.md。
+- 首期 WWW B2C 订单由 ALSVID Commerce 负责；获批 PSP 执行支付。车辆绑定、售后、客户服务按各自领域维护事实，遵守 docs/BUSINESS_BOUNDARY.md。
 - 会员与 Shopify Customer 身份关联需定义明确授权、映射、隐私与安全机制，不假设账户天然互通。
 
 ## 3. ALSVID Admin — 内部运营后台
@@ -104,7 +104,7 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 5. 功能开发遵守 Issue → branch → PR → CI → merge → deploy，除非仓库流程另有正式变更。
 6. 发生历史文档冲突时：此文件记录 **2026-10-13 四门户/官网商城整合业务决策**；正式名称与独立项目入口关系以 2026-10-14 更新的 SYSTEM_NAMING.md 和 APP_ENTRY_ARCHITECTURE.md 为准；底层代码与真实上线状态仍以实际仓库和部署证据为准。
 7. 未明确决定的事项（Shopify Headless/主题、实际 DNS、账号联登细节、B2B 定价等）保留为待验证，不得臆造。
-8. **2026-10-16 最新设计与供应商边界**必须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 只负责 Admin 内部运营设计/原型；Figma 负责所有对外门户最终 UI；Supplier Portal 作为未来第五个外部业务门户预留；Shopify 负责 B2C/B2B 商业交易，不替代上游供应商协同门户。
+8. **2026-10-16 设计与供应商边界**须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 负责 Admin 内部运营设计/原型；Figma 负责对外门户最终 UI；Supplier Portal 是分阶段建设目标。首期 B2C 交易已改为 ALSVID Commerce + 获批 PSP；任何外部 B2B 渠道需另行批准，不替代上游供应商协同门户。
 
 
 > 当前域名说明：新生成的门户链接统一以 `alsvidbike.com` 为规范目标；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run、认证与邮件配置仍须独立验收，不能将规范地址当成已上线证据。
