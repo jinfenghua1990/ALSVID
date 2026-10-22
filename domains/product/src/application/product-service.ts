@@ -3,6 +3,7 @@ import { postgresErrorCode } from '@alsvid/database';
 import { ProductConflictError, ProductNotFoundError, ProductValidationError } from '../core/errors.js';
 import { ProductCapability, type HomepageBinding, type HomepageBindingMode, type HomepageSlotCode, type ProductCatalog, type ProductEntityKind, type ProductStatus, type ProductTypeCode } from '../core/model.js';
 import { normalizeProductCode, normalizeProductCountry } from '../core/normalization.js';
+import {assertPublicationTransition,curatedCatalogImage,toPublicCatalogItem,validatePublicationDraft,type PublicationAction,type PublicationDraft} from '../core/publication.js';
 import type { ProductActor, ProductAuditPort, ProductRepository } from './ports.js';
 
 export class ProductService {
@@ -45,6 +46,73 @@ export class ProductService {
     }
     await this.audit.record({actorUserId:actor.userId,action:'product.homepage_binding_updated',targetType:'product.homepage_slot',
       targetId:input.slot,metadata:{mode:input.mode,modelId:modelId ?? null}});
+    return updated;
+  }
+
+  async publications(actor:ProductActor) {
+    requireCapability(actor,ProductCapability.Read);
+    return this.repository.publications();
+  }
+
+  /** No authentication is necessary: repository and projection expose ONLY approved public fields. */
+  async publishedCatalog() {
+    const rows=await this.repository.publishedPublications();
+    return rows.map(toPublicCatalogItem).filter((item):item is NonNullable<typeof item>=>item!==null);
+  }
+
+  async startPublication(actor:ProductActor,modelId:string) {
+    requireCapability(actor,ProductCapability.Write);
+    const created=await this.repository.createPublication(modelId,actor.userId);
+    if(!created){
+      if(await this.repository.publication(modelId))throw new ProductConflictError('Publication already exists; reload');
+      throw new ProductValidationError('Only ACTIVE FC1 and FC2 bike models can be prepared for publication');
+    }
+    await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_created',
+      targetType:'product.model',targetId:modelId});
+    return created;
+  }
+
+  async savePublicationDraft(actor:ProductActor,modelId:string,input:PublicationDraft & {expectedVersion:number}) {
+    requireCapability(actor,ProductCapability.Write);
+    if(!Number.isInteger(input.expectedVersion)||input.expectedVersion<1)
+      throw new ProductValidationError('expectedVersion is required');
+    const existing=await this.repository.publication(modelId);
+    if(!existing)throw new ProductNotFoundError('Publication draft does not exist');
+    if(!['DRAFT','WITHDRAWN'].includes(existing.status))
+      throw new ProductValidationError('Published or under-review content must first be withdrawn/rejected');
+    const body=validatePublicationDraft(input);
+    const imagePath=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code);
+    const saved=await this.repository.savePublication(modelId,input.expectedVersion,body,imagePath,actor.userId);
+    if(!saved)throw new ProductConflictError('Publication draft was updated; reload before saving');
+    await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_updated',
+      targetType:'product.model',targetId:modelId});
+    return saved;
+  }
+
+  async transitionPublication(actor:ProductActor,modelId:string,
+    input:{action:PublicationAction;expectedVersion:number}) {
+    if(!input||!['SUBMIT','PUBLISH','WITHDRAW'].includes(input.action))
+      throw new ProductValidationError('Unknown publication action');
+    requireCapability(actor,input.action==='SUBMIT'?ProductCapability.Write:ProductCapability.Publish);
+    if(!Number.isInteger(input.expectedVersion)||input.expectedVersion<1)
+      throw new ProductValidationError('expectedVersion is required');
+    const existing=await this.repository.publication(modelId);
+    if(!existing)throw new ProductNotFoundError('Publication draft not found');
+    const next=assertPublicationTransition(existing.status,input.action);
+    if(input.action!=='WITHDRAW') {
+      curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code);
+      validatePublicationDraft({
+        titleZh:existing.title_zh,titleDe:existing.title_de,
+        titleEn:existing.title_en,evidenceNote:existing.evidence_note,
+      });
+      if(existing.image_path!==curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code))
+        throw new ProductValidationError('Catalogue image does not match reviewed model artwork');
+    }
+    const updated=await this.repository.transitionPublication(modelId,input.expectedVersion,existing.status,next,actor.userId);
+    if(!updated)throw new ProductConflictError('Publication changed or model was disabled; reload');
+    await this.audit.record({actorUserId:actor.userId,
+      action:'product.catalog_'+input.action.toLowerCase(),targetType:'product.model',
+      targetId:modelId,metadata:{from:existing.status,to:next}});
     return updated;
   }
 
