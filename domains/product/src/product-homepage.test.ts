@@ -31,8 +31,8 @@ test('homepage AUTO resolves only the repository verified model and public view 
  const {service}=setup();
  const rows=await service.publicHomepageBindings();
  assert.deepEqual(rows,[{slot:'FC1_HERO',modelId:'fc1-id',modelCode:'FC1'}]);
- assert.equal('version' in rows[0],false);
- assert.equal('manual_model_id' in rows[0],false);
+ assert.equal('version' in rows[0]!,false);
+ assert.equal('manual_model_id' in rows[0]!,false);
 });
 
 test('MANUAL binding requires matching active model and permission, with audit and version',async()=>{
