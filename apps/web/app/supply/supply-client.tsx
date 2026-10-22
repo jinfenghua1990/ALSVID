@@ -44,7 +44,8 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [loadError, setLoadError] = useState('');
   const [selectedPo, setSelectedPo] = useState('');
   const [quoteItemType, setQuoteItemType] = useState<ItemType>('PART');
-  const [poItemType, setPoItemType] = useState<ItemType>('PART');
+  const [poRows, setPoRows] = useState<Array<{ id: number; itemType: ItemType }>>([{ id: 0, itemType: 'PART' }]);
+  const nextPoId = useRef(1);
   const [activeView, setActiveView] = useState<'suppliers' | 'quotations' | 'orders' | 'receipts'>('suppliers');
   const [supplierQuery, setSupplierQuery] = useState('');
   const [selectedPartner, setSelectedPartner] = useState('all');
@@ -182,6 +183,21 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
     };
   }
 
+  function purchaseLine(form: FormData, id: number) {
+    const itemType = String(form.get('poType-' + id)) as ItemType;
+    const itemId = String(form.get('poItem-' + id) ?? '');
+    const quantity = String(form.get('poQuantity-' + id) ?? '');
+    const unitPrice = String(form.get('poPrice-' + id) ?? '');
+    if (!['PART','SKU'].includes(itemType) || !itemId ||
+      !Number.isFinite(Number(quantity)) || Number(quantity) <= 0 ||
+      !unitPrice || !Number.isFinite(Number(unitPrice)) || Number(unitPrice) < 0) {
+      throw new Error('请为每一条采购明细选择物料并填写有效数量和单价');
+    }
+    return { itemType, itemId, quantity, unitPrice,
+      unit: String(form.get('poUnit-' + id) || 'EA'),
+      requestedDate: String(form.get('poDate-' + id) || '') || undefined };
+  }
+
   function itemOptions(type: ItemType) {
     return type === 'SKU'
       ? skus.map((item) => <option key={item.id} value={item.id}>{item.sku} · {item.name}</option>)
@@ -262,23 +278,29 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>NEW PURCHASE ORDER</span><h2>创建采购单草稿</h2><p>草稿保存后仍需按授权流程发出；不会直接改变库存或执行付款。</p></div>
               <button className={styles.closeButton} type="button" onClick={() => setShowPoForm(false)}>收起 ×</button>
             </div>
-            <form className={styles.formGrid} onSubmit={(event) => void post(event, '/v1/procurement/purchase-orders', (form) => ({ supplierPartnerId: form.get('supplierPartnerId'), sourceQuotationId: form.get('sourceQuotationId') || undefined, currency: form.get('currency'), incoterm: form.get('incoterm') || undefined, paymentTerms: form.get('paymentTerms') || undefined, depositTerms: form.get('depositTerms') || undefined, lines: [itemLine(form)] }))}>
+            <form className={styles.formGrid} onSubmit={(event) => void post(event, '/v1/procurement/purchase-orders', (form) => ({ supplierPartnerId: form.get('supplierPartnerId'), sourceQuotationId: form.get('sourceQuotationId') || undefined, currency: form.get('currency'), incoterm: form.get('incoterm') || undefined, paymentTerms: form.get('paymentTerms') || undefined, depositTerms: form.get('depositTerms') || undefined, lines: poRows.map(row => purchaseLine(form, row.id)) }))}>
               <label><span>供应商 / 工厂</span><select name="supplierPartnerId" required defaultValue=""><option value="" disabled>选择供应商 / 工厂</option>{partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.partnerCode} · {partner.displayName}</option>)}</select></label>
               <label><span>关联已接受报价</span><select name="sourceQuotationId" defaultValue=""><option value="">不关联源报价</option>{data.quotations.filter((quotation) => quotation.status === 'ACCEPTED').map((quotation) => <option key={quotation.id} value={quotation.id}>{quotation.quotation_number} · {quotation.supplier_name}</option>)}</select></label>
               <label><span>币种</span><input name="currency" defaultValue="EUR" maxLength={3} required /></label>
               <label><span>贸易条款</span><input name="incoterm" placeholder="FCA / FOB" /></label>
               <label><span>付款条件</span><input name="paymentTerms" placeholder="付款约定" /></label>
               <label><span>定金条件</span><input name="depositTerms" placeholder="定金约定" /></label>
-              <div className={styles.formPair}>
-                <label><span>物料类型</span><select name="itemType" value={poItemType} onChange={(event) => setPoItemType(event.target.value as ItemType)}><option value="PART">零件</option><option value="SKU">整车 SKU</option></select></label>
-                <label><span>物料</span><select key={poItemType} name="itemId" required defaultValue=""><option value="" disabled>选择物料</option>{itemOptions(poItemType)}</select></label>
+              <div className={styles.poLines}>
+                <div className={styles.lineHeading}><strong>采购物料明细 · {poRows.length} 行</strong><button type="button" className={styles.textAction} disabled={busy} onClick={() => setPoRows(rows => [...rows, { id: nextPoId.current++, itemType: 'PART' }])}>＋ 添加物料</button></div>
+                {poRows.map((row, index) => <div className={styles.poLine} key={row.id}>
+                  <div className={styles.lineHeading}><strong>物料行 {index + 1}</strong>{poRows.length > 1 ? <button type="button" className={styles.textActionDanger} disabled={busy} onClick={() => setPoRows(rows => rows.filter(item => item.id !== row.id))}>移除</button> : null}</div>
+                  <div className={styles.formPair}>
+                    <label><span>物料类型</span><select name={'poType-' + row.id} value={row.itemType} onChange={(event) => setPoRows(rows => rows.map(item => item.id === row.id ? { ...item, itemType: event.target.value as ItemType } : item))}><option value="PART">零件</option><option value="SKU">整车 SKU</option></select></label>
+                    <label><span>物料</span><select key={row.itemType} name={'poItem-' + row.id} required defaultValue=""><option value="" disabled>选择物料</option>{itemOptions(row.itemType)}</select></label>
+                  </div>
+                  <div className={styles.formPair}>
+                    <label><span>数量</span><input name={'poQuantity-' + row.id} type="number" min="0.000001" step="any" placeholder="输入数量" required /></label>
+                    <label><span>单位</span><input name={'poUnit-' + row.id} defaultValue="EA" /></label>
+                    <label><span>单价</span><input name={'poPrice-' + row.id} type="number" min="0" step="any" placeholder="输入单价" required /></label>
+                  </div>
+                  <label><span>要求交付日期</span><input name={'poDate-' + row.id} type="date" /></label>
+                </div>)}
               </div>
-              <div className={styles.formPair}>
-                <label><span>数量</span><input name="quantity" inputMode="decimal" placeholder="输入数量" required /></label>
-                <label><span>单位</span><input name="unit" defaultValue="EA" /></label>
-                <label><span>单价</span><input name="unitPrice" inputMode="decimal" placeholder="输入单价" required /></label>
-              </div>
-              <label><span>要求交付日期</span><input name="requestedDate" type="date" /></label>
               <div className={styles.formFooter}><span>创建后可在采购订单中查看并发出。</span><button className={styles.buttonPrimary} type="submit" disabled={busy}>{busy ? '提交中…' : '创建采购单草稿'}</button></div>
             </form>
           </section>
