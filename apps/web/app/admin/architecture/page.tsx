@@ -8,7 +8,7 @@ export const metadata = { title: '系统架构 · ALSVID Admin' };
  * this view does not store memories, edit architecture or claim live health.
  */
 export default function ArchitecturePage() {
-  const settings = screenById('settings');
+  const { sourceNode: _sourceNode, ...settings } = screenById('settings');
   return (
     <AdminScreen
       screen={{
@@ -18,7 +18,6 @@ export default function ArchitecturePage() {
         route: '/admin/architecture',
         title: 'ALSVID 系统架构',
         subtitle: '门户、业务模块、数据关系与 GitHub 项目记忆入口 · 只读总览',
-        sourceNode: undefined,
         actions: [],
         blocks: [],
       }}
