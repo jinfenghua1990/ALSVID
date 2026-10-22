@@ -5,7 +5,7 @@ export type PublishedBike={
  modelId:string;code:'FC1'|'FC2';type:'BIKE';image:string;
  title:{zh:string;de:string;en:string};
 };
-export type PublishedBikeResult={items:readonly PublishedBike[];available:boolean};
+export type PublishedBikeResult={items:readonly PublishedBike[];suppressedCodes:readonly ('FC1'|'FC2')[];available:boolean};
 const allowedImages:Record<PublishedBike['code'],string>={
  FC1:'/home/original/fc1-product.webp',
  FC2:'/products/fc2/side-studio-1536.webp',
@@ -23,14 +23,19 @@ function validPublishedBike(value:unknown):value is PublishedBike{
 }
 export async function publishedBikeCatalog():Promise<PublishedBikeResult>{
  const base=process.env.ALSVID_API_BASE_URL;
- if(!base)return {items:[],available:false};
+ if(!base)return {items:[],suppressedCodes:[],available:false};
  try{
   const response=await fetch(base+'/v1/product/public/catalog',{cache:'no-store',signal:AbortSignal.timeout(5000)});
-  if(!response.ok)return {items:[],available:false};
+  if(!response.ok)return {items:[],suppressedCodes:[],available:false};
   const payload:unknown=await response.json();
-  if(!payload||typeof payload!=='object'||!('data' in payload)||!Array.isArray(payload.data))
-   return {items:[],available:false};
-  const items=payload.data.filter(validPublishedBike);
-  return {items,available:true};
- }catch{return {items:[],available:false};}
+  if(!payload||typeof payload!=='object'||!('data' in payload)||!payload.data||
+    typeof payload.data!=='object')return {items:[],suppressedCodes:[],available:false};
+  const data=payload.data as {items?:unknown;suppressedCodes?:unknown};
+  if(!Array.isArray(data.items)||!Array.isArray(data.suppressedCodes))
+    return {items:[],suppressedCodes:[],available:false};
+  const items=data.items.filter(validPublishedBike);
+  const suppressedCodes:('FC1'|'FC2')[]=data.suppressedCodes.filter(
+    (code:unknown):code is 'FC1'|'FC2'=>code==='FC1'||code==='FC2');
+  return {items,suppressedCodes,available:true};
+ }catch{return {items:[],suppressedCodes:[],available:false};}
 }
