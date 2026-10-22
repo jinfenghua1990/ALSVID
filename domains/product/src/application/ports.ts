@@ -51,8 +51,6 @@ export interface UpdateProductRecord {
   name: string | null;
   status: ProductStatus | null;
   descriptionProvided: boolean;
-  productTypeCodeProvided: boolean;
-  productTypeCode: ProductTypeCode | null;
   description: string;
   marketCodeProvided: boolean;
   marketCode: string | null;
