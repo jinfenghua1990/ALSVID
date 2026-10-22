@@ -9,6 +9,7 @@ import { AdminGlobalSearch } from './admin-global-search';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
+import { ArchitectureOverview } from './architecture-overview';
 
 const AREAS: readonly { label: string; href: string }[] = [
   { label: '工作台', href: '/admin' },
@@ -36,6 +37,7 @@ function isAreaActive(area: string, label: string): boolean {
 }
 
 function menuDestination(screen: Screen, label: string): string | undefined {
+  if (screen.area === '设置' && label === '系统架构') return '/admin/architecture';
   // Go to the persisted first-party Commerce workflow, not a design-only order screen.
   if (screen.area === '订单' && label === '全部订单') return '/admin/orders';
   if (screen.area === '订单' && label === 'B2C消费者订单') return '/admin/orders#b2c';
@@ -387,7 +389,9 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   }));
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
-  const secondaryNavigation = screen.secondary ?? [];
+  const secondaryNavigation = screen.area === '设置'
+    ? [...(screen.secondary ?? []), { group: '架构与知识', items: ['系统架构'] }]
+    : (screen.secondary ?? []);
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
   const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
@@ -474,6 +478,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
               <p className="av-pagesub">{isVehicleDetail ? '真实车辆主键查询与售后导航；未确认的客户归属不在这里自动生成。' : screen.subtitle}</p>
             </div>
+            {screen.id === 'workbench' ? <a className="av-btn" href="/admin/architecture">查看系统架构 →</a> : null}
             {actions.length > 0 && !isIntegratedOverview && !isVehicleDetail ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
@@ -501,6 +506,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               <LiveWorkbench />
               <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
             </>
+          ) : screen.id === 'system-architecture' ? (
+            <ArchitectureOverview />
           ) : isVehicleDetail ? (
             <>
               <VehicleRecordDetail />
