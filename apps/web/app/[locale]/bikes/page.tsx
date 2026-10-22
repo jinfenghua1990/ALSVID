@@ -43,10 +43,23 @@ export default async function BikesPage({ params, searchParams }: Props) {
   const active: PlatformId | null = platformIds.find(id => id === requested) ?? null;
   const prefix = "/" + locale;
   const publicCatalog = await publishedBikeCatalog();
-  const models = publicCatalog.items.map(item => ({
-    id:item.code.toLowerCase(), name:item.title[locale], status:t("catalog.bikes.models.published"),
-    image:item.image, alt:item.title[locale], modelId:item.modelId,
-  }));
+  // Brand previews remain visibly distinct from an approved public catalogue item.
+  // A previously published-and-withdrawn model is excluded when catalogue facts are available.
+  const previews = [
+    { id:"fc1",code:"FC1",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
+      image:"/home/original/fc1-product.webp",alt:t("images.product") },
+    { id:"fc2",code:"FC2",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
+      image:"/products/fc2/side-studio-1536.webp",alt:t("fc2.gallery.alt.side") },
+  ] as const;
+  const models = previews.filter(model=>!publicCatalog.available||
+      !publicCatalog.suppressedCodes.includes(model.code))
+    .map(model=>{
+      const reviewed=publicCatalog.items.find(item=>item.code===model.code);
+      return {id:model.id,name:reviewed?.title[locale]??model.name,
+        status:reviewed?t("catalog.bikes.models.published"):model.status,
+        image:reviewed?.image??model.image,alt:reviewed?.title[locale]??model.alt,
+        modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
+    });
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
     ...models.map(model=>({id:"model-"+model.id,label:model.name,href:prefix+"/bikes?platform=fc#model-"+model.id})),
@@ -63,7 +76,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
           <p>{t("catalog.bikes.hero.body")}</p>
           <a className={styles.heroButton} href="#models">{t("catalog.bikes.hero.cta")}</a>
         </div>
-        <img className={styles.heroImage} src={models.find(item=>item.id==='fc1')?.image??'/home/original/scene-city.webp'} alt={t("images.city")} width={1536} height={1024} />
+        <img className={styles.heroImage} src={models.find(item=>item.id==='fc1')?.image??'/home/original/scene-city.webp'} alt={models.find(item=>item.id==='fc1')?.alt??t("images.city")} width={1536} height={1024} />
         <span className={styles.heroWatermark} aria-hidden="true">ALSVID</span>
       </section>
 
@@ -94,7 +107,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
         {!publicCatalog.available?<p className={styles.empty} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
         {publicCatalog.available && !models.length?<p className={styles.empty}>{t("catalog.bikes.models.unpublished")}</p>:null}
         {publicCatalog.available && (!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
-          {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed="true" aria-labelledby={"model-" + model.id + "-title"}>
+          {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
             <a href={prefix + "/explore/" + model.id} className={styles.modelImageLink} aria-label={model.name}>
               <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
             </a>
