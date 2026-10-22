@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 import styles from './product.module.css';
+import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
 import { matchesModelRegisterSearch, modelBomSummary, modelEngineeringStage } from './model-register';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
@@ -309,7 +310,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                           <span>{sku.name}</span>
                           <small>SKU 编码 · {[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '基础配置'} · {statusLabel(sku.status)}</small>
                         </div>
-                        <button onClick={() => setEdit({ entity: 'sku', id: sku.id, version: sku.version, name: sku.name, status: sku.status, marketCode: sku.market_code, colorCode: sku.color_code, sizeCode: sku.size_code })}>编辑</button>
+                        <div className={styles.skuActions}>
+                          <a href={adminSkuPricingHref(sku)} className={styles.skuPriceLink} aria-label={`为 ${sku.sku} 配置商城价格`}>管理售价</a>
+                          <button onClick={() => setEdit({ entity: 'sku', id: sku.id, version: sku.version, name: sku.name, status: sku.status, marketCode: sku.market_code, colorCode: sku.color_code, sizeCode: sku.size_code })}>编辑</button>
+                        </div>
                       </div>
                     ))}
                   </div>

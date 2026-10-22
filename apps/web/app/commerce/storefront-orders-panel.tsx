@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import styles from './commerce.module.css';
 import { filterStorefrontOrders } from './storefront-order-filter';
+import { resolveAdminPricingTarget, type PricingTargetStatus } from '../_lib/admin-sku-pricing-navigation';
 
 type Sku={id:string;sku:string;name:string;colorCode:string|null;marketCode:string|null;modelCode:string;variantCode:string};
 type Price={id:string;skuId:string;sku:string;skuName:string;marketCountry:string;currency:string;
@@ -39,6 +40,7 @@ export function StorefrontOrderDraftPanel(){
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  const [priceSku,setPriceSku]=useState(''),[priceMarket,setPriceMarket]=useState<'DE'|'AT'>('DE');
+ const [pricingTargetStatus,setPricingTargetStatus]=useState<PricingTargetStatus>('default');
  const [gross,setGross]=useState(''),[taxRate,setTaxRate]=useState('');
  const [email,setEmail]=useState(''),[market,setMarket]=useState<'DE'|'AT'>('DE');
  const [factoryId,setFactoryId]=useState('');
@@ -53,12 +55,18 @@ export function StorefrontOrderDraftPanel(){
   setItems(current=>current.map(line=>({skuId:line.skuId||data.skus[0]?.id||'',quantity:line.quantity})));
   setFactoryId(current=>data.factories.some(f=>f.id===current)?current:(data.factories[0]?.id??''));
  },[]);
- useEffect(()=>{let live=true;void call<Summary>('summary').then(data=>{if(live){setSummary(data);setPriceSku(data.skus[0]?.id??'');setItems([newItem(data.skus[0]?.id??'')]);setFactoryId(data.factories[0]?.id??'');}})
-  .catch(e=>{if(live)setError(e instanceof Error?e.message:'无法读取第一方订单数据');})
+ useEffect(()=>{let live=true;void call<Summary>('summary').then(data=>{
+  if(live){
+   const target=resolveAdminPricingTarget(data.skus,window.location.search);
+   setSummary(data);setPriceSku(target.skuId);setPriceMarket(target.market);setPricingTargetStatus(target.status);
+   setItems([newItem(data.skus[0]?.id??'')]);setFactoryId(data.factories[0]?.id??'');
+  }
+ }).catch(e=>{if(live)setError(e instanceof Error?e.message:'无法读取第一方订单数据');})
   .finally(()=>{if(live)setLoading(false);});return()=>{live=false};},[]);
  const activePrices=summary.prices.filter(p=>p.status==='ACTIVE');
  const availableSkus=summary.skus.filter(s=>activePrices.some(p=>p.skuId===s.id&&p.marketCountry===market));
  const canAddLine=availableSkus.some(s=>!items.some(line=>line.skuId===s.id));
+ const selectedPricingSku=summary.skus.find(s=>s.id===priceSku);
  const filteredOrders=filterStorefrontOrders(summary.orders,{query:orderSearch,status:orderStatus,market:orderMarket});
  async function run(action:()=>Promise<unknown>,success:string){
   if(busy)return;setBusy(true);setError('');setNotice('');
@@ -113,8 +121,11 @@ export function StorefrontOrderDraftPanel(){
    <div className={styles.firstPartyPanel}>
     <h3>① 配置商品价格</h3>
     <p>只允许有效商品 SKU。DE/AT 分别维护 EUR 含税价与税率；先保存草稿，再单独启用。</p>
+    {pricingTargetStatus==='selected'&&selectedPricingSku?<p className={styles.firstPartyNotice} role="status">已定位产品中心的 SKU：<strong>{selectedPricingSku.sku}</strong>。请核对市场与含税价格后再保存。</p>:null}
+    {pricingTargetStatus==='missing'?<p className={styles.firstPartyNotice} role="alert">链接指定的 SKU 不在当前可管理的商品列表中。未自动选择其他商品，请先确认 SKU 状态和权限。</p>:null}
     <form className={styles.firstPartyForm} onSubmit={e=>{void createPrice(e);}}>
-     <label>商品 SKU<select value={priceSku} onChange={e=>setPriceSku(e.target.value)} required disabled={busy||!summary.skus.length}>
+     <label>商品 SKU<select value={priceSku} onChange={e=>{setPriceSku(e.target.value);setPricingTargetStatus('default');}} required disabled={busy||!summary.skus.length}>
+      <option value="" disabled>选择要配置价格的 SKU</option>
       {summary.skus.map(s=><option key={s.id} value={s.id}>{s.sku} · {s.name}{s.colorCode?' · '+s.colorCode:''}</option>)}
      </select></label>
      <label>销售市场<select value={priceMarket} onChange={e=>setPriceMarket(e.target.value as 'DE'|'AT')} disabled={busy}>
