@@ -17,6 +17,8 @@
   "catalog.bikes.models.kicker": "02 / BICYCLE MODELS",
   "catalog.bikes.models.title": "Meet the collection.",
   "catalog.bikes.models.body": "Open a model to view its existing product page. Pricing, stock and checkout are not yet confirmed.",
+  "catalog.bikes.models.unpublished": "No bicycle products have been approved for the public catalogue yet. Online purchase is not available.",
+  "catalog.bikes.models.unavailable": "We cannot verify the reviewed product catalogue right now. Unconfirmed products remain hidden.",
   "catalog.bikes.models.published": "Officially reviewed and featured",
   "catalog.bikes.models.fc1": "Email enquiry",
   "catalog.bikes.models.fc2": "New model preview",
