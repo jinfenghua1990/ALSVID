@@ -55,6 +55,8 @@ export function HomePage({
         exploreLabel={t("hero.explore_platform")}
         scrollLabel={t("navigation.products")}
       />
+      <L8LaunchCard locale={locale} />
+      <L7LaunchCard locale={locale} />
       <section id="platforms" className={styles["section"]}>
         <div className={styles["inner"]}>
           <div className={styles["section-head"]}>
@@ -198,8 +200,6 @@ export function HomePage({
         </div>
       </section>
       <Fc2LaunchCard locale={locale} productModelId={productBindings?.FC2_LAUNCH ?? null} />
-      <L8LaunchCard locale={locale} />
-      <L7LaunchCard locale={locale} />
       <section id="folding" className={styles["fold"]}>
         <div className={styles["inner"] + " " + styles["fold-grid"]}>
           <div className={styles["fold-copy"]}>
