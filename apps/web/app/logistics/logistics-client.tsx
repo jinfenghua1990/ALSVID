@@ -1,7 +1,6 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
-import { navigationFor } from '../app-navigation';
+import { OperationsFrame } from '../_components/operations-frame';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './logistics.module.css';
@@ -40,7 +39,7 @@ function shipmentStatusLabel(value: string) { return shipmentStatusLabels[value]
 function eventLabel(value: string) { return eventLabels[value] ?? value; }
 function declarationStatusLabel(value: string) { return declarationStatusLabels[value] ?? value; }
 
-export default function LogisticsClient() {
+export default function LogisticsClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [logistics, setLogistics] = useState<LogisticsSummary>(emptyLogistics);
   const [inventory, setInventory] = useState<InventorySummary>({ balances: [] });
@@ -147,7 +146,7 @@ export default function LogisticsClient() {
   function cargoLabel(row: Cargo) { return row.sku ?? row.frame_number ?? '未知货物'; }
 
   return (
-    <AppShell navigation={navigationFor('/logistics')} footer="ALSVID · 出口物流">
+    <OperationsFrame embedded={embedded} area="logistics" footer="ALSVID · 出口物流">
       <section>
         <header className={styles.header}>
           <div>
@@ -349,6 +348,6 @@ export default function LogisticsClient() {
           </section>
         </> : null}
       </section>
-    </AppShell>
+    </OperationsFrame>
   );
 }
