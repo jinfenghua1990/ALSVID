@@ -86,11 +86,11 @@ try {
         await modelSideNavigator.locator('a[data-nav-target="model-fc1"]').click();
         await bicycles.waitForFunction(() => location.hash === '#model-fc1' && new URLSearchParams(location.search).get('platform') === 'fc');
         await bicycles.waitForFunction(() =>
-          document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc1"]')?.getAttribute('aria-current') === 'location');
+          document.querySelector('nav[data-bikes-model-side-nav] a[data-nav-target="model-fc1"]')?.getAttribute('aria-current') === 'location');
         await modelSideNavigator.locator('a[data-nav-target="model-fc2"]').click();
         await bicycles.waitForFunction(() => location.hash === '#model-fc2');
         await bicycles.waitForFunction(() =>
-          document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc2"]')?.getAttribute('aria-current') === 'location');
+          document.querySelector('nav[data-bikes-model-side-nav] a[data-nav-target="model-fc2"]')?.getAttribute('aria-current') === 'location');
         await bicycles.waitForFunction(() => {
           const header = document.querySelector('header[data-public-site-header]')?.getBoundingClientRect();
           const nav = document.querySelector('nav[data-bikes-model-nav]')?.getBoundingClientRect();
