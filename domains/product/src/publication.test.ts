@@ -38,7 +38,7 @@ test('publication lifecycle rejects publishing draft, resubmitting review and du
 const row:PublicationRow={
  model_id:'valid-model-id',model_code:'FC1',product_type_code:'BIKE',model_status:'ACTIVE',
  status:'PUBLISHED',title_zh:'FC1 整车',title_de:'FC1 Fahrrad',title_en:'FC1 Bicycle',
- image_path:approvedCatalogAssets.FC1,evidence_note:'verified in product records',version:4,
+ image_path:approvedCatalogAssets.FC1!,evidence_note:'verified in product records',version:4,
  submitted_at:null,published_at:null,withdrawn_at:null,
 };
 
