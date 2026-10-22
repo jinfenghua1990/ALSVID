@@ -137,3 +137,11 @@
 .sku .skuActions{display:flex;flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
 .skuPriceLink{display:inline-flex;align-items:center;min-height:31px;padding:7px 10px;border-radius:8px;border:1px solid var(--alsvid-line);background:var(--alsvid-bg-soft);color:var(--alsvid-text);font-size:10px;text-decoration:none}
 .skuPriceLink:hover,.skuPriceLink:focus-visible{border-color:var(--alsvid-accent);outline-offset:2px}
+
+
+/* Product types are commercial classification, not bicycle technology platforms. */
+.typeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.typeCard{padding:16px;min-width:0;display:grid;gap:9px;border:1px solid var(--alsvid-line);border-radius:12px;background:var(--alsvid-panel)}
+.typeCard strong{font-size:15px;color:var(--alsvid-text)}.typeCard small{font-size:10px;color:var(--alsvid-muted)}
+.typeCard span{font-size:11px;color:var(--alsvid-text-2);line-height:1.6}.typeCard b{font-size:10px;color:var(--alsvid-text)}
+@media(max-width:780px){.typeGrid{grid-template-columns:1fr}}
