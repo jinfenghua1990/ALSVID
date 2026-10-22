@@ -917,3 +917,17 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-body--product .av-workspace{padding-top:24px}
 .av-body--product .av-live-operations{margin-top:0}
 @media(max-width:1180px){.av-body--product{grid-template-columns:minmax(0,1fr)}.av-body--product .av-rail{position:relative;top:0;max-height:none;display:flex;gap:12px;padding:12px;overflow-x:auto;box-shadow:none;border-right:0;border-bottom:1px solid rgba(140,157,182,.18)}.av-body--product .av-railgroup{display:flex;gap:5px;align-items:center;padding:0;border:0;white-space:nowrap}.av-body--product .av-railgroup + .av-railgroup{margin:0}.av-body--product .av-railtitle{padding:0 5px}.av-body--product .av-railitem{white-space:nowrap;min-height:34px}}
+
+
+/* Commerce inventory is an authorized read-only projection of Inventory ledger data. */
+.av-commerce-stock-filter{display:grid;gap:7px;max-width:360px;margin:16px 0;color:var(--av-text-soft);font-size:12px}
+.av-commerce-stock-filter input{width:100%;min-height:38px;padding:9px 12px;border:1px solid var(--av-line);border-radius:8px;background:var(--av-card);color:var(--av-text);font:inherit}
+.av-commerce-stock-filter input:focus-visible{outline:2px solid var(--av-brand);outline-offset:1px}
+.av-commerce-stock-scroll{overflow-x:auto;max-width:100%}
+.av-commerce-stock-table{width:100%;min-width:700px;border-collapse:collapse;text-align:left;font-size:12px;font-variant-numeric:tabular-nums}
+.av-commerce-stock-table th{padding:12px;color:var(--av-text-soft);font-weight:600;border-bottom:1px solid var(--av-line);white-space:nowrap}
+.av-commerce-stock-table td{padding:12px;border-bottom:1px solid var(--av-line-soft);color:var(--av-text)}
+.av-commerce-stock-table td strong,.av-commerce-stock-table td span{display:block}
+.av-commerce-stock-table td span{margin-top:4px;color:var(--av-text-soft);font-size:11px}
+.av-commerce-stock-table tbody tr:hover{background:var(--av-line-soft)}
+@media(max-width:720px){.av-commerce-stock-table{min-width:660px}}
