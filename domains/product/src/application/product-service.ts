@@ -56,8 +56,11 @@ export class ProductService {
 
   /** No authentication is necessary: repository and projection expose ONLY approved public fields. */
   async publishedCatalog() {
-    const rows=await this.repository.publishedPublications();
-    return rows.map(toPublicCatalogItem).filter((item):item is NonNullable<typeof item>=>item!==null);
+    const [rows,suppressedCodes]=await Promise.all([
+      this.repository.publishedPublications(),this.repository.suppressedPublishedCodes(),
+    ]);
+    return {items:rows.map(toPublicCatalogItem).filter((item):item is NonNullable<typeof item>=>item!==null),
+      suppressedCodes};
   }
 
   async startPublication(actor:ProductActor,modelId:string) {
