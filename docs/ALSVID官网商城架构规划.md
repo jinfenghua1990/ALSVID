@@ -153,7 +153,7 @@ ALSVID
 
 ## 六、Shopify 关系
 
-ALSVID Official 采用 Shopify 作为消费者交易基础。
+首期 ALSVID Official 采用自建 ALSVID Commerce 作为消费者交易基础；获批 PSP 负责支付。Shopify 不作为首期依赖，见 ADR 0005。
 
 流程：
 
@@ -219,7 +219,7 @@ ALSVID Official
 ├── 服务
 ├── 关于我们
 ├── 经销商合作
-├── 购买 → Shopify
+├── 购买 → ALSVID Commerce（真实结账通过 ADR 0005 门禁后启用）
 ├── 登录 → My ALSVID
 └── 经销商登录 → ALSVID Dealer Portal
 ```
