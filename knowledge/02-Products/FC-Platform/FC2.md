@@ -22,7 +22,7 @@ Reference figures apply to the source's stated standard configuration. Purple sa
 
 Rear four-bar suspension is distinct from main-frame folding. No suspension travel, folded timing, range, charge duration or performance effect is inferred.
 
-Final ALSVID retail build, colours, price, stock, delivery, compliance, warranty and Shopify product are **待确认 / unconfirmed**. Supplier MOQ, tooling, payment and warranty terms are not ALSVID consumer sales terms.
+Final ALSVID retail build, colours, price, stock, delivery, compliance, warranty and approved first-party product publication are **待确认 / unconfirmed**. Supplier MOQ, tooling, payment and warranty terms are not ALSVID consumer sales terms.
 
 ## Images and release
 
