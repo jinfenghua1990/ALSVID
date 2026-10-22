@@ -69,19 +69,25 @@ try {
         assert.equal(await bicycles.locator('main[data-bikes-catalog]').count(), 1, 'Bicycle catalog renders');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc1"]').count() > 0, true, 'FC1 detail link exists');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/fc2"]').count() > 0, true, 'FC2 detail link exists');
+        assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/l7"]').count() > 0, true, 'L7 detail link exists');
+        assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/l8"]').count() > 0, true, 'L8 detail link exists');
+        assert.equal(await bicycles.locator('#models article').count(), 4, 'The catalogue includes FC1, FC2, L7 and L8 model previews');
         const modelNavigator = bicycles.locator('nav[data-bikes-model-nav]');
         await modelNavigator.waitFor({ state: 'visible', timeout: 8000 });
-        assert.equal(await modelNavigator.count(), 1, 'Sticky product navigation is present from the top of the page');
-        assert.equal(await modelNavigator.locator('a').count(), 5, 'Top navigation links to all products, FC1, FC2, platforms and accessories');
+        assert.equal(await modelNavigator.count(), 1, 'Sticky category navigation is present from the top of the page');
+        assert.equal(await modelNavigator.locator('a').count(), 3, 'Sticky category navigation links to models, platforms and accessories');
+        const modelSideNavigator = bicycles.locator('nav[data-bikes-model-side-nav]');
+        assert.equal(await modelSideNavigator.count(), 1, 'Model series appear in the left-side in-flow index');
+        assert.equal(await modelSideNavigator.locator('a').count(), 4, 'Left model index links to FC1, FC2, L7 and L8');
         assert.equal(await modelNavigator.evaluate(element => getComputedStyle(element).position), 'sticky',
           'Product navigation stays in the document flow and sticks below the global header');
         assert.equal(await bicycles.locator('header[data-public-site-header]').evaluate(element => getComputedStyle(element).position), 'sticky',
           'Global header and cart remain visible while scrolling');
-        await modelNavigator.locator('a[data-nav-target="model-fc1"]').click();
+        await modelSideNavigator.locator('a[data-nav-target="model-fc1"]').click();
         await bicycles.waitForFunction(() => location.hash === '#model-fc1' && new URLSearchParams(location.search).get('platform') === 'fc');
         await bicycles.waitForFunction(() =>
           document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc1"]')?.getAttribute('aria-current') === 'location');
-        await modelNavigator.locator('a[data-nav-target="model-fc2"]').click();
+        await modelSideNavigator.locator('a[data-nav-target="model-fc2"]').click();
         await bicycles.waitForFunction(() => location.hash === '#model-fc2');
         await bicycles.waitForFunction(() =>
           document.querySelector('nav[data-bikes-model-nav] a[data-nav-target="model-fc2"]')?.getAttribute('aria-current') === 'location');
@@ -102,7 +108,8 @@ try {
         const gtResponse = await bicycles.goto(base + '/' + locale + '/bikes?platform=gt#models', { waitUntil: 'domcontentloaded' });
         assert.equal(gtResponse?.status(), 200, 'Platform filter loads');
         assert.equal(await bicycles.locator('#models article').count(), 0, 'Unconfirmed GT bikes do not appear as real listings');
-        assert.equal(await bicycles.locator('nav[data-bikes-model-nav] a').count(), 5, 'The sticky navigation remains available for switching back to published models');
+        assert.equal(await bicycles.locator('nav[data-bikes-model-nav] a').count(), 3, 'The sticky category navigation remains available');
+        assert.equal(await bicycles.locator('nav[data-bikes-model-side-nav] a').count(), 4, 'The left model index remains available when a platform has no models');
         await bicycles.close();
         // The public catalog has a single product center with two categories.
         const accessories = await context.newPage();
@@ -222,7 +229,12 @@ try {
         assert.ok((await title.innerText()).trim().length > 0, 'Hero retains readable headline');
         await page.screenshot({ path: output + '/official-' + locale + '-' + device + '.png' });
         assert.deepEqual(browserErrors, [], locale + ' ' + device + ' JS errors');
-        report.checks.push(locale + ' ' + device + ': homepage, navigation, four scenes, manual tab switching');
+        const accessoryCatalogLinks = page.locator('a[data-accessories-catalog-link]');
+        assert.equal(await accessoryCatalogLinks.count(), 2, 'Homepage and footer accessory overview links are present');
+        assert.deepEqual(await accessoryCatalogLinks.evaluateAll(nodes => nodes.map(node => node.getAttribute('href'))),
+          ['/' + locale + '/bikes#accessories','/' + locale + '/bikes#accessories'],
+          'Homepage accessory calls-to-action open the unified product and accessories catalogue');
+        report.checks.push(locale + ' ' + device + ': homepage, navigation, four scenes, manual tab switching and catalogue entry');
       } finally {
         await context.close();
       }
