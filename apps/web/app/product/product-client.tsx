@@ -7,8 +7,6 @@ import { useRouter } from 'next/navigation';
 import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
 import { matchesModelRegisterSearch, modelBomSummary, modelEngineeringStage } from './model-register';
-import { HomepageProductBindingPanel } from './homepage-product-binding-panel';
-import { CatalogPublicationPanel } from './catalog-publication-panel';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
 type Model = { id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
@@ -394,8 +392,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         </form>
       </section>
 
-      <HomepageProductBindingPanel models={catalog.models} loadError={catalogError} />
-      <CatalogPublicationPanel models={catalog.models} />
+      <div className={styles.notice} role="note">官网首页商品绑定、商品展示审核和上架发布已归入 <a href="/admin/ecommerce">电商运营</a>。本页面继续管理唯一的产品型号、Variant、SKU 与工程资料。</div>
       <section className={styles.section} id="engineering">
         <div className={styles.sectionHead}>
           <div><span>工程发布</span><h2>零部件、BOM 与生产规格</h2></div>
