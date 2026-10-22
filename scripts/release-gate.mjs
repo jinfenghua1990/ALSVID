@@ -14,6 +14,19 @@ export function acceptedJobs(jobs) {
     job.name === name && job.status === 'completed' && job.conclusion === 'success'));
 }
 
+export function releaseCandidates(runs, sha) {
+  return mainReleaseRuns(runs).filter(run =>
+    run.head_sha === sha &&
+    (run.status === 'in_progress' || (run.status === 'completed' && run.conclusion === 'success')));
+}
+
+export function failedRequiredJobs(jobs) {
+  return jobs.some(job =>
+    ['verify', 'containers'].includes(job.name) &&
+    job.status === 'completed' &&
+    ['failure', 'cancelled', 'timed_out'].includes(job.conclusion));
+}
+
 export function mainReleaseRuns(runs) {
   return runs.filter(run => run.head_branch === 'main' &&
     ['push', 'workflow_dispatch'].includes(run.event));
@@ -51,17 +64,27 @@ async function main() {
     }
   }
   const result = await api(`actions/workflows/ci.yml/runs?head_sha=${sha}&branch=main&per_page=100`);
-  result.workflow_runs = mainReleaseRuns(result.workflow_runs);
-  if (acceptedChecks({ 'ci.yml': result.workflow_runs }, sha)) {
-    for (const run of result.workflow_runs.filter(run => successfulRuns([run], sha))) {
-      const { jobs } = await api(`actions/runs/${run.id}/jobs?per_page=100`);
+  const candidates = releaseCandidates(result.workflow_runs ?? [], sha);
+
+  // The CI workflow dispatches this deployment immediately after its required
+  // verify/containers jobs pass. GitHub may still report the overall run as
+  // in_progress, and the jobs API can lag behind the run status briefly.
+  // Accept only same-SHA main push/manual runs whose required jobs are both
+  // successful; retry transiently missing job records rather than failing a
+  // healthy release at the exact point the deploy is dispatched.
+  for (const run of candidates) {
+    for (let attempt = 1; attempt <= 12; attempt += 1) {
+      const { jobs = [] } = await api(`actions/runs/${run.id}/jobs?per_page=100`);
+      if (failedRequiredJobs(jobs)) break;
       if (acceptedJobs(jobs)) {
         console.log(`ALSVID Production — CI and container acceptance passed for ${sha}`);
         return;
       }
+      if (attempt < 12) await new Promise(resolve => setTimeout(resolve, 5000));
     }
   }
-  throw new Error('Production deployment blocked: this main commit needs a successful CI run with verify and containers jobs');
+
+  throw new Error('Production deployment blocked: this main commit needs successful verify and containers jobs from main-branch CI');
 }
 
 if (process.argv[1] === '-' || (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)) {
