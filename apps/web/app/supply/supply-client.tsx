@@ -41,7 +41,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [skus, setSkus] = useState<Sku[]>([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [loadErrors, setLoadErrors] = useState<{ procurement?: string; partners?: string; engineering?: string; catalog?: string }>({});
   const [selectedPo, setSelectedPo] = useState('');
   const [quoteItemType, setQuoteItemType] = useState<ItemType>('PART');
   const [poRows, setPoRows] = useState<Array<{ id: number; itemType: ItemType }>>([{ id: 0, itemType: 'PART' }]);
@@ -69,33 +69,48 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
 
   async function reload() {
     setLoading(true);
-    setLoadError('');
-    try {
-      const [proc, partnerData, engineering, catalog] = await Promise.all([
-        api('/v1/procurement'),
-        api('/v1/partners'),
-        api('/v1/engineering'),
-        api('/v1/product/catalog'),
-      ]);
-      setData(proc);
-      setPartners(partnerData.filter((partner: Partner) => partner.roles.includes('SUPPLIER') || partner.roles.includes('FACTORY')));
-      setParts(engineering.parts);
-      setSkus(catalog.skus);
-    } catch (error) {
-      setLoadError(error instanceof Error ? error.message : '无法加载采购 / 供应工作台');
-    } finally {
-      setLoading(false);
+    setLoadErrors({});
+    const keys = ['procurement', 'partners', 'engineering', 'catalog'] as const;
+    const paths = ['/v1/procurement', '/v1/partners', '/v1/engineering', '/v1/product/catalog'];
+    const results = await Promise.allSettled(paths.map(path => api(path)));
+    const failures: Partial<Record<typeof keys[number], string>> = {};
+    for (const [index, result] of results.entries()) {
+      const key = keys[index]!;
+      if (result.status === 'rejected') {
+        failures[key] = result.reason instanceof Error ? result.reason.message : '数据请求失败';
+        if (key === 'procurement') setData(empty);
+        if (key === 'partners') setPartners([]);
+        if (key === 'engineering') setParts([]);
+        if (key === 'catalog') setSkus([]);
+        continue;
+      }
+      const value = result.value;
+      if (key === 'procurement') {
+        if (Array.isArray(value?.purchaseOrders) && Array.isArray(value?.quotations) && Array.isArray(value?.receipts)) setData(value);
+        else { setData(empty); failures[key] = '采购 API 返回格式异常'; }
+      } else if (key === 'partners') {
+        if (Array.isArray(value)) setPartners(value.filter((partner: Partner) => partner.roles.includes('SUPPLIER') || partner.roles.includes('FACTORY')));
+        else { setPartners([]); failures[key] = '供应商 API 返回格式异常'; }
+      } else if (key === 'engineering') {
+        if (Array.isArray(value?.parts)) setParts(value.parts);
+        else { setParts([]); failures[key] = '工程物料 API 返回格式异常'; }
+      } else if (key === 'catalog') {
+        if (Array.isArray(value?.skus)) setSkus(value.skus);
+        else { setSkus([]); failures[key] = '产品目录 API 返回格式异常'; }
+      }
     }
+    setLoadErrors(failures);
+    setLoading(false);
   }
 
   useEffect(() => { void reload(); }, []);
 
   const metrics = useMemo(() => [
-    { label: '供应商组织', value: partners.length.toLocaleString('zh-CN'), hint: '已关联供应商 / 工厂' },
-    { label: '草稿报价', value: data.quotations.filter((item) => item.status === 'DRAFT').length.toLocaleString('zh-CN'), hint: '待处理报价记录' },
-    { label: '待供应商确认', value: data.purchaseOrders.filter((item) => item.status === 'ISSUED').length.toLocaleString('zh-CN'), hint: '采购单已发出' },
-    { label: '履约中采购单', value: data.purchaseOrders.filter((item) => ['CONFIRMED', 'PARTIALLY_FULFILLED'].includes(item.status)).length.toLocaleString('zh-CN'), hint: '确认或部分履约' },
-  ], [partners, data]);
+    { label: '供应商组织', value: loading || loadErrors.partners ? '—' : partners.length.toLocaleString('zh-CN'), hint: '已关联供应商 / 工厂' },
+    { label: '草稿报价', value: loading || loadErrors.procurement ? '—' : data.quotations.filter((item) => item.status === 'DRAFT').length.toLocaleString('zh-CN'), hint: '待处理报价记录' },
+    { label: '待供应商确认', value: loading || loadErrors.procurement ? '—' : data.purchaseOrders.filter((item) => item.status === 'ISSUED').length.toLocaleString('zh-CN'), hint: '采购单已发出' },
+    { label: '履约中采购单', value: loading || loadErrors.procurement ? '—' : data.purchaseOrders.filter((item) => ['CONFIRMED', 'PARTIALLY_FULFILLED'].includes(item.status)).length.toLocaleString('zh-CN'), hint: '确认或部分履约' },
+  ], [partners, data, loading, loadErrors]);
 
   const selected = data.purchaseOrders.find((po) => po.id === selectedPo) ?? null;
   const selectedLines = selected ? data.purchaseOrderLines.filter((line) => line.purchase_order_id === selected.id) : [];
@@ -220,6 +235,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
         </header>
 
         {message ? <div className={styles.notice} role="status">{message}</div> : null}
+        {Object.keys(loadErrors).length > 0 ? <div className={styles.notice} role="alert">部分模块读取失败：{Object.entries(loadErrors).map(([key, reason]) => `${key}: ${reason}`).join('；')}。其他模块仍可查看；请检查权限、网络后重新加载。<button type="button" className={styles.textAction} onClick={() => void reload()}>重新加载</button></div> : null}
 
         <div className={styles.metrics}>
           {metrics.map((metric) => (
@@ -314,7 +330,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
                 {selectedPartnerRecord ? <button className={styles.clearFilter} type="button" onClick={() => setSelectedPartner('all')}>清除筛选 ×</button> : <span className={styles.count}>{visiblePartners.length} 个组织</span>}
               </div>
             </div>
-            {loading ? <div className={styles.emptyState}><strong>正在加载供应商档案</strong><p>正在读取已关联的供应商 / 工厂组织。</p></div> : loadError ? <div className={styles.emptyState}><strong>供应商数据加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visiblePartners.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载供应商档案</strong><p>正在读取已关联的供应商 / 工厂组织。</p></div> : loadErrors.partners ? <div className={styles.emptyState}><strong>供应商数据加载失败</strong><p>{loadErrors.partners}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visiblePartners.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>供应商 / 工厂</th><th>国家 / 地区</th><th>组织类型</th><th>业务角色</th><th>报价</th><th>采购单</th><th>待履约</th><th>合作状态</th><th>快捷操作</th></tr></thead>
@@ -341,7 +357,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>QUOTATIONS</span><h2>报价管理</h2><p>{selectedPartnerRecord ? '当前供应商：' + selectedPartnerRecord.displayName : '查看所有供应商报价及其处理状态。'}</p></div>
               <span className={styles.count}>{visibleQuotations.length} 条报价</span>
             </div>
-            {loading ? <div className={styles.emptyState}><strong>正在加载报价记录</strong><p>正在读取采购域数据。</p></div> : loadError ? <div className={styles.emptyState}><strong>报价数据加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleQuotations.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载报价记录</strong><p>正在读取采购域数据。</p></div> : loadErrors.procurement ? <div className={styles.emptyState}><strong>报价数据加载失败</strong><p>{loadErrors.procurement}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleQuotations.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>报价单号</th><th>供应商</th><th>供应商参考号</th><th>币种</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
@@ -365,7 +381,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>PURCHASE ORDERS</span><h2>采购订单</h2><p>{selectedPartnerRecord ? '当前供应商：' + selectedPartnerRecord.displayName : '查看采购单状态、金额与后续履约记录。'}</p></div>
               <span className={styles.count}>{visibleOrders.length} 张采购单</span>
             </div>
-            {loading ? <div className={styles.emptyState}><strong>正在加载采购订单</strong><p>正在读取采购域数据。</p></div> : loadError ? <div className={styles.emptyState}><strong>采购订单加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleOrders.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载采购订单</strong><p>正在读取采购域数据。</p></div> : loadErrors.procurement ? <div className={styles.emptyState}><strong>采购订单加载失败</strong><p>{loadErrors.procurement}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleOrders.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>采购单号</th><th>供应商</th><th>金额</th><th>创建时间</th><th>发出时间</th><th>状态</th><th>操作</th></tr></thead>
@@ -389,7 +405,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>FULFILLMENT EVIDENCE</span><h2>履约记录</h2><p>采购履约证据仅用于追踪承诺与收货记录，不直接修改库存余额。</p></div>
               <span className={styles.count}>{visibleReceipts.length} 条记录</span>
             </div>
-            {loading ? <div className={styles.emptyState}><strong>正在加载履约记录</strong><p>正在读取采购域数据。</p></div> : loadError ? <div className={styles.emptyState}><strong>履约记录加载失败</strong><p>{loadError}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleReceipts.length ? (
+            {loading ? <div className={styles.emptyState}><strong>正在加载履约记录</strong><p>正在读取采购域数据。</p></div> : loadErrors.procurement ? <div className={styles.emptyState}><strong>履约记录加载失败</strong><p>{loadErrors.procurement}</p><button className={styles.textAction} type="button" onClick={() => void reload()}>重新加载</button></div> : visibleReceipts.length ? (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>发生日期</th><th>采购单</th><th>供应商</th><th>记录类型</th><th>参考编号</th><th>登记时间</th></tr></thead>
