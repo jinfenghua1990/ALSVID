@@ -22,6 +22,7 @@ export function HomePage({
   const t = translator(locale);
   const detail = (slug: string) => `/${locale}/explore/${slug}`;
   const shopUrl = detail("fc1");
+  const catalogAccessoriesUrl = `/${locale}/bikes#accessories`;
   return (
     <main
       translate="no"
@@ -329,7 +330,7 @@ export function HomePage({
               <h2>{t("accessories.title")}</h2>
             </div>
             <p>{t("accessories.description")}</p>
-            <a className={styles["text-link"]} href="#accessory-categories">
+            <a className={styles["text-link"]} href={catalogAccessoriesUrl} data-accessories-catalog-link>
               {t("accessories.browse")}
             </a>
           </div>
@@ -592,7 +593,7 @@ export function HomePage({
           </div>
           <div className={styles["footer-col"]}>
             <h4>{t("footer.accessories")}</h4>
-            <a href="#accessory-categories">{t("footer.accessory_overview")}</a>
+            <a href={catalogAccessoriesUrl} data-accessories-catalog-link>{t("footer.accessory_overview")}</a>
             <a href={detail("accessory-basket")}>
               {t("accessories.basket.title")}
             </a>
