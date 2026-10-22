@@ -1772,3 +1772,120 @@
   .posterHome .mobileModelLinks .newBadge { font-size: 8px; padding: 3px 3px; }
   .posterHome .mobileNav summary { width: 36px; height: 36px; }
 }
+
+
+/* Homepage KV: keep the approved source image, reserve the left copy area,
+   and let the bicycle remain the visual focus on the centre-right. */
+.posterStage {
+  height: 100vh;
+  height: 100svh;
+  min-height: 600px;
+  aspect-ratio: auto;
+}
+.posterStage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 10, 14, .68) 0%, rgba(5, 10, 14, .38) 25%, rgba(5, 10, 14, .1) 53%, transparent 76%),
+    linear-gradient(0deg, rgba(5, 10, 14, .24), transparent 28%);
+}
+.posterContent {
+  top: 50%;
+  left: clamp(32px, 6vw, 160px);
+  transform: translateY(-50%);
+  width: min(30vw, 620px);
+  max-width: 620px;
+  text-align: left;
+}
+.page .posterContent h1 {
+  max-width: 12ch;
+  font-size: clamp(40px, 4.8vw, 90px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.page .posterTagline {
+  max-width: 36ch;
+  margin: 18px 0 0;
+  font-size: clamp(11px, .95vw, 15px);
+  line-height: 1.6;
+  letter-spacing: .14em;
+}
+.posterDivider { margin: 20px 0; }
+.posterButtons { justify-content: flex-start; gap: 14px; }
+.posterSecondary {
+  gap: 10px;
+  border-radius: 4px;
+  padding: 10px 16px;
+  border-color: #ffffffa6;
+  background: #07101c22;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+.posterSecondary:hover { border-color: #b8e986; background: #ffffff18; }
+.posterSecondary span { font-size: 17px; line-height: 1; }
+.page .posterDelivery {
+  margin: 14px 0 0;
+  max-width: 480px;
+  text-align: left;
+}
+.slideSelector:hover .slideTrack,
+.slideSelector[aria-pressed="true"] .slideTrack {
+  background: #b8e986;
+}
+.slideSelector[aria-pressed="true"] .slideTrack {
+  box-shadow: 0 0 10px #b8e98666;
+}
+@media (max-width: 1180px) and (min-width: 761px) {
+  .posterContent {
+    left: 5vw;
+    width: min(31vw, 360px);
+  }
+  .page .posterContent h1 { font-size: clamp(36px, 4.4vw, 60px); }
+  .page .posterTagline { font-size: 12px; letter-spacing: .1em; }
+}
+@media (max-width: 760px) {
+  .posterStage {
+    height: 100vh;
+    height: 100svh;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+  .posterStage::after {
+    background:
+      linear-gradient(180deg, rgba(5, 10, 14, .5) 0%, rgba(5, 10, 14, .14) 42%, rgba(5, 10, 14, .34) 100%);
+  }
+  .posterHome .posterContent {
+    top: max(82px, 14%);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    text-align: center;
+  }
+  .page .posterContent h1 {
+    max-width: none;
+    font-size: clamp(26px, 7vw, 36px);
+    line-height: 1.12;
+    letter-spacing: -.02em;
+  }
+  .page .posterTagline {
+    max-width: 34ch;
+    margin: 10px auto 0;
+    font-size: 10px;
+    letter-spacing: .12em;
+  }
+  .posterDivider, .posterScroll { display: none; }
+  .posterButtons { justify-content: center; gap: 8px; }
+  .posterDiscover { min-height: 40px; margin-top: 10px; padding: 7px 17px; }
+  .posterSecondary { min-height: 40px; padding: 7px 13px; font-size: 12px; }
+  .page .posterDelivery { margin: 10px auto 0; max-width: 320px; text-align: center; font-size: 11px; }
+  .posterBikeLink { left: 0; top: 37%; width: 100%; height: 55%; }
+  .carouselControls { bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 380px) {
+  .posterButtons { flex-direction: column; align-items: center; gap: 6px; }
+  .posterDiscover, .posterSecondary { width: min(100%, 240px); }
+}

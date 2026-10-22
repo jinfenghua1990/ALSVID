@@ -112,13 +112,21 @@ export function HomePosterHero({
         touchStart.current = null;
       }}>
         <Image key={slide.image} className={`${styles.posterImage} ${styles.carouselImage}`} src={slide.image} alt={active === 0 ? posterAlt : slide.alt} fill sizes="100vw" preload={active === 0} />
-        {active !== 0 && <div className={styles.slideShade} />}
         <div className={styles.posterContent}>
           <h1 id={headingId}>{active === 0 ? title : slide.label}</h1>
           <p className={styles.posterTagline}>{active === 0 ? tagline : conceptLabel}</p>
           <span className={styles.posterDivider} aria-hidden="true" />
           <div className={styles.posterButtons}>
-            {active === 0 ? <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}><span className={styles.posterCtaLabel}>{buyLabel}</span><span className={styles.posterCtaArrow} aria-hidden="true">›</span></a> : <a className={styles.posterDiscover} href={slide.href}>{exploreLabel}<span aria-hidden="true">→</span></a>}
+            {active === 0 ? <>
+              <a className={`${styles.posterDiscover} ${styles.posterBuy}`} href={buyHref}>
+                <span className={styles.posterCtaLabel}>{buyLabel}</span>
+                <span className={styles.posterCtaArrow} aria-hidden="true">›</span>
+              </a>
+              <a className={styles.posterSecondary} href="#featured">
+                {discoverLabel}
+                <span aria-hidden="true">↓</span>
+              </a>
+            </> : <a className={styles.posterDiscover} href={slide.href}>{exploreLabel}<span aria-hidden="true">→</span></a>}
           </div>
           {active === 0 && <p className={styles.posterDelivery}>{deliveryNote}</p>}
         </div>

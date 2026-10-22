@@ -71,3 +71,15 @@ test('the WWW has one products navigation item and an integrated accessories cat
  const legacy=await readFile(join(appRoot,'[locale]/accessories/page.tsx'),'utf8');
  assert.match(legacy,/redirect\(destination\)/,'Legacy accessories links remain compatible');
 });
+
+
+test('homepage KV follows the approved left-copy layout and exposes an in-page model discovery action',async()=>{
+ const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
+ const css=await readFile(join(appRoot,'_components/home/original-home.module.css'),'utf8');
+ assert.match(css,/\.posterStage\s*\{[^}]*height:\s*100vh;\s*height:\s*100svh;/s,
+   'desktop and mobile hero stage should fill the viewport');
+ assert.match(css,/\.posterContent\s*\{[^}]*left:\s*clamp\(32px,\s*6vw,\s*160px\);[^}]*text-align:\s*left;/s,
+   'desktop hero copy should stay in the left safe area');
+ assert.match(hero,/href="#featured"/,'secondary hero CTA should lead to the featured model section');
+ assert.match(hero,/discoverLabel/,'the localized model discovery CTA must be rendered');
+});
