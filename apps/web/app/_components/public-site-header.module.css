@@ -35,7 +35,7 @@
 .mobileLanguage a{flex:1 1 0;justify-content:center;min-height:38px;padding:6px 2px;color:#fff;font-size:12px;white-space:nowrap}
 .mobileModels{display:none}
 .header a:focus-visible,.header summary:focus-visible{outline:2px solid #b8e986;outline-offset:3px}
-@media(max-width:1350px){
+@media(max-width:1180px){
  .header{display:flex;justify-content:space-between;align-items:center}
  .desktopNav{display:none}
  .actions{margin-left:auto}
@@ -45,10 +45,16 @@
  .header{height:64px;min-height:64px;flex-wrap:nowrap;align-content:center;align-items:center;justify-content:space-between;gap:clamp(4px,1.2vw,8px);padding:0 clamp(8px,2.5vw,15px)}
  .logo{flex:0 0 auto}
  .brandLine{font-size:clamp(14px,3.8vw,17px);letter-spacing:.025em}
- .brandBike,.strapline,.actions{display:none}
+ .brandBike,.strapline{display:none}
  .mobileModels{display:flex;order:2;flex:1 1 auto;justify-content:center;min-width:0;width:auto;gap:clamp(2px,.8vw,6px);margin:0}
  .mobileModels a{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:40px;padding:4px 2px;border:0;border-radius:6px;background:transparent;color:#fff;font-size:13px;font-weight:600;line-height:1.2;text-decoration:none;white-space:nowrap}
  .mobileModels a:hover,.mobileModels a:focus-visible{background:#ffffff12}
+ .mobileModels a[aria-current=page]{color:#b8e986}
+ .actions{display:flex;order:3;justify-self:auto;margin-left:auto;gap:0}
+ .header .actions>a[data-site-cart]{display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;min-height:36px;height:36px;gap:0;padding:0}
+ .header .actions>a[data-site-cart]>span{display:none}
+ .header .actions>details,.header .actions>.dealerApply,.header .actions>.dealerLogin{display:none}
+ .mobileMenu{order:4}
  .reserveBadge,.newBadge{min-height:18px;padding:3px 5px;font-size:9px}
  .mobileMenu{order:3;flex:0 0 auto;margin:0}
  .mobileMenu summary{width:38px;height:38px;font-size:16px}
@@ -60,6 +66,7 @@
  .header{padding-inline:8px;gap:3px}
  .brandLine{font-size:13px;letter-spacing:.01em}
  .mobileModels a{font-size:12px;gap:3px;padding-inline:1px}
+ .mobileModels a:last-child{display:none}
  .reserveBadge,.newBadge{font-size:8px;padding:3px 3px}
  .mobileMenu summary{width:36px;height:36px}
 }
