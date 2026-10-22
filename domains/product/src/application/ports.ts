@@ -65,6 +65,7 @@ export interface UpdateProductRecord {
 export interface ProductRepository {
   publications(): Promise<PublicationRow[]>;
   publishedPublications(): Promise<PublicationRow[]>;
+  suppressedPublishedCodes():Promise<string[]>;
   publication(modelId:string): Promise<PublicationRow | null>;
   createPublication(modelId:string,actorUserId:string): Promise<PublicationRow | null>;
   savePublication(modelId:string,expectedVersion:number,body:PublicationDraft,imagePath:string,actorUserId:string): Promise<PublicationRow | null>;
