@@ -1,5 +1,31 @@
 # Current State
 
+## 2026-10-22 release and acceptance audit snapshot
+
+This dated snapshot separates repository state from live production acceptance. Do not treat a merged PR or a successful workflow as proof that every business path is complete.
+
+### Release evidence
+- The last confirmed WWW-only production release before the catalogue-navigation correction was commit `b3f6bc89b34bde6ab058f1df38fc37bfc795b19d`, from [WWW Production Deploy #39712257014](https://github.com/jinfenghua1990/ALSVID/actions/runs/39712257014), which succeeded.
+- The homepage/catalogue correction [PR #302](https://github.com/jinfenghua1990/ALSVID/pull/302) merged at 2026-10-22 03:22 UTC. Its main-branch commit is undergoing CI; do not call it live until a later exact-SHA WWW deployment succeeds and the production route is rechecked.
+- [PR #297](https://github.com/jinfenghua1990/ALSVID/pull/297) added BIKE / ACCESSORY / SERVICE_PART product types and safe homepage Model-ID bindings, including automatic matching and authorized manual override/reset. [Full Production Deploy #39707705037](https://github.com/jinfenghua1990/ALSVID/actions/runs/39707705037) succeeded on `a0d46c4e5b7424fdde548813cd4261184325b46c`, whose parent is the #297 merge commit.
+- [PR #299](https://github.com/jinfenghua1990/ALSVID/pull/299) added the first audit-gated public bike catalogue publication slice for FC1 / FC2 and was included in that full Production Deploy. It does not complete accessory publication, compatibility, price/stock, order or payment flows.
+- The dated browser snapshot of the pre-#302 production site showed the homepage “browse accessories” CTA and footer still pointing to the homepage's own anchor; `/{locale}/bikes` showed FC1 / FC2 only and had no left-side model index. PR #302 fixes those gaps and includes L7 / L8 as preview-only model cards.
+
+### Recent UI work already merged
+- Portal password/email login and reset UI: [PR #254](https://github.com/jinfenghua1990/ALSVID/pull/254).
+- Visible public return-home link: [PR #272](https://github.com/jinfenghua1990/ALSVID/pull/272).
+- Dealer application modal and designed login page: [PR #274](https://github.com/jinfenghua1990/ALSVID/pull/274).
+- Supplier workspace UI refinement: [PR #269](https://github.com/jinfenghua1990/ALSVID/pull/269).
+- First-party preview cart with local quantity badge and add-selection controls: [PR #275](https://github.com/jinfenghua1990/ALSVID/pull/275). This is not a live purchase system: price, payment, order creation and stock reservation remain disabled until approved commercial and PSP prerequisites are satisfied.
+
+### Open work / external acceptance
+- [Issue #212](https://github.com/jinfenghua1990/ALSVID/issues/212): Admin remains an ongoing real-business-closure program. Fixture pages, APIs and deployment are not proof of real save/approve/withdraw, role/data-scope, audit and error-recovery acceptance.
+- [Issue #263](https://github.com/jinfenghua1990/ALSVID/issues/263): accessories still need reviewed publication, verified model/variant/SKU/BOM compatibility and approved price/stock before any real checkout.
+- [Issue #265](https://github.com/jinfenghua1990/ALSVID/issues/265): the official FC1 reservation recipient is still empty. Do not invent an address; a responsible person must supply and verify the real mailbox before rebuilding the frontend.
+- [Issue #295](https://github.com/jinfenghua1990/ALSVID/issues/295): the provider-neutral 3PL/WMS contract is documented, but real warehouse API docs, credentials and test access are not yet available.
+- [Issue #304](https://github.com/jinfenghua1990/ALSVID/issues/304) / [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305): PageSpeed mobile lab report showed score 68, LCP 15.1 s, and a roughly 2.47 MB homepage KV PNG. The responsive-image optimization is pending CI, browser/network validation and a new PageSpeed measurement.
+- The sitemap route has been implemented and deployed, but the observed Google Search Console snapshot had no submitted sitemap row. Submission and URL inspection in Search Console are separate manual acceptance steps.
+
 ## FC1 promotional / email-reservation-only state — 2026-10-20
 
 The current FC1 customer journey is **product promotion + model/colour preference preview + email reservation enquiry only**. Do not expose online ordering, a cart, checkout, payment, order creation or stock reservation. The configurator keeps the actual reference-bike photography, model selector, colour-preview behavior and grouped specifications. Its email CTA reads the optional `NEXT_PUBLIC_FC1_RESERVATION_EMAIL` build-time variable. If the variable is missing or malformed, the CTA remains disabled and explicitly states that the reservation email will be added later; never invent a recipient address. When configured, the CTA opens the customer's own email client with a localized subject/body containing the selected model and colour. Sending the email is only an enquiry, not an order confirmation.
