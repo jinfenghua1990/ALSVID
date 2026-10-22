@@ -35,7 +35,7 @@ export function OwnerServiceMenu({ locale, myUrl, mobile = false }: {
     <button ref={launchButton} type="button"
       className={mobile ? styles.mobileLink : styles.navLink}
       aria-haspopup="dialog" aria-expanded={open}
-      onClick={() => setOpen(true)}>{t('network.nav.owner')}</button>
+      onClick={() => setOpen(true)}>{t('navigation.owner_account')}</button>
     {open ? <div className={styles.ownerOverlay} onMouseDown={event => {
       if (event.target === event.currentTarget) setOpen(false);
     }}>
@@ -52,7 +52,7 @@ export function OwnerServiceMenu({ locale, myUrl, mobile = false }: {
             <span className={styles.ownerSymbol} aria-hidden="true">⌁</span>
             <strong>{t('network.service.owner')}</strong>
             <small>{t('service.vehicles.note')}</small>
-            <span className={styles.ownerArrow} aria-hidden="true">↗</span>
+            <span className={styles.ownerArrow} aria-hidden="true">›</span>
           </a>
           <a href={prefix + '/service-locations'} className={styles.ownerOption}>
             <span className={styles.ownerSymbol} aria-hidden="true">＋</span>
