@@ -22,7 +22,7 @@ export function PublicSiteHeader({
 }) {
   const t = translator(locale);
   const prefix = '/' + locale;
-  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale;
+  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale + '&open=1';
   const links = [
     { href: prefix + '/explore/fc1', label: t('product.model_fc1'), id: 'fc1', badge: t('navigation.reserve_badge') },
     { href: prefix + '/explore/fc2', label: t('fc2.model'), id: 'fc2', badge: t('product.new_badge') },

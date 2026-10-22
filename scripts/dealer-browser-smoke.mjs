@@ -23,14 +23,15 @@ try{
     await page.getByRole('heading',{level:1}).first().waitFor();
     assert.equal(await page.locator('[class*=platformCard]').count(),4);
     assert.ok(await page.locator('a[href="/'+locale+'/dealers/locations"]').count()>=1);
-    assert.ok(await page.locator('header a[href="https://dealer.alsvidbike.com/login?portal=dealer&locale='+locale+'"]').count()>=1,'dealer portal login opens the designed login page');
+    const dealerLoginHref = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale + '&open=1';
+    assert.ok(await page.locator('header a[href="' + dealerLoginHref + '"]').count()>=1,'dealer portal login opens the designed login page');
     assert.equal(await page.locator('header[data-public-site-header]').count(),1,'dealer page reuses homepage header');
     assert.equal(await page.locator('header a[class*="homeLink"]').getAttribute('href'),'/' + locale + '/','explicit return-home link targets the localized homepage');
     if(device==='desktop')assert.equal(await page.locator('header a[class*="homeLink"]').isVisible(),true,'return-home link is visible on desktop');
     assert.ok(await page.locator('header a[href="/'+locale+'/dealers?apply=1"]').count()>=1,'header application entry opens the application dialog');
     assert.equal(await page.locator('header details[class*="switcher"] summary').count(),1,'homepage globe language switcher reused');
     assert.equal(await page.locator('[class*=heroActions] button').count(),1,'hero CTA opens the application dialog');
-    assert.equal(await page.locator('[class*=heroActions] a[href="https://dealer.alsvidbike.com/login?portal=dealer&locale='+locale+'"]').count(),1,'existing partners open the designed login page');
+    assert.equal(await page.locator('[class*=heroActions] a[href="' + dealerLoginHref + '"]').count(),1,'existing partners open the designed login page');
     assert.equal(await page.getByRole('dialog').count(),0,'application dialog is closed on initial page load');
     assert.equal(await page.locator('section[id="apply"] form').count(),0,'application form is not embedded in the page');
     assert.ok(await page.locator('section[id="apply"] button').count()>=1,'dedicated application CTA remains on the page');

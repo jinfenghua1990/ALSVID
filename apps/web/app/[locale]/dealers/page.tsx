@@ -24,7 +24,7 @@ export default async function DealerPartnershipPage({ params, searchParams }: Pr
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
   const base = '/' + locale;
-  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale;
+  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale + '&open=1';
   const platforms = [
     { code: 'FC', label: t('network.models.fc'), img: '/home/original/fc1-product.webp', href: base + '/explore/fc1' },
     { code: 'CT', label: t('network.models.ct'), img: '/home/original/scene-city.webp', href: base + '/explore/ct' },

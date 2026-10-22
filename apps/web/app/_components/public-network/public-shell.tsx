@@ -6,7 +6,7 @@ import styles from './network.module.css';
 export function PublicShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const t = translator(locale);
   const base = '/' + locale;
-  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale;
+  const dealerLoginUrl = 'https://dealer.alsvidbike.com/login?portal=dealer&locale=' + locale + '&open=1';
   return <div className={styles.site}>
     <PublicSiteHeader locale={locale} active="dealers" dealerLogin />
     {children}
