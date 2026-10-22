@@ -51,6 +51,7 @@ export function HomePosterHero({
   discoverLabel,
   buyLabel,
   buyHref,
+  productModelId,
   posterAlt,
   modelHref,
   modelLabel,
@@ -67,6 +68,7 @@ export function HomePosterHero({
   discoverLabel: string;
   buyLabel: string;
   buyHref: string;
+  productModelId?: string | null;
   posterAlt: string;
   modelHref: string;
   modelLabel: string;
@@ -100,7 +102,7 @@ export function HomePosterHero({
     return () => clearInterval(timer);
   }, [paused, suspended, reducedMotion, categories.length, active]);
   return (
-    <section className={styles.posterHero} aria-labelledby={headingId} onMouseEnter={() => setSuspended(true)} onMouseLeave={() => setSuspended(false)} onFocusCapture={() => setSuspended(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setSuspended(false); }}>
+    <section className={styles.posterHero} data-product-model-id={active===0?productModelId??undefined:undefined} aria-labelledby={headingId} onMouseEnter={() => setSuspended(true)} onMouseLeave={() => setSuspended(false)} onFocusCapture={() => setSuspended(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setSuspended(false); }}>
       <div className={styles.posterStage} onTouchStart={event => { touchStart.current = event.touches[0]?.clientX ?? null; }} onTouchEnd={event => {
         if (touchStart.current !== null) {
           const delta = (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
