@@ -36,6 +36,14 @@ test('ecommerce reuses Product and Commerce API components and Product no longer
   assert.match(ecommerce, /<HomepageProductBindingPanel models=\{models\}/);
   assert.match(ecommerce, /<CatalogPublicationPanel models=\{models\}/);
   assert.match(ecommerce, /<StorefrontOrderDraftPanel \/>/);
+  assert.match(ecommerce, /<EcommerceInventoryPanel \/>/);
+  const stock = read('./ecommerce-inventory-panel.tsx');
+  assert.match(stock, /\/api\/control\/v1\/inventory/);
+  assert.match(stock, /row\.item_kind === 'SKU'/);
+  assert.match(stock, /库存未知，不代表缺货或零库存/);
+  assert.match(stock, /台账可用量不等于商城可售量/);
+  assert.doesNotMatch(stock, /method:\s*'POST'/);
+  assert.match(read('./renderer.tsx'), /'电商库存': '\/admin\/ecommerce#inventory'/);
   assert.doesNotMatch(product, /<HomepageProductBindingPanel models=/);
   assert.doesNotMatch(product, /<CatalogPublicationPanel models=/);
   assert.match(read('../_lib/admin-sku-pricing-navigation.ts'), /\/admin\/ecommerce\?/);
