@@ -1796,7 +1796,7 @@
   top: 50%;
   left: clamp(32px, 6vw, 160px);
   transform: translateY(-50%);
-  width: min(34vw, 620px);
+  width: min(30vw, 620px);
   max-width: 620px;
   text-align: left;
 }
@@ -1841,7 +1841,7 @@
 @media (max-width: 1180px) and (min-width: 761px) {
   .posterContent {
     left: 5vw;
-    width: min(35vw, 440px);
+    width: min(31vw, 360px);
   }
   .page .posterContent h1 { font-size: clamp(36px, 4.4vw, 60px); }
   .page .posterTagline { font-size: 12px; letter-spacing: .1em; }
