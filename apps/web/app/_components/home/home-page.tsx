@@ -1,4 +1,5 @@
 import { HomePosterHero, FoldingSteps } from "./home-interactions";
+import type { HomepageProductBindings } from './public-product-bindings';
 import { L7LaunchCard } from "../product/l7-product";
 import { L8LaunchCard } from "../product/l8-product";
 import { Fc2LaunchCard } from "../product/fc2-product";
@@ -11,10 +12,12 @@ export function HomePage({
   myUrl,
   dealerUrl,
   locale = "zh",
+  productBindings,
 }: {
   myUrl: string;
   dealerUrl: string;
   locale?: Locale;
+  productBindings?: HomepageProductBindings;
 }) {
   const t = translator(locale);
   const detail = (slug: string) => `/${locale}/explore/${slug}`;
@@ -29,6 +32,7 @@ export function HomePage({
     >
       <PublicSiteHeader locale={locale} myUrl={myUrl} home />
       <HomePosterHero
+        productModelId={productBindings?.FC1_HERO ?? null}
         title={t("hero.poster_title")}
         tagline={t("hero.poster_tagline")}
         discoverLabel={t("hero.poster_cta")}
@@ -155,7 +159,7 @@ export function HomePage({
           </div>
         </div>
       </section>
-      <section id="featured" className={styles["feature"]}>
+      <section id="featured" data-product-model-id={productBindings?.FC1_FEATURED ?? undefined} className={styles["feature"]}>
         <div className={styles["feature-grid"]}>
           <div className={styles["feature-copy"]}>
             <div className={styles["eyebrow"]}>{t("featured.eyebrow")}</div>
@@ -194,7 +198,7 @@ export function HomePage({
           </div>
         </div>
       </section>
-      <Fc2LaunchCard locale={locale} />
+      <Fc2LaunchCard locale={locale} productModelId={productBindings?.FC2_LAUNCH ?? null} />
       <section id="folding" className={styles["fold"]}>
         <div className={styles["inner"] + " " + styles["fold-grid"]}>
           <div className={styles["fold-copy"]}>
