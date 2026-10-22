@@ -57,8 +57,8 @@ export default async function BikesPage({ params, searchParams }: Props) {
       image:"/products/l8/retouched-side.webp",alt:t("l8.gallery.side.alt"),href:prefix+"/explore/l8" },
   ] as const;
   const models = previews.filter(model=>{
-      const isPublishedModel=model.code==="FC1"||model.code==="FC2";
-      return !publicCatalog.available || !isPublishedModel || !publicCatalog.suppressedCodes.includes(model.code);
+      if (!publicCatalog.available || (model.code!=="FC1" && model.code!=="FC2")) return true;
+      return !publicCatalog.suppressedCodes.includes(model.code);
     }).map(model=>{
       const reviewed=model.code==="FC1"||model.code==="FC2"
         ?publicCatalog.items.find(item=>item.code===model.code):undefined;
