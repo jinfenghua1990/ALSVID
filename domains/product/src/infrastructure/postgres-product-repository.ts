@@ -77,6 +77,16 @@ export class PostgresProductRepository implements ProductRepository {
     return result.rows;
   }
 
+  async suppressedPublishedCodes():Promise<string[]> {
+    const result=await this.database.query<{code:string}>(`
+      SELECT m.code FROM product.catalog_publications p
+      JOIN product.models m ON m.id=p.model_id
+      WHERE p.published_at IS NOT NULL
+        AND (p.status<>'PUBLISHED' OR m.status<>'ACTIVE')
+        AND m.code IN ('FC1','FC2')`);
+    return result.rows.map(row=>row.code);
+  }
+
   async publication(modelId:string):Promise<PublicationRow|null> {
     const result=await this.database.query<PublicationRow>(
       this.publicationProjection+' WHERE p.model_id=$1',[modelId]);
