@@ -15,7 +15,7 @@ export function L8LaunchCard({ locale }: { locale: Locale }) {
     </div>
     <a className={styles.launchVisual} href={`/${locale}/explore/l8`} aria-label={t("l8.explore")}>
       <span className={styles.backdrop} aria-hidden="true">L8</span>
-      <img src="/products/l8/reference-side.png" width={1024} height={1024} alt={t("l8.gallery.side.alt")} loading="lazy" />
+      <img src="/products/l8/retouched-side.webp" width={1024} height={1024} alt={t("l8.gallery.side.alt")} loading="lazy" />
     </a>
   </section>;
 }
@@ -68,7 +68,7 @@ export function L8ProductPage({ locale, myUrl }: { locale: Locale; myUrl: string
         <article className={styles.carbon}>
           <span className={styles.featureNumber} aria-hidden="true">01</span>
           <h3>{t("l8.carbon.title")}</h3><p>{t("l8.carbon.body")}</p>
-          <img src="/products/l8/reference-side.png" width={1024} height={1024} alt={t("l8.gallery.side.alt")} loading="lazy" />
+          <img src="/products/l8/retouched-side.webp" width={1024} height={1024} alt={t("l8.gallery.side.alt")} loading="lazy" />
         </article>
         <article className={styles.assist}>
           <span className={styles.featureNumber} aria-hidden="true">02</span>
@@ -82,7 +82,7 @@ export function L8ProductPage({ locale, myUrl }: { locale: Locale; myUrl: string
       </div>
     </section>
     <section className={styles.fold} id="folding">
-      <div className={styles.foldVisual}><img src="/products/l8/reference-folded.png" width={2560} height={2560} alt={t("l8.gallery.folded.alt")} loading="lazy" /></div>
+      <div className={styles.foldVisual}><img src="/products/l8/retouched-folded.webp" width={2560} height={2560} alt={t("l8.gallery.folded.alt")} loading="lazy" /></div>
       <div className={styles.foldCopy}><p className={styles.eyebrow}>{t("l8.fold.kicker")}</p><h2>{t("l8.fold.title")}</h2><p>{t("l8.fold.body")}</p></div>
     </section>
     <section className={styles.section} id="specifications">

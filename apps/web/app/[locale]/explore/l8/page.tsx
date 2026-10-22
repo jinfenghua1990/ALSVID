@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `https://www.alsvidbike.com/${locale}/explore/l8`,
       languages: Object.fromEntries([...locales.map(item => [item, `https://www.alsvidbike.com/${item}/explore/l8`]), ["x-default", "https://www.alsvidbike.com/en/explore/l8"]]),
     },
-    openGraph: { title: t("l8.title"), description: t("l8.description"), images: [{url:"/products/l8/reference-side.png",width:1024,height:1024,alt:t("l8.gallery.side.alt")}] },
+    openGraph: { title: t("l8.title"), description: t("l8.description"), images: [{url:"/products/l8/retouched-side.webp",width:1254,height:1254,alt:t("l8.gallery.side.alt")}] },
   };
 }
 export default async function L8Page({ params }: Props) {

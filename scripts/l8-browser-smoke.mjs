@@ -56,8 +56,12 @@ try {
           return image?.complete && image.naturalWidth > 0;
         });
         assert.equal(await controls.nth(1).getAttribute("aria-pressed"), "true");
+        assert.equal(await gallery.locator("[data-l8-photo]").getAttribute("src"), "/products/l8/retouched-folded.webp");
+        assert.equal(await gallery.locator("[data-l8-original]").getAttribute("href"), "/products/l8/reference-folded.png");
         await controls.nth(0).click();
         assert.equal(await controls.nth(0).getAttribute("aria-pressed"), "true");
+        assert.equal(await gallery.locator("[data-l8-photo]").getAttribute("src"), "/products/l8/retouched-side.webp");
+        assert.equal(await gallery.locator("[data-l8-original]").getAttribute("href"), "/products/l8/reference-side.png");
         for (const anchor of ["design", "folding", "specifications", "availability"]) {
           await product.locator('nav a[href="#' + anchor + '"]').click();
           await page.waitForFunction(id => location.hash === "#" + id, anchor);

@@ -8,12 +8,12 @@ const colours = ["black", "cream", "green", "pink", "violet", "orange"] as const
 const photos = ["01", "02", "03", "04", "05"] as const;
 
 export function CupHolderGallery({ locale }: { locale: Locale }) {
-  const [selected, setSelected] = useState<string>("photo-01");
+  const [selected, setSelected] = useState<string>("black");
   const t = translator(locale);
   const photo = photos.find(id => selected === "photo-" + id);
   const colour = colours.find(id => selected === id) || "black";
   const src = photo ? `/products/accessories/cup-holder/gallery-${photo}.webp`
-    : `/products/accessories/${colour === "black" || colour === "cream" ? "" : "cup-holder/"}cup-holder-${colour}.webp`;
+    : `/products/accessories/cup-holder/retouched/cup-holder-${colour}.webp`;
   const caption = photo ? t(`cup.gallery.${photo}`) : t("cup.colour.caption", { colour: t(`cup.${colour}`) });
   return <div data-cup-holder-gallery>
     <figure className={styles.figure}>
@@ -31,6 +31,7 @@ export function CupHolderGallery({ locale }: { locale: Locale }) {
       {colours.map(colour => <button key={colour} type="button" data-cup-colour={colour} aria-pressed={selected === colour}
         onClick={() => setSelected(colour)}>{t(`cup.${colour}`)}</button>)}
     </div>
-    <p className={styles.note}>{t("cup.photo.note")}</p>
+    <p className={styles.note}>{t(photo ? "cup.photo.note" : "cup.retouch.note")}</p>
+    {!photo && <a className={styles.note} data-cup-original href={`/products/accessories/${colour === "black" || colour === "cream" ? "" : "cup-holder/"}cup-holder-${colour}.webp`} target="_blank" rel="noreferrer">{t("cup.original")}</a>}
   </div>;
 }

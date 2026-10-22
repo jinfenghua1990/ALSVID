@@ -9,8 +9,8 @@
   "cup.gallery": "Referenzfotos des Becherhalters",
   "cup.black": "Referenz in Schwarz",
   "cup.cream": "Referenz in Creme",
-  "cup.black.alt": "Händler-Referenzbild des schwarzen Becherhalters mit Schnellverschluss, Klemme und abgebildeter Antirutsch-Einlage, mit chinesischer Originalbeschriftung",
-  "cup.cream.alt": "Händler-Referenzbild des cremefarbenen Becherhalters mit Schnellverschluss, Klemme und abgebildeter Antirutsch-Einlage, mit chinesischer Originalbeschriftung",
+  "cup.black.alt": "Retuschiertes Referenzbild des schwarzen Becherhalters ohne Markenkennzeichen",
+  "cup.cream.alt": "Retuschiertes Referenzbild des cremefarbenen Becherhalters ohne Markenkennzeichen",
   "cup.black.caption": "Schwarze Referenz: Becherhalter mit Schnellverschluss und abgebildeter Antirutsch-Einlage. Der finale ALSVID-Lieferumfang ist nicht bestätigt.",
   "cup.cream.caption": "Cremefarbene Referenz: Becherhalter mit Schnellverschluss und abgebildeter Antirutsch-Einlage. Der finale ALSVID-Lieferumfang ist nicht bestätigt.",
   "cup.photo.note": "Originale Referenzfotos des Händlers. Abgebildete Marken, Beschriftungen und Beigaben definieren keine ALSVID-Serienausführung.",
@@ -40,7 +40,7 @@
   "cup.full.title": "Produktdetails",
   "cup.full.intro": "Entdecken Sie Aufbau, Maße, Farben und Montageszenen des Quellprodukts. Die Originalbilder bleiben mit einer deutschen Erläuterung unter jedem Bild erhalten.",
   "cup.full.open": "Originales Detailbild {number} öffnen",
-  "cup.colour.caption": "{colour}: Becherhalter mit Schnellverschluss, Klemme und abgebildeter Antirutsch-Einlage.",
+  "cup.colour.caption": "Retuschiertes Referenzbild des Becherhalters: {colour}.",
   "cup.green": "Avocadogrün",
   "cup.pink": "Pink",
   "cup.violet": "Violett",
@@ -96,5 +96,7 @@
   "cup.video.title": "Produktvideo",
   "cup.video.description": "Das Originalvideo zeigt Schnellverschluss, werkzeuglose Montage und Demontage, rutschhemmende Auskleidung und die Nutzung am Faltrad. Chinesischer Originalton, eingeblendete Untertitel und Markenkennzeichen bleiben erhalten. Fahrräder und gezeigte Funktion sind eine Vorführung des Anbieters.",
   "cup.video.fallback": "Dieser Browser kann das Video nicht abspielen. Öffnen Sie es über den Link darunter.",
-  "cup.video.open": "Video separat öffnen"
+  "cup.video.open": "Video separat öffnen",
+  "cup.retouch.note": "Retuschierte Referenzbilder mit bereinigtem Hintergrund und entfernten Markenkennzeichen. Finale Farbe, Oberfläche und Ausstattung richten sich nach dem bestätigten Produkt.",
+  "cup.original": "Originalreferenz ansehen"
 }

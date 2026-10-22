@@ -8,7 +8,7 @@
   "l8.explore": "探索 L8",
   "l8.details": "了解设计细节",
   "l8.reference": "参考配置",
-  "l8.photo.note": "图片为制造商参考车型。ALSVID 最终颜色、表面处理与零部件配置可能有所不同。",
+  "l8.photo.note": "精修参考图已清理背景并去除品牌标识。最终颜色、表面处理与配置以确认实物为准。",
   "l8.gallery.label": "L8 参考车型图片",
   "l8.gallery.side": "整车侧面",
   "l8.gallery.folded": "折叠状态",
@@ -59,5 +59,6 @@
   "l8.home": "返回首页",
   "l8.products": "探索 ALSVID 产品",
   "l8.launch.body": "探索紧凑骑行的另一种形态：碳纤维结构、电助力与四连杆后避震。",
-  "l8.footer": "ALSVID · L8 车型介绍"
+  "l8.footer": "ALSVID · L8 车型介绍",
+  "l8.original": "查看原始参考图"
 }

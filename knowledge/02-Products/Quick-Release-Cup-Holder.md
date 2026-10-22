@@ -2,7 +2,7 @@
 
 status: active
 owner: ALSVID
-last_reviewed: 2026-10-21
+last_reviewed: 2026-10-22
 
 ## Owner instruction and provenance
 
@@ -28,3 +28,7 @@ The owner explicitly corrected the abbreviated page: reproduce the full product 
 - `/{locale}/explore/accessory-cup-holder` for zh/de/en.
 - Link from homepage accessory cards and the combined product center's accessory section.
 - Product-center category filters remain the existing five concepts; show the reference product in all/parts views. It does not add a checkout category or commercial SKU.
+
+## Retouched website images (2026-10-22)
+
+Owner requested image cleanup and removal of logos. The website now uses unbranded, AI-retouched reference images for all six colour choices, defaulting to black; these do not establish final production geometry, colour or pack contents. Original source files remain unchanged and linked from the gallery. Original detail panels and video remain available. See `Website-Image-Retouch-2026-10-22.md` for the asset manifest.

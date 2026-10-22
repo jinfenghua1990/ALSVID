@@ -9,8 +9,8 @@
   "cup.gallery": "杯架参考图片",
   "cup.black": "黑色参考图",
   "cup.cream": "米白参考图",
-  "cup.black.alt": "商家黑色快拆杯架参考图，展示夹具和防滑垫片示意，保留原始中文标注",
-  "cup.cream.alt": "商家米白色快拆杯架参考图，展示夹具和防滑垫片示意，保留原始中文标注",
+  "cup.black.alt": "黑色快拆杯架无标识精修参考图",
+  "cup.cream.alt": "米白色快拆杯架无标识精修参考图",
   "cup.black.caption": "黑色参考：快扣杯架及防滑垫片示意。ALSVID 最终包装内容尚未确认。",
   "cup.cream.caption": "米白参考：快扣杯架及防滑垫片示意。ALSVID 最终包装内容尚未确认。",
   "cup.photo.note": "图片为商家原始参考图，图中品牌、文字与附件不代表已确认的 ALSVID 量产规格。",
@@ -40,7 +40,7 @@
   "cup.full.title": "图文详情",
   "cup.full.intro": "完整查看来源商品的结构、尺寸、颜色与实装场景。保留原始图片，并在图下提供文字说明。",
   "cup.full.open": "打开第 {number} 张详情原图",
-  "cup.colour.caption": "{colour}：快扣杯架、夹具及图示防滑垫片。",
+  "cup.colour.caption": "{colour}快拆杯架精修参考图。",
   "cup.green": "牛油果绿",
   "cup.pink": "芭比粉",
   "cup.violet": "紫罗兰",
@@ -96,5 +96,7 @@
   "cup.video.title": "商品演示视频",
   "cup.video.description": "原商品视频展示快拆夹扣、免工具取装、防滑内衬及折叠车上的使用场景。保留原始中文讲解、字幕和品牌标识。视频中的自行车与使用效果为商家演示。",
   "cup.video.fallback": "当前浏览器无法播放此视频，请通过下方链接打开。",
-  "cup.video.open": "单独打开视频"
+  "cup.video.open": "单独打开视频",
+  "cup.retouch.note": "精修参考图已清理背景并去除品牌标识。最终颜色、表面处理与配置以确认实物为准。",
+  "cup.original": "查看原始参考图"
 }

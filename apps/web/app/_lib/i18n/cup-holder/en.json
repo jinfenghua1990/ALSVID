@@ -9,8 +9,8 @@
   "cup.gallery": "Cup-holder reference photos",
   "cup.black": "Black reference",
   "cup.cream": "Cream reference",
-  "cup.black.alt": "Merchant reference image of the black quick-release cup holder, clamp and illustrated anti-slip pad, with original Chinese labels",
-  "cup.cream.alt": "Merchant reference image of the cream quick-release cup holder, clamp and illustrated anti-slip pad, with original Chinese labels",
+  "cup.black.alt": "Retouched reference image of the unbranded black cup holder",
+  "cup.cream.alt": "Retouched reference image of the unbranded cream cup holder",
   "cup.black.caption": "Black reference: quick-buckle cup holder with an illustrated anti-slip pad. Final ALSVID pack contents are not confirmed.",
   "cup.cream.caption": "Cream reference: quick-buckle cup holder with an illustrated anti-slip pad. Final ALSVID pack contents are not confirmed.",
   "cup.photo.note": "Original merchant reference photos. The pictured branding, wording and accessories do not define an ALSVID production specification.",
@@ -40,7 +40,7 @@
   "cup.full.title": "Product details",
   "cup.full.intro": "Explore the source product's construction, dimensions, colours and installation scenes. Original images are retained with an English explanation below each one.",
   "cup.full.open": "Open original detail image {number}",
-  "cup.colour.caption": "{colour}: quick-buckle holder, clamp and illustrated anti-slip pad.",
+  "cup.colour.caption": "Retouched cup-holder reference: {colour}.",
   "cup.green": "Avocado green",
   "cup.pink": "Pink",
   "cup.violet": "Violet",
@@ -96,5 +96,7 @@
   "cup.video.title": "Product demonstration video",
   "cup.video.description": "The original product video shows the quick-release clamp, tool-free fitting and removal, anti-slip lining and use on folding bicycles. Original Chinese narration, embedded captions and branding are retained. The bicycles and performance shown are the merchant's demonstration.",
   "cup.video.fallback": "This browser cannot play the video. Use the link below to open it.",
-  "cup.video.open": "Open the video separately"
+  "cup.video.open": "Open the video separately",
+  "cup.retouch.note": "Retouched reference images with cleaned backgrounds and branding removed. Final colour, finish and equipment depend on the confirmed product.",
+  "cup.original": "View original reference image"
 }
