@@ -17,6 +17,7 @@
   "catalog.bikes.models.kicker": "02 / BICYCLE MODELS",
   "catalog.bikes.models.title": "Meet the collection.",
   "catalog.bikes.models.body": "Open a model to view its existing product page. Pricing, stock and checkout are not yet confirmed.",
+  "catalog.bikes.models.published": "Officially reviewed and featured",
   "catalog.bikes.models.fc1": "Email enquiry",
   "catalog.bikes.models.fc2": "New model preview",
   "catalog.bikes.models.details": "Discover model",
