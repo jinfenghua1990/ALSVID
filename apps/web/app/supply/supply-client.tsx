@@ -3,7 +3,7 @@
 import { OperationsFrame } from '../_components/operations-frame';
 
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './supply.module.css';
 
@@ -50,6 +50,8 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [selectedPartner, setSelectedPartner] = useState('all');
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [showPoForm, setShowPoForm] = useState(false);
+  const posting = useRef(false);
+  const [busy, setBusy] = useState(false);
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -131,24 +133,40 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
 
   async function post(event: FormEvent<HTMLFormElement>, endpoint: string, build: (form: FormData) => unknown) {
     event.preventDefault();
+    if (posting.current) return;
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    let payload: unknown;
+    try { payload = build(form); }
+    catch (error) { setMessage(error instanceof Error ? error.message : '请检查输入内容'); return; }
+    posting.current = true;
+    setBusy(true);
     try {
-      await api(endpoint, { method: 'POST', body: JSON.stringify(build(form)) });
+      await api(endpoint, { method: 'POST', body: JSON.stringify(payload) });
       setMessage('已保存。');
+      formElement.reset();
       await reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '无法保存');
+      setMessage(error instanceof Error ? error.message : '操作结果不确定，请先刷新核对后再试，避免重复单据');
+    } finally {
+      posting.current = false;
+      setBusy(false);
     }
   }
 
   async function action(endpoint: string, body: unknown = {}) {
+    if (posting.current) return;
+    posting.current = true;
+    setBusy(true);
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(body) });
       setMessage('已更新。');
       await reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '无法更新');
+      setMessage(error instanceof Error ? error.message : '操作结果不确定，请刷新核对后再试');
+    } finally {
+      posting.current = false;
+      setBusy(false);
     }
   }
 
@@ -233,7 +251,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
                 <label><span>单位</span><input name="unit" defaultValue="EA" /></label>
                 <label><span>单价</span><input name="unitPrice" inputMode="decimal" placeholder="输入单价" required /></label>
               </div>
-              <div className={styles.formFooter}><span>报价保存后会显示在报价管理中。</span><button className={styles.buttonPrimary} type="submit">保存报价</button></div>
+              <div className={styles.formFooter}><span>报价保存后会显示在报价管理中。</span><button className={styles.buttonPrimary} type="submit" disabled={busy}>{busy ? '提交中…' : '保存报价'}</button></div>
             </form>
           </section>
         ) : null}
@@ -261,7 +279,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
                 <label><span>单价</span><input name="unitPrice" inputMode="decimal" placeholder="输入单价" required /></label>
               </div>
               <label><span>要求交付日期</span><input name="requestedDate" type="date" /></label>
-              <div className={styles.formFooter}><span>创建后可在采购订单中查看并发出。</span><button className={styles.buttonPrimary} type="submit">创建采购单草稿</button></div>
+              <div className={styles.formFooter}><span>创建后可在采购订单中查看并发出。</span><button className={styles.buttonPrimary} type="submit" disabled={busy}>{busy ? '提交中…' : '创建采购单草稿'}</button></div>
             </form>
           </section>
         ) : null}
@@ -371,22 +389,32 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
             </div>
             <div className={styles.lineGrid}>{selectedLines.map((line) => <div className={styles.lineCard} key={line.id}><b>物料行 {line.line_no}</b><span>{line.part_number ?? line.sku}</span><small>{line.ordered_quantity} {line.unit} × {line.unit_price}</small>{line.requested_date ? <small>要求交付：{line.requested_date}</small> : null}</div>)}</div>
             <div className={styles.detailForms}>
-              <form className={styles.detailForm} onSubmit={(event) => { const line = selectedLines[0]; if (!line) return; void post(event, '/v1/procurement/purchase-orders/' + selected.id + '/confirm', (form) => ({ supplierReference: form.get('supplierReference') || undefined, note: form.get('note') || undefined, lines: [{ purchaseOrderLineId: line.id, confirmedQuantity: form.get('confirmedQuantity'), confirmedDate: form.get('confirmedDate') || undefined }] })); }}>
-                <div><span className={styles.sectionEyebrow}>SUPPLIER ACKNOWLEDGEMENT</span><h3>供应商确认交期</h3></div>
+              <form className={styles.detailForm} key={'confirm-' + selected.id} onSubmit={(event) => { void post(event, '/v1/procurement/purchase-orders/' + selected.id + '/confirm', (form) => ({ supplierReference: form.get('supplierReference') || undefined, note: form.get('note') || undefined, lines: selectedLines.map(line => ({ purchaseOrderLineId: line.id, confirmedQuantity: form.get('confirmedQuantity-' + line.id), confirmedDate: form.get('confirmedDate-' + line.id) || undefined })) })); }}>
+                <div><span className={styles.sectionEyebrow}>SUPPLIER ACKNOWLEDGEMENT</span><h3>确认全部采购明细</h3><p>各行数量和交期独立确认，避免遗漏。</p></div>
                 <label><span>供应商确认单号</span><input name="supplierReference" placeholder="确认单号（可选）" /></label>
-                <label><span>确认数量</span><input name="confirmedQuantity" inputMode="decimal" defaultValue={selectedLines[0]?.ordered_quantity ?? ''} required /></label>
-                <label><span>确认交付日期</span><input name="confirmedDate" type="date" /></label>
+                {selectedLines.map(line => <div className={styles.lineInput} key={line.id}>
+                  <strong>{line.part_number ?? line.sku} · 采购数量 {line.ordered_quantity} {line.unit}</strong>
+                  <label><span>确认数量</span><input name={'confirmedQuantity-' + line.id} type="number" min="0.000001" step="any" defaultValue={line.ordered_quantity} required /></label>
+                  <label><span>确认交期</span><input name={'confirmedDate-' + line.id} type="date" defaultValue={line.requested_date ?? ''} /></label>
+                </div>)}
                 <label><span>备注</span><input name="note" placeholder="补充说明（可选）" /></label>
-                <button className={styles.buttonPrimary} disabled={selected.status !== 'ISSUED'}>记录供应商确认</button>
+                <button className={styles.buttonPrimary} disabled={busy || selected.status !== 'ISSUED' || !selectedLines.length}>记录全部物料确认</button>
               </form>
-              <form className={styles.detailForm} onSubmit={(event) => { const line = selectedLines[0]; if (!line) return; void post(event, '/v1/procurement/purchase-orders/' + selected.id + '/receipts', (form) => ({ kind: form.get('kind'), reference: form.get('reference') || undefined, occurredOn: form.get('occurredOn'), note: form.get('note') || undefined, lines: [{ purchaseOrderLineId: line.id, quantity: form.get('quantity'), unit: line.unit }] })); }}>
-                <div><span className={styles.sectionEyebrow}>FULFILLMENT EVIDENCE</span><h3>登记收货 / 承诺</h3></div>
+              <form className={styles.detailForm} key={'receipt-' + selected.id} onSubmit={(event) => { void post(event, '/v1/procurement/purchase-orders/' + selected.id + '/receipts', (form) => {
+                const line = selectedLines.find(item => item.id === form.get('purchaseOrderLineId'));
+                if (!line) throw new Error('必须选择本采购单的物料行');
+                const quantity = Number(form.get('quantity'));
+                if (!Number.isFinite(quantity) || quantity <= 0) throw new Error('本次数量必须大于零');
+                return { kind: form.get('kind'), reference: form.get('reference') || undefined, occurredOn: form.get('occurredOn'), note: form.get('note') || undefined, lines: [{ purchaseOrderLineId: line.id, quantity: String(quantity), unit: line.unit }] };
+              }); }}>
+                <div><span className={styles.sectionEyebrow}>FULFILLMENT EVIDENCE</span><h3>分批收货 / 承诺</h3><p>按物料行逐次登记，未收货的明细不会自动入账。</p></div>
                 <label><span>记录类型</span><select name="kind"><option value="PHYSICAL_RECEIPT">实物收货</option><option value="FACTORY_COMMITMENT">工厂承诺</option></select></label>
                 <label><span>参考编号</span><input name="reference" placeholder="收货单 / 承诺编号" /></label>
-                <label><span>数量</span><input name="quantity" inputMode="decimal" placeholder="输入数量" required /></label>
+                <label><span>选择采购明细</span><select name="purchaseOrderLineId" required defaultValue=""><option value="" disabled>选择本次收货的物料行</option>{selectedLines.map(line => <option value={line.id} key={line.id}>{line.line_no} · {line.part_number ?? line.sku} · 采购 {line.ordered_quantity} {line.unit}</option>)}</select></label>
+                <label><span>本次数量</span><input name="quantity" type="number" min="0.000001" step="any" placeholder="本次数量" required /></label>
                 <label><span>发生日期</span><input name="occurredOn" type="date" required /></label>
                 <label><span>备注</span><input name="note" placeholder="补充说明（可选）" /></label>
-                <button className={styles.buttonPrimary} disabled={!['CONFIRMED', 'PARTIALLY_FULFILLED'].includes(selected.status)}>登记履约证据</button>
+                <button className={styles.buttonPrimary} disabled={busy || !selectedLines.length || !['CONFIRMED', 'PARTIALLY_FULFILLED'].includes(selected.status)}>登记本次履约证据</button>
               </form>
             </div>
             <div className={styles.history}>
