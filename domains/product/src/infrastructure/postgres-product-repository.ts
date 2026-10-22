@@ -1,5 +1,6 @@
 import type { DatabasePort } from '@alsvid/database';
 import type { HomepageBinding, ProductCatalog, ProductEntityKind } from '../core/model.js';
+import type { PublicationRow, PublicationDraft, PublicationStatus } from '../core/publication.js';
 import type { CreateModelRecord, CreateSkuRecord, CreateVariantRecord, ProductRepository, UpdateProductRecord } from '../application/ports.js';
 
 export class PostgresProductRepository implements ProductRepository {
