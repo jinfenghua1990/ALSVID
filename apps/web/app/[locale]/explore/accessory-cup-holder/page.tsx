@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `https://www.alsvidbike.com/${locale}/explore/accessory-cup-holder`,
       languages: Object.fromEntries([...locales.map(item => [item, `https://www.alsvidbike.com/${item}/explore/accessory-cup-holder`]), ["x-default", "https://www.alsvidbike.com/en/explore/accessory-cup-holder"]]),
     },
-    openGraph: { title: t("cup.title"), description: t("cup.description"), images: [{url:"/products/accessories/cup-holder/retouched/cup-holder-black.webp",width:800,height:800,alt:t("cup.black.alt")}] },
+    openGraph: { title: t("cup.title"), description: t("cup.description"), images: [{url:"/products/accessories/cup-holder/retouched/cup-holder-black.webp",width:1254,height:1254,alt:t("cup.black.alt")}] },
   };
 }
 export default async function CupHolderPage({ params }: Props) {
