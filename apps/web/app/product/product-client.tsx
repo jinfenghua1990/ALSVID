@@ -213,6 +213,21 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
       </div>
 
+      <section className={styles.section} id="product-types" aria-label="产品类型">
+        <div className={styles.sectionHead}>
+          <div><span>COMMERCIAL PRODUCT TYPES</span><h2>产品类型</h2></div>
+          <p>类型决定商品属于整车、配件还是维修零件；FC/CT/FT/GT 是整车技术平台，不与商品类型混用。</p>
+        </div>
+        <div className={styles.typeGrid}>
+          {catalog.productTypes.map(type=><article key={type.code} className={styles.typeCard}>
+            <small>{type.code}</small><strong>{type.name}</strong>
+            <span>{type.description}</span>
+            <b>{catalog.models.filter(model=>model.product_type_code===type.code).length} 个商品主记录</b>
+          </article>)}
+        </div>
+        {!catalog.productTypes.length?<p className={styles.emptyState}>产品类型尚不可用。请确认后台 API 与数据库迁移版本；原有产品操作继续保留。</p>:null}
+      </section>
+
       <section className={styles.seriesSection} id="series">
         <div className={styles.sectionHead}>
           <div><span>TECHNOLOGY PLATFORMS</span><h2>技术平台</h2></div>
