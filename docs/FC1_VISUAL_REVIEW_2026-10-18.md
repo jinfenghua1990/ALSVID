@@ -1,5 +1,7 @@
 # FC1 product story: visual review and local revision
 
+> 历史视觉评审（2026-10-18）。本文的 Shopify 购买去向描述已被 ADR 0005 取代；当前第一方站点有本地预览购物袋，但真实下单/支付仍关闭。
+
 The subsequent edge-refinement revision is documented in [FC1_EDGE_REFINEMENT_2026-10-18.md](FC1_EDGE_REFINEMENT_2026-10-18.md). The page now uses its versioned v3 cutouts; the layout described here is unchanged.
 
 User reference: https://www.mi.com/de/product/xiaomi-pad-8/
@@ -16,7 +18,7 @@ The rejected FC1 version had visible white floor fragments and edge contaminatio
 - Light neutral low-step and folding chapters alternate with a dark assistance chapter. Text and images occupy separate layout columns; the 40 cm measurement sits with its explanation.
 - Front and rear suspension retain photographic proportions. Gallery, configuration notes, specifications and FAQ follow the main product narrative.
 - Chinese, English and German copy uses the shared translation catalogs. Main promotional paragraphs describe rider benefits; reference and unresolved configuration information stays available in specifications and notes.
-- Shopify remains the separate purchase destination. No cart, price, stock or checkout implementation is added to this story page.
+- At the time of this review, Shopify was described as a separate purchase destination. That transaction decision is superseded by ADR 0005; the current story page may link to the first-party preview cart, but does not imply verified price, stock or live checkout.
 
 ## Image handling
 
