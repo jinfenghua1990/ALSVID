@@ -114,6 +114,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     void reload();
   }, []);
 
+  const selectableProductTypes = catalog.productTypes.length
+    ? catalog.productTypes.filter(type=>type.status==='ACTIVE')
+    : [{code:'BIKE',name:'整车（兼容旧版 API）',description:'',status:'ACTIVE'}];
+
   const hierarchyRows = useMemo(() => [...catalog.models]
     .sort((a, b) => a.code.localeCompare(b.code))
     .map((model) => ({
@@ -360,7 +364,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           <span>新建商品</span><h3>创建商品主记录</h3>
           <label>产品类型
             <select name="productTypeCode" value={newModelType} onChange={event=>setNewModelType(event.target.value)} required>
-              {catalog.productTypes.filter(type=>type.status==='ACTIVE').map(type=><option key={type.code} value={type.code}>{type.name}</option>)}
+              {selectableProductTypes.map(type=><option key={type.code} value={type.code}>{type.name}</option>)}
             </select>
           </label>
           {newModelType==='BIKE'?<select name="platformId" required defaultValue=""><option value="" disabled>选择技术平台（整车）</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {platformName(p)}</option>)}</select>:<p>非整车不关联 FC / CT / FT / GT 技术平台；仍使用同一套商品 ID → Variant → SKU。</p>}
