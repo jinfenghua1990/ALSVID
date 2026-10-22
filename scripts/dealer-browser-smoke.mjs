@@ -44,6 +44,13 @@ try{
     await dialog.waitFor();
     assert.equal(await dialog.locator('input[name=companyName]').isDisabled(),false,'application form enabled inside modal');
     assert.equal(await dialog.locator('select[name=country] option').count(),4);
+    const formStyle = await dialog.locator('input[name=companyName]').evaluate(el => {
+      const style = getComputedStyle(el);
+      return { color: style.color, background: style.backgroundColor, radius: style.borderRadius };
+    });
+    assert.ok(formStyle.radius !== '0px', 'Application modal has deliberately rounded input fields');
+    assert.ok(!formStyle.background.includes('255, 255, 255'), 'Application modal avoids the previous stark white form fields');
+    assert.ok(await dialog.locator('input[name=email]').isVisible(), 'Email field visible in modal');
     let payload=null;
     await page.route('**/api/public/dealer-application',async route=>{
      payload=route.request().postDataJSON();
