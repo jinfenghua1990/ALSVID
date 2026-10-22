@@ -42,7 +42,7 @@ export function EcommerceInventoryPanel() {
     setState('loading');
     setError('');
     try {
-      const response = await fetch('/api/control/v1/inventory', { cache: 'no-store', signal });
+      const response = await fetch('/api/control/v1/inventory', { cache: 'no-store', ...(signal ? { signal } : {}) });
       const payload = await response.json().catch(() => null) as { data?: StockSummary; message?: string } | null;
       if (!response.ok) throw new Error(response.status === 401 ? '登录已过期，请重新登录' : response.status === 403 ? '当前账户无权查看库存台账' : payload?.message ?? '读取库存失败');
       if (!Array.isArray(payload?.data?.balances)) throw new Error('库存接口返回的数据格式异常');
