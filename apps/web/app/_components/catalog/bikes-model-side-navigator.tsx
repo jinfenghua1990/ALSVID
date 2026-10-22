@@ -41,7 +41,7 @@ export function BikesModelSideNavigator({ title, links }: { title: string; links
     <div className={styles.links}>
       {links.map(link => <a key={link.id} href={link.href} data-nav-target={link.id}
         aria-current={active === link.id ? "location" : undefined} className={styles.link}>
-        <span>{link.label}</span><span className={styles.arrow} aria-hidden="true">↗</span>
+        <span>{link.label}</span>
       </a>)}
     </div>
   </nav>;
