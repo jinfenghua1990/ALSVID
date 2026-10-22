@@ -5,6 +5,7 @@ import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
 import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
+import { AdminGlobalSearch } from './admin-global-search';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
@@ -419,9 +420,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </span>
             ))}
           </div>
-          <button className="av-iconbtn" type="button" aria-label="搜索尚未接入" title="全局搜索尚未接入" disabled>
-            ⌕
-          </button>
+          <AdminGlobalSearch />
           <button className="av-iconbtn" type="button" aria-label="通知尚未接入" title="通知中心尚未接入" disabled>
             ◔
           </button>

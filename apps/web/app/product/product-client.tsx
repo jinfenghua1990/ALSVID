@@ -103,7 +103,11 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     return catalogResult.status === 'fulfilled' && engineeringResult.status === 'fulfilled';
   }
 
-  useEffect(() => { void reload(); }, []);
+  useEffect(() => {
+    const requestedSearch = new URLSearchParams(window.location.search).get('search');
+    if (requestedSearch) setModelSearch(requestedSearch.slice(0,100));
+    void reload();
+  }, []);
 
   const hierarchyRows = useMemo(() => [...catalog.models]
     .sort((a, b) => a.code.localeCompare(b.code))

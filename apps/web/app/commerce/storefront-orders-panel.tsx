@@ -57,8 +57,11 @@ export function StorefrontOrderDraftPanel(){
  },[]);
  useEffect(()=>{let live=true;void call<Summary>('summary').then(data=>{
   if(live){
+   const params=new URLSearchParams(window.location.search);
    const target=resolveAdminPricingTarget(data.skus,window.location.search);
    setSummary(data);setPriceSku(target.skuId);setPriceMarket(target.market);setPricingTargetStatus(target.status);
+   const requestedOrder=params.get('orderSearch');
+   if(requestedOrder)setOrderSearch(requestedOrder.slice(0,100));
    setItems([newItem(data.skus[0]?.id??'')]);setFactoryId(data.factories[0]?.id??'');
   }
  }).catch(e=>{if(live)setError(e instanceof Error?e.message:'无法读取第一方订单数据');})
