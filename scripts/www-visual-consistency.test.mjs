@@ -55,6 +55,14 @@ test('zh/de/en public navigation and application copy cover the same controls',a
  }
 });
 
+test('homepage KV uses responsive optimized image delivery',async()=>{
+ const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
+ assert.match(hero,/import Image from "next\/image"/);
+ assert.match(hero,/<Image[^>]+fill[^>]+sizes="100vw"[^>]+preload=\{active === 0\}/,
+   'Hero image should use responsive dimensions and preload only the initial slide');
+ assert.doesNotMatch(hero,/<img key=\{slide\.image\}/,'Hero carousel must not send the original PNG at intrinsic size');
+});
+
 test('the WWW has one products navigation item and an integrated accessories catalog',async()=>{
  const home=await readFile(join(appRoot,'_components/public-site-header.tsx'),'utf8');
  assert.doesNotMatch(home,/href: prefix \+ '\/accessories'/,'No separate accessories global nav');
