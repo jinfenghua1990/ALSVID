@@ -1,5 +1,8 @@
 import ProductClient from '../product/product-client';
 import CommerceClient from '../commerce/commerce-client';
+import { EcommerceAdminWorkspace } from './ecommerce-admin-workspace';
+import FinanceClient from '../finance/finance-client';
+import LogisticsClient from '../logistics/logistics-client';
 import ProductionClient from '../production/production-client';
 import InventoryClient from '../inventory/inventory-client';
 import DealersClient from '../dealers/dealers-client';
@@ -8,7 +11,7 @@ import { CustomerRecords, AccessAuditRecords } from './admin-records';
 import { ServiceCaseClient } from './service-cases';
 import { PortalBindingsAdmin } from './portal-bindings-admin';
 
-export const integratedAreas = ['产品', '订单', '生产', '库存', '经销商', '供应链', '客户', '设置', '售后'] as const;
+export const integratedAreas = ['产品', '订单', '电商', '生产', '库存', '物流', '财务', '经销商', '供应链', '客户', '设置', '售后'] as const;
 
 export function hasIntegratedOperations(area: string): boolean {
   return integratedAreas.some((name) => name === area);
@@ -22,7 +25,10 @@ export function hasIntegratedOperations(area: string): boolean {
 export function IntegratedOperations({ area }: { area: string }) {
   switch (area) {
     case '产品': return <ProductClient embedded />;
-    case '订单': return <CommerceClient embedded />;
+    case '订单': return <CommerceClient embedded />; // Legacy bookmarked order lookup remains valid.
+    case '电商': return <EcommerceAdminWorkspace />;
+    case '财务': return <FinanceClient embedded />;
+    case '物流': return <LogisticsClient embedded />;
     case '生产': return <ProductionClient embedded />;
     case '库存': return <InventoryClient embedded />;
     case '经销商': return <DealersClient embedded />;
