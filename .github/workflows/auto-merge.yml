@@ -22,7 +22,7 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository &&
       github.event.workflow_run.path == '.github/workflows/ci.yml'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 25
     steps:
       # No checkout: this privileged controller never executes PR code.
       - name: Merge a ready same-repository PR after required CI
@@ -60,6 +60,63 @@ jobs:
           if [[ -z "$number" ]]; then
             echo 'No ready trusted PR matches this CI commit.'
             exit 0
+          fi
+          # The main CI gate alone is not sufficient for changed WWW routes.
+          # Browser workflows have their own path filters and finish after CI.
+          # Wait for matching, SUCCESSFUL checks before enabling any auto merge.
+          files="$(gh api --paginate "repos/$GH_REPO/pulls/$number/files?per_page=100" --jq '.[].filename')"
+          need_fc1=false
+          need_portal=false
+          while IFS= read -r path; do
+            case "$path" in
+              apps/web/*|scripts/fc1-browser-review.mjs|scripts/official-browser-smoke.mjs|scripts/l8-browser-smoke.mjs|scripts/new-products-browser-smoke.mjs|scripts/dealer-browser-smoke.mjs|.github/workflows/fc1-preview.yml)
+                need_fc1=true ;;
+            esac
+            case "$path" in
+              apps/web/app/login/*|apps/web/app/\\[locale\\]/login/*|apps/web/app/_components/portal-login*|apps/web/app/reset-password/*|apps/web/app/_lib/i18n/*|scripts/portal-login-browser-smoke.mjs|.github/workflows/portal-login-preview.yml)
+                need_portal=true ;;
+            esac
+          done <<< "$files"
+
+          check_browser_workflow() {
+            local workflow_name="$1"
+            local current_run status conclusion
+            for attempt in {1..90}; do
+              current_run="$(gh api "repos/$GH_REPO/actions/runs?head_sha=$CI_HEAD_SHA&per_page=100" |
+                jq -c --arg name "$workflow_name" --arg sha "$CI_HEAD_SHA" \
+                  '[.workflow_runs[] | select(.name == $name and .head_sha == $sha and .event == "pull_request")] |
+                    sort_by(.created_at) | last // empty')"
+              if [[ -n "$current_run" ]]; then
+                status="$(jq -r .status <<< "$current_run")"
+                conclusion="$(jq -r '.conclusion // ""' <<< "$current_run")"
+                if [[ "$status" == "completed" ]]; then
+                  if [[ "$conclusion" == "success" ]]; then
+                    echo "$workflow_name passed for $CI_HEAD_SHA."
+                    return 0
+                  fi
+                  echo "$workflow_name did not pass ($conclusion); refusing merge." >&2
+                  return 1
+                fi
+              fi
+              echo "Waiting for $workflow_name review of $CI_HEAD_SHA ($attempt/90)"
+              sleep 15
+            done
+            echo "$workflow_name never produced a successful run; refusing merge." >&2
+            return 1
+          }
+
+          if [[ "$need_fc1" == true ]]; then
+            check_browser_workflow 'FC1 browser preview'
+          fi
+          if [[ "$need_portal" == true ]]; then
+            check_browser_workflow 'Portal login browser checks'
+          fi
+
+          # Guard again after browser tests: never merge if the PR changed since CI.
+          current_head="$(gh api "repos/$GH_REPO/pulls/$number" --jq .head.sha)"
+          if [[ "$current_head" != "$CI_HEAD_SHA" ]]; then
+            echo 'PR head changed while browser checks ran; waiting for its own CI.' >&2
+            exit 1
           fi
           gh pr merge "$number" --squash --auto --match-head-commit "$CI_HEAD_SHA"
           merged_sha=''
