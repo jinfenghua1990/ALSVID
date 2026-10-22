@@ -113,9 +113,9 @@ The four confirmed core projects remain:
 
 A **Supplier Portal** is a confirmed phased delivery target (#185), not an already delivered fifth core project. Upstream supplier self-service must include actual scoped workflows, rather than remain indefinitely a supplier field or role seed. Retain existing monorepo/domain foundations; portal count does not require separate backends/databases.
 
-### Shopify boundary
+### External commerce boundary
 
-Shopify remains the commerce system for B2C and B2B transactions. Shopify B2B can represent a buyer company through Company / Company Location / Company Contact and control B2B catalogs and pricing. Do not turn Shopify into ALSVID Admin, WMS, or a full upstream supplier collaboration system.
+ALSVID Commerce owns the first-release self-built WWW B2C storefront, preview cart, checkout orchestration and ALSVID order records; an approved PSP performs payment processing. Shopify is not a first-release dependency. Any later external channel, including Shopify B2B, requires an explicit owner decision and verified identity/order/price authority mapping. Do not turn any external commerce provider into ALSVID Admin, WMS, or a full upstream supplier collaboration system.
 
 ### Supplier boundary
 
@@ -134,10 +134,10 @@ ALSVID Admin
 
 Supplier proposals/quotations may initiate the workflow, but formal PO issue, commercial approval, physical receiving/QC and payments remain with their owning authorized processes. Supplier reports and invoice uploads are submitted evidence. See the implementation plan's action matrix before exposing internal Procurement APIs.
 
-If the same company also buys ALSVID products, it can separately have a B2B buyer relationship in Shopify. Supplier relationship and B2B buyer relationship must remain separate in permissions, order types and data scope.
+If the same company also buys ALSVID products, it can separately have a Dealer/B2B buyer relationship if and when that channel is approved. Supplier relationship and B2B buyer relationship must remain separate in permissions, order types and data scope.
 
 ### Implementation rule
 
-Future AI agents must read `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` before changing portal UI, Shopify integration, supplier flows or design-tool ownership. Do not delete existing design assets or code solely because ownership moved; first inspect whether the asset is a duplicate, an implementation dependency, or a historical fixture.
+Future AI agents must read `docs/PROJECT_MEMORY_INDEX.md`, `docs/CURRENT_STATE.md`, ADR 0005/0006 and `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md` before changing portal UI, any approved external commerce integration, supplier flows or design-tool ownership. Do not delete existing design assets or code solely because ownership moved; first inspect whether the asset is a duplicate, an implementation dependency, or a historical fixture.
 
-Current gaps matter: My still uses shared UI garage fixtures; a configurable Shopify login link is not a verified OAuth/customer mapping; Dealer/Supplier roles are not organization-scoped entitlements. Parent-domain Cookies are sent to every matching subdomain, including My, even with a different My cookie name. Follow G1 of the delivery plan before exposing real external business data. Issue #20 is closed; do not restart the historical platform rebuild or retired cloud Test/M1 release work.
+Current gaps matter: My still uses shared UI garage fixtures; My must use ALSVID-owned email verification and server-verified vehicle ownership, not Shopify Customer OAuth; Dealer/Supplier roles are not organization-scoped entitlements. Parent-domain Cookies are sent to matching subdomains, including My, even with a different My cookie name. Follow the current delivery plan and verify scope before exposing real external business data. Issue #20 is closed; do not restart the historical platform rebuild or retired cloud Test/M1 release work.

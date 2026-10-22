@@ -4,7 +4,7 @@
 
 > ALSVID 是自行车品牌的企业数字化平台。这个仓库是 ALSVID 的新实现权威源（implementation authority），不是 ChaiBen-OS 或旧 ALSVID 代码的迁移副本。
 
-> **门户执行基线（2026-10-16）：** 先读[设计与门户边界](docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)、[实施证据与执行顺序](docs/PORTAL_DELIVERY_PLAN_2026-10-16.md)及 [ADR 0004](docs/adr/0004-portal-experience-commerce-and-supplier.md)。Ardot 负责内部 Admin；Figma 负责外部门户最终 UI；Shopify 负责买方交易；Supplier 自助按 #185 分阶段交付。目标、演示页面、真实 API 与上线验收分开记录；历史段落不能覆盖该基线。
+> **当前执行基线（2026-10-22）：** 先读 [项目记忆索引](docs/PROJECT_MEMORY_INDEX.md) 与 [当前实现状态](docs/CURRENT_STATE.md)，再按 [ADR 0004](docs/adr/0004-portal-experience-commerce-and-supplier.md)、[ADR 0005](docs/adr/0005-alsvid-owned-storefront-and-third-party-payments.md)、[ADR 0006](docs/adr/0006-first-party-portal-auth-and-login-experience.md) 执行。Ardot 负责内部 Admin；Figma 负责外部门户 UI；ALSVID Official 承担自建 B2C 商城与订单编排，获批 PSP 处理支付；首期不依赖 Shopify。Supplier 自助按 #185 分阶段交付。本文后部保留的旧 Shopify-first 段落仅作历史背景，与 ADR 0005/0006 冲突时一律以新 ADR 和 CURRENT_STATE 为准。
 
 这份 README 同时服务于三类读者：
 
@@ -39,7 +39,7 @@ ALSVID 的核心价值是把这些长期事实连接起来：
 
 ALSVID 明确不做以下事情：
 
-- 不是 Shopify 替代品；
+- 不是通用电商平台或支付机构；首期 B2C 商城由 ALSVID Commerce 负责，支付由获批 PSP 处理；
 - 不是通用 OMS；
 - 不是 WMS；
 - 不是为了把所有 ERP/电商/仓储功能重新造一遍；
@@ -51,7 +51,8 @@ ALSVID 明确不做以下事情：
 
 | 系统 | 主要负责 | ALSVID 与它的关系 |
 | --- | --- | --- |
-| Shopify | 商城、商品、B2C 订单、支付、退款等交易事实 | ALSVID 获取与车辆/客户/售后相关的必要事实，不接管完整订单执行 |
+| ALSVID Commerce + PSP | 自建 WWW B2C 商品/购物袋/订单；获批 PSP 执行支付 | ALSVID 自有订单由 Commerce 维护；真实支付仍受 ADR 0005 门禁约束 |
+| 外部电商渠道（如 Shopify，未来可选） | 仅在负责人单独批准后提供外部渠道事实 | 不作为首期交易依赖，不自动接管 ALSVID Commerce 的订单权威 |
 | WMS | 收货、库存、拣货、包装、出库、仓库侧履约事实 | ALSVID 获取必要发货/物流事实；售后补发等场景可向 WMS 下发明确执行请求 |
 | ALSVID | Vehicle/VIN、客户、经销商、保修、服务、维修、售后、车辆生命周期 | 作为品牌自己的长期业务主档和服务中枢 |
 
@@ -63,7 +64,7 @@ ALSVID 明确不做以下事情：
 
 > **AI 开发执行入口（2026-10-21）：** 先阅读 [Admin 当前优先级和分批验收要求](docs/admin/ALSVID_ADMIN_EXECUTION_PRIORITY_2026-10-21.md)，再对照 [已恢复的十大模块设计规范](docs/admin/ALSVID_ADMIN_MODULE_OPTIMIZATION_V1.md)。设计示例、已提交代码、CI 通过、正式发布和业务实测是不同状态，不得将演示数据当成真实业务。
 
-这里讨论的是 **ALSVID 内部运营后台**，不是官网、不是 Shopify 商城，也不是客户公开门户。
+这里讨论的是 **ALSVID 内部运营后台**，不是 ALSVID Official 官网/自建商城，也不是客户公开门户。
 
 后台服务对象包括管理层、运营、销售、生产、仓库、采购、经销商运营和售后团队。其目标是形成品牌自己的内部运营中枢，但**不做传统 ERP 那种部门驱动、密集表格堆叠的产品形态**。
 
@@ -120,7 +121,7 @@ ALSVID Admin
 - 配件订单
 - 售后订单
 
-订单模块是内部业务凭证与流程入口，不把 Shopify 商城交易系统重新做一遍。
+订单模块是内部业务凭证与流程入口，不重建通用多渠道 OMS；自建 WWW B2C 订单由 ALSVID Commerce 管理，Admin 负责内部业务操作和跨域履约协同。
 
 #### 生产 Manufacturing
 
@@ -510,7 +511,7 @@ The system begins as a modular monolith with explicit domain boundaries and cont
 
 ALSVID 官网采用：
 
-> 品牌官网 = Shopify 商城
+> 品牌官网 + ALSVID 自建商城（首期不依赖 Shopify）
 
 不是：
 
@@ -527,11 +528,11 @@ ALSVID 官网
 
         |
         |
-        +---- Shopify Commerce
-        |        商品
-        |        B2C订单
-        |        支付
-        |        退款
+        +---- ALSVID Commerce
+        |        商品 / Variant / 预览购物袋
+        |        自建 B2C 订单编排（发布门禁后）
+        |        +---- 获批 PSP 负责支付
+        |        +---- Finance 记录验证后的支付事实
         |
         +---- My ALSVID
         |        会员体系
@@ -668,7 +669,7 @@ ALSVID
 └── 维修零件
 ```
 
-配件通过 Shopify 销售。
+配件在 ALSVID 自建产品中心展示；真实售价、库存、适配和支付未核验前不开放真实购买。
 
 未来支持：
 
@@ -787,7 +788,7 @@ Dealer Portal
 
 内部供应商档案、采购批准、生产与质量管理留在 Admin；外部供应商通过独立 Supplier Portal 自助提交报价/提案、确认 PO、交期、进度、发货通知和文件。Supplier Portal 是已确认的后续建设目标，当前尚未交付，不再把它解释为“永远只有内部档案”。
 
-“供应商自己下单”区分为：上游供货的提案与履约协同，或同一企业作为 B2B 买家向 ALSVID 买货。前者由 ALSVID Procurement 管理；后者才走 Shopify B2B。正式采购批准、收货/QC、入账和付款仍由授权流程处理。
+“供应商自己下单”区分为：上游供货的提案与履约协同，或同一企业作为 B2B 买家向 ALSVID 买货。前者由 ALSVID Procurement 管理；后者走获批的 Dealer/B2B 采购路径，首期不默认依赖 Shopify B2B。正式采购批准、收货/QC、入账和付款仍由授权流程处理。
 
 官网不因预留 Supplier 就新增普通消费者主导航；通过邀请或经过验收的合作入口访问。执行与验收见 [门户实施台账](docs/PORTAL_DELIVERY_PLAN_2026-10-16.md)。
 
@@ -795,23 +796,21 @@ Dealer Portal
 
 ### 13.8 官网与后台系统边界
 
-#### Shopify
+#### ALSVID Commerce 与外部渠道边界
 
-负责：
+首期由 ALSVID Commerce 管理：
 
 ```text
-商品
+商品 / Variant / SKU 选择
 
-购物车
+浏览器本地预览购物袋
 
-订单
+自建 B2C 订单编排（真实订单尚未开放）
 
-支付
-
-退款
-
-物流状态
+订单可见状态
 ```
+
+获批 PSP 负责支付处理；支付状态必须服务端验证。Shopify 仅是未来可能的外部渠道，未获负责人明确批准前不接入、不复制其订单事实，也不把其作为首期结账依赖。
 
 ---
 
@@ -850,11 +849,11 @@ ALSVID 官网
 
    |
 
-Shopify订单
+ALSVID Commerce 订单 / 获批 PSP 支付事实
 
    |
 
-ALSVID后台
+ALSVID Admin 运营与履约
 
    |
 
@@ -1028,16 +1027,16 @@ Use repository scripts/infra definitions documented in the current branch rather
 
 ALSVID 的目标不是“把所有系统都自己做一遍”，而是：
 
-> **把品牌最重要、最长期的 Vehicle / VIN / Customer / Dealer / Warranty / Service 数据掌握在自己手里，同时让 Shopify、WMS、云数据库、对象存储和运行平台都保持可替换。**
+> **把品牌最重要、最长期的 Vehicle / VIN / Customer / Dealer / Warranty / Service 数据掌握在自己手里，同时让 PSP、WMS、云数据库、对象存储和运行平台都保持可替换；Shopify 不是首期 B2C 交易依赖。**
 
 
-## 四大门户与 Shopify 官网商城一体化（2026-10-13 最新业务决策）
+## 四大门户与自建商城边界（当前执行基准）
 
-**请所有 AI / 开发人员在设计官网、商城、后台、经销商或会员功能前，先阅读 [`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md)。**
+**所有 AI / 开发人员在设计官网、商城、Admin、Dealer 或 My 功能前，先阅读 [`docs/PROJECT_MEMORY_INDEX.md`](docs/PROJECT_MEMORY_INDEX.md)、[`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) 和 ADR 0005/0006。**
 
-四个核心产品边界：**ALSVID Official**（www.alsvidbike.com，品牌官网与商城体验）、**ALSVID Admin**（admin.alsvidbike.com，内部运营）、**ALSVID Dealer Portal**（dealer.alsvidbike.com，经销商 B2B）、**My ALSVID**（my.alsvidbike.com，车主会员与售后），另有分阶段交付的 Supplier Portal。新链接统一采用 `alsvidbike.com`；旧 `chaibenn.com` 为迁移/历史域名，DNS、TLS 和生产配置需独立验收。当前开发在本地、CI 临时运行；不恢复旧 `*.dev.chaibenn.com` 云发布链。**不把 ALSVID Shop 拆成额外公开站点，也不把内部 Portal Launcher 当成公开首页。**
+四个核心产品边界：**ALSVID Official**（www.alsvidbike.com，品牌官网 + 自建 B2C 商城）、**ALSVID Admin**（admin.alsvidbike.com，内部运营）、**ALSVID Dealer Portal**（dealer.alsvidbike.com，经销商业务）、**My ALSVID**（my.alsvidbike.com，车主会员与售后），另有分阶段交付的 Supplier Portal。B2C 商品、购物袋、订单与结账由 ALSVID 自有 Commerce 负责；支付由获批 PSP 处理，未通过发布门禁前不得真实收款。首期不依赖 Shopify，也不拆出独立公开 Shop 站点；不把内部 Portal Launcher 当成公开首页。
 
-此文档逐项规定四门户页面结构、导航、角色、Shopify 边界、产品视觉、VIN/售后集成、测试与上线状态判断；与旧架构描述有冲突时，门户与官网商城的业务规划以该最新决策为准，实际代码与部署状态以 CURRENT_STATE 和验收证据为准。
+[`docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md`](docs/FOUR_PORTALS_AND_SHOPIFY_2026-10-13.md) 是早期规划，其中 Shopify-first 交易与 My 登录方案已分别被 ADR 0005 和 ADR 0006 取代。它保留为历史依据，不再作为当前实现指令。正式域名、上线证据与未完成项以 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)、[`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) 和对应 Issue/PR 为准。
 
 门户固定地址、历史开发地址与当前验证范围见 [`docs/PORTAL_DOMAINS.md`](docs/PORTAL_DOMAINS.md)。
 

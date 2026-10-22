@@ -1,4 +1,6 @@
-# ALSVID 四大门户与 Shopify 一体化架构 — 2026-10-13 决策基准
+# ALSVID 四大门户与 Shopify 一体化架构 — 2026-10-13 历史规划
+
+> **重要：部分交易/身份决定已被取代（2026-10-22）。** 本文保留四门户职责与历史依据；其中“Shopify 承担首期 B2C 交易”的内容由 [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md) 取代，“My 使用 Shopify Customer 登录”的内容由 [ADR 0006](adr/0006-first-party-portal-auth-and-login-experience.md) 取代。当前实施以 [PROJECT_MEMORY_INDEX](PROJECT_MEMORY_INDEX.md)、[CURRENT_STATE](CURRENT_STATE.md) 和对应 Issue/PR 为准，不得直接按旧 Shopify-first 方案实施。
 
 > **状态：业务规划已确认；不代表功能已开发或域名已部署。** 本文件是后续 AI / 开发人员的跨会话交接基准。不得把 Shopify Shop 误拆成独立公开站点。代码现状以 CURRENT_STATE.md 和实际代码为准。
 
@@ -8,12 +10,12 @@
 
 ## 0. 不能重新讨论的已确认边界
 - **四个独立开发工作流/门户**：ALSVID Official、ALSVID Admin、ALSVID Dealer Portal、My ALSVID；可以共用 monorepo、API、设计系统和基础设施，不等于必须部署四套服务器。
-- **www.alsvidbike.com = 品牌官网 + Shopify 商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，**不以 shop.alsvidbike.com 作为独立公开商城入口**。
+- **www.alsvidbike.com = 品牌官网 + ALSVID 自建商城的一体化客户体验**；没有第五个 ALSVID Shop 项目，不以 `shop.alsvidbike.com` 作为独立公开商城入口；首期 B2C 交易不依赖 Shopify。
 - Admin 是员工内部运营系统；Dealer 是经销商 B2B 门户；My 是车主会员/车辆生命周期门户。官网的会员、经销商入口可以导航至对应门户，但不复制其后台业务逻辑。
 - **2026-10-16 更新：** Supplier Portal 作为未来第五个外部业务门户正式预留。它不改变当前“四个核心项目”的定义；其目标是让 ALSVID 上游供应商自助确认 PO、交期、生产进度、发货和文件，而不是把供应商协同硬塞进 Shopify。
 - Portal Launcher 仅用于内部身份/角色切换，不作为公开官网首页，也不在用户访问首页时增加无意义中间跳转。
 - 门户规范地址与 DNS、证书、业务上线状态分别验收；旧 Dev 子域仅为历史命名，当前本地开发/临时 CI 不要求共享云环境。
-- Shopify 负责 B2C 商城交易、购物车、结账、支付、退款和订单权威事实；ALSVID 负责 Vehicle/VIN、产品工程、客户车辆关系、经销商、生产、保修与售后等长期业务事实。WMS/外部仓储执行不能在 ALSVID 内重新造一套。
+- ALSVID Commerce 负责首期自建 B2C 商城的购物袋、结账编排和订单权威事实；获批 PSP 负责支付处理；ALSVID 负责 Vehicle/VIN、产品工程、客户车辆关系、经销商、生产、保修与售后等长期业务事实。Shopify 仅可能在未来经单独批准作为外部渠道；WMS/外部仓储执行不能在 ALSVID 内重新造一套。
 
 ## 1. 门户及域名矩阵
 | 工作流 | Production 地址规范 | 核心受众 |
@@ -26,7 +28,7 @@
 
 开发在本地、CI 使用临时资源；旧 `*.dev.chaibenn.com` 是历史命名，不是当前运行环境。测试身份、数据与凭据隔离，不能把测试数据迁到 Production；按 exact-commit CI/PR 发布规则执行。
 
-## 2. ALSVID Official — 官网与 Shopify 商城一体化
+## 2. ALSVID Official — 官网与自建商城一体化
 ### 公开信息架构
 - 首页：品牌主视觉、核心产品、品牌价值、场景化故事、精选型号、行动入口；高品质自行车实物图片与品牌一致。
 - 产品：FC Folding Carbon、CT City Touring、FT Fat Tire、GT Grand Touring 四大技术平台；型号 FC1/CT1/FT1/GT1；Standard/PRO/Limited 等版本、规格、颜色、配件及对比。
@@ -46,7 +48,7 @@
 - 目标是**统一 www 域名和品牌体验**，不是承诺 Shopify 原生主题与 Next.js 页面能无损一键迁移。
 - 可评估 Next.js Headless + Shopify Storefront/Checkout API，也可用 Shopify 原生主题；**技术路线尚待验证，不得把 Headless 写成已实施事实**。
 - 优先复用品牌素材、内容、设计 tokens、组件规范、产品信息结构；商品、SKU、价格、库存、支付与结账须按 Shopify API/主题机制逐项对接。
-- 商城订单由 Shopify 负责；ALSVID 仅保存车辆绑定、售后、客户服务所需的订单引用与最小事实，遵守 docs/BUSINESS_BOUNDARY.md。
+- 首期 WWW B2C 订单由 ALSVID Commerce 负责；获批 PSP 执行支付。车辆绑定、售后、客户服务按各自领域维护事实，遵守 docs/BUSINESS_BOUNDARY.md。
 - 会员与 Shopify Customer 身份关联需定义明确授权、映射、隐私与安全机制，不假设账户天然互通。
 
 ## 3. ALSVID Admin — 内部运营后台
@@ -102,7 +104,7 @@ UI：中文优先，**顶部一级菜单、左侧当前模块详细二级菜单�
 5. 功能开发遵守 Issue → branch → PR → CI → merge → deploy，除非仓库流程另有正式变更。
 6. 发生历史文档冲突时：此文件记录 **2026-10-13 四门户/官网商城整合业务决策**；正式名称与独立项目入口关系以 2026-10-14 更新的 SYSTEM_NAMING.md 和 APP_ENTRY_ARCHITECTURE.md 为准；底层代码与真实上线状态仍以实际仓库和部署证据为准。
 7. 未明确决定的事项（Shopify Headless/主题、实际 DNS、账号联登细节、B2B 定价等）保留为待验证，不得臆造。
-8. **2026-10-16 最新设计与供应商边界**必须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 只负责 Admin 内部运营设计/原型；Figma 负责所有对外门户最终 UI；Supplier Portal 作为未来第五个外部业务门户预留；Shopify 负责 B2C/B2B 商业交易，不替代上游供应商协同门户。
+8. **2026-10-16 设计与供应商边界**须同时阅读 `docs/DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md`：Ardot 负责 Admin 内部运营设计/原型；Figma 负责对外门户最终 UI；Supplier Portal 是分阶段建设目标。首期 B2C 交易已改为 ALSVID Commerce + 获批 PSP；任何外部 B2B 渠道需另行批准，不替代上游供应商协同门户。
 
 
 > 当前域名说明：新生成的门户链接统一以 `alsvidbike.com` 为规范目标；旧 `chaibenn.com` 是迁移/历史域名。DNS、TLS、Cloud Run、认证与邮件配置仍须独立验收，不能将规范地址当成已上线证据。

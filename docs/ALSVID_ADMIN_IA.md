@@ -1,7 +1,7 @@
 # ALSVID Admin IA 规范
 
 状态：已确认，作为 Admin 信息架构基准  
-范围：内部 ALSVID Admin；不适用于官网、商城、Shopify 前台、Dealer Portal 或 My ALSVID。
+范围：内部 ALSVID Admin；不适用于 ALSVID Official 官网/自建商城、Dealer Portal 或 My ALSVID。
 
 ## 1. 固定定位
 
@@ -238,11 +238,11 @@ Admin 采用“顶部一级导航 + 当前模块左侧二级导航”的现代�
 
 ## 7. 业务边界
 
-- Admin 是内部运营后台，不替代 Shopify 的商城前台体验。
+- Admin 是内部运营后台，不替代 ALSVID Official 面向消费者的官网与自建商城体验。
 - Dealer Portal 是经销商自己的业务视角；Admin 是公司员工管理经销商和内部业务的视角。
 - My ALSVID 是消费者购买后的车主生命周期入口；Admin 负责内部查看与处理对应 Vehicle / VIN 业务事实。
 - 产品、车辆、VIN、生产、客户与售后形成完整生命周期闭环。
-- 官网商城视觉、产品营销页面、Shopify Theme 不属于本项目范围。
+- 官网商城视觉、产品营销页面和消费者购物流程不属于本项目范围；自建 B2C 交易边界见 ADR 0005。
 
 ## 8. 实现约束
 

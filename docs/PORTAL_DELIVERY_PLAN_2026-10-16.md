@@ -1,6 +1,8 @@
 # ALSVID 门户实施台账与后续机器人执行顺序
 
-状态：执行基线；核对日期：2026-10-16。目标方向见 [设计与门户边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)，决策理由见 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)。
+> **边界更新（2026-10-22）：** 本文代码审阅基线为 2026-10-16，表内 Shopify-first B2C 交易与 My Shopify Customer 登录路径已分别被 [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md) 与 [ADR 0006](adr/0006-first-party-portal-auth-and-login-experience.md) 取代。本文保留旧代码缺口证据，不得把旧方案作为当前交易/身份实现指令；当前状态看 [CURRENT_STATE.md](CURRENT_STATE.md)。
+
+状态：历史代码审阅快照（非当前交易/身份基线）；核对日期：2026-10-16。目标方向见 [设计与门户边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)，决策理由见 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)。
 
 本次核对代码基线为 [`cd1dd3531e2ed3f2123f7151df89db9051bfeb61`](https://github.com/jinfenghua1990/ALSVID/commit/cd1dd3531e2ed3f2123f7151df89db9051bfeb61)。表内是代码审阅证据，不是全站业务验收。设计文件未在本轮重新逐层读取；已有链接来自仓库记录，不能升级为本轮设计验收结果。
 
@@ -8,9 +10,9 @@
 
 | 产品边界 | 用户与设计源 | 交易 / 业务职责 |
 | --- | --- | --- |
-| Official / Shop | 公众、消费者；Figma | 同一官网与商城体验；Shopify 承担商品销售、购物车、结账、支付、退款与商业订单 |
-| My ALSVID | 车主；Figma | 经 Shopify 验证的客户映射到 ALSVID 的真实车辆归属、保修与服务 |
-| Dealer Portal | 外部经销商；Figma | 经销商经营与服务协同；买货进入 Shopify B2B，门户展示组织范围内的必要业务事实 |
+| Official / Commerce | 公众、消费者；Figma | 同一官网与自建商城体验；ALSVID Commerce 管商品选择、购物袋与订单编排，获批 PSP 负责支付；真实结账仍受 ADR 0005 门禁约束 |
+| My ALSVID | 车主；Figma | ALSVID 自有邮箱验证与独立车主会话；车辆归属、保修与服务须经服务端真实关系验证 |
+| Dealer Portal | 外部经销商；Figma | 经销商经营与服务协同；B2B 采购/订单与 B2C 自建商城分开，首期不默认依赖 Shopify B2B |
 | Admin | 内部员工；Ardot | 产品工程、采购、生产、车辆、运营与内部审批；保持高效业务交互 |
 | Supplier Portal | 外部上游供应商；Figma | 已确认的后续建设目标，分阶段交付报价/提案、PO 确认、交期、进度、发货与文件协同 |
 
@@ -23,7 +25,7 @@
 | 范围 | 已核对证据 | 当前可下的结论 | 下一步与关联 Issue |
 | --- | --- | --- | --- |
 | Admin | [设计同步说明](ADMIN_DESIGN_SYNC.md)、[路由清单](../apps/web/app/_design/sync-manifest.json) | 85 个受保护的设计/状态画面已有 fixture renderer；表单编辑不等于领域持久化，也不执行审批/发货 | 逐页建立 UI → 领域 API → 权限 → 审计 → 验收映射；#92 |
-| Official | [按 Host 分派的首页](../apps/web/app/page.tsx)、[首页组件](../apps/web/app/_components/home/home-page.tsx) | 已有官网内容与交互组件；“立即购买”等锚点不能证明真实 Shopify 商品/购物车/结账已接通 | 登记 Figma 首页链接；验证主题或 Headless 最小购买闭环后再选正式方案；#57 / #123 |
+| Official | [按 Host 分派的首页](../apps/web/app/page.tsx)、[首页组件](../apps/web/app/_components/home/home-page.tsx) | 已有官网内容与交互组件；本地预览购物袋不等于真实 Commerce 订单或支付 | 核实价格/税费/库存/交付条款与 PSP 后，按 ADR 0005 独立通过真实购买门禁；#57 / #123 |
 | My | [车库数据层](../apps/web/app/my/_data/garage.ts)、[页面入口](../apps/web/app/my/page.tsx) | 车库仍返回共享 UI fixtures；切车、VIN、保修、服务记录演示不证明真实所有权 | 受验证客户身份 → Customer/Vehicle 归属 → 账号范围查询；#30 / #48 / #31 |
 | Shopify 客户登录 | [登录入口](../apps/web/app/login/page.tsx)、[登录组件](../apps/web/app/_components/portal-login.tsx)、[Auth API](../apps/api/src/auth.controller.ts) | 有可配置 Shopify 登录链接/待配置状态；本轮未发现完整 Customer Account OAuth 回调、令牌交换和外部身份映射闭环 | 以真实 OAuth 客户标识建立最小映射，补回调与失效/注销验收；#50 / #57 |
 | Dealer | [门户首页](../apps/web/app/dealer/page.tsx)、[采购页](../apps/web/app/dealer/purchase/page.tsx)、[订单页](../apps/web/app/dealer/orders/page.tsx) | 已有独立页面骨架，部分复用 Admin CSS；采购/订单以空状态说明为主，不能宣称 B2B 下单可用 | Figma 最终稿、成员/组织范围、Shopify 买家/地点上下文与订单查询；#57 |
@@ -68,8 +70,8 @@
 总优先级由 [Issue #123](https://github.com/jinfenghua1990/ALSVID/issues/123) 管理，下列是门户任务的依赖顺序；页面设计可以并行，真实业务开放必须满足前置项。
 
 1. **G0：基线一致。** 阅读 AGENTS、设计边界、本文、DATA_OWNERSHIP 与身份规范；确认当前 Issue、代码基线与设计源。Issue #20 已关闭，不重复重建平台，也不恢复 #61/#68 对应的退役 Test/M1 云发布链。
-2. **G1：身份和数据范围。** 员工仍走 ALSVID 身份；My 走 Shopify Customer Account 验证；Dealer 保留现有 ALSVID 业务登录，Shopify 交易必须建立经验证的买家/Company/Location 映射；Supplier 使用企业成员邀请。邮箱相同、角色名称或 Cookie 存在都不是组织/车辆授权。每个外部读写 API 从服务端会话推导范围，不信任前端随意传入的 Partner/Company/Vehicle ID。关联 #50/#57。
-3. **G2：先做可用业务切片。** Official 完成一个真实商品到 Shopify Checkout；My 完成一个真实账户到其车辆/服务；Dealer 完成一个获授权地点到 B2B 下单/订单回查；Supplier 按 #185 完成第 4 节最小闭环。互不强行等所有页面设计完毕。主题/Headless、店铺套餐、API scopes、公司地点与实际账户须逐项验证；不在未知店铺条件下重造结账。
+2. **G1：身份和数据范围。** 员工走 ALSVID 身份；My 走 ALSVID 自有邮箱验证和独立车主会话；Dealer 维持独立组织成员/权限范围；未来任何外部买家/Company/Location 映射都须经单独批准和验证；Supplier 使用企业成员邀请。邮箱相同、角色名称或 Cookie 存在都不是组织/车辆授权。每个外部读写 API 从服务端会话推导范围，不信任前端随意传入的 Partner/Company/Vehicle ID。关联 #50/#57。
+3. **G2：先做可用业务切片。** Official 完成自建商品/预览购物袋并在商业前置条件满足后另行验收真实结账；My 完成一个真实账户到其车辆/服务；Dealer 完成一个获授权组织到 B2B 订单回查；Supplier 按 #185 完成第 4 节最小闭环。互不强行等所有页面设计完毕；任何外部渠道需明确批准，不默认启用 Shopify。
 4. **G3：逐页整合设计与数据。** 复用既有领域/组件，逐页替换已明确的 fixture 或 CSS；保留必要空状态，不因 Ardot/Figma 归属改变全站重写。外部企业页面的权限和表格效率优先于装饰动效。
 5. **G4：发布与验收。** PR → CI → main CI → 自动派发 Production → 实际 release → 域名/浏览器/业务验收。文档-only 变更跳过生产部署。新门户通过独立认证、组织隔离、文件授权及真实业务验收后才显示可用入口。
 

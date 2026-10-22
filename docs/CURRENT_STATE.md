@@ -1,21 +1,23 @@
 # Current State
 
-## 2026-10-22 release and acceptance audit snapshot (updated after PR #302 / #305 merge)
+## 2026-10-22 release and acceptance audit snapshot (updated after PR #302 / #303 / #305 production deployment)
 
-This dated snapshot separates repository state from live production acceptance. Do not treat a merged PR or a successful workflow as proof that every business path is complete.
+This dated snapshot separates repository state from live production acceptance. A successful exact-SHA deployment confirms the code release, but does not replace visual, authenticated business, Network or external-service acceptance.
 
 ### Release evidence
-- The last confirmed WWW-only production release before the catalogue-navigation correction was commit `b3f6bc89b34bde6ab058f1df38fc37bfc795b19d`, from [WWW Production Deploy #39712257014](https://github.com/jinfenghua1990/ALSVID/actions/runs/39712257014), which succeeded.
-- The homepage/catalogue correction [PR #302](https://github.com/jinfenghua1990/ALSVID/pull/302) merged at 2026-10-22 03:22 UTC. [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305) then merged the responsive hero-image optimization at 03:23 UTC. Main now includes both changes at `8769777c43e9c9ef2ad522512b0b636b0332f835`; [main CI run #39716597929](https://github.com/jinfenghua1990/ALSVID/actions/runs/39716597929) is pending. The last confirmed live WWW SHA remains `b3f6bc89b34bde6ab058f1df38fc37bfc795b19d`; do not call either change live until a later exact-SHA WWW deployment succeeds and production routes are rechecked.
+- [WWW Production Deploy #39717509652](https://github.com/jinfenghua1990/ALSVID/actions/runs/39717509652) succeeded on main commit `e40005db7f09e03773f1c5cd8c76d7e261d599fc` at 2026-10-22 03:34 UTC. This release includes the merged homepage/catalogue correction [PR #302](https://github.com/jinfenghua1990/ALSVID/pull/302), responsive hero-image delivery [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305), and Admin architecture/memory index [PR #303](https://github.com/jinfenghua1990/ALSVID/pull/303).
+- PR #302 corrects the homepage accessory CTA/footer links to the unified catalogue, adds the in-flow left model index synchronized with scrolling, separates the sticky category bar, and lists L7/L8 as preview-only cards. The earlier browser snapshot showed the pre-fix site; post-deploy live interaction still needs a fresh browser verification.
+- PR #305 switches the homepage KV to responsive Next.js Image delivery while preserving the original source image and crop behavior. PR CI and browser preview passed; production image Network inspection and a new PageSpeed mobile measurement are still pending, so no improvement score is claimed yet.
+- PR #303 adds the read-only Admin `/admin/architecture` page and the GitHub project memory index, and normalizes the agent read order. Its CI and browser preview passed; the exact production release above succeeded. An authenticated Admin route/permission click-through still needs verification.
 - [PR #297](https://github.com/jinfenghua1990/ALSVID/pull/297) added BIKE / ACCESSORY / SERVICE_PART product types and safe homepage Model-ID bindings, including automatic matching and authorized manual override/reset. [Full Production Deploy #39707705037](https://github.com/jinfenghua1990/ALSVID/actions/runs/39707705037) succeeded on `a0d46c4e5b7424fdde548813cd4261184325b46c`, whose parent is the #297 merge commit.
 - [PR #299](https://github.com/jinfenghua1990/ALSVID/pull/299) added the first audit-gated public bike catalogue publication slice for FC1 / FC2 and was included in that full Production Deploy. It does not complete accessory publication, compatibility, price/stock, order or payment flows.
-- The dated browser snapshot of the pre-#302 production site showed the homepage “browse accessories” CTA and footer still pointing to the homepage's own anchor; `/{locale}/bikes` showed FC1 / FC2 only and had no left-side model index. PR #302 fixes those gaps and includes L7 / L8 as preview-only model cards.
 
 ### Recent UI work already merged
 - Portal password/email login and reset UI: [PR #254](https://github.com/jinfenghua1990/ALSVID/pull/254).
 - Visible public return-home link: [PR #272](https://github.com/jinfenghua1990/ALSVID/pull/272).
 - Dealer application modal and designed login page: [PR #274](https://github.com/jinfenghua1990/ALSVID/pull/274).
 - Supplier workspace UI refinement: [PR #269](https://github.com/jinfenghua1990/ALSVID/pull/269).
+- Admin architecture overview and GitHub memory index: [PR #303](https://github.com/jinfenghua1990/ALSVID/pull/303), included in WWW Production Deploy #39717509652; live authenticated route verification remains open.
 - First-party preview cart with local quantity badge and add-selection controls: [PR #275](https://github.com/jinfenghua1990/ALSVID/pull/275). This is not a live purchase system: price, payment, order creation and stock reservation remain disabled until approved commercial and PSP prerequisites are satisfied.
 
 ### Open work / external acceptance
@@ -23,7 +25,7 @@ This dated snapshot separates repository state from live production acceptance. 
 - [Issue #263](https://github.com/jinfenghua1990/ALSVID/issues/263): accessories still need reviewed publication, verified model/variant/SKU/BOM compatibility and approved price/stock before any real checkout.
 - [Issue #265](https://github.com/jinfenghua1990/ALSVID/issues/265): the official FC1 reservation recipient is still empty. Do not invent an address; a responsible person must supply and verify the real mailbox before rebuilding the frontend.
 - [Issue #295](https://github.com/jinfenghua1990/ALSVID/issues/295): the provider-neutral 3PL/WMS contract is documented, but real warehouse API docs, credentials and test access are not yet available.
-- [Issue #304](https://github.com/jinfenghua1990/ALSVID/issues/304) / [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305): PageSpeed mobile lab report showed score 68, LCP 15.1 s, and a roughly 2.47 MB homepage KV PNG. The responsive-image code is merged; PR CI and browser preview passed. Production Network inspection and a new PageSpeed measurement remain pending after deployment.
+- [Issue #304](https://github.com/jinfenghua1990/ALSVID/issues/304) / [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305): PageSpeed mobile lab report showed score 68, LCP 15.1 s, and a roughly 2.47 MB homepage KV PNG. Responsive-image code is now deployed; production Network inspection and a new PageSpeed measurement remain pending.
 - The sitemap route has been implemented and deployed, but the observed Google Search Console snapshot had no submitted sitemap row. Submission and URL inspection in Search Console are separate manual acceptance steps.
 
 ## FC1 promotional / email-reservation-only state — 2026-10-20
