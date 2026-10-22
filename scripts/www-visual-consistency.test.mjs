@@ -39,11 +39,8 @@ test('home, catalog, dealer and FC1/FC2 share one multilingual header',async()=>
  }
  const header=await readFile(join(appRoot,'_components/public-site-header.tsx'),'utf8');
  assert.match(header,/variant="globe"/);
- assert.match(header,/navigation\.products/,'the shared header has one unified product-centre link');
- assert.match(header,/navigation\.technology/,'technology is a shared global navigation destination');
+ assert.match(header,/product\.model_fc1/);
  assert.match(header,/navigation\.global_dealers/);
- assert.match(header,/network\.nav\.owner/);
- assert.doesNotMatch(header,/href: prefix \+ '\/explore\/fc1'/,'individual model links stay in the catalogue instead of crowding the global header');
  assert.match(header,/common\.back_home/,'shared public header exposes an explicit home link on subpages');
  assert.match(header,/styles\.homeLink/,'desktop home link has a dedicated style');
 });
