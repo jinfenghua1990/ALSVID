@@ -8,7 +8,7 @@ import {storefrontOrderService} from './runtime.js';
 interface ExpectedVersionBody{expectedVersion:number}
 interface CancelDraftBody extends ExpectedVersionBody{reason:string}
 
-/** Internal draft/price-book operations only. No public checkout or payment endpoint is exposed. */
+/** Internal draft, submission and price-book operations only. Submitting an order records customer intent; it does not start a payment attempt. No public checkout or payment endpoint is exposed. */
 @Controller('v1/commerce/storefront')
 export class StorefrontOrdersController{
  @Get('summary')
@@ -39,6 +39,21 @@ export class StorefrontOrdersController{
  @Post('orders/:id/cancel')
  async cancelDraftOrder(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:CancelDraftBody){
   try{return{data:await storefrontOrderService.cancelDraftOrder(requireAuth(request),id,Number(input?.expectedVersion),input?.reason??'')};}
+  catch(error){return throwHttpDomainError(error);}
+ }
+ @Get('orders/:id')
+ async orderDetail(@Req() request:AuthenticatedRequest,@Param('id') id:string){
+  try{return{data:await storefrontOrderService.loadOrderDetail(requireAuth(request),id)};}
+  catch(error){return throwHttpDomainError(error);}
+ }
+ @Get('orders/:id/events')
+ async orderEvents(@Req() request:AuthenticatedRequest,@Param('id') id:string){
+  try{return{data:(await storefrontOrderService.loadOrderDetail(requireAuth(request),id)).events};}
+  catch(error){return throwHttpDomainError(error);}
+ }
+ @Post('orders/:id/submit')
+ async submitDraftOrder(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:ExpectedVersionBody){
+  try{return{data:await storefrontOrderService.submitOrder(requireAuth(request),id,Number(input?.expectedVersion))};}
   catch(error){return throwHttpDomainError(error);}
  }
 }

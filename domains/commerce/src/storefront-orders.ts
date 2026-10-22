@@ -32,6 +32,15 @@ export interface StorefrontOrder {
  totalGrossAmount:string;version:number;createdAt:string;lines:StorefrontOrderLine[];
  checkoutEnabled:false;productionDemandAllowed:false;blockers:string[];
 }
+export interface StorefrontOrderEvent {
+ id:string;eventType:'ORDER_CREATED'|'STATUS_CHANGED'|'PAYMENT_STATUS_CHANGED';
+ fromStatus:string|null;toStatus:string;fromPaymentStatus:string|null;toPaymentStatus:string;
+ actorUserId:string|null;metadata:Record<string,unknown>;occurredAt:string;
+}
+export interface StorefrontOrderDetail extends StorefrontOrder {events:StorefrontOrderEvent[]}
+type StorefrontOrderEventRow={id:string;event_type:StorefrontOrderEvent['eventType'];
+ from_status:string|null;to_status:string;from_payment_status:string|null;to_payment_status:string;
+ actor_user_id:string|null;metadata:Record<string,unknown>;occurred_at:Date};
 type PriceRow={id:string;sku_id:string;sku:string;sku_name:string;market_country:string;currency:string;
  unit_price_gross:string;tax_rate_basis_points:number;status:'DRAFT'|'ACTIVE'|'RETIRED';
  version:number;effective_from:Date|null;retired_at:Date|null;created_at:Date};
@@ -81,6 +90,7 @@ function mapPrice(row:PriceRow):StorefrontPrice{
 function mapOrder(row:OrderRow):StorefrontOrder{
  const blockers:string[]=[];
  if(row.status==='DRAFT')blockers.push('内部草稿：尚未向客户提交或创建支付会话');
+ if(row.status==='SUBMITTED')blockers.push('已提交：等待支付通道接入，尚未发起任何支付尝试');
  if(row.payment_status!=='VERIFIED')blockers.push('没有经过服务端签名与订单金额绑定核验的 PSP 成功付款证据');
  if(row.tax_configuration_status!=='VERIFIED')blockers.push('税率为管理员配置值，尚未完成正式结账合规核验');
  blockers.push('正式消费者结账尚未启用');
@@ -264,6 +274,41 @@ export class StorefrontOrderService{
    await this.audit.record({actorUserId:actor.userId,action:'commerce.storefront_order_draft_cancelled',
     targetType:'commerce.storefront_order',targetId:id,metadata:{reason:note,expectedVersion}},e);
    return this.loadOrder(e,id);
+  });
+ }
+ async submitOrder(actor:StorefrontActor,id:string,expectedVersion:number):Promise<StorefrontOrder>{
+  requirePermission(actor,'commerce.storefront.submit');requireId(id,'orderId');
+  if(!Number.isInteger(expectedVersion)||expectedVersion<1)throw new CommerceValidationError('expectedVersion is required');
+  return this.db.transaction(async e=>{
+   const current=await e.query<OrderRow>(`SELECT * FROM commerce.storefront_orders WHERE id=$1 FOR UPDATE`,[id]);
+   const row=current.rows[0];if(!row)throw new CommerceNotFoundError('Storefront order draft not found');
+   if(row.status==='SUBMITTED')return this.loadOrder(e,id);
+   if(row.status!=='DRAFT')throw new CommerceConflictError('Only an internal draft can be submitted; a cancelled or paid order needs a separate workflow');
+   if(row.payment_status!=='NOT_CONFIGURED')throw new CommerceConflictError('Order already carries a payment status and cannot be submitted again');
+   if(row.version!==expectedVersion)throw new CommerceConflictError('Order changed since it was loaded; reload before submitting');
+   const updated=await e.query(`UPDATE commerce.storefront_orders SET status='SUBMITTED',version=version+1,
+    updated_by=$2,updated_at=now() WHERE id=$1 AND version=$3 AND status='DRAFT' RETURNING id`,
+    [id,actor.userId,expectedVersion]);
+   if(!updated.rows[0])throw new CommerceConflictError('Order changed before submission; reload and retry');
+   await this.audit.record({actorUserId:actor.userId,action:'commerce.storefront_order_submitted',
+    targetType:'commerce.storefront_order',targetId:id,
+    metadata:{orderNumber:row.order_number,expectedVersion,paymentStatus:'NOT_CONFIGURED',
+     checkoutEnabled:false,note:'Submitted for a payment channel that is not connected yet'}},e);
+   return this.loadOrder(e,id);
+  });
+ }
+ async loadOrderDetail(actor:StorefrontActor,id:string):Promise<StorefrontOrderDetail>{
+  requirePermission(actor,'commerce.storefront.read');requireId(id,'orderId');
+  return this.db.transaction(async e=>{
+   const order=await this.loadOrder(e,id);
+   const events=await e.query<StorefrontOrderEventRow>(`SELECT id,event_type,from_status,to_status,
+     from_payment_status,to_payment_status,actor_user_id,metadata,occurred_at
+     FROM commerce.storefront_order_events WHERE order_id=$1 ORDER BY occurred_at,id`,[id]);
+   const visible=actor.permissions.includes('commerce.storefront.write')?order:{...order,customerEmail:'已隐藏'};
+   return {...visible,events:events.rows.map(row=>({id:row.id,eventType:row.event_type,
+    fromStatus:row.from_status,toStatus:row.to_status,fromPaymentStatus:row.from_payment_status,
+    toPaymentStatus:row.to_payment_status,actorUserId:row.actor_user_id,metadata:row.metadata,
+    occurredAt:row.occurred_at.toISOString()}))};
   });
  }
  private async loadOrder(e:QueryExecutor,id:string):Promise<StorefrontOrder>{
