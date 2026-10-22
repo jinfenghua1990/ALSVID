@@ -88,6 +88,19 @@ try {
     }
   }
 
+  // Dealer links from the public partnership page explicitly open the login form on arrival.
+  for (const locale of ['zh','en','de']) {
+    const context = await browser.newContext({ viewport:{ width:1440,height:960 }, reducedMotion:'reduce' });
+    try {
+      const page = await context.newPage();
+      await page.goto(base + '/login?portal=dealer&locale=' + locale + '&open=1');
+      const root = page.locator('[data-portal-login="dealer"]');
+      await root.waitFor();
+      assert.equal(await root.getAttribute('data-open'), 'true', locale + ' dealer login link opens the designed form on arrival');
+      assert.equal(await root.locator('input[name=email]').isVisible(), true, locale + ' dealer email field is immediately visible');
+    } finally { await context.close(); }
+  }
+
   const mobileContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const mobilePage = await mobileContext.newPage();
   const enCopy = JSON.parse(readFileSync('apps/web/app/_lib/i18n/auth/en.json', 'utf8'));
