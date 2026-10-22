@@ -8,6 +8,7 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '产品', href: '/product', area: '产品', section: '产品中心' },
   { label: '产品列表', href: '/product', area: '产品', section: '产品中心' },
   { label: '产品平台', href: '/product#series', area: '产品', section: '产品中心' },
+  { label: '商品审核发布', href: '/product#catalog-publications', area: '产品', section: '产品中心' },
   { label: '型号 / 配置 / SKU', href: '/product#models', area: '产品', section: '产品中心' },
   { label: 'BOM 与零件库', href: '/product#engineering', area: '产品', section: '工程资料' },
   { label: '工程文件与版本', href: '/product/documents', area: '产品', section: '工程资料', status: '骨架' },
