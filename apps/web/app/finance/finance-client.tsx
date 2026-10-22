@@ -1,9 +1,8 @@
 'use client';
 
-import { AppShell } from '@alsvid/ui';
+import { OperationsFrame } from '../_components/operations-frame';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { navigationFor } from '../app-navigation';
 import styles from './finance.module.css';
 
 // API returns serialized DB rows rendered as-is in this viewer component.
@@ -43,7 +42,7 @@ const statusLabel = (value: string | null | undefined) => value ? (labels[value]
 function number(value: unknown): number { return Number(value ?? 0); }
 function money(value: unknown, currency?: string): string { return `${number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${currency ? ` ${currency}` : ''}`; }
 
-export default function FinanceClient() {
+export default function FinanceClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [summary, setSummary] = useState<FinanceSummary>(emptySummary);
   const [message, setMessage] = useState('');
@@ -123,7 +122,7 @@ export default function FinanceClient() {
     await action(`/v1/finance/landed-cost/components/${componentId}/allocations`, { cargoId: form.get('cargoId'), allocatedAmount: form.get('allocatedAmount'), basisValue: form.get('basisValue') || undefined });
   }
 
-  return <AppShell navigation={navigationFor('/finance')} footer="商业财务 · 证据账本" classNames={{ workspace: `workspace ${styles.workspace}` }}>
+  return <OperationsFrame embedded={embedded} area="finance" footer="商业财务 · 证据账本" classNames={{ workspace: `workspace ${styles.workspace}` }}>
     <header className={styles.header}>
       <div className={styles.eyebrow}>财务控制 / FINANCE</div>
       <h1>资金跟随业务事实，而不是替代业务事实。</h1>
@@ -192,5 +191,5 @@ export default function FinanceClient() {
       <form className={`${styles.card} ${styles.compact}`} onSubmit={allocateLanded}><span className={styles.label}>成本分配</span><h2>成本组成 → Shipment 货物</h2><div className={styles.stack}><select name="componentId" required defaultValue=""><option value="" disabled>选择成本组成</option>{summary.landedComponents.filter((item) => draftLanded.some((batch) => batch.id === item.batch_id)).map((item) => <option key={item.id} value={item.id}>{item.category} · {money(item.batch_currency_amount, item.currency)}</option>)}</select><select name="cargoId" required defaultValue=""><option value="" disabled>选择货物</option>{summary.references.cargo.map((item) => <option key={item.id} value={item.id}>{item.sku ?? item.frame_number ?? item.item_kind} · 数量 {item.quantity}</option>)}</select><div className={styles.split}><input name="allocatedAmount" placeholder="分配金额" required/><input name="basisValue" placeholder="分配依据值"/></div><button>分配成本</button></div></form>
       <div className={styles.panel}><span className={styles.label}>冻结</span><h2>冻结到岸成本证据</h2><p className={styles.hint}>所有需要资本化的成本组成必须完成分配后才能冻结。进口 VAT 可以明确保留为不资本化项目。</p><div className={styles.stack}>{draftLanded.map((item) => <div className={styles.row} key={item.id}><span><b>{item.batch_number}</b><br/><small>{item.shipment_number}</small></span><span>{statusLabel(item.allocation_basis)}</span><span>{item.currency}</span><span className={styles.actions}><button onClick={() => void action(`/v1/finance/landed-cost/${item.id}/finalize`)}>冻结</button></span></div>)}{!draftLanded.length ? <p className={styles.empty}>暂无到岸成本草稿批次。</p> : null}</div></div>
     </section>
-  </AppShell>;
+  </OperationsFrame>;
 }
