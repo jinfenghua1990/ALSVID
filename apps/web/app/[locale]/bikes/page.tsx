@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CatalogShell } from "../../_components/catalog/catalog-shell";
 import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navigator";
+import { BikesModelSideNavigator } from "../../_components/catalog/bikes-model-side-navigator";
 import { AccessoriesCatalogSection } from "../../_components/catalog/accessories-catalog-section";
 import { publishedBikeCatalog } from "../../_components/catalog/published-product-catalog";
 import { translator, type TranslationKey } from "../../_lib/i18n";
@@ -46,29 +47,38 @@ export default async function BikesPage({ params, searchParams }: Props) {
   // Brand previews remain visibly distinct from an approved public catalogue item.
   // A previously published-and-withdrawn model is excluded when catalogue facts are available.
   const previews = [
-    { id:"fc1",code:"FC1",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
-      image:"/home/original/fc1-product.webp",alt:t("images.product") },
-    { id:"fc2",code:"FC2",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
-      image:"/products/fc2/side-studio-1536.webp",alt:t("fc2.gallery.alt.side") },
+    { id:"fc1",code:"FC1",platform:"fc",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
+      image:"/home/original/fc1-product.webp",alt:t("images.product"),href:prefix+"/explore/fc1" },
+    { id:"fc2",code:"FC2",platform:"fc",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
+      image:"/products/fc2/side-studio-1536.webp",alt:t("fc2.gallery.alt.side"),href:prefix+"/explore/fc2" },
+    { id:"l7",code:"L7",platform:"fc",name:t("l7.model"),status:t("catalog.bikes.models.preview"),
+      image:"/products/l7/reference-side.jpg",alt:t("l7.gallery.side.alt"),href:prefix+"/explore/l7" },
+    { id:"l8",code:"L8",platform:"fc",name:t("l8.model"),status:t("catalog.bikes.models.preview"),
+      image:"/products/l8/retouched-side.webp",alt:t("l8.gallery.side.alt"),href:prefix+"/explore/l8" },
   ] as const;
-  const models = previews.filter(model=>!publicCatalog.available||
-      !publicCatalog.suppressedCodes.includes(model.code))
-    .map(model=>{
-      const reviewed=publicCatalog.items.find(item=>item.code===model.code);
-      return {id:model.id,name:reviewed?.title[locale]??model.name,
+  const models = previews.filter(model=>{
+      if (!publicCatalog.available || (model.code!=="FC1" && model.code!=="FC2")) return true;
+      return !publicCatalog.suppressedCodes.includes(model.code);
+    }).map(model=>{
+      const reviewed=model.code==="FC1"||model.code==="FC2"
+        ?publicCatalog.items.find(item=>item.code===model.code):undefined;
+      return {id:model.id,code:model.code,platform:model.platform,name:reviewed?.title[locale]??model.name,
         status:reviewed?t("catalog.bikes.models.published"):model.status,
         image:reviewed?.image??model.image,alt:reviewed?.title[locale]??model.alt,
-        modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
+        href:model.href,modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
     });
+  const modelSideLinks = models.map(model=>({
+    id:"model-"+model.id,label:model.name,
+    href:prefix+"/bikes?platform="+model.platform+"#model-"+model.id,
+  }));
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
-    ...models.map(model=>({id:"model-"+model.id,label:model.name,href:prefix+"/bikes?platform=fc#model-"+model.id})),
     { id: "platforms", label: t("catalog.product.tabs.platforms"), href: prefix + "/bikes#platforms" },
     { id: "accessories", label: t("catalog.product.tabs.accessories"), href: prefix + "/bikes#accessories" },
   ];
   return <CatalogShell locale={locale} active="bikes">
     <main className={styles.page} lang={locale} data-bikes-catalog="1">
-      <BikesModelNavigator title={t("catalog.bikes.modelNav.title")} links={navLinks} />
+      <BikesModelNavigator title={t("catalog.product.tabs.label")} links={navLinks} />
       <section className={styles.hero} data-bikes-hero>
         <div className={styles.heroCopy}>
           <span className={styles.kicker}>{t("catalog.bikes.hero.kicker")}</span>
@@ -100,27 +110,31 @@ export default async function BikesPage({ params, searchParams }: Props) {
           <div><p className={styles.kicker}>{t("catalog.bikes.models.kicker")}</p><h2 id="models-title">{t("catalog.bikes.models.title")}</h2></div>
           <p>{t("catalog.bikes.models.body")}</p>
         </div>
-        <nav className={styles.filters} aria-label={t("catalog.bikes.filter.label")}>
-          <a href={prefix + "/bikes#models"} aria-current={!active ? "page" : undefined}>{t("catalog.bikes.filter.all")}</a>
-          {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
-        </nav>
-        {!publicCatalog.available?<p className={styles.empty} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
-        {publicCatalog.available && !models.length?<p className={styles.empty}>{t("catalog.bikes.models.unpublished")}</p>:null}
-        {(!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
-          {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
-            <a href={prefix + "/explore/" + model.id} className={styles.modelImageLink} aria-label={model.name}>
-              <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
-            </a>
-            <div className={styles.modelInfo}><div><span className={styles.status}>{model.status}</span><h3 id={"model-" + model.id + "-title"}>{model.name}</h3><p>FC PLATFORM</p></div>
-              <a href={prefix + "/explore/" + model.id}>{t("catalog.bikes.models.details")}</a>
-            </div>
-          </article>)}
-        </div> : active && active !== 'fc' ? <div className={styles.empty}>
-          <span>{active.toUpperCase()} PLATFORM</span>
-          <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
-          <p>{t("catalog.bikes.models.none")}</p>
-          <a href={prefix + "/explore/" + active}>{t("catalog.bikes.platforms.link")}</a>
-        </div> : null}
+        <div className={styles.modelLayout}>
+          <BikesModelSideNavigator title={t("catalog.bikes.modelNav.series")} links={modelSideLinks} />
+          <div className={styles.modelContent}>
+            <nav className={styles.filters} aria-label={t("catalog.bikes.filter.label")}>
+              <a href={prefix + "/bikes#models"} aria-current={!active ? "page" : undefined}>{t("catalog.bikes.filter.all")}</a>
+              {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
+            </nav>
+            {!publicCatalog.available?<p className={styles.emptyNotice} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
+            {(!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
+              {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
+                <a href={model.href} className={styles.modelImageLink} aria-label={model.name}>
+                  <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
+                </a>
+                <div className={styles.modelInfo}><div><span className={styles.status}>{model.status}</span><h3 id={"model-" + model.id + "-title"}>{model.name}</h3><p>{model.platform.toUpperCase()} PLATFORM</p></div>
+                  <a href={model.href}>{t("catalog.bikes.models.details")}</a>
+                </div>
+              </article>)}
+            </div> : active && active !== 'fc' ? <div className={styles.empty}>
+              <span>{active.toUpperCase()} PLATFORM</span>
+              <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
+              <p>{t("catalog.bikes.models.none")}</p>
+              <a href={prefix + "/explore/" + active}>{t("catalog.bikes.platforms.link")}</a>
+            </div> : null}
+          </div>
+        </div>
       </section>
 
       <section className={styles.guide}>
