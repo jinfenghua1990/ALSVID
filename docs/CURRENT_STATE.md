@@ -1,12 +1,12 @@
 # Current State
 
-## 2026-10-22 release and acceptance audit snapshot
+## 2026-10-22 release and acceptance audit snapshot (updated after PR #302 / #305 merge)
 
 This dated snapshot separates repository state from live production acceptance. Do not treat a merged PR or a successful workflow as proof that every business path is complete.
 
 ### Release evidence
 - The last confirmed WWW-only production release before the catalogue-navigation correction was commit `b3f6bc89b34bde6ab058f1df38fc37bfc795b19d`, from [WWW Production Deploy #39712257014](https://github.com/jinfenghua1990/ALSVID/actions/runs/39712257014), which succeeded.
-- The homepage/catalogue correction [PR #302](https://github.com/jinfenghua1990/ALSVID/pull/302) merged at 2026-10-22 03:22 UTC. Its main-branch commit is undergoing CI; do not call it live until a later exact-SHA WWW deployment succeeds and the production route is rechecked.
+- The homepage/catalogue correction [PR #302](https://github.com/jinfenghua1990/ALSVID/pull/302) merged at 2026-10-22 03:22 UTC. [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305) then merged the responsive hero-image optimization at 03:23 UTC. Main now includes both changes at `8769777c43e9c9ef2ad522512b0b636b0332f835`; [main CI run #39716597929](https://github.com/jinfenghua1990/ALSVID/actions/runs/39716597929) is pending. The last confirmed live WWW SHA remains `b3f6bc89b34bde6ab058f1df38fc37bfc795b19d`; do not call either change live until a later exact-SHA WWW deployment succeeds and production routes are rechecked.
 - [PR #297](https://github.com/jinfenghua1990/ALSVID/pull/297) added BIKE / ACCESSORY / SERVICE_PART product types and safe homepage Model-ID bindings, including automatic matching and authorized manual override/reset. [Full Production Deploy #39707705037](https://github.com/jinfenghua1990/ALSVID/actions/runs/39707705037) succeeded on `a0d46c4e5b7424fdde548813cd4261184325b46c`, whose parent is the #297 merge commit.
 - [PR #299](https://github.com/jinfenghua1990/ALSVID/pull/299) added the first audit-gated public bike catalogue publication slice for FC1 / FC2 and was included in that full Production Deploy. It does not complete accessory publication, compatibility, price/stock, order or payment flows.
 - The dated browser snapshot of the pre-#302 production site showed the homepage “browse accessories” CTA and footer still pointing to the homepage's own anchor; `/{locale}/bikes` showed FC1 / FC2 only and had no left-side model index. PR #302 fixes those gaps and includes L7 / L8 as preview-only model cards.
@@ -23,7 +23,7 @@ This dated snapshot separates repository state from live production acceptance. 
 - [Issue #263](https://github.com/jinfenghua1990/ALSVID/issues/263): accessories still need reviewed publication, verified model/variant/SKU/BOM compatibility and approved price/stock before any real checkout.
 - [Issue #265](https://github.com/jinfenghua1990/ALSVID/issues/265): the official FC1 reservation recipient is still empty. Do not invent an address; a responsible person must supply and verify the real mailbox before rebuilding the frontend.
 - [Issue #295](https://github.com/jinfenghua1990/ALSVID/issues/295): the provider-neutral 3PL/WMS contract is documented, but real warehouse API docs, credentials and test access are not yet available.
-- [Issue #304](https://github.com/jinfenghua1990/ALSVID/issues/304) / [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305): PageSpeed mobile lab report showed score 68, LCP 15.1 s, and a roughly 2.47 MB homepage KV PNG. The responsive-image optimization is pending CI, browser/network validation and a new PageSpeed measurement.
+- [Issue #304](https://github.com/jinfenghua1990/ALSVID/issues/304) / [PR #305](https://github.com/jinfenghua1990/ALSVID/pull/305): PageSpeed mobile lab report showed score 68, LCP 15.1 s, and a roughly 2.47 MB homepage KV PNG. The responsive-image code is merged; PR CI and browser preview passed. Production Network inspection and a new PageSpeed measurement remain pending after deployment.
 - The sitemap route has been implemented and deployed, but the observed Google Search Console snapshot had no submitted sitemap row. Submission and URL inspection in Search Console are separate manual acceptance steps.
 
 ## FC1 promotional / email-reservation-only state — 2026-10-20
