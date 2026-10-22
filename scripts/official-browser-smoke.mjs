@@ -55,7 +55,12 @@ try {
         const ownerDialog = page.getByRole('dialog');
         await ownerDialog.waitFor({ state: 'visible' });
         assert.ok(await ownerDialog.locator('a[href="/' + locale + '/service-locations"]').count(), 'Service option stays on verified public service directory');
-        assert.equal(await ownerDialog.locator('a[href^="https://my.alsvidbike.com"]').count(), 1, 'Owner option leads to the separate My ALSVID portal');
+        const ownerHref = await ownerDialog.locator('a').first().getAttribute('href');
+        const ownerDestination = new URL(ownerHref, base);
+        const publicOwnerPortal = ownerDestination.hostname === 'my.alsvidbike.com';
+        const localOwnerPortal = ['127.0.0.1', 'localhost'].includes(ownerDestination.hostname) && ownerDestination.pathname === '/my';
+        assert.ok(publicOwnerPortal || localOwnerPortal,
+          'Owner option leads to My ALSVID in production and preserves the local /my portal route in browser previews');
         await ownerDialog.locator('button').first().click();
         await ownerDialog.waitFor({ state: 'hidden' });
         const reserveBadge = navLinks.nth(0).locator('span');
