@@ -106,7 +106,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
         </nav>
         {!publicCatalog.available?<p className={styles.empty} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
         {publicCatalog.available && !models.length?<p className={styles.empty}>{t("catalog.bikes.models.unpublished")}</p>:null}
-        {publicCatalog.available && (!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
+        {(!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
           {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
             <a href={prefix + "/explore/" + model.id} className={styles.modelImageLink} aria-label={model.name}>
               <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
