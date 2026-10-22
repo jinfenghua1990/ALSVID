@@ -19,6 +19,7 @@
 | 已确认的长期业务变更 | [Decision Log](../knowledge/00-Company/Decision-Log.md) |
 | 业务、技术架构变更原因与被替代关系 | [docs/adr](adr/) |
 | 官方网站与商城 | [knowledge/03-Systems/WWW.md](../knowledge/03-Systems/WWW.md) |
+| **官网共同功能框架（ADO + Himiway）** | [ALSVID Official Website Functional Framework](ALSVID_OFFICIAL_WEBSITE_FUNCTIONAL_FRAMEWORK.md) |
 | 内部 Admin | [knowledge/03-Systems/Admin.md](../knowledge/03-Systems/Admin.md) 与 [Admin IA](ALSVID_ADMIN_IA.md) |
 | 经销商自助 | [knowledge/03-Systems/Dealer-Portal.md](../knowledge/03-Systems/Dealer-Portal.md) |
 | 车主中心 | [knowledge/03-Systems/My-ALSVID.md](../knowledge/03-Systems/My-ALSVID.md) |
