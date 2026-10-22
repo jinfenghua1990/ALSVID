@@ -1,6 +1,8 @@
 # ALSVID 门户实施台账与后续机器人执行顺序
 
-状态：执行基线；核对日期：2026-10-16。目标方向见 [设计与门户边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)，决策理由见 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)。
+> **边界更新（2026-10-22）：** 本文代码审阅基线为 2026-10-16，表内 Shopify-first B2C 交易与 My Shopify Customer 登录路径已分别被 [ADR 0005](adr/0005-alsvid-owned-storefront-and-third-party-payments.md) 与 [ADR 0006](adr/0006-first-party-portal-auth-and-login-experience.md) 取代。本文保留旧代码缺口证据，不得把旧方案作为当前交易/身份实现指令；当前状态看 [CURRENT_STATE.md](CURRENT_STATE.md)。
+
+状态：历史代码审阅快照（非当前交易/身份基线）；核对日期：2026-10-16。目标方向见 [设计与门户边界](DESIGN_TOOL_AND_PORTAL_BOUNDARY_2026-10-16.md)，决策理由见 [ADR 0004](adr/0004-portal-experience-commerce-and-supplier.md)。
 
 本次核对代码基线为 [`cd1dd3531e2ed3f2123f7151df89db9051bfeb61`](https://github.com/jinfenghua1990/ALSVID/commit/cd1dd3531e2ed3f2123f7151df89db9051bfeb61)。表内是代码审阅证据，不是全站业务验收。设计文件未在本轮重新逐层读取；已有链接来自仓库记录，不能升级为本轮设计验收结果。
 
