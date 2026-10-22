@@ -40,7 +40,7 @@ function isAreaActive(area: string, label: string): boolean {
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
   '电商': [
     { group: '商城商品运营', items: ['官网商品发布', '首页商品绑定'] },
-    { group: '商城交易', items: ['商城售价与 B2C 订单'] },
+    { group: '库存与交易', items: ['电商库存', '商城售价与 B2C 订单'] },
     { group: '规划功能', items: ['营销活动（待接入）', '支付配置（待接入）'] },
   ],
   '财务': [
@@ -78,6 +78,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '官网商品发布': '/admin/ecommerce#publications',
     '首页商品绑定': '/admin/ecommerce#homepage',
     '商城售价与 B2C 订单': '/admin/ecommerce#b2c',
+    '电商库存': '/admin/ecommerce#inventory',
     '应收 / 应付与资金': '/admin/finance',
     '到岸成本与汇率': '/admin/finance',
     '库存台账': '/admin/inventory',
