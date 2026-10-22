@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 type StockPosition = {
   item_kind: 'PART' | 'SKU' | 'VEHICLE';
   sku_id: string | null;
+  vehicle_id: string | null;
+  frame_number: string | null;
   sku: string | null;
   sku_name: string | null;
   warehouse_code: string;
@@ -45,7 +47,7 @@ export function EcommerceInventoryPanel() {
       if (!response.ok) throw new Error(response.status === 401 ? '登录已过期，请重新登录' : response.status === 403 ? '当前账户无权查看库存台账' : payload?.message ?? '读取库存失败');
       if (!Array.isArray(payload?.data?.balances)) throw new Error('库存接口返回的数据格式异常');
       if (signal?.aborted) return;
-      setPositions(payload.data.balances.filter(row => row.item_kind === 'SKU'));
+      setPositions(payload.data.balances.filter(row => row.item_kind === 'SKU' || row.item_kind === 'VEHICLE'));
       setFetchedAt(new Date().toLocaleString('zh-CN'));
       setState('ready');
     } catch (reason) {
@@ -63,18 +65,25 @@ export function EcommerceInventoryPanel() {
     return () => controller.abort();
   }, [reload]);
 
+  const skuPositions = useMemo(() => positions.filter(row => row.item_kind === 'SKU'), [positions]);
+  const vehiclePositions = useMemo(() => positions.filter(row => row.item_kind === 'VEHICLE'), [positions]);
   const filtered = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
-    return positions.filter(row => !term || [row.sku, row.sku_name, row.warehouse_name, row.warehouse_code, row.location_code]
+    return skuPositions.filter(row => !term || [row.sku, row.sku_name, row.warehouse_name, row.warehouse_code, row.location_code]
       .some(value => String(value ?? '').toLocaleLowerCase().includes(term)));
-  }, [positions, query]);
+  }, [skuPositions, query]);
+  const filteredVehicles = useMemo(() => {
+    const term = query.trim().toLocaleLowerCase();
+    return vehiclePositions.filter(row => !term || [row.sku, row.frame_number, row.warehouse_name, row.warehouse_code, row.location_code]
+      .some(value => String(value ?? '').toLocaleLowerCase().includes(term)));
+  }, [vehiclePositions, query]);
 
   return <section id="inventory" className="av-card" aria-label="电商库存">
     <div className="av-cardhead">
       <div>
         <p className="av-eyebrow">ECOMMERCE STOCK / READ ONLY</p>
         <h2 className="av-cardtitle">电商库存 · SKU 库存查询</h2>
-        <p className="av-cardhint">读取仓储物流的库存流水汇总，查看 SKU 的仓库现存量、预留量和台账可用量。不创建第二套库存，也不能在这里直接修改库存。</p>
+        <p className="av-cardhint">读取仓储物流的库存流水汇总，查看 SKU / VIN 整车的仓库现存量、预留量和台账可用量。不创建第二套库存，也不能在这里直接修改库存。</p>
       </div>
       <div>
         <button type="button" className="av-btn" onClick={() => void reload()} disabled={state === 'loading'}>刷新库存</button>{' '}
@@ -85,7 +94,7 @@ export function EcommerceInventoryPanel() {
     {state === 'loading' ? <p role="status">正在查询真实库存台账…</p> : null}
     {state === 'error' ? <p role="alert">库存读取失败：{error}。库存未知，不代表缺货或零库存。</p> : null}
     {state === 'ready' ? <>
-      <p className="av-cardhint">库存查询时间：{fetchedAt}（不是第三方仓最后同步时间）。本次读到 {positions.length} 个 SKU 库位记录；整车 VIN 由仓储物流单独管理，不与 SKU 数量重复相加。</p>
+      <p className="av-cardhint">库存查询时间：{fetchedAt}（不是第三方仓最后同步时间）。本次读到 {skuPositions.length} 个 SKU 库位记录、{vehiclePositions.length} 个整车 VIN 库位记录。二者分别展示，不能叠加算总库存。</p>
       <label className="av-commerce-stock-filter">
         <span>筛选 SKU / 仓库 / 库位</span>
         <input value={query} onChange={event => setQuery(event.target.value)} placeholder="例如 FC1、DE、BLACK" type="search" />
@@ -102,8 +111,23 @@ export function EcommerceInventoryPanel() {
             <td>待接入市场 / 渠道规则</td>
           </tr>)}</tbody>
         </table>
-      </div> : <p className="av-cardhint">{query ? '没有匹配该筛选条件的 SKU 库存位置。' : '当前库存台账没有 SKU 类型的库位记录；整车可能按 VIN 单独管理，请到仓储物流查看。'}</p>}
-      {filtered.length > 100 ? <p className="av-cardhint">只展示前 100 条匹配结果，请缩小筛选条件或到仓储物流查看完整台账。</p> : null}
+      </div> : <p className="av-cardhint">{query ? '没有匹配该筛选条件的 SKU 库存位置。' : '当前没有 SKU 类型的库位记录；请同时查看下方 VIN 整车库存。'}</p>}
+      {filtered.length > 100 ? <p className="av-cardhint">SKU 明细仅展示前 100 条，请缩小筛选条件或到仓储物流查看完整台账。</p> : null}
+      <h3 className="av-cardtitle">按 VIN 管理的整车库存（与 SKU 台账独立）</h3>
+      {filteredVehicles.length ? <div className="av-commerce-stock-scroll" role="region" aria-label="整车 VIN 库存明细" tabIndex={0}>
+        <table className="av-commerce-stock-table">
+          <thead><tr><th>整车 VIN / 车架号</th><th>SKU</th><th>仓库 / 库位</th><th>现存</th><th>已预留</th><th>台账可用</th></tr></thead>
+          <tbody>{filteredVehicles.slice(0, 100).map((row, index) => <tr key={[row.vehicle_id, row.warehouse_code, row.location_code, index].join(':')}>
+            <td><strong>{row.frame_number ?? '未登记车架号'}</strong></td>
+            <td>{row.sku ?? '—'}</td>
+            <td>{row.warehouse_name || row.warehouse_code}<span>{row.location_name || row.location_code}</span></td>
+            <td>{displayAmount(row.on_hand)} {row.unit}</td>
+            <td>{displayAmount(row.reserved)} {row.unit}</td>
+            <td>{displayAmount(row.available)} {row.unit}</td>
+          </tr>)}</tbody>
+        </table>
+      </div> : <p className="av-cardhint">无匹配的整车 VIN 库位记录。未登记车辆不能据此认定为可售或缺货。</p>}
+      {filteredVehicles.length > 100 ? <p className="av-cardhint">整车明细仅展示前 100 条，请缩小筛选条件。</p> : null}
     </> : null}
   </section>;
 }
