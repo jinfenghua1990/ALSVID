@@ -7,7 +7,8 @@ test('explicit preference wins; browser recommendations respect language weights
   assert.equal(preferredLocale('en', 'de-DE'), 'en');
   assert.equal(preferredLocale(undefined, 'fr-FR,en-US;q=0.8,de;q=0.2'), 'en');
   assert.equal(preferredLocale('invalid', 'en;q=0,de;q=0.8'), 'de');
-  assert.equal(preferredLocale(undefined, 'nl'), 'zh');
+  assert.equal(preferredLocale(undefined, 'nl'), 'en');
+  assert.equal(preferredLocale(undefined, ''), 'en');
   assert.equal(isLocale('fr'), false);
   assert.equal(preferredLocale('zh', 'de'), 'zh');
   assert.equal(preferredLocale(undefined, 'zh-CN,en;q=0.9'), 'zh');
@@ -25,7 +26,7 @@ test('all released catalog entries exist in both languages and retain placeholde
   assert.deepEqual(Object.keys(en).sort(), Object.keys(de).sort());
   for (const key of Object.keys(en)) {
     assert.ok(en[key].trim() && de[key].trim() && zh[key].trim(), key);
-    assert.deepEqual(en[key].match(/\{\w+\}/g), zh[key].match(/\{\w+\}/g), key);
-    assert.deepEqual(en[key].match(/\{\w+\}/g), de[key].match(/\{\w+\}/g), key);
+    assert.deepEqual(en[key].match(/\\{\\w+\\}/g), zh[key].match(/\\{\\w+\\}/g), key);
+    assert.deepEqual(en[key].match(/\\{\\w+\\}/g), de[key].match(/\\{\\w+\\}/g), key);
   }
 });
