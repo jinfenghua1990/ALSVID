@@ -149,7 +149,7 @@ export function searchAuthorizedBusinessRecords(
   }
   if (orders) {
     for (const order of cap(orders.filter(item => contains(term, item.orderNumber, item.customerEmail,
-      ...(Array.isArray(item.lines) ? item.lines.flatMap(line => [line.skuCode, line.skuName]) : [])))) {
+      ...(Array.isArray(item.lines) ? item.lines.flatMap(line => [line.skuCode, line.skuName]) : []))))) {
       results.push({ type: 'order', key: 'order:' + order.orderNumber, title: order.orderNumber,
         subtitle: 'ALSVID 自建商城订单 · ' + order.customerEmail,
         href: recordId(order.id) ? adminRecordHref('order', order.id!) :
