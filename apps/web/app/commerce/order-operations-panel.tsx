@@ -123,7 +123,7 @@ export function OrderOperationsPanel(){
      <strong>{r.requestedAmount} {r.currency} · 待人工审核</strong>
      <small>{new Date(r.requestedAt).toLocaleString('zh-CN')} · {r.externalOrderId}</small>
     </div>)}
-    {!reviews.length?<p className={styles.opsHelp}>{sourceErrors.refundReviews?'退款审核记录不可用，无法确认当前是否有审核申请。':'暂无审核申请。'}</p>:null}
+    {!loading&&!reviews.length?<p className={styles.opsHelp}>{sourceErrors.refundReviews?'退款审核记录不可用，无法确认当前是否有审核申请。':'暂无审核申请。'}</p>:null}
    </div>
   </div>
  </section>;
