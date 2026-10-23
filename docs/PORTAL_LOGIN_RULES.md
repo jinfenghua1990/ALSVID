@@ -26,6 +26,13 @@ ALSVID 复用统一 API 与自身身份/授权中心，不依赖 Shopify；按�
 
 Cloud Run 的 `*.run.app` 地址不是正式用户入口。生产登录、Session、密码重置、验证码、邀请、邮箱验证、Auth Callback 与跨门户跳转必须使用对应 `*.alsvidbike.com` canonical URL；Admin 的认证基准固定为 `https://admin.alsvidbike.com`。
 
+## 登录方式与发布验收（2026-10-23）
+
+- Admin、Dealer、Supplier 的登录页应同时提供「邮箱验证码」和「邮箱 + 密码」两种方式；My ALSVID 保持邮箱验证码登录/注册，不展示内部密码登录选项。
+- Admin 登录页默认打开密码方式，但用户可切换到邮箱验证码方式。忘记密码使用统一登录弹窗完成，不跳转到旧版独立 UI。
+- 生产 Web 部署必须实际请求 `https://admin.alsvidbike.com/zh/login?portal=admin`，验证页面同时包含「邮箱验证码」「账户密码」及密码输入框；只检查 Admin 根路径 HTTP 200 不算登录验收通过。
+- 上述检查验证的是生产页面实际输出；仍需在真实管理员账号上完成一次人工登录/登出验收，才能确认完整账号链路。
+
 ## 行为
 
 1. WWW 只展示公开内容，不显示通用登录按钮，也不会因为未登录跳转到 Admin。
