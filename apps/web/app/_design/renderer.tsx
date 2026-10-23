@@ -10,22 +10,10 @@ import { IntegratedOperations, hasIntegratedOperations } from './integrated-oper
 import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
 import { ArchitectureOverview } from './architecture-overview';
+import { ADMIN_MODULES } from './business-module-registry';
+import { AdminModuleDirectory } from './admin-module-directory';
 
-/** Business-oriented Admin navigation. A module is a UX grouping, not a second database. */
-const AREAS: readonly { label: string; href: string; description: string; legacyAreas: readonly string[] }[] = [
-  { label: '工作台', href: '/admin', description: '跨模块运营概览、待办与异常', legacyAreas: ['工作台'] },
-  { label: '产品研发', href: '/admin/product', description: '产品类型、型号、SKU、BOM 与工程规格', legacyAreas: ['产品'] },
-  { label: '电商', href: '/admin/ecommerce', description: '自建商城商品发布、首页展示、DE/AT 价格与 B2C 订单', legacyAreas: ['电商', '订单'] },
-  { label: '经销商/B2B', href: '/admin/dealers', description: '经销商档案、授权、报价与 B2B 订单协同', legacyAreas: ['经销商'] },
-  { label: '生产制造', href: '/admin/production', description: '工厂生产计划、工单、装配、质检和 VIN 出生', legacyAreas: ['生产'] },
-  { label: '仓储物流', href: '/admin/inventory', description: '成品/零件库存、仓储操作、出口物流与 WMS 协同', legacyAreas: ['库存', '物流'] },
-  { label: '供应链采购', href: '/admin/supply', description: '供应商、采购订单、到货确认与采购成本', legacyAreas: ['供应链'] },
-  { label: '客户车主', href: '/admin/customers', description: '客户档案、车主身份、车辆归属与服务历史', legacyAreas: ['客户'] },
-  { label: '售后服务', href: '/admin/after-sales', description: '保修、维修工单、配件申请和服务网点', legacyAreas: ['售后'] },
-  { label: '财务结算', href: '/admin/finance', description: '应收应付、发票、收付款、核对和成本分配', legacyAreas: ['财务'] },
-  { label: '数据分析', href: '/admin/analytics', description: '各经营领域的汇总与分析', legacyAreas: ['数据'] },
-  { label: '设置', href: '/admin/settings', description: '身份权限、审计、邮件、集成与系统架构', legacyAreas: ['设置'] },
-];
+const AREAS = ADMIN_MODULES;
 
 const QUICK_LINKS: readonly { label: string; portal: 'www' | 'dealer' | 'my'; localHref: string }[] = [
   { label: '官方首页', portal: 'www', localHref: '/home' },
@@ -38,6 +26,9 @@ function isAreaActive(area: string, label: string): boolean {
 }
 
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
+  '数据': [
+    { group: '分析与统计', items: ['FC1 颜色偏好', '跨模块经营指标（待接入）'] },
+  ],
   '电商': [
     { group: '商城商品运营', items: ['官网商品发布', '首页商品绑定'] },
     { group: '库存与交易', items: ['电商库存', '商城售价与 B2C 订单'] },
@@ -79,6 +70,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '首页商品绑定': '/admin/ecommerce#homepage',
     '商城售价与 B2C 订单': '/admin/ecommerce#b2c',
     '电商库存': '/admin/ecommerce#inventory',
+    'FC1 颜色偏好': '/admin/analytics/color-interest',
     '应收 / 应付与资金': '/admin/finance',
     '到岸成本与汇率': '/admin/finance',
     '库存台账': '/admin/inventory',
@@ -108,7 +100,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     if (destinations[label]) return destinations[label];
   }
   if (screen.area === '设置' && label === '系统架构') return '/admin/architecture';
-  if (screen.area === '产品' && /商品发布|商品审核|官网发布|产品发布/.test(label)) return '/admin/product#catalog-publications';
+  if (screen.area === '产品' && /商品发布|商品审核|官网发布|产品发布/.test(label)) return '/admin/ecommerce#publications';
   // Go to the persisted first-party Commerce workflow, not a design-only order screen.
   if (screen.area === '订单' && label === '全部订单') return '/admin/orders';
   if (screen.area === '订单' && label === 'B2C消费者订单') return '/admin/orders#b2c';
@@ -542,7 +534,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                 <div className="av-railspacer" />
               </div>
             ))}
-            {!isLiveProductRoot ? <div className="av-railgroup">
+            {!isIntegratedOverview && !isLiveProductRoot ? <div className="av-railgroup">
               <div className="av-railtitle">设计页面与流程 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div> : null}
@@ -550,7 +542,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         ) : null}
 
         <main className="av-workspace">
-          {screen.id !== 'workbench' && screen.sourceNode && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
+          {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
           {!isLiveProductRoot && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
@@ -583,6 +575,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           {screen.id === 'workbench' ? (
             <>
               <LiveWorkbench />
+              <AdminModuleDirectory />
               <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
             </>
           ) : screen.id === 'system-architecture' ? (
@@ -598,7 +591,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           ) : isIntegratedOverview ? (
             <>
               <IntegratedOperations area={screen.area} />
-              {!isLiveProductRoot && !isCustomLiveModule && <details className="av-card av-design-archive">
+              {!isLiveProductRoot && !isCustomLiveModule && false && <details className="av-card av-design-archive">
                 <summary>查看原 Ardot 页面示例（仅设计预览，不保存）</summary>
                 <Blocks blocks={screen.blocks} stacked />
               </details>}
@@ -611,7 +604,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
             </>
           )}
-          {!isLiveProductRoot && moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
+          {!isIntegratedOverview && !isLiveProductRoot && moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>
     </div>
