@@ -53,6 +53,7 @@ export function AdminGlobalSearch() {
   const [searched, setSearched] = useState(false);
   const [results, setResults] = useState<AdminBusinessSearchResult[]>([]);
   const [unavailable, setUnavailable] = useState<string[]>([]);
+  const [searchFailed, setSearchFailed] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -68,6 +69,7 @@ export function AdminGlobalSearch() {
     setSearched(false);
     setResults([]);
     setUnavailable([]);
+    setSearchFailed(false);
     try {
       const [products, commerce, partners, production, vehicles, inventory, procurement, serviceCases, finance] =
         await Promise.allSettled([
@@ -129,6 +131,7 @@ export function AdminGlobalSearch() {
       setResults(searchAuthorizedBusinessRecords(catalog, orders, keyword, sources));
       setSearched(true);
     } catch {
+      setSearchFailed(true);
       setUnavailable(['搜索处理失败']);
       setSearched(true);
     } finally {
@@ -165,7 +168,7 @@ export function AdminGlobalSearch() {
       </p> : null}
       {searched ? <div className={styles.results} role="status" aria-live="polite">
         <p className={styles.note}>
-          {unavailable.length === sourceCount ? '无法确认搜索结果' :
+          {searchFailed || unavailable.length === sourceCount ? '无法确认搜索结果' :
             '在已成功读取的来源中找到 ' + results.length + ' 条，单类最多显示 8 条'}
         </p>
         {results.map(item => <a key={item.key} className={styles.result} href={item.href}>
@@ -173,7 +176,7 @@ export function AdminGlobalSearch() {
           <span><strong>{item.title}</strong><small>{item.subtitle}</small></span>
           <span aria-hidden="true">→</span>
         </a>)}
-        {!results.length && unavailable.length < sourceCount ?
+        {!results.length && !searchFailed && unavailable.length < sourceCount ?
           <p className={styles.note}>已成功读取的来源中没有匹配记录。</p> : null}
       </div> : <p className={styles.note}>只搜索当前账号有权限读取的真实业务记录，不搜索示例数据或未连接的外部渠道。</p>}
     </div> : null}
