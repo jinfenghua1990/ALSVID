@@ -10,15 +10,17 @@ import styles from './portal-login-scene.module.css';
 interface AuthResponse { data?: { testCode?: string; firstAdminActivated?: boolean; passwordSetupRequired?: boolean }; message?: string; }
 type LoginMethod = 'email' | 'password' | 'setup';
 
-export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated, passwordSetupRequired = false, redirectTo = '/admin', passwordLoginEnabled = false, forgotPasswordRequested = false, openOnLoad = false }: {
+export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated, passwordSetupRequired = false, redirectTo = '/admin', passwordLoginEnabled = false, forgotPasswordRequested = false, resetToken = '', openOnLoad = false }: {
   portal?: ProtectedPortalId; locale?: Locale; authenticated: boolean; passwordSetupRequired?: boolean;
-  redirectTo?: string; passwordLoginEnabled?: boolean; forgotPasswordRequested?: boolean; openOnLoad?: boolean;
+  redirectTo?: string; passwordLoginEnabled?: boolean; forgotPasswordRequested?: boolean; resetToken?: string; openOnLoad?: boolean;
 }) {
   const t = translator(locale);
   const formId = useId();
-  const [open, setOpen] = useState(passwordSetupRequired || forgotPasswordRequested || openOnLoad);
+  const [open, setOpen] = useState(passwordSetupRequired || forgotPasswordRequested || Boolean(resetToken) || openOnLoad);
   const [method, setMethod] = useState<LoginMethod>(passwordSetupRequired ? 'setup' : passwordLoginEnabled ? 'password' : 'email');
-  const [forgotOpen, setForgotOpen] = useState(forgotPasswordRequested);
+  const [forgotOpen, setForgotOpen] = useState(forgotPasswordRequested && !resetToken);
+  const [activeResetToken, setActiveResetToken] = useState(resetToken);
+  const [resetTokenComplete, setResetTokenComplete] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetBusy, setResetBusy] = useState(false);
   const [resetError, setResetError] = useState('');
@@ -44,16 +46,25 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     try { const saved = localStorage.getItem('alsvid-login-email:' + portal); if (saved) { setIdentifier(saved); setRemember(true); } } catch { /* Storage is optional. */ }
   }, [portal]);
   useEffect(() => {
-    if (!forgotOpen) return;
+    if (!resetToken) return;
+    setActiveResetToken(resetToken);
+    setResetTokenComplete(false);
+    setForgotOpen(false);
+    setResetError('');
+    setResetNotice('');
+    setOpen(true);
+  }, [resetToken]);
+  useEffect(() => {
+    if (!forgotOpen && !activeResetToken && !resetTokenComplete) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopImmediatePropagation();
-        if (!resetBusy) setForgotOpen(false);
+        if (!resetBusy) closeForgotPassword();
       }
     };
     document.addEventListener('keydown', onKeyDown, true);
     return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, [forgotOpen, resetBusy]);
+  }, [forgotOpen, activeResetToken, resetTokenComplete, resetBusy]);
   function rememberIdentifier(value: string) {
     try { if (remember) localStorage.setItem('alsvid-login-email:' + portal, value.trim()); else localStorage.removeItem('alsvid-login-email:' + portal); } catch { /* Do not block login when storage is unavailable. */ }
   }
@@ -131,6 +142,41 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     }
   }
 
+  async function submitPasswordResetConfirm(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!activeResetToken || resetTokenComplete) return;
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get('password') ?? '');
+    const confirmPassword = String(form.get('confirmPassword') ?? '');
+    if (password !== confirmPassword) {
+      setResetError(t('auth.password_mismatch'));
+      return;
+    }
+    setResetBusy(true);
+    setResetError('');
+    setResetNotice('');
+    try {
+      const response = await fetch('/api/session/password-reset/confirm', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ token: activeResetToken, password }),
+      });
+      const payload = await response.json().catch(() => null) as AuthResponse | null;
+      if (!response.ok) {
+        setResetError(payload?.message ?? t('auth.reset_invalid'));
+        return;
+      }
+      setActiveResetToken('');
+      setResetTokenComplete(true);
+      setResetNotice('');
+      window.history.replaceState(null, '', `/${locale}/login?portal=${encodeURIComponent(portal)}`);
+    } catch {
+      setResetError(t('auth.reset_service_failed'));
+    } finally {
+      setResetBusy(false);
+    }
+  }
+
   function openForgotPassword() {
     setResetEmail(email || identifier);
     setResetError('');
@@ -139,7 +185,15 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
   }
 
   function closeForgotPassword() {
-    if (!resetBusy) setForgotOpen(false);
+    if (resetBusy) return;
+    setForgotOpen(false);
+    if (activeResetToken || resetTokenComplete) {
+      setActiveResetToken('');
+      setResetTokenComplete(false);
+      setResetError('');
+      setResetNotice('');
+      router.replace(`/${locale}/login?portal=${encodeURIComponent(portal)}`);
+    }
   }
 
   async function submitPasswordSetup(event: React.FormEvent<HTMLFormElement>) {
@@ -163,6 +217,7 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
   function switchMethod(next: 'email' | 'password') { if (setupRequired || (next === 'password' && !passwordLoginEnabled)) return; setMethod(next); setError(''); setNotice(''); setCodeRequested(false); setVerificationCode(''); }
 
   const emailLabel = t(('auth.' + portal + '.email') as TranslationKey);
+  const resetTokenMode = Boolean(activeResetToken) || resetTokenComplete;
   const actionLabel = setupRequired ? t('auth.save_password') : method === 'password' ? t(('auth.' + portal + '.submit') as TranslationKey) : t(codeRequested ? 'auth.verify' : 'auth.send_code');
   return <>
     <PortalLoginScene portal={portal} locale={locale} open={open} busy={busy} locked={setupRequired} formId={formId} actionLabel={actionLabel} onOpen={openDialog} onClose={closeDialog}>
@@ -189,23 +244,33 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
       {codeRequested ? <button type="button" disabled={busy} onClick={() => { setCodeRequested(false); setVerificationCode(''); setNotice(''); setError(''); }}>{t('auth.resend')}</button> : null}
     </div> : null}
     </PortalLoginScene>
-    {forgotOpen ? <div className={styles.resetOverlay} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeForgotPassword(); }}>
+    {(forgotOpen || activeResetToken || resetTokenComplete) ? <div className={styles.resetOverlay} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeForgotPassword(); }}>
       <section className={styles.resetDialog} role="dialog" aria-modal="true" aria-labelledby="alsvid-reset-dialog-title">
         <button type="button" className={styles.resetClose} aria-label={t('auth.close')} disabled={resetBusy} onClick={closeForgotPassword}>×</button>
         <div className={styles.resetBrand}>ALSVID <span>ACCOUNT SECURITY</span></div>
-        <h2 id="alsvid-reset-dialog-title">{t('auth.forgot')}</h2>
-        <p className={styles.resetDescription}>{t('auth.reset_modal_description')}</p>
-        <form className={styles.resetForm} onSubmit={submitPasswordReset}>
-          <label className={styles.resetField}>{emailLabel}
+        <h2 id="alsvid-reset-dialog-title">{resetTokenMode ? t('auth.reset_title') : t('auth.forgot')}</h2>
+        <p className={styles.resetDescription}>{resetTokenMode ? t('auth.reset_description') : t('auth.reset_modal_description')}</p>
+        {resetTokenComplete ? <div className={styles.resetStatus} role="status">
+          <p>{t('auth.reset_success')}</p>
+          <button type="button" className={styles.resetSubmit} onClick={closeForgotPassword}>{t('auth.reset_back')}</button>
+        </div> : <form className={styles.resetForm} onSubmit={resetTokenMode ? submitPasswordResetConfirm : submitPasswordReset}>
+          {resetTokenMode ? <>
+            <label className={styles.resetField}>{t('auth.reset_password_label')}
+              <input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} placeholder={t('auth.reset_password_placeholder')} required autoFocus />
+            </label>
+            <label className={styles.resetField}>{t('auth.confirm_password')}
+              <input name="confirmPassword" type="password" autoComplete="new-password" minLength={8} maxLength={128} placeholder={t('auth.confirm_password')} required />
+            </label>
+          </> : <label className={styles.resetField}>{emailLabel}
             <input name="resetEmail" type="email" autoComplete="email" placeholder={t('auth.email_placeholder')} value={resetEmail} onChange={event => setResetEmail(event.target.value)} required autoFocus />
-          </label>
+          </label>}
           {resetNotice ? <p className={styles.resetStatus} role="status">{resetNotice}</p> : null}
           {resetError ? <p className={styles.resetError} role="alert">{resetError}</p> : null}
           <div className={styles.resetActions}>
-            <button type="submit" className={styles.resetSubmit} disabled={resetBusy}>{resetBusy ? t('auth.reset_sending') : t('auth.reset_send')}</button>
-            <button type="button" className={styles.resetSecondary} disabled={resetBusy} onClick={closeForgotPassword}>{t('auth.reset_close')}</button>
+            <button type="submit" className={styles.resetSubmit} disabled={resetBusy}>{resetBusy ? (resetTokenMode ? t('auth.reset_saving') : t('auth.reset_sending')) : (resetTokenMode ? t('auth.reset_submit') : t('auth.reset_send'))}</button>
+            <button type="button" className={styles.resetSecondary} disabled={resetBusy} onClick={closeForgotPassword}>{resetTokenMode ? t('auth.reset_back') : t('auth.reset_close')}</button>
           </div>
-        </form>
+        </form>}
       </section>
     </div> : null}
   </>;
