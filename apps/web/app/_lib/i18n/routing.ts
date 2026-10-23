@@ -1,7 +1,8 @@
 export const locales = ['zh', 'de', 'en'] as const;
 export type Locale = typeof locales[number];
 export const futureLocales = ['nl', 'fr', 'it', 'es'] as const;
-export const localeCookie = 'alsvid-locale';
+// Bump this cookie name so stale locale selections from the pre-routing build do not force Chinese.
+export const localeCookie = 'alsvid-locale-v2';
 export function isLocale(value: unknown): value is Locale {
   return locales.some(locale => locale === value);
 }
@@ -11,7 +12,7 @@ export function preferredLocale(saved: unknown, accepted = ''): Locale {
     const [tag = '', quality] = item.trim().split(';');
     return { language: tag.toLowerCase().split('-')[0], quality: quality ? Number(quality.trim().replace(/^q=/, '')) : 1 };
   }).filter(item => item.quality > 0).sort((a, b) => b.quality - a.quality);
-  return preferences.find(item => isLocale(item.language))?.language as Locale | undefined ?? 'zh';
+  return preferences.find(item => isLocale(item.language))?.language as Locale | undefined ?? 'en';
 }
 export function localizedPath(path: string, locale: Locale): string {
   const safePath = path.startsWith('/') && !path.startsWith('//') ? path : '/';
