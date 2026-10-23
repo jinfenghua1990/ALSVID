@@ -5,9 +5,9 @@ import { adminSkuPricingHref, resolveAdminPricingTarget } from './admin-sku-pric
 const skus = [{ id: 'sku-1' }, { id: 'sku-2' }];
 
 test('each SKU links to the same Admin Commerce editor but selects its own ID and supported market', () => {
-  assert.equal(adminSkuPricingHref({ id: 'sku-1', market_code: 'AT' }), '/admin/orders?skuId=sku-1&market=AT#b2c');
-  assert.equal(adminSkuPricingHref({ id: 'sku-2', market_code: 'DE' }), '/admin/orders?skuId=sku-2&market=DE#b2c');
-  assert.equal(adminSkuPricingHref({ id: 'sku-1', market_code: 'EU' }), '/admin/orders?skuId=sku-1#b2c');
+  assert.equal(adminSkuPricingHref({ id: 'sku-1', market_code: 'AT' }), '/admin/ecommerce?skuId=sku-1&market=AT#b2c');
+  assert.equal(adminSkuPricingHref({ id: 'sku-2', market_code: 'DE' }), '/admin/ecommerce?skuId=sku-2&market=DE#b2c');
+  assert.equal(adminSkuPricingHref({ id: 'sku-1', market_code: 'EU' }), '/admin/ecommerce?skuId=sku-1#b2c');
 });
 
 test('valid deep link preselects exactly the SKU found in authorized API data', () => {

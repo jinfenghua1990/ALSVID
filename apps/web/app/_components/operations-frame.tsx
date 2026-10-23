@@ -12,14 +12,16 @@ export function OperationsFrame({
   area,
   footer,
   children,
+  classNames,
 }: {
   embedded?: boolean;
-  area: 'product' | 'commerce' | 'production' | 'inventory' | 'dealers' | 'supply';
+  area: 'product' | 'commerce' | 'production' | 'inventory' | 'dealers' | 'supply' | 'finance' | 'logistics';
   footer: string;
   children: ReactNode;
+  classNames?: { workspace?: string };
 }) {
   if (embedded) {
-    return <div className="av-live-operations" aria-label="真实业务操作区">{children}</div>;
+    return <div className={`av-live-operations ${classNames?.workspace ?? ''}`} aria-label="真实业务操作区">{children}</div>;
   }
-  return <AppShell navigation={navigationFor('/' + area)} footer={footer}>{children}</AppShell>;
+  return <AppShell navigation={navigationFor('/' + area)} footer={footer} {...(classNames ? { classNames } : {})}>{children}</AppShell>;
 }

@@ -12,7 +12,7 @@ export function adminSkuPricingHref(sku: PricingTargetSku): string {
   if (sku.market_code === 'DE' || sku.market_code === 'AT') {
     query.set('market', sku.market_code);
   }
-  return '/admin/orders?' + query.toString() + '#b2c';
+  return '/admin/ecommerce?' + query.toString() + '#b2c';
 }
 
 export function resolveAdminPricingTarget<T extends { id: string }>(
