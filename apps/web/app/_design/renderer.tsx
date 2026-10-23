@@ -589,13 +589,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </details>
             </>
           ) : isIntegratedOverview ? (
-            <>
-              <IntegratedOperations area={screen.area} />
-              {!isLiveProductRoot && !isCustomLiveModule && false && <details className="av-card av-design-archive">
-                <summary>查看原 Ardot 页面示例（仅设计预览，不保存）</summary>
-                <Blocks blocks={screen.blocks} stacked />
-              </details>}
-            </>
+            <IntegratedOperations area={screen.area} />
           ) : (
             <>
               {screen.sourceNode && screen.route.split('/').length === 3
