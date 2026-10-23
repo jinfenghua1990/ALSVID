@@ -126,7 +126,8 @@ export function validateWarehouseProviderAdapter(adapter: WarehouseProviderAdapt
   if (!Array.isArray(adapter.capabilities)) {
     throw new Error(`Provider ${adapter.providerCode} must declare its supported capabilities`);
   }
-  const uniqueCapabilities = new Set(adapter.capabilities);
+  const declaredCapabilities = adapter.capabilities as readonly WarehouseProviderCapability[];
+  const uniqueCapabilities = new Set<WarehouseProviderCapability>(declaredCapabilities);
   if (uniqueCapabilities.size !== adapter.capabilities.length) {
     throw new Error(`Provider ${adapter.providerCode} declares duplicate capabilities`);
   }
