@@ -28,6 +28,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
 
   const redirectTo = safeReturnTo(firstValue(params.returnTo), portal);
   const forgotPasswordRequested = firstValue(params.forgot) === '1';
+  const resetToken = firstValue(params.resetToken) ?? '';
   const openOnLoad = portal === 'dealer' && firstValue(params.open) === '1';
   const session = await readPortalSession(portal);
   const portalAuthenticated = Boolean(session && canAccessPortal(portal, session));
@@ -51,6 +52,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
             ? process.env.ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED === 'true'
             : false}
       forgotPasswordRequested={forgotPasswordRequested}
+      resetToken={resetToken}
       openOnLoad={openOnLoad}
       redirectTo={redirectTo}
     />
