@@ -12,6 +12,7 @@ test('warehouse provider configuration is audited, permissioned, and never retur
   const auth=await actor(db),commerce=createCommerceService(db,audit),integrations=createIntegrationService(db,audit,commerce);
   const accountRef=`test-${suffix().toLowerCase()}`,secretRef=`projects/alsvid-prod-123/secrets/test-wms-${suffix()}/versions/latest`;
   await assert.rejects(integrations.createWarehouseProviderConnection(auth,{providerCode:'TEST_WMS',displayName:'Test WMS',accountRef,credentialsSecretRef:'this-is-a-secret-value'}),IntegrationValidationError);
+  await assert.rejects(integrations.createWarehouseProviderConnection(auth,{providerCode:'TEST_WMS',displayName:'Test WMS',accountRef:`other-${suffix().toLowerCase()}`,credentialsSecretRef:`projects/alsvid-prod-123/secrets/mail-api-key/versions/latest`}),IntegrationValidationError);
   const created=await integrations.createWarehouseProviderConnection(auth,{providerCode:'test_wms',displayName:'Test WMS',accountRef,credentialsSecretRef:secretRef});
   assert.equal(created.provider_code,'TEST_WMS');
   assert.equal(created.connection_status,'PENDING_REVIEW');
