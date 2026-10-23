@@ -12,6 +12,7 @@ import { portalUrlFor } from '../_lib/portal-routing';
 import { ArchitectureOverview } from './architecture-overview';
 import { ADMIN_MODULES } from './business-module-registry';
 import { AdminModuleDirectory } from './admin-module-directory';
+import { P0OperationsCenter } from './p0-operations-center';
 
 const AREAS = ADMIN_MODULES;
 
@@ -574,7 +575,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
           {screen.id === 'workbench' ? (
             <>
-              <LiveWorkbench />
+              <P0OperationsCenter />
+              <details className="av-card av-design-archive"><summary>其他业务数据概览（原有看板）</summary><LiveWorkbench /></details>
               <AdminModuleDirectory />
               <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
             </>
