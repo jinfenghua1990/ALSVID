@@ -107,6 +107,8 @@ test('embedded ecommerce sections inherit the Admin theme and use one consistent
   const publication = read('../product/catalog-publication-panel.module.css');
   const homepage = read('../product/homepage-product-binding-panel.module.css');
   const commerce = read('../commerce/commerce.module.css');
+  const publicationPanel = read('../product/catalog-publication-panel.tsx');
+  const homepagePanel = read('../product/homepage-product-binding-panel.tsx');
   assert.match(styles, /\.av \.av-commerce-workspace\s*\{[\s\S]*?--alsvid-panel:\s*var\(--av-panel\)/);
   assert.match(styles, /--alsvid-text:\s*var\(--av-text\)/);
   assert.match(styles, /--alsvid-input:\s*var\(--av-panel\)/);
@@ -118,6 +120,11 @@ test('embedded ecommerce sections inherit the Admin theme and use one consistent
   assert.match(publication, /margin:22px 0/);
   assert.match(homepage, /margin:24px 0/);
   assert.match(commerce, /margin:24px 0/);
+  assert.match(publicationPanel, /符合基础筛选/);
+  assert.match(publicationPanel, /models\.length/);
+  assert.match(publicationPanel, /检查产品型号与类型/);
+  assert.match(homepagePanel, /检查型号状态与产品类型/);
+  assert.match(homepagePanel, /前往产品研发检查型号/);
   // Legacy component margins remain reusable outside Admin; the Admin shell
   // deliberately overrides them with its stronger scoped selectors.
 });
