@@ -170,6 +170,8 @@ try {
         });
         const checkoutResponse=await shopping.goto(base+'/'+locale+'/checkout',{waitUntil:'domcontentloaded'});
         assert.equal(checkoutResponse?.status(),200);
+        // Checkout summary appears after client cart hydration; do not race the first DOM snapshot.
+        await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').waitFor({state:'visible',timeout:15000});
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').count(),1,'No live payment is possible');
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] article').count(),1,'Order preview retains chosen selection');
         await shopping.goto(base+'/'+locale+'/explore/fc2',{waitUntil:'domcontentloaded'});
