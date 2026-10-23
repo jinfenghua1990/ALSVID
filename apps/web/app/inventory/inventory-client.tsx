@@ -205,11 +205,11 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
         {Object.keys(sourceErrors).length ? <div className={styles.notice} role="alert"><strong>部分库存数据源不可用：</strong> {Object.entries(sourceErrors).map(([key, error]) => inventorySourceLabels[key as InventorySource] + '：' + error).join('；')}。其他来源仍可使用；失败来源的已有记录如被保留，仅代表最近一次成功读取。 <button type="button" className={styles.retry} onClick={() => { void reload(); }}>重试读取</button></div> : null}
 
         <div className={styles.metrics}>
-          <div><span>仓库</span><b>{sourceStatus.warehouse === 'error' || sourceErrors.warehouse ? '—' : metrics.warehouses}</b></div>
-          <div><span>库位</span><b>{sourceStatus.warehouse === 'error' || sourceErrors.warehouse ? '—' : metrics.locations}</b></div>
-          <div><span>库存位置</span><b>{sourceStatus.inventory === 'error' || sourceErrors.inventory ? '—' : metrics.stockPositions}</b></div>
-          <div><span>有效预留</span><b>{sourceStatus.inventory === 'error' || sourceErrors.inventory ? '—' : metrics.activeReservations}</b></div>
-          <div><span>进行中盘点</span><b>{sourceStatus.warehouse === 'error' || sourceErrors.warehouse ? '—' : metrics.openStocktakes}</b></div>
+          <div><span>仓库</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.warehouses}</b></div>
+          <div><span>库位</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.locations}</b></div>
+          <div><span>库存位置</span><b>{sourceStatus.inventory !== 'ready' || sourceErrors.inventory ? '—' : metrics.stockPositions}</b></div>
+          <div><span>有效预留</span><b>{sourceStatus.inventory !== 'ready' || sourceErrors.inventory ? '—' : metrics.activeReservations}</b></div>
+          <div><span>进行中盘点</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.openStocktakes}</b></div>
         </div>
 
         <section className={styles.panel} id="warehouse-provider" aria-labelledby="warehouse-provider-title">
