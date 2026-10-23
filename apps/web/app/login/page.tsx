@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
   const openOnLoad = portal === 'dealer' && firstValue(params.open) === '1';
   const session = await readPortalSession(portal);
   const portalAuthenticated = Boolean(session && canAccessPortal(portal, session));
-  if (portalAuthenticated && !session?.passwordSetupRequired) redirect(redirectTo);
+  if (portalAuthenticated && !session?.passwordSetupRequired && !resetToken) redirect(redirectTo);
 
   const queryLocale = firstValue(params.locale);
   const requestedLocale = requestHeaders.get('x-alsvid-locale');
