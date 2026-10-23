@@ -131,7 +131,7 @@ export function validateWarehouseProviderAdapter(adapter: WarehouseProviderAdapt
     throw new Error(`Provider ${adapter.providerCode} declares duplicate capabilities`);
   }
   for (const capability of uniqueCapabilities) {
-    if (!(capability in capabilityMethod)) {
+    if (!Object.hasOwn(capabilityMethod, capability)) {
       throw new Error(`Provider ${adapter.providerCode} declares an unknown capability: ${String(capability)}`);
     }
     const method = capabilityMethod[capability];
