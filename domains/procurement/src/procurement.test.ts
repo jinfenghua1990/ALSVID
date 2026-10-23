@@ -27,7 +27,7 @@ test('receipt ownership and over-quantity database failures become validation er
     {
       kind: 'FACTORY_COMMITMENT' as const,
       databaseMessage: 'Factory commitment quantity exceeds ordered quantity',
-      expectedMessage: 'Factory commitment exceeds the remaining ordered quantity for this line',
+      expectedMessage: 'Factory commitment quantity exceeds the remaining ordered quantity for this line',
     },
   ];
 
