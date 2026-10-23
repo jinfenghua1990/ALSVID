@@ -19,4 +19,9 @@ export class IntegrationsController{
   async warehouseProviderSummary(@Req() request:AuthenticatedRequest){try{return{data:await integrationService.warehouseProviderSummary(requireAuth(request))};}catch(error){return throwHttpDomainError(error);}}
   @Post('warehouse-providers')
   async createWarehouseProvider(@Req() request:AuthenticatedRequest,@Body() input:{providerCode:string;displayName:string;accountRef:string;credentialsSecretRef?:string}){try{return{data:await integrationService.createWarehouseProviderConnection(requireAuth(request),input)};}catch(error){return throwHttpDomainError(error);}}
+
+  @Post('warehouse-providers/:connectionId/warehouse-mappings')
+  async createWarehouseMapping(@Req() request:AuthenticatedRequest,@Param('connectionId') connectionId:string,@Body() input:{internalWarehouseId:string;externalWarehouseId:string;externalCode:string;externalName:string}){try{return{data:await integrationService.createExternalWarehouseMapping(requireAuth(request),connectionId,input)};}catch(error){return throwHttpDomainError(error);}}
+  @Post('warehouse-providers/:connectionId/sku-mappings')
+  async createSkuMapping(@Req() request:AuthenticatedRequest,@Param('connectionId') connectionId:string,@Body() input:{internalSkuId:string;externalSku:string;externalItemId:string}){try{return{data:await integrationService.createExternalSkuMapping(requireAuth(request),connectionId,input)};}catch(error){return throwHttpDomainError(error);}}
 }
