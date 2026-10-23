@@ -2,6 +2,7 @@ import { AppShell } from '@alsvid/ui';
 import { requireInternalPreviewSession } from '../../_lib/portal-access';
 import { PortalSectionPage } from '../../_components/portal-section-page';
 import { navigationFor } from '../../app-navigation';
+import IntegrationsAdminClient from './integrations-admin-client';
 
 const cards = [
   { eyebrow: 'Commerce', title: 'Shopify / Amazon', description: '查看外部销售渠道的适配器状态与业务边界，密钥不在页面展示。' },
@@ -11,5 +12,5 @@ const cards = [
 
 export default async function IntegrationsPage() {
   await requireInternalPreviewSession();
-  return <AppShell navigation={navigationFor('/settings/integrations')} footer="ALSVID · 系统设置"><PortalSectionPage eyebrow="SYSTEM / INTEGRATIONS" title="集成" description="ALSVID 通过适配器连接专业外部系统，同时保持领域逻辑与 Provider 解耦。页面只展示非敏感状态，不保存或回显密钥。" cards={cards} notice="没有真实连接时明确保持未配置状态。" /></AppShell>;
+  return <AppShell navigation={navigationFor('/settings/integrations')} footer="ALSVID · 系统设置"><><PortalSectionPage eyebrow="SYSTEM / INTEGRATIONS" title="集成" description="ALSVID 通过适配器连接专业外部系统，同时保持领域逻辑与 Provider 解耦。页面只展示非敏感状态，不保存或回显密钥。" cards={cards} notice="没有真实连接时明确保持未配置状态。" /><IntegrationsAdminClient /></></AppShell>;
 }
