@@ -151,7 +151,7 @@ export default function IntegrationsAdminClient() {
         <label>服务商名称<input required minLength={2} maxLength={120} value={form.displayName} onChange={e => setForm({ ...form, displayName: e.target.value })} placeholder="仓储服务商名称" /></label>
         <label>服务商账号引用<input required maxLength={255} value={form.accountRef} onChange={e => setForm({ ...form, accountRef: e.target.value })} placeholder="仓商提供的商户 ID / 账号编号" /></label>
         <label className={styles.wide}>Secret Manager 资源路径（可稍后补齐）
-          <input value={form.credentialsSecretRef} onChange={e => setForm({ ...form, credentialsSecretRef: e.target.value })} placeholder="projects/项目ID/secrets/密钥名/versions/latest" autoComplete="off" />
+          <input value={form.credentialsSecretRef} onChange={e => setForm({ ...form, credentialsSecretRef: e.target.value })} placeholder="projects/项目ID/secrets/alsvid-wms-名称/versions/latest" autoComplete="off" />
         </label>
         <p className={styles.formNote}>保存后状态最多为“待验证”。当前尚未实现真实仓商适配器、Secret Manager 读取与连接探测，因此不会触发同步或订单履约。</p>
         <div className={styles.formActions}><button type="submit" disabled={saving || loading}>{saving ? '保存中…' : '保存配置记录'}</button></div>
