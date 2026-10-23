@@ -63,7 +63,11 @@ export function HomepageProductBindingPanel({models,loadError}:{models:readonly 
       busy={saving===slot.slot_code} save={save}/>;
    })}
   </div>
-  {!loading&&!error&&!slots.length?<p>没有已配置的首页展示位置。请核对数据库迁移和接口权限，不会自动创建虚构绑定。</p>:null}
+  {!loading&&!error&&!slots.length?<div className={styles.emptyState}>
+   <strong>接口暂未返回首页展示位置</strong>
+   <p>未创建虚构绑定。请先核对首页绑定配置、数据库迁移与当前账号权限。</p>
+   <a href="/admin/product#model-register" className={styles.inlineLink}>前往产品研发检查型号 →</a>
+  </div>:null}
   <p className={styles.footnote}>当前仅绑定产品主 ID。官网已有 FC1/FC2 图片、文案和详情路径保持不变；正式商品发布、实际售价、库存和支付仍须独立审核。</p>
  </section>;
 }
@@ -80,6 +84,7 @@ function SlotEditor({slot,candidates,disabled,busy,save}:{
   <small>目标型号：{slot.target_model_code}</small>
   <div className={styles.fact}>当前状态：{slot.resolved_model_id?'已关联':'尚未找到可关联的有效商品'}</div>
   <div className={styles.identifier}>Model ID：{slot.resolved_model_id??'—'}</div>
+  {!candidates.length?<a href="/admin/product#model-register" className={styles.inlineLink}>检查型号状态与产品类型 →</a>:null}
   <label>绑定方式
    <select value={mode} disabled={disabled} onChange={e=>setMode(e.target.value as Slot['mode'])}>
     <option value="AUTO">自动（推荐）</option><option value="MANUAL">手动指定</option>

@@ -991,3 +991,89 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
  .av-commerce-roadmap-grid{grid-template-columns:minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){.av-commerce-workspace{scroll-behavior:auto}}
+
+
+/* Ecommerce Admin embeds older domain panels inside the newer .av shell.
+   Bridge the legacy tokens to the current shell tokens so the page remains
+   consistent when the site-wide light/dark preference changes. */
+.av .av-commerce-workspace {
+  --alsvid-bg: var(--av-bg);
+  --alsvid-bg-soft: var(--av-panel-soft);
+  --alsvid-panel: var(--av-panel);
+  --alsvid-panel-2: var(--av-panel-soft);
+  --alsvid-text: var(--av-text);
+  --alsvid-text-2: var(--av-text-soft);
+  --alsvid-muted: var(--av-muted);
+  --alsvid-line: var(--av-line);
+  --alsvid-line-strong: var(--av-line);
+  --alsvid-accent: var(--av-brand);
+  --alsvid-accent-soft: var(--av-brand-soft);
+  --alsvid-success: var(--av-good);
+  --alsvid-warning: var(--av-warn);
+  --alsvid-danger: var(--av-bad);
+  --alsvid-shadow: var(--av-shadow);
+  --alsvid-input: var(--av-panel);
+  --alsvid-header: var(--av-panel);
+  --alsvid-rail: var(--av-panel);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.av .av-commerce-workspace > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.av .av-commerce-workspace > section {
+  margin: 0;
+}
+
+.av .av-commerce-workspace > #homepage > section,
+.av .av-commerce-workspace > #publications > section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.av .av-commerce-workspace > #commerce-overview {
+  margin: 0;
+}
+
+.av .av-commerce-workspace #inventory .av-cardhead {
+  flex-wrap: wrap;
+}
+
+.av .av-commerce-workspace #inventory .av-cardhead > div:first-child {
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+.av .av-commerce-workspace #inventory .av-cardhead > div:last-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.av .av-commerce-workspace #inventory .av-cardhead > div:last-child .av-btn {
+  white-space: nowrap;
+}
+
+.av .av-commerce-nav {
+  top: 64px;
+}
+
+@media (max-width: 720px) {
+  .av .av-commerce-nav {
+    top: 60px;
+  }
+
+  .av .av-commerce-workspace {
+    gap: 12px;
+  }
+}
