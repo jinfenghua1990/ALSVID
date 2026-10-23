@@ -117,6 +117,7 @@ try {
 
   const resetContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const resetPage = await resetContext.newPage();
+  const deCopy = JSON.parse(readFileSync('apps/web/app/_lib/i18n/auth/de.json', 'utf8'));
   let resetConfirmCalls = 0;
   await resetPage.route('**/api/session/password-reset/confirm', async route => {
     const body = route.request().postDataJSON();
