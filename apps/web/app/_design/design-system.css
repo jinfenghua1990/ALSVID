@@ -931,3 +931,23 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-commerce-stock-table td span{margin-top:4px;color:var(--av-text-soft);font-size:11px}
 .av-commerce-stock-table tbody tr:hover{background:var(--av-line-soft)}
 @media(max-width:720px){.av-commerce-stock-table{min-width:660px}}
+
+
+/* The Admin module directory is a navigation and progress tracker, never sample business data. */
+.av-module-directory{max-width:1760px;margin:28px auto 26px}
+.av-module-directory-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:0 0 16px}
+.av-module-directory-head h2{font-size:20px;font-weight:720;letter-spacing:-.025em;margin:5px 0 7px;color:var(--av-text)}
+.av-module-directory-head p:not(.av-eyebrow){max-width:800px;line-height:1.7;margin:0;color:var(--av-text-soft);font-size:12px}
+.av-module-directory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.av-module-directory-card{min-height:166px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-card);padding:17px;color:var(--av-text);text-decoration:none;display:flex;flex-direction:column;gap:10px;transition:border-color .2s,box-shadow .2s}
+.av-module-directory-card:hover,.av-module-directory-card:focus-visible{border-color:var(--av-brand);box-shadow:0 6px 22px rgba(45,70,95,.08)}
+.av-module-directory-card-head{display:flex;align-items:start;justify-content:space-between;gap:7px;flex-wrap:wrap}
+.av-module-directory-card-head strong{font-size:14px;font-weight:700}
+.av-module-directory-card-head span{font-size:10px;color:var(--av-text-soft);border:1px solid var(--av-line);border-radius:30px;padding:3px 7px}
+.av-module-directory-card-head span[data-stage="core"]{color:var(--av-brand)}
+.av-module-directory-card p{font-size:11px;line-height:1.6;color:var(--av-text-soft);margin:0;flex:1}
+.av-module-directory-card small{font-size:10px;line-height:1.6;color:var(--av-text-soft)}
+@media(max-width:1300px){.av-module-directory-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:950px){.av-module-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.av-module-directory-head{align-items:start;flex-direction:column}.av-module-directory-grid{grid-template-columns:1fr}.av-module-directory-card{min-height:0}}
+@media(prefers-reduced-motion:reduce){.av-module-directory-card{transition:none}}
