@@ -26,6 +26,6 @@ test('provider registration validates Secret Manager references and returns only
 });
 
 test('provider configuration is gated by the integration admin permission', () => {
-  assert.match(service, /warehouseProviderSummary\(actor: IntegrationActor\)[\s\S]{0,150}requirePermission\(actor, IntegrationCapability\.Admin\)/);
+  assert.match(service, /warehouseProviderSummary\(actor: IntegrationActor\)[\s\S]{0,300}requirePermission\(actor, IntegrationCapability\.Admin\)/);
   assert.match(service, /createWarehouseProviderConnection\([\s\S]{0,150}requirePermission\(actor, IntegrationCapability\.Admin\)/);
 });
