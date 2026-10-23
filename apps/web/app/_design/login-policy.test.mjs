@@ -32,6 +32,12 @@ test('Admin, Dealer and Supplier password login are enabled independently at eve
     assert.match(deploy, new RegExp(flag + '=true'));
     assert.match(wwwDeploy, new RegExp(flag + '=true'));
   }
+  for (const workflow of [deploy, wwwDeploy]) {
+    assert.ok(workflow.includes('/zh/login?portal=admin'));
+    assert.match(workflow, /邮箱验证码/);
+    assert.match(workflow, /账户密码/);
+    assert.match(workflow, /name="password"/);
+  }
 });
 
 test('forgot password uses the existing reset API and carries portal and locale safely', () => {
