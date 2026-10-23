@@ -31,9 +31,10 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '分析与统计', items: ['FC1 颜色偏好', '跨模块经营指标（待接入）'] },
   ],
   '电商': [
-    { group: '商城商品运营', items: ['官网商品发布', '首页商品绑定'] },
-    { group: '库存与交易', items: ['电商库存', '商城售价与 B2C 订单'] },
-    { group: '规划功能', items: ['营销活动（待接入）', '支付配置（待接入）'] },
+    { group: '电商工作台', items: ['电商工作台'] },
+    { group: '商品管理', items: ['官网商品发布与审核', '首页商品绑定'] },
+    { group: '库存与交易', items: ['电商库存查询', '商城价格管理', 'B2C 订单管理'] },
+    { group: '后续能力', items: ['营销活动（待接入）', '支付配置（待接入）'] },
   ],
   '财务': [
     { group: '财务工作区', items: ['应收 / 应付与资金', '到岸成本与汇率'] },
@@ -67,10 +68,15 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
 
 function menuDestination(screen: Screen, label: string): string | undefined {
   const operational: Record<string, string> = {
-    '官网商品发布': '/admin/ecommerce#publications',
-    '首页商品绑定': '/admin/ecommerce#homepage',
-    '商城售价与 B2C 订单': '/admin/ecommerce#b2c',
-    '电商库存': '/admin/ecommerce#inventory',
+    '电商工作台': '/admin/ecommerce',
+    '官网商品发布': '/admin/ecommerce/publications',
+    '官网商品发布与审核': '/admin/ecommerce/publications',
+    '首页商品绑定': '/admin/ecommerce/homepage',
+    '商城售价与 B2C 订单': '/admin/ecommerce/orders',
+    '商城价格管理': '/admin/ecommerce/pricing',
+    'B2C 订单管理': '/admin/ecommerce/orders',
+    '电商库存': '/admin/ecommerce/inventory',
+    '电商库存查询': '/admin/ecommerce/inventory',
     'FC1 颜色偏好': '/admin/analytics/color-interest',
     '应收 / 应付与资金': '/admin/finance',
     '到岸成本与汇率': '/admin/finance',
@@ -464,7 +470,11 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
       ? [...(screen.secondary ?? []), { group: '架构与知识', items: ['系统架构'] }]
       : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
-  const isIntegratedOverview = Boolean(screen.sourceNode && screen.route.split('/').length === 3 && hasIntegratedOperations(screen.area));
+  const isIntegratedOverview = Boolean(screen.sourceNode && hasIntegratedOperations(screen.area) && (
+    screen.route.split('/').length === 3 ||
+    (screen.area === '电商' && screen.route.startsWith('/admin/ecommerce/'))
+  ));
+  const isEcommerceWorkspace = screen.area === '电商' && isIntegratedOverview;
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
 
   return (
@@ -516,7 +526,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         </div>
       </header>
 
-      <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}${isLiveProductRoot ? ' av-body--product' : ''}`}>
+      <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}${isLiveProductRoot ? ' av-body--product' : ''}${isEcommerceWorkspace ? ' av-body--ecommerce' : ''}`}>
         {hasSecondaryNavigation ? (
           <aside className="av-rail" aria-label="二级导航">
             {secondaryNavigation.map((group) => (
@@ -527,6 +537,8 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                     {menuDestination(screen, item) ? <a
                       className="av-railitem"
                       href={menuDestination(screen, item)}
+                      data-active={menuDestination(screen, item) === screen.route}
+                      aria-current={menuDestination(screen, item) === screen.route ? 'page' : undefined}
                     >
                       {item}
                     </a> : <span className="av-railitem" aria-disabled="true" title="该业务入口尚未单独实现">{item}</span>}
@@ -544,7 +556,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
 
         <main className="av-workspace">
           {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{isIntegratedOverview || isVehicleDetail ? '真实业务操作已接入已有领域 API；下方保留独立设计示例供对照。' : '界面示例 · 业务数据与审批、库存、发货等服务尚未接入'}</p>}
-          {!isLiveProductRoot && <div className="av-pagehead">
+          {!isLiveProductRoot && !isEcommerceWorkspace && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
@@ -591,7 +603,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </details>
             </>
           ) : isIntegratedOverview ? (
-            <IntegratedOperations area={screen.area} />
+            <IntegratedOperations area={screen.area} route={screen.route} />
           ) : (
             <>
               {screen.sourceNode && screen.route.split('/').length === 3
