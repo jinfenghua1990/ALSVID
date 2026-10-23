@@ -10,6 +10,7 @@ type OrderReadiness={
 };
 type Review={id:string;externalOrderId:string;clientRequestId:string;requestedAmount:string;
  currency:string;reason:string;state:'REVIEW_REQUESTED';requestedAt:string};
+type OrderSource='readiness'|'refundReviews';
 async function read<T>(path:string,body?:unknown):Promise<T>{
  const res=await fetch('/api/control/v1/commerce/operations/'+path,{
   cache:'no-store',method:body===undefined?'GET':'POST',
@@ -26,24 +27,36 @@ export function OrderOperationsPanel(){
  const [busy,setBusy]=useState(false);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
+ const [sourceErrors,setSourceErrors]=useState<Partial<Record<OrderSource,string>>>({});
  const [notice,setNotice]=useState('');
  const [selected,setSelected]=useState('');
  const [amount,setAmount]=useState('');
  const [reason,setReason]=useState('');
  const key=useRef<{fingerprint:string;id:string}|null>(null);
- async function refresh(){
-  const [o,r]=await Promise.all([read<OrderReadiness[]>('readiness'),read<Review[]>('refund-reviews')]);
-  setOrders(o);setReviews(r);setSelected(prev=>o.some(x=>x.orderId===prev)?prev:(o[0]?.orderId??''));
+ function sourceReady(source:OrderSource){
+  setSourceErrors(current=>{const next={...current};delete next[source];return next});
+ }
+ function sourceFailed(source:OrderSource,error:unknown,fallback:string){
+  setSourceErrors(current=>({...current,[source]:error instanceof Error&&error.message?error.message:fallback}));
+ }
+ async function refresh(isActive:()=>boolean=()=>true){
+  const [orderResult,reviewResult]=await Promise.allSettled([
+   read<OrderReadiness[]>('readiness'),read<Review[]>('refund-reviews')
+  ]);
+  if(!isActive())return;
+  if(orderResult.status==='fulfilled'&&Array.isArray(orderResult.value)){
+   setOrders(orderResult.value);
+   setSelected(prev=>orderResult.value.some(x=>x.orderId===prev)?prev:(orderResult.value[0]?.orderId??''));
+   sourceReady('readiness');
+  }else sourceFailed('readiness',orderResult.status==='rejected'?orderResult.reason:new Error('订单核验接口返回的数据格式异常'),'订单核验数据暂不可用');
+  if(reviewResult.status==='fulfilled'&&Array.isArray(reviewResult.value)){
+   setReviews(reviewResult.value);
+   sourceReady('refundReviews');
+  }else sourceFailed('refundReviews',reviewResult.status==='rejected'?reviewResult.reason:new Error('退款审核接口返回的数据格式异常'),'退款审核记录暂不可用');
  }
  useEffect(()=>{
   let active=true;
-  async function load(){
-   try{const [o,r]=await Promise.all([read<OrderReadiness[]>('readiness'),read<Review[]>('refund-reviews')]);
-    if(active){setOrders(o);setReviews(r);setSelected(o[0]?.orderId??'');}
-   }catch(e){if(active)setError(e instanceof Error?e.message:'无法读取交易核验记录');}
-   finally{if(active)setLoading(false);}
-  }
-  void load();
+  void refresh(()=>active).finally(()=>{if(active)setLoading(false)});
   return ()=>{active=false};
  },[]);
  const order=orders.find(x=>x.orderId===selected);
@@ -72,6 +85,7 @@ export function OrderOperationsPanel(){
   <p className={styles.opsHelp}>本区只针对历史外部渠道订单。渠道返回“PAID”只是外部报告值，不是 ALSVID 对支付机构的独立核验；无论渠道报告什么，当前都不能自动生产、确认到账或执行退款。官网自建结账仍未开放。</p>
   {loading?<p role="status">正在读取真实订单核验状态…</p>:null}
   {error?<p className={styles.notice} role="alert">{error}</p>:null}
+  {Object.keys(sourceErrors).length?<p className={styles.notice} role="alert">部分订单操作数据源不可用：{Object.entries(sourceErrors).map(([key,value])=>(key==='readiness'?'订单核验':'退款审核记录')+'：'+value).join('；')}。未成功来源不按空数据处理；已显示记录可能是上次成功读取的结果。 <button type="button" className={styles.ghostButton} onClick={()=>{void refresh()}} disabled={busy}>重试读取</button></p>:null}
   {notice?<p className={styles.notice} role="status">{notice}</p>:null}
   <div className={styles.opsGrid}>
    <div className={styles.opsList}>
@@ -82,7 +96,7 @@ export function OrderOperationsPanel(){
      <small>订单商品 {o.lineCount} 行 · 未映射 {o.unmappedLines} 行</small>
      <p>不可自动生产：{o.blockers.join('；')}</p>
     </article>)}
-    {!loading&&!orders.length?<p className={styles.opsHelp}>当前没有可读取的历史外部订单。自建官网下单功能仍是预览，并不会在此伪造订单。</p>:null}
+    {!loading&&!orders.length?<p className={styles.opsHelp}>{sourceErrors.readiness?'订单核验数据不可用，无法确认当前是否有历史外部订单。':'当前没有可读取的历史外部订单。自建官网下单功能仍是预览，并不会在此伪造订单。'}</p>:null}
    </div>
    <div className={styles.opsFormCol}>
     <h3>申请人工退款审核</h3>
@@ -109,7 +123,7 @@ export function OrderOperationsPanel(){
      <strong>{r.requestedAmount} {r.currency} · 待人工审核</strong>
      <small>{new Date(r.requestedAt).toLocaleString('zh-CN')} · {r.externalOrderId}</small>
     </div>)}
-    {!reviews.length?<p className={styles.opsHelp}>暂无审核申请。</p>:null}
+    {!reviews.length?<p className={styles.opsHelp}>{sourceErrors.refundReviews?'退款审核记录不可用，无法确认当前是否有审核申请。':'暂无审核申请。'}</p>:null}
    </div>
   </div>
  </section>;
