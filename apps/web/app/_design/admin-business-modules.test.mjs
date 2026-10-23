@@ -100,3 +100,24 @@ test('ecommerce workspace exposes direct section navigation and labels unfinishe
   assert.match(styles, /@media\(max-width:720px\)/);
   assert.doesNotMatch(workspace, /fake|mock KPI|模拟订单数量/i);
 });
+
+
+test('embedded ecommerce sections inherit the Admin theme and use one consistent responsive spacing rhythm', () => {
+  const styles = read('./design-system.css');
+  const publication = read('../product/catalog-publication-panel.module.css');
+  const homepage = read('../product/homepage-product-binding-panel.module.css');
+  const commerce = read('../commerce/commerce.module.css');
+  assert.match(styles, /\.av \.av-commerce-workspace\s*\{[\s\S]*?--alsvid-panel:\s*var\(--av-panel\)/);
+  assert.match(styles, /--alsvid-text:\s*var\(--av-text\)/);
+  assert.match(styles, /--alsvid-input:\s*var\(--av-panel\)/);
+  assert.match(styles, /\.av \.av-commerce-workspace > section\s*\{\s*margin:\s*0/);
+  assert.match(styles, /#homepage > section,[\s\S]*?#publications > section\s*\{[\s\S]*?margin:\s*0/);
+  assert.match(styles, /#inventory \.av-cardhead\s*\{\s*flex-wrap:\s*wrap/);
+  assert.match(styles, /\.av \.av-commerce-nav\s*\{\s*top:\s*64px/);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*?\.av \.av-commerce-workspace\s*\{\s*gap:\s*12px/);
+  assert.match(publication, /margin:22px 0/);
+  assert.match(homepage, /margin:24px 0/);
+  assert.match(commerce, /margin:24px 0/);
+  // Legacy component margins remain reusable outside Admin; the Admin shell
+  // deliberately overrides them with its stronger scoped selectors.
+});
