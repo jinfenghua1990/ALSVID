@@ -3,8 +3,8 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
 const ui = readFileSync(new URL('../settings/integrations/integrations-admin-client.tsx', import.meta.url), 'utf8');
-const service = readFileSync(new URL('../../../domains/integrations/src/application/integration-service.ts', import.meta.url), 'utf8');
-const repository = readFileSync(new URL('../../../domains/integrations/src/infrastructure/postgres-integration-repository.ts', import.meta.url), 'utf8');
+const service = readFileSync(new URL('../../../../domains/integrations/src/application/integration-service.ts', import.meta.url), 'utf8');
+const repository = readFileSync(new URL('../../../../domains/integrations/src/infrastructure/postgres-integration-repository.ts', import.meta.url), 'utf8');
 
 test('warehouse integration UI reports persisted states and never renders the Secret Manager resource path', () => {
   assert.match(ui, /\/v1\/integrations\/warehouse-providers/);
