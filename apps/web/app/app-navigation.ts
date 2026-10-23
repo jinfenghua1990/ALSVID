@@ -1,6 +1,6 @@
 import type { AppNavItem } from '@alsvid/ui';
 
-export const appNavigation: readonly AppNavItem[] = [
+const configuredNavigation = [
   { label: '工作台', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '今日概览', href: '/admin#overview', area: '工作台', section: '运营概览' },
   { label: '待办与异常', href: '/admin#attention', area: '工作台', section: '运营概览' },
@@ -80,6 +80,16 @@ export const appNavigation: readonly AppNavItem[] = [
   { label: '系统集成', href: '/settings/integrations', area: '设置', section: '系统与集成', status: '骨架' },
   { label: '环境与基础设施', href: '/settings/environment', area: '设置', section: '系统与集成' },
 ] as const;
+
+/**
+ * Never route users into a placeholder as if it were a working feature.
+ * Keep the planned entry visible, but disable it until its real workflow is delivered.
+ */
+export const appNavigation: readonly AppNavItem[] = configuredNavigation.map((item) =>
+  item.status === '骨架'
+    ? { ...item, disabled: true, status: '建设中' }
+    : item,
+);
 
 export function navigationFor(activeHref: string): readonly AppNavItem[] {
   let activeIndex = -1;
