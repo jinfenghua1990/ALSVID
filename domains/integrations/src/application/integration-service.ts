@@ -1,6 +1,6 @@
 import { postgresErrorCode, type QueryExecutor } from '@alsvid/database';
 import { ForbiddenError } from '@alsvid/kernel';
-import { IntegrationCapability, type ShopifyDeliveryInput } from '../core/model.js';
+import { IntegrationCapability, type CreateWarehouseProviderConnectionInput, type ShopifyDeliveryInput } from '../core/model.js';
 import {
   IntegrationConflictError,
   IntegrationNotFoundError,
@@ -42,6 +42,57 @@ export class IntegrationService {
   async summary(actor: IntegrationActor): Promise<any> {
     requirePermission(actor, 'commerce.read');
     return this.repository.summary();
+  }
+
+  async warehouseProviderSummary(actor: IntegrationActor): Promise<any> {
+    requirePermission(actor, IntegrationCapability.Admin);
+    return this.repository.warehouseProviderSummary();
+  }
+
+  async createWarehouseProviderConnection(
+    actor: IntegrationActor,
+    input: CreateWarehouseProviderConnectionInput,
+  ): Promise<any> {
+    requirePermission(actor, IntegrationCapability.Admin);
+    const providerCode = integrationRequired(input.providerCode, 'providerCode').toUpperCase();
+    const displayName = integrationRequired(input.displayName, 'displayName');
+    const accountRef = integrationRequired(input.accountRef, 'accountRef');
+    const credentialsSecretRef = integrationText(input.credentialsSecretRef) ?? undefined;
+
+    if (!/^[A-Z0-9][A-Z0-9._-]{1,63}$/.test(providerCode)) {
+      throw new IntegrationValidationError('providerCode must be 2-64 uppercase letters, numbers, dots, underscores or hyphens');
+    }
+    if (displayName.length < 2 || displayName.length > 120) {
+      throw new IntegrationValidationError('displayName must be between 2 and 120 characters');
+    }
+    if (accountRef.length > 255) {
+      throw new IntegrationValidationError('accountRef must be at most 255 characters');
+    }
+    if (credentialsSecretRef && !/^projects\/[a-z][a-z0-9-]{4,28}[a-z0-9]\/secrets\/alsvid-wms-[A-Za-z0-9_-]{1,240}\/versions\/(latest|[1-9][0-9]*)$/.test(credentialsSecretRef)) {
+      throw new IntegrationValidationError('credentialsSecretRef must be a Google Secret Manager resource path, not a secret value');
+    }
+
+    const connectionStatus = credentialsSecretRef ? 'PENDING_REVIEW' : 'NOT_CONFIGURED';
+    try {
+      const row = await this.repository.createWarehouseProviderConnection({
+        providerCode,
+        displayName,
+        accountRef,
+        ...(credentialsSecretRef ? { credentialsSecretRef } : {}),
+        connectionStatus,
+        actorUserId: actor.userId,
+      });
+      await this.audit.record({
+        actorUserId: actor.userId,
+        action: 'integration.warehouse_provider_created',
+        targetType: 'integration.warehouse_provider_connection',
+        targetId: row.id,
+        metadata: { providerCode, accountRef, connectionStatus, credentialsConfigured: Boolean(credentialsSecretRef) },
+      });
+      return row;
+    } catch (error) {
+      this.rethrow(error);
+    }
   }
 
   async ingestShopify(

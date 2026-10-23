@@ -77,7 +77,7 @@ const configuredNavigation: readonly AppNavItem[] = [
   { label: '安全与登录', href: '/settings/security', area: '设置', section: '安全与审计', status: '骨架' },
   { label: '审计日志', href: '/settings/audit', area: '设置', section: '安全与审计', status: '骨架' },
   { label: '通信与邮件', href: '/settings/communications', area: '设置', section: '系统与集成', status: '骨架' },
-  { label: '系统集成', href: '/settings/integrations', area: '设置', section: '系统与集成', status: '骨架' },
+  { label: '系统集成', href: '/settings/integrations', area: '设置', section: '系统与集成' },
   { label: '环境与基础设施', href: '/settings/environment', area: '设置', section: '系统与集成' },
 ];
 
