@@ -102,7 +102,7 @@ export function P0OperationsCenter() {
         const missing = sourceResults.some(result => result?.state === 'unauthorized' || result?.state === 'unavailable');
         return <button key={area.key} type="button" className={styles.module} data-active={active === area.key}
           aria-pressed={active === area.key} onClick={() => setActive(area.key)}>
-          <span className={styles.moduleTop}><strong>{area.title}</strong><span className={styles.chevron} aria-hidden="true">↗</span></span>
+          <span className={styles.moduleTop}><strong>{area.title}</strong><span className={styles.chevron} aria-hidden="true">→</span></span>
           <span className={styles.moduleDescription}>{area.description}</span>
           <span className={styles.moduleStatus} data-tone={missing ? 'error' : ready === area.sourceKeys.length ? 'readable' : 'pending'}>
             {missing ? '部分数据不可用' : ready === area.sourceKeys.length ? '可读取 · 非业务验收' : '数据读取中'}
