@@ -21,9 +21,44 @@ type Receipt = { id: string; channel_id: string; channel_key: string; provider_e
 type Attempt = { id: string; receipt_id: string; provider_event_id: string; topic: string; outcome: string; message: string; attempt_number: number; occurred_at: string };
 type CommerceSummary = { channels: Channel[]; orders: Order[]; lines: Line[]; fulfillments: Fulfillment[]; exceptions: Exception[]; mappings: unknown[]; fulfillmentLines: unknown[]; exceptionEvents: unknown[] };
 type IntegrationSummary = { receipts: Receipt[]; attempts: Attempt[]; cursors: unknown[] };
+type CommerceSource = 'commerce' | 'integrations' | 'partners' | 'product' | 'logistics';
+type SourceStatus = 'loading' | 'ready' | 'error';
+const commerceSourceLabels: Record<CommerceSource, string> = { commerce: '订单与渠道', integrations: '渠道事件', partners: '合作伙伴', product: '商品 SKU', logistics: '物流发运' };
 
 const emptyCommerce: CommerceSummary = { channels: [], orders: [], lines: [], fulfillments: [], exceptions: [], mappings: [], fulfillmentLines: [], exceptionEvents: [] };
 const emptyIntegrations: IntegrationSummary = { receipts: [], attempts: [], cursors: [] };
+
+function normalizeCommerceSummary(value: unknown): CommerceSummary | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  if (!Array.isArray(row.channels) || !Array.isArray(row.orders) || !Array.isArray(row.lines) ||
+      !Array.isArray(row.fulfillments) || !Array.isArray(row.exceptions)) return null;
+  return {
+    channels: row.channels as Channel[],
+    orders: row.orders as Order[],
+    lines: row.lines as Line[],
+    fulfillments: row.fulfillments as Fulfillment[],
+    exceptions: row.exceptions as Exception[],
+    mappings: Array.isArray(row.mappings) ? row.mappings : [],
+    fulfillmentLines: Array.isArray(row.fulfillmentLines) ? row.fulfillmentLines : [],
+    exceptionEvents: Array.isArray(row.exceptionEvents) ? row.exceptionEvents : [],
+  };
+}
+
+function normalizeIntegrationSummary(value: unknown): IntegrationSummary | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  if (!Array.isArray(row.receipts) || !Array.isArray(row.attempts)) return null;
+  return {
+    receipts: row.receipts as Receipt[],
+    attempts: row.attempts as Attempt[],
+    cursors: Array.isArray(row.cursors) ? row.cursors : [],
+  };
+}
+
+function sourceErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
 
 function providerLabel(provider: Channel['provider'] | string) {
   if (provider === 'SHOPIFY') return 'Shopify';
@@ -50,6 +85,8 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
   const [selectedOrderId, setSelectedOrderId] = useState('');
   const [linkedOrderId, setLinkedOrderId] = useState<string|null>(null);
   const [message, setMessage] = useState('');
+  const [sourceStatus, setSourceStatus] = useState<Record<CommerceSource, SourceStatus>>({ commerce: 'loading', integrations: 'loading', partners: 'loading', product: 'loading', logistics: 'loading' });
+  const [sourceErrors, setSourceErrors] = useState<Partial<Record<CommerceSource, string>>>({});
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -59,25 +96,62 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       router.push('/login');
       throw new Error('登录状态已过期，请重新登录');
     }
-    const payload = await response.json();
+    const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.message ?? '请求失败');
+    if (!payload || typeof payload !== 'object' || !('data' in payload)) throw new Error('接口返回数据格式异常');
     return payload.data;
   }
 
+  function sourceReady(source: CommerceSource) {
+    setSourceStatus((current) => ({ ...current, [source]: 'ready' }));
+    setSourceErrors((current) => {
+      const next = { ...current };
+      delete next[source];
+      return next;
+    });
+  }
+
+  function sourceFailed(source: CommerceSource, error: unknown, fallback: string) {
+    setSourceStatus((current) => ({ ...current, [source]: current[source] === 'ready' ? 'ready' : 'error' }));
+    setSourceErrors((current) => ({ ...current, [source]: sourceErrorMessage(error, fallback) }));
+  }
+
   async function reload() {
-    try {
-      const [nextCommerce, nextIntegrations, nextPartners, product, logistics] = await Promise.all([
-        api('/v1/commerce'), api('/v1/integrations'), api('/v1/partners'), api('/v1/product/catalog'), api('/v1/logistics'),
-      ]);
-      setCommerce(nextCommerce);
-      setIntegrations(nextIntegrations);
-      setPartners(nextPartners);
-      setSkus(product.skus ?? []);
-      setShipments(logistics.shipments ?? []);
-      setSelectedOrderId((current) => current || queryRecordId('orderId') || nextCommerce.orders[0]?.id || '');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '无法加载电商渠道工作台');
-    }
+    const [commerceResult, integrationsResult, partnersResult, productResult, logisticsResult] = await Promise.allSettled([
+      api('/v1/commerce'), api('/v1/integrations'), api('/v1/partners'), api('/v1/product/catalog'), api('/v1/logistics'),
+    ]);
+
+    if (commerceResult.status === 'fulfilled') {
+      const nextCommerce = normalizeCommerceSummary(commerceResult.value);
+      if (nextCommerce) {
+        setCommerce(nextCommerce);
+        setSelectedOrderId((current) => current || queryRecordId('orderId') || nextCommerce.orders[0]?.id || '');
+        sourceReady('commerce');
+      } else sourceFailed('commerce', new Error('订单接口返回的数据格式异常'), '订单数据暂不可用');
+    } else sourceFailed('commerce', commerceResult.reason, '订单数据暂不可用');
+
+    if (integrationsResult.status === 'fulfilled') {
+      const nextIntegrations = normalizeIntegrationSummary(integrationsResult.value);
+      if (nextIntegrations) {
+        setIntegrations(nextIntegrations);
+        sourceReady('integrations');
+      } else sourceFailed('integrations', new Error('渠道事件接口返回的数据格式异常'), '渠道事件暂不可用');
+    } else sourceFailed('integrations', integrationsResult.reason, '渠道事件暂不可用');
+
+    if (partnersResult.status === 'fulfilled' && Array.isArray(partnersResult.value)) {
+      setPartners(partnersResult.value);
+      sourceReady('partners');
+    } else sourceFailed('partners', partnersResult.status === 'rejected' ? partnersResult.reason : new Error('合作伙伴接口返回的数据格式异常'), '合作伙伴暂不可用');
+
+    if (productResult.status === 'fulfilled' && productResult.value && Array.isArray(productResult.value.skus)) {
+      setSkus(productResult.value.skus);
+      sourceReady('product');
+    } else sourceFailed('product', productResult.status === 'rejected' ? productResult.reason : new Error('商品接口返回的数据格式异常'), '商品 SKU 暂不可用');
+
+    if (logisticsResult.status === 'fulfilled' && logisticsResult.value && Array.isArray(logisticsResult.value.shipments)) {
+      setShipments(logisticsResult.value.shipments);
+      sourceReady('logistics');
+    } else sourceFailed('logistics', logisticsResult.status === 'rejected' ? logisticsResult.reason : new Error('物流接口返回的数据格式异常'), '物流发运暂不可用');
   }
 
   useEffect(() => { setLinkedOrderId(queryRecordId('orderId')); void reload(); }, []);
@@ -209,6 +283,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       </header>
 
       {message ? <div className={styles.notice}>{message}</div> : null}
+      {Object.keys(sourceErrors).length ? <div className={styles.notice} role="alert"><strong>部分电商数据源不可用：</strong> {Object.entries(sourceErrors).map(([key, error]) => commerceSourceLabels[key as CommerceSource] + '：' + error).join('；')}。失败来源不会按空数据计算；若保留已有记录，请以最近一次成功读取为准。 <button type="button" className={styles.ghostButton} onClick={() => { void reload(); }}>重试读取</button></div> : null}
 
       <nav className={styles.orderQuickNav} aria-label="订单功能快速入口">
         <a href="#b2c">自建商城订单与价格</a>
@@ -236,10 +311,10 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       </section>
 
       <div className={styles.metrics}>
-        <div><span>渠道</span><b>{metrics.channels}</b></div>
-        <div><span>规范化订单</span><b>{metrics.orders}</b></div>
-        <div><span>待处理异常</span><b>{metrics.open}</b></div>
-        <div><span>未映射明细</span><b>{metrics.unmapped}</b></div>
+        <div><span>渠道</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.channels}</b></div>
+        <div><span>规范化订单</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.orders}</b></div>
+        <div><span>待处理异常</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.open}</b></div>
+        <div><span>未映射明细</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.unmapped}</b></div>
       </div>
 
       <section className={styles.topGrid}>
@@ -267,7 +342,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
           <div><b>{channel.display_name}</b><small>{providerLabel(channel.provider)} · {channel.channel_key}</small></div>
           <div><span>{channel.external_account_id}</span><small>{channel.enabled ? '启用' : '停用'}{channel.provider === 'AMAZON' ? ' · SP-API 待配置' : ''}</small></div>
         </article>)}
-        {!commerce.channels.length ? <p className={styles.empty}>尚未登记任何电商渠道。</p> : null}
+        {!commerce.channels.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取渠道数据…' : sourceStatus.commerce === 'error' ? '渠道数据不可用，无法确认当前是否已有渠道。' : '尚未登记任何电商渠道。'}</p> : null}
       </section>
 
       <section className={styles.topGrid}>
@@ -303,7 +378,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
               <small>{item.total_amount} {item.currency} · {statusLabel(item.fulfillment_status)}</small>
             </a>;
           })}
-          {!commerce.orders.length ? <p className={styles.empty}>还没有同步进来的规范化订单。</p> : null}
+          {!commerce.orders.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取订单…' : sourceStatus.commerce === 'error' ? '订单数据不可用，无法确认当前是否有订单。' : '还没有同步进来的规范化订单。'}</p> : null}
         </div>
         {selectedOrder ? <div className={styles.detail}>
           <div className={styles.sectionHead}><span>外部订单事实</span><h2>{selectedOrder.external_order_name ?? selectedOrder.external_order_id}</h2>
@@ -327,12 +402,12 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
         <div className={styles.panel}>
           <div className={styles.sectionHead}><span>对账异常</span><h2>异常保留，不静默丢弃</h2></div>
           {openExceptions.map((item) => <article className={styles.exception} key={item.id}><div><b>{item.exception_type}</b><span>{item.channel_key} · {item.entity_type}</span><p>{item.message}</p></div><div className={styles.actions}><button onClick={() => void action(`/v1/commerce/exceptions/${item.id}/resolve`, { action: 'RESOLVED', resolution: { note: 'Reviewed in Commerce workspace' } })}>标记已解决</button><button className={styles.secondary} onClick={() => void action(`/v1/commerce/exceptions/${item.id}/resolve`, { action: 'IGNORED', resolution: { note: 'Explicitly ignored' } })}>忽略</button></div></article>)}
-          {!openExceptions.length ? <p className={styles.empty}>当前没有待处理映射异常。</p> : null}
+          {!openExceptions.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取异常记录…' : sourceStatus.commerce === 'error' ? '订单异常来源不可用，无法确认是否存在待处理异常。' : '当前没有待处理映射异常。'}</p> : null}
         </div>
         <div className={styles.panel}>
           <div className={styles.sectionHead}><span>集成证据</span><h2>Delivery receipts & attempts</h2><p>当前证据流仍来自 Shopify Webhook；Amazon SP-API adapter 尚未接入。</p></div>
           {integrations.receipts.slice(0, 30).map((receipt) => { const attempt = latestAttempt(receipt.id); const channel = channelFor(receipt.channel_id); return <article className={styles.receipt} key={receipt.id}><div><b>{providerLabel(channel?.provider ?? 'OTHER')} · {receipt.topic}</b><span>{receipt.channel_key} · {receipt.provider_event_id}</span><small>{attempt ? `${statusLabel(attempt.outcome)} · 第 ${attempt.attempt_number} 次` : '尚无处理尝试'}</small></div>{channel?.provider === 'SHOPIFY' ? <button onClick={() => void action(`/v1/integrations/shopify/receipts/${receipt.id}/replay`)}>重放</button> : null}</article>; })}
-          {!integrations.receipts.length ? <p className={styles.empty}>还没有保留的集成证据。</p> : null}
+          {!integrations.receipts.length ? <p className={styles.empty}>{sourceStatus.integrations === 'loading' ? '正在读取渠道事件…' : sourceStatus.integrations === 'error' ? '渠道事件来源不可用，无法确认是否已有集成证据。' : '还没有保留的集成证据。'}</p> : null}
         </div>
       </section>
     </OperationsFrame>
