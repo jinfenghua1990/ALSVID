@@ -72,12 +72,13 @@ export function EcommerceAdminWorkspace() {
       </a>)}
     </nav>
 
-    {status === 'loading' ? <p className="av-cardhint" role="status">正在读取产品主数据…</p> : null}
     {status === 'error' ? <div className="av-card" role="alert">无法加载产品主数据：{error}。这不表示商品数量为零；库存、价格和已有订单仍由各自领域接口独立查询。</div> : null}
-    {status === 'ready' ? <>
-      <section id="homepage" aria-label="首页商品绑定"><HomepageProductBindingPanel models={models} loadError="" /></section>
-      <section id="publications" aria-label="官网商品审核与发布"><CatalogPublicationPanel models={models} /></section>
-    </> : null}
+    <section id="homepage" aria-label="首页商品绑定">
+      {status === 'ready' ? <HomepageProductBindingPanel models={models} loadError="" /> : <p className="av-cardhint" role="status">{status === 'loading' ? '正在读取首页绑定所需的产品主数据…' : '产品主数据读取失败，首页绑定操作暂不可用。'}</p>}
+    </section>
+    <section id="publications" aria-label="官网商品审核与发布">
+      {status === 'ready' ? <CatalogPublicationPanel models={models} /> : <p className="av-cardhint" role="status">{status === 'loading' ? '正在读取商品发布所需的产品主数据…' : '产品主数据读取失败，商品发布操作暂不可用。'}</p>}
+    </section>
     <EcommerceInventoryPanel />
     <StorefrontOrderDraftPanel />
 
