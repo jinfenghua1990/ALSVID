@@ -49,6 +49,8 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
       setError(e instanceof Error?e.message:'保存失败，请刷新后重试');
     }finally{setBusy('');}
   }
+  const activeModels=models.filter(model=>model.status==='ACTIVE');
+  const bikeModels=models.filter(model=>model.product_type_code==='BIKE');
   const eligible=models.filter(model=>model.status==='ACTIVE'&&model.product_type_code==='BIKE'&&
     (model.code==='FC1'||model.code==='FC2'));
   return <section id="catalog-publications" className={styles.section} aria-label="商品发布和审核">
@@ -59,6 +61,12 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
     {loading?<p role="status">正在读取真实发布记录…</p>:null}
     {error?<p className={styles.error} role="alert">{error}</p>:null}
     {message?<p className={styles.info} role="status">{message}</p>:null}
+    <div className={styles.summary} aria-label="产品发布候选数据概览">
+      <div><span>产品型号</span><strong>{models.length}</strong></div>
+      <div><span>ACTIVE 型号</span><strong>{activeModels.length}</strong></div>
+      <div><span>整车型号</span><strong>{bikeModels.length}</strong></div>
+      <div><span>符合基础筛选</span><strong>{eligible.length}</strong></div>
+    </div>
     <div className={styles.grid}>
       {eligible.map(model=>{
         const publication=rows.find(item=>item.model_id===model.id);
@@ -77,7 +85,12 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
         </article>;
       })}
     </div>
-    {!loading&&!eligible.length?<p>当前没有可审核的 FC1/FC2 有效整车，请先检查产品型号数据；不会自动生成虚构商品。</p>:null}
+    {!loading&&!eligible.length?<div className={styles.emptyState}>
+      <div><strong>暂无符合条件的发布候选</strong>
+        <p>当前真实产品目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车。只有型号为 FC1/FC2、状态为 ACTIVE 且类型为 BIKE 的记录，才会进入首批发布审核。这里不会自动生成虚构商品。</p>
+      </div>
+      <a href="/admin/product#model-register" className={styles.emptyAction}>检查产品型号与类型 →</a>
+    </div>:null}
     <p className={styles.note}>首批只支持已有真实详情页与已登记车图的 FC1/FC2。其他整车、配件、图片和适配规则需要独立验证，不会因为类型是 ACTIVE 就自动上架。</p>
   </section>;
 }
