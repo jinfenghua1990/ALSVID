@@ -143,7 +143,7 @@ WarehouseProviderAdapter
 
 - 新增数据库迁移 `0037_warehouse_provider_configuration.sql`，为服务商账号、外部仓库映射、外部 SKU 映射、同步运行记录、去重事件建立持久化表和唯一约束。
 - 新增 `GET/POST /v1/integrations/warehouse-providers`，要求 `integrations.admin` 权限，并对新增配置记录写入审计事件。
-- 配置 API 只接受 Google Secret Manager 资源路径，不接受密钥原文；响应只返回 `credentials_configured` 布尔值，不回显资源路径。同步摘要也不返回原始错误文本。
+- 配置 API 只接受使用 `alsvid-wms-` 专用前缀的 Google Secret Manager 资源路径，不接受密钥原文；响应只返回 `credentials_configured` 布尔值，不回显资源路径。同步摘要也不返回原始错误文本。
 - Admin「设置 → 集成」新增配置表单、连接状态、仓库/SKU 映射和同步记录视图。
 - 新建配置只会处于「未配置」或「待验证」；没有真实 adapter、服务端 Secret Manager 读取和连接探测，不会显示已连接，也不会触发库存同步或订单履约。
 - **仍未完成**：真实仓商适配器、Secret Manager 资源存在性/访问权限验证、仓库/SKU 映射维护 API、同步任务执行器、真实沙箱和生产验收。外部映射表不会自动生成数据。
