@@ -80,3 +80,23 @@ test('framework directory has a single source of 12 Admin modules and does not p
   assert.match(ui, /!isIntegratedOverview && !isLiveProductRoot \? <div className="av-railgroup">/);
   assert.doesNotMatch(directory, /api\/control|const exampleKpi/);
 });
+
+
+test('ecommerce workspace exposes direct section navigation and labels unfinished commerce capabilities honestly', () => {
+  const workspace = read('./ecommerce-admin-workspace.tsx');
+  const styles = read('./design-system.css');
+  for (const id of ['homepage', 'publications', 'inventory', 'b2c', 'commerce-next']) {
+    assert.ok(workspace.includes(id), 'ecommerce section anchor: ' + id);
+  }
+  assert.match(workspace, /aria-label="电商模块功能导航"/);
+  assert.match(workspace, /可售库存 ATP/);
+  assert.match(workspace, /公开结账与 PSP 支付/);
+  assert.match(workspace, /促销与优惠券/);
+  assert.match(workspace, /待开发/);
+  assert.match(workspace, /暂未开放/);
+  assert.match(workspace, /台账可用量不能直接作为商城可售量/);
+  assert.match(styles, /\.av-commerce-nav/);
+  assert.match(styles, /\.av-commerce-roadmap-grid/);
+  assert.match(styles, /@media\(max-width:720px\)/);
+  assert.doesNotMatch(workspace, /fake|mock KPI|模拟订单数量/i);
+});
