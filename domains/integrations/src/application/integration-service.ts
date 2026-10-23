@@ -68,7 +68,7 @@ export class IntegrationService {
     if (accountRef.length > 255) {
       throw new IntegrationValidationError('accountRef must be at most 255 characters');
     }
-    if (credentialsSecretRef && !/^projects\/[a-z][a-z0-9-]{4,28}[a-z0-9]\/secrets\/[A-Za-z0-9_-]{1,255}\/versions\/(latest|[1-9][0-9]*)$/.test(credentialsSecretRef)) {
+    if (credentialsSecretRef && !/^projects\/[a-z][a-z0-9-]{4,28}[a-z0-9]\/secrets\/alsvid-wms-[A-Za-z0-9_-]{1,240}\/versions\/(latest|[1-9][0-9]*)$/.test(credentialsSecretRef)) {
       throw new IntegrationValidationError('credentialsSecretRef must be a Google Secret Manager resource path, not a secret value');
     }
 
