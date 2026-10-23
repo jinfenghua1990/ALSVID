@@ -21,6 +21,7 @@
 | 官方网站与商城 | [knowledge/03-Systems/WWW.md](../knowledge/03-Systems/WWW.md) |
 | **官网共同功能框架（ADO + Himiway）** | [ALSVID Official Website Functional Framework](ALSVID_OFFICIAL_WEBSITE_FUNCTIONAL_FRAMEWORK.md) |
 | 内部 Admin | [knowledge/03-Systems/Admin.md](../knowledge/03-Systems/Admin.md) 与 [Admin IA](ALSVID_ADMIN_IA.md) |
+| **Admin 全量功能目录** | [ALSVID Admin Function Catalog](ALSVID_ADMIN_FUNCTION_CATALOG.md) |
 | 经销商自助 | [knowledge/03-Systems/Dealer-Portal.md](../knowledge/03-Systems/Dealer-Portal.md) |
 | 车主中心 | [knowledge/03-Systems/My-ALSVID.md](../knowledge/03-Systems/My-ALSVID.md) |
 | 后续供应商自助 | [knowledge/03-Systems/Supplier-Portal.md](../knowledge/03-Systems/Supplier-Portal.md) |
