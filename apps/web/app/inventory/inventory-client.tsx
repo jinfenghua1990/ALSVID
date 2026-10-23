@@ -19,9 +19,30 @@ type Stocktake = { id: string; stocktake_number: string; warehouse_id: string; w
 type Count = { id: string; session_id: string; location_id: string; location_code: string; item_kind: ItemKind; part_number: string | null; sku: string | null; frame_number: string | null; counted_quantity: string; unit: string; counted_at: string };
 type InventorySummary = { balances: Balance[]; movements: Movement[]; reservations: Reservation[] };
 type WarehouseSummary = { warehouses: Warehouse[]; locations: Location[]; stocktakes: Stocktake[]; counts: Count[] };
+type InventorySource = 'inventory' | 'warehouse' | 'engineering' | 'product' | 'vehicles';
+type SourceStatus = 'loading' | 'ready' | 'error';
+const inventorySourceLabels: Record<InventorySource, string> = { inventory: '库存余额/流水/预留', warehouse: '仓库/库位/盘点', engineering: '零部件目录', product: '商品 SKU', vehicles: '车辆档案' };
 
 const emptyInventory: InventorySummary = { balances: [], movements: [], reservations: [] };
 const emptyWarehouse: WarehouseSummary = { warehouses: [], locations: [], stocktakes: [], counts: [] };
+
+function normalizeInventorySummary(value: unknown): InventorySummary | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  if (!Array.isArray(row.balances) || !Array.isArray(row.movements) || !Array.isArray(row.reservations)) return null;
+  return { balances: row.balances as Balance[], movements: row.movements as Movement[], reservations: row.reservations as Reservation[] };
+}
+
+function normalizeWarehouseSummary(value: unknown): WarehouseSummary | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  if (!Array.isArray(row.warehouses) || !Array.isArray(row.locations) || !Array.isArray(row.stocktakes) || !Array.isArray(row.counts)) return null;
+  return { warehouses: row.warehouses as Warehouse[], locations: row.locations as Location[], stocktakes: row.stocktakes as Stocktake[], counts: row.counts as Count[] };
+}
+
+function sourceErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
 
 const itemKindLabel: Record<ItemKind, string> = { PART: '零部件', SKU: 'SKU', VEHICLE: '整车' };
 const movementTypeLabel: Record<string, string> = {
@@ -51,7 +72,8 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
   const [movementType, setMovementType] = useState('RECEIPT');
   const [selectedStocktakeId, setSelectedStocktakeId] = useState('');
   const [message, setMessage] = useState('');
-  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [sourceStatus, setSourceStatus] = useState<Record<InventorySource, SourceStatus>>({ inventory: 'loading', warehouse: 'loading', engineering: 'loading', product: 'loading', vehicles: 'loading' });
+  const [sourceErrors, setSourceErrors] = useState<Partial<Record<InventorySource, string>>>({});
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -61,37 +83,65 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
       router.push('/login');
       throw new Error('登录状态已过期，请重新登录');
     }
-    const payload = await response.json();
+    const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.message ?? '请求失败');
+    if (!payload || typeof payload !== 'object' || !('data' in payload)) throw new Error('接口返回数据格式异常');
     return payload.data;
   }
 
+  function sourceReady(source: InventorySource) {
+    setSourceStatus((current) => ({ ...current, [source]: 'ready' }));
+    setSourceErrors((current) => {
+      const next = { ...current };
+      delete next[source];
+      return next;
+    });
+  }
+
+  function sourceFailed(source: InventorySource, error: unknown, fallback: string) {
+    setSourceStatus((current) => ({ ...current, [source]: current[source] === 'ready' ? 'ready' : 'error' }));
+    setSourceErrors((current) => ({ ...current, [source]: sourceErrorMessage(error, fallback) }));
+  }
+
   async function reload() {
-    setLoadState('loading');
-    try {
-      const [inv, wh, engineering, product, vehicleRows] = await Promise.all([
-        api('/v1/inventory'), api('/v1/warehouse'), api('/v1/engineering'), api('/v1/product/catalog'), api('/v1/vehicles'),
-      ]);
-      setInventory(inv);
-      setWarehouse(wh);
-      setParts(engineering.parts);
-      setSkus(product.skus ?? []);
-      setVehicles(vehicleRows);
-      if (!selectedStocktakeId) {
-        const open = wh.stocktakes.find((item: Stocktake) => item.status === 'OPEN');
-        if (open) setSelectedStocktakeId(open.id);
-      }
-      setLoadState('ready');
-    } catch (error) {
-      setInventory(emptyInventory);
-      setWarehouse(emptyWarehouse);
-      setParts([]);
-      setSkus([]);
-      setVehicles([]);
-      setSelectedStocktakeId('');
-      setLoadState('error');
-      setMessage('库存 / 仓库数据读取失败：' + (error instanceof Error ? error.message : '未知错误'));
-    }
+    const [inventoryResult, warehouseResult, engineeringResult, productResult, vehiclesResult] = await Promise.allSettled([
+      api('/v1/inventory'), api('/v1/warehouse'), api('/v1/engineering'), api('/v1/product/catalog'), api('/v1/vehicles'),
+    ]);
+
+    if (inventoryResult.status === 'fulfilled') {
+      const nextInventory = normalizeInventorySummary(inventoryResult.value);
+      if (nextInventory) {
+        setInventory(nextInventory);
+        sourceReady('inventory');
+      } else sourceFailed('inventory', new Error('库存接口返回的数据格式异常'), '库存数据暂不可用');
+    } else sourceFailed('inventory', inventoryResult.reason, '库存数据暂不可用');
+
+    if (warehouseResult.status === 'fulfilled') {
+      const nextWarehouse = normalizeWarehouseSummary(warehouseResult.value);
+      if (nextWarehouse) {
+        setWarehouse(nextWarehouse);
+        setSelectedStocktakeId((current) => {
+          if (current && nextWarehouse.stocktakes.some((item) => item.id === current)) return current;
+          return nextWarehouse.stocktakes.find((item) => item.status === 'OPEN')?.id ?? '';
+        });
+        sourceReady('warehouse');
+      } else sourceFailed('warehouse', new Error('仓库接口返回的数据格式异常'), '仓库数据暂不可用');
+    } else sourceFailed('warehouse', warehouseResult.reason, '仓库数据暂不可用');
+
+    if (engineeringResult.status === 'fulfilled' && engineeringResult.value && Array.isArray(engineeringResult.value.parts)) {
+      setParts(engineeringResult.value.parts);
+      sourceReady('engineering');
+    } else sourceFailed('engineering', engineeringResult.status === 'rejected' ? engineeringResult.reason : new Error('零部件接口返回的数据格式异常'), '零部件目录暂不可用');
+
+    if (productResult.status === 'fulfilled' && productResult.value && Array.isArray(productResult.value.skus)) {
+      setSkus(productResult.value.skus);
+      sourceReady('product');
+    } else sourceFailed('product', productResult.status === 'rejected' ? productResult.reason : new Error('商品接口返回的数据格式异常'), '商品 SKU 暂不可用');
+
+    if (vehiclesResult.status === 'fulfilled' && Array.isArray(vehiclesResult.value)) {
+      setVehicles(vehiclesResult.value);
+      sourceReady('vehicles');
+    } else sourceFailed('vehicles', vehiclesResult.status === 'rejected' ? vehiclesResult.reason : new Error('车辆接口返回的数据格式异常'), '车辆档案暂不可用');
   }
 
   useEffect(() => { void reload(); }, []);
@@ -152,13 +202,14 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           </div>
         </header>
         {message ? <div className={styles.notice}>{message}</div> : null}
+        {Object.keys(sourceErrors).length ? <div className={styles.notice} role="alert"><strong>部分库存数据源不可用：</strong> {Object.entries(sourceErrors).map(([key, error]) => inventorySourceLabels[key as InventorySource] + '：' + error).join('；')}。其他来源仍可使用；失败来源的已有记录如被保留，仅代表最近一次成功读取。 <button type="button" className={styles.retry} onClick={() => { void reload(); }}>重试读取</button></div> : null}
 
         <div className={styles.metrics}>
-          <div><span>仓库</span><b>{loadState === 'ready' ? metrics.warehouses : '—'}</b></div>
-          <div><span>库位</span><b>{loadState === 'ready' ? metrics.locations : '—'}</b></div>
-          <div><span>库存位置</span><b>{loadState === 'ready' ? metrics.stockPositions : '—'}</b></div>
-          <div><span>有效预留</span><b>{loadState === 'ready' ? metrics.activeReservations : '—'}</b></div>
-          <div><span>进行中盘点</span><b>{loadState === 'ready' ? metrics.openStocktakes : '—'}</b></div>
+          <div><span>仓库</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.warehouses}</b></div>
+          <div><span>库位</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.locations}</b></div>
+          <div><span>库存位置</span><b>{sourceStatus.inventory !== 'ready' || sourceErrors.inventory ? '—' : metrics.stockPositions}</b></div>
+          <div><span>有效预留</span><b>{sourceStatus.inventory !== 'ready' || sourceErrors.inventory ? '—' : metrics.activeReservations}</b></div>
+          <div><span>进行中盘点</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.openStocktakes}</b></div>
         </div>
 
         <section className={styles.panel} id="warehouse-provider" aria-labelledby="warehouse-provider-title">
@@ -268,7 +319,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
               <table><thead><tr><th>库存对象</th><th>类型</th><th>仓库 / 库位</th><th>现存量</th><th>已预留</th><th>可用量</th></tr></thead>
                 <tbody>{inventory.balances.map((row, index) => <tr key={`${row.item_kind}-${row.part_id ?? row.sku_id ?? row.vehicle_id}-${row.location_code}-${index}`}><td><b>{balanceLabel(row)}</b></td><td>{itemKindLabel[row.item_kind]}</td><td>{row.warehouse_code}/{row.location_code}</td><td>{row.on_hand} {row.unit}</td><td>{row.reserved}</td><td><b>{row.available}</b></td></tr>)}</tbody>
               </table>
-              {!inventory.balances.length ? <p className={styles.empty}>{loadState === 'loading' ? '正在读取库存余额…' : loadState === 'error' ? '库存数据读取失败，无法确认库存余额。' : '暂无库存流水，因此没有可显示的库存余额。'}</p> : null}
+              {!inventory.balances.length ? <p className={styles.empty}>{sourceStatus.inventory === 'loading' ? '正在读取库存余额…' : sourceStatus.inventory === 'error' || sourceErrors.inventory ? '库存数据不可用，无法确认当前库存余额。' : '暂无库存流水，因此没有可显示的库存余额。'}</p> : null}
             </div>
           </div>
 
@@ -278,7 +329,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
               <div><b>{row.part_number ?? row.sku ?? row.frame_number}</b><span>{row.warehouse_code}/{row.location_code} · {row.quantity} {row.unit}</span><small>{row.reference_type ?? '无外部引用'}</small></div>
               <div className={styles.rowActions}><button onClick={() => void action(`/v1/inventory/reservations/${row.id}/issue`, { idempotencyKey: crypto.randomUUID(), reason: '预留库存出库' })}>确认出库</button><button className={styles.secondary} onClick={() => void action(`/v1/inventory/reservations/${row.id}/release`)}>释放预留</button></div>
             </article>)}
-            {!activeReservations.length ? <p className={styles.empty}>{loadState === 'loading' ? '正在读取库存预留…' : loadState === 'error' ? '库存数据读取失败，无法确认预留记录。' : '暂无有效库存预留。'}</p> : null}
+            {!activeReservations.length ? <p className={styles.empty}>{sourceStatus.inventory === 'loading' ? '正在读取库存预留…' : sourceStatus.inventory === 'error' || sourceErrors.inventory ? '库存数据不可用，无法确认当前预留记录。' : '暂无有效库存预留。'}</p> : null}
           </div>
         </section>
 
@@ -297,7 +348,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
 
             <div className={styles.stocktakeList}>
               {warehouse.stocktakes.map((item) => <button key={item.id} className={selectedStocktakeId === item.id ? styles.selected : ''} onClick={() => setSelectedStocktakeId(item.id)}><b>{item.stocktake_number}</b><span>{item.warehouse_code} · {displayStocktakeStatus(item.status)}</span><small>{new Date(item.opened_at).toLocaleString()}</small></button>)}
-              {!warehouse.stocktakes.length ? <p className={styles.empty}>{loadState === 'loading' ? '正在读取盘点记录…' : loadState === 'error' ? '仓库数据读取失败，无法确认盘点记录。' : '暂无盘点会话。'}</p> : null}
+              {!warehouse.stocktakes.length ? <p className={styles.empty}>{sourceStatus.warehouse === 'loading' ? '正在读取盘点记录…' : sourceStatus.warehouse === 'error' || sourceErrors.warehouse ? '仓库数据不可用，无法确认当前盘点记录。' : '暂无盘点会话。'}</p> : null}
             </div>
 
             {selectedStocktake ? (
@@ -330,7 +381,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
             <table><thead><tr><th>流水号</th><th>库存对象</th><th>类型</th><th>路径</th><th>数量</th><th>时间</th></tr></thead>
               <tbody>{inventory.movements.map((row) => <tr key={row.id}><td>{row.movement_number}</td><td><b>{movementLabel(row)}</b></td><td>{displayMovementType(row.movement_type)}</td><td>{row.source_warehouse_code ? `${row.source_warehouse_code}/${row.source_location_code}` : '外部'} → {row.destination_warehouse_code ? `${row.destination_warehouse_code}/${row.destination_location_code}` : '外部'}</td><td>{row.quantity} {row.unit}</td><td>{new Date(row.occurred_at).toLocaleString()}</td></tr>)}</tbody>
             </table>
-            {!inventory.movements.length ? <p className={styles.empty}>{loadState === 'loading' ? '正在读取库存流水…' : loadState === 'error' ? '库存数据读取失败，无法确认库存流水。' : '暂无库存流水。'}</p> : null}
+            {!inventory.movements.length ? <p className={styles.empty}>{sourceStatus.inventory === 'loading' ? '正在读取库存流水…' : sourceStatus.inventory === 'error' || sourceErrors.inventory ? '库存数据不可用，无法确认当前库存流水。' : '暂无库存流水。'}</p> : null}
           </div>
         </section>
       </section>
