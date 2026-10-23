@@ -98,24 +98,24 @@ test('receipt lines stay within their PO, and cumulative physical receipts or co
 
     async function createConfirmedPo() {
       const po = await db.query<{ id: string }>(
-        \`INSERT INTO procurement.purchase_orders(supplier_partner_id,currency)
-         VALUES ($1,'EUR') RETURNING id\`,
+        `INSERT INTO procurement.purchase_orders(supplier_partner_id,currency)
+         VALUES ($1,'EUR') RETURNING id`,
         [supplier],
       );
       const line = await db.query<{ id: string }>(
-        \`INSERT INTO procurement.purchase_order_lines(
+        `INSERT INTO procurement.purchase_order_lines(
            purchase_order_id,line_no,item_type,part_id,ordered_quantity,unit_price
-         ) VALUES ($1,10,'PART',$2,2,9.95) RETURNING id\`,
+         ) VALUES ($1,10,'PART',$2,2,9.95) RETURNING id`,
         [po.rows[0]!.id, partId],
       );
       await db.query(
-        \`UPDATE procurement.purchase_orders
-         SET status='ISSUED',issued_at=now(),version=version+1 WHERE id=$1\`,
+        `UPDATE procurement.purchase_orders
+         SET status='ISSUED',issued_at=now(),version=version+1 WHERE id=$1`,
         [po.rows[0]!.id],
       );
       await db.query(
-        \`UPDATE procurement.purchase_orders
-         SET status='CONFIRMED',confirmed_at=now(),version=version+1 WHERE id=$1\`,
+        `UPDATE procurement.purchase_orders
+         SET status='CONFIRMED',confirmed_at=now(),version=version+1 WHERE id=$1`,
         [po.rows[0]!.id],
       );
       return { id: po.rows[0]!.id, lineId: line.rows[0]!.id };
@@ -123,8 +123,8 @@ test('receipt lines stay within their PO, and cumulative physical receipts or co
 
     async function createReceipt(poId: string, kind: 'PHYSICAL_RECEIPT' | 'FACTORY_COMMITMENT') {
       const receipt = await db.query<{ id: string }>(
-        \`INSERT INTO procurement.receipts(purchase_order_id,kind,occurred_on)
-         VALUES ($1,$2,CURRENT_DATE) RETURNING id\`,
+        `INSERT INTO procurement.receipts(purchase_order_id,kind,occurred_on)
+         VALUES ($1,$2,CURRENT_DATE) RETURNING id`,
         [poId, kind],
       );
       return receipt.rows[0]!.id;
@@ -132,8 +132,8 @@ test('receipt lines stay within their PO, and cumulative physical receipts or co
 
     async function insertReceiptLine(receiptId: string, lineId: string, quantity: string) {
       return db.query(
-        \`INSERT INTO procurement.receipt_lines(receipt_id,purchase_order_line_id,quantity,unit)
-         VALUES ($1,$2,$3,'EA')\`,
+        `INSERT INTO procurement.receipt_lines(receipt_id,purchase_order_line_id,quantity,unit)
+         VALUES ($1,$2,$3,'EA')`,
         [receiptId, lineId, quantity],
       );
     }
@@ -169,20 +169,20 @@ test('receipt lines stay within their PO, and cumulative physical receipts or co
     );
 
     await assert.rejects(
-      db.query(\`UPDATE procurement.receipts SET kind='FACTORY_COMMITMENT' WHERE id=$1\`, [physicalReceipt1]),
+      db.query(`UPDATE procurement.receipts SET kind='FACTORY_COMMITMENT' WHERE id=$1`, [physicalReceipt1]),
       /Receipt purchase order and kind are immutable after lines are recorded/,
     );
     await assert.rejects(
-      db.query(\`DELETE FROM procurement.receipts WHERE id=$1\`, [physicalReceipt1]),
+      db.query(`DELETE FROM procurement.receipts WHERE id=$1`, [physicalReceipt1]),
       /Receipt with recorded lines cannot be deleted/,
     );
 
     const totals = await db.query<{ kind: string; quantity: string }>(
-      \`SELECT rh.kind, sum(rl.quantity)::text AS quantity
+      `SELECT rh.kind, sum(rl.quantity)::text AS quantity
        FROM procurement.receipt_lines rl
        JOIN procurement.receipts rh ON rh.id=rl.receipt_id
        WHERE rl.purchase_order_line_id=$1
-       GROUP BY rh.kind ORDER BY rh.kind\`,
+       GROUP BY rh.kind ORDER BY rh.kind`,
       [first.lineId],
     );
     assert.deepEqual(totals.rows, [
