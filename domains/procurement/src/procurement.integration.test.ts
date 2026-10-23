@@ -88,3 +88,108 @@ test('draft PO lines can be edited/deleted, issued PO lines are immutable, and s
     await db.close();
   }
 });
+
+
+test('receipt lines stay within their PO, and cumulative physical receipts or commitments cannot exceed ordered quantity', { skip: !hasDatabase }, async () => {
+  const db = new Database();
+  try {
+    const supplier = await createPartner(db, true);
+    const partId = await createPart(db);
+
+    async function createConfirmedPo() {
+      const po = await db.query<{ id: string }>(
+        `INSERT INTO procurement.purchase_orders(supplier_partner_id,currency)
+         VALUES ($1,'EUR') RETURNING id`,
+        [supplier],
+      );
+      const line = await db.query<{ id: string }>(
+        `INSERT INTO procurement.purchase_order_lines(
+           purchase_order_id,line_no,item_type,part_id,ordered_quantity,unit_price
+         ) VALUES ($1,10,'PART',$2,2,9.95) RETURNING id`,
+        [po.rows[0]!.id, partId],
+      );
+      await db.query(
+        `UPDATE procurement.purchase_orders
+         SET status='ISSUED',issued_at=now(),version=version+1 WHERE id=$1`,
+        [po.rows[0]!.id],
+      );
+      await db.query(
+        `UPDATE procurement.purchase_orders
+         SET status='CONFIRMED',confirmed_at=now(),version=version+1 WHERE id=$1`,
+        [po.rows[0]!.id],
+      );
+      return { id: po.rows[0]!.id, lineId: line.rows[0]!.id };
+    }
+
+    async function createReceipt(poId: string, kind: 'PHYSICAL_RECEIPT' | 'FACTORY_COMMITMENT') {
+      const receipt = await db.query<{ id: string }>(
+        `INSERT INTO procurement.receipts(purchase_order_id,kind,occurred_on)
+         VALUES ($1,$2,CURRENT_DATE) RETURNING id`,
+        [poId, kind],
+      );
+      return receipt.rows[0]!.id;
+    }
+
+    async function insertReceiptLine(receiptId: string, lineId: string, quantity: string) {
+      return db.query(
+        `INSERT INTO procurement.receipt_lines(receipt_id,purchase_order_line_id,quantity,unit)
+         VALUES ($1,$2,$3,'EA')`,
+        [receiptId, lineId, quantity],
+      );
+    }
+
+    const first = await createConfirmedPo();
+    const second = await createConfirmedPo();
+
+    const physicalReceipt1 = await createReceipt(first.id, 'PHYSICAL_RECEIPT');
+    await insertReceiptLine(physicalReceipt1, first.lineId, '1.5');
+    const physicalReceipt2 = await createReceipt(first.id, 'PHYSICAL_RECEIPT');
+    await insertReceiptLine(physicalReceipt2, first.lineId, '0.5');
+
+    const physicalOverage = await createReceipt(first.id, 'PHYSICAL_RECEIPT');
+    await assert.rejects(
+      insertReceiptLine(physicalOverage, first.lineId, '0.1'),
+      /Physical receipt quantity exceeds ordered quantity/,
+    );
+
+    const commitment1 = await createReceipt(first.id, 'FACTORY_COMMITMENT');
+    await insertReceiptLine(commitment1, first.lineId, '1.5');
+    const commitment2 = await createReceipt(first.id, 'FACTORY_COMMITMENT');
+    await insertReceiptLine(commitment2, first.lineId, '0.5');
+    const commitmentOverage = await createReceipt(first.id, 'FACTORY_COMMITMENT');
+    await assert.rejects(
+      insertReceiptLine(commitmentOverage, first.lineId, '0.1'),
+      /Factory commitment quantity exceeds ordered quantity/,
+    );
+
+    const wrongPoReceipt = await createReceipt(first.id, 'PHYSICAL_RECEIPT');
+    await assert.rejects(
+      insertReceiptLine(wrongPoReceipt, second.lineId, '0.1'),
+      /Receipt line must belong to the same purchase order/,
+    );
+
+    await assert.rejects(
+      db.query(`UPDATE procurement.receipts SET kind='FACTORY_COMMITMENT' WHERE id=$1`, [physicalReceipt1]),
+      /Receipt purchase order and kind are immutable after lines are recorded/,
+    );
+    await assert.rejects(
+      db.query(`DELETE FROM procurement.receipts WHERE id=$1`, [physicalReceipt1]),
+      /Receipt with recorded lines cannot be deleted/,
+    );
+
+    const totals = await db.query<{ kind: string; quantity: string }>(
+      `SELECT rh.kind, sum(rl.quantity)::text AS quantity
+       FROM procurement.receipt_lines rl
+       JOIN procurement.receipts rh ON rh.id=rl.receipt_id
+       WHERE rl.purchase_order_line_id=$1
+       GROUP BY rh.kind ORDER BY rh.kind`,
+      [first.lineId],
+    );
+    assert.deepEqual(totals.rows, [
+      { kind: 'FACTORY_COMMITMENT', quantity: '2.000000' },
+      { kind: 'PHYSICAL_RECEIPT', quantity: '2.000000' },
+    ]);
+  } finally {
+    await db.close();
+  }
+});
