@@ -1,6 +1,6 @@
 import { postgresErrorCode, type QueryExecutor } from '@alsvid/database';
 import { ForbiddenError } from '@alsvid/kernel';
-import { IntegrationCapability, type CreateWarehouseProviderConnectionInput, type ShopifyDeliveryInput } from '../core/model.js';
+import { IntegrationCapability, type CreateExternalSkuMappingInput, type CreateExternalWarehouseMappingInput, type CreateWarehouseProviderConnectionInput, type ShopifyDeliveryInput } from '../core/model.js';
 import {
   IntegrationConflictError,
   IntegrationNotFoundError,
@@ -88,6 +88,66 @@ export class IntegrationService {
         targetType: 'integration.warehouse_provider_connection',
         targetId: row.id,
         metadata: { providerCode, accountRef, connectionStatus, credentialsConfigured: Boolean(credentialsSecretRef) },
+      });
+      return row;
+    } catch (error) {
+      this.rethrow(error);
+    }
+  }
+
+  async createExternalWarehouseMapping(
+    actor: IntegrationActor,
+    connectionId: string,
+    input: CreateExternalWarehouseMappingInput,
+  ): Promise<any> {
+    requirePermission(actor, IntegrationCapability.Admin);
+    const normalized = {
+      connectionId: integrationRequired(connectionId, 'connectionId'),
+      internalWarehouseId: integrationRequired(input.internalWarehouseId, 'internalWarehouseId'),
+      externalWarehouseId: integrationRequired(input.externalWarehouseId, 'externalWarehouseId'),
+      externalCode: integrationRequired(input.externalCode, 'externalCode'),
+      externalName: integrationRequired(input.externalName, 'externalName'),
+    };
+    if (normalized.externalWarehouseId.length > 255) throw new IntegrationValidationError('externalWarehouseId must be at most 255 characters');
+    if (normalized.externalCode.length > 120) throw new IntegrationValidationError('externalCode must be at most 120 characters');
+    if (normalized.externalName.length > 255) throw new IntegrationValidationError('externalName must be at most 255 characters');
+    try {
+      const row = await this.repository.createExternalWarehouseMapping({ ...normalized, actorUserId: actor.userId });
+      await this.audit.record({
+        actorUserId: actor.userId,
+        action: 'integration.external_warehouse_mapping_created',
+        targetType: 'integration.external_warehouse_mapping',
+        targetId: row.id,
+        metadata: { connectionId: normalized.connectionId, internalWarehouseId: normalized.internalWarehouseId, externalWarehouseId: normalized.externalWarehouseId },
+      });
+      return row;
+    } catch (error) {
+      this.rethrow(error);
+    }
+  }
+
+  async createExternalSkuMapping(
+    actor: IntegrationActor,
+    connectionId: string,
+    input: CreateExternalSkuMappingInput,
+  ): Promise<any> {
+    requirePermission(actor, IntegrationCapability.Admin);
+    const normalized = {
+      connectionId: integrationRequired(connectionId, 'connectionId'),
+      internalSkuId: integrationRequired(input.internalSkuId, 'internalSkuId'),
+      externalSku: integrationRequired(input.externalSku, 'externalSku'),
+      externalItemId: integrationRequired(input.externalItemId, 'externalItemId'),
+    };
+    if (normalized.externalSku.length > 255) throw new IntegrationValidationError('externalSku must be at most 255 characters');
+    if (normalized.externalItemId.length > 255) throw new IntegrationValidationError('externalItemId must be at most 255 characters');
+    try {
+      const row = await this.repository.createExternalSkuMapping({ ...normalized, actorUserId: actor.userId });
+      await this.audit.record({
+        actorUserId: actor.userId,
+        action: 'integration.external_sku_mapping_created',
+        targetType: 'integration.external_sku_mapping',
+        targetId: row.id,
+        metadata: { connectionId: normalized.connectionId, internalSkuId: normalized.internalSkuId, externalSku: normalized.externalSku, externalItemId: normalized.externalItemId },
       });
       return row;
     } catch (error) {
@@ -330,7 +390,7 @@ export class IntegrationService {
     }
     const message = error instanceof Error ? error.message : '';
     const code = postgresErrorCode(error);
-    if (code === '23503') throw new IntegrationNotFoundError('Referenced integration Channel or entity was not found');
+    if (code === '23503') throw new IntegrationNotFoundError('Referenced integration channel, provider connection, warehouse or SKU was not found');
     if (code === '23505') throw new IntegrationConflictError(message);
     if (code === '23514') throw new IntegrationValidationError(message);
     throw error;
