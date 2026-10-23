@@ -1,6 +1,6 @@
 import type { AppNavItem } from '@alsvid/ui';
 
-const configuredNavigation = [
+const configuredNavigation: readonly AppNavItem[] = [
   { label: '工作台', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '今日概览', href: '/admin#overview', area: '工作台', section: '运营概览' },
   { label: '待办与异常', href: '/admin#attention', area: '工作台', section: '运营概览' },
@@ -79,7 +79,7 @@ const configuredNavigation = [
   { label: '通信与邮件', href: '/settings/communications', area: '设置', section: '系统与集成', status: '骨架' },
   { label: '系统集成', href: '/settings/integrations', area: '设置', section: '系统与集成', status: '骨架' },
   { label: '环境与基础设施', href: '/settings/environment', area: '设置', section: '系统与集成' },
-] as const;
+];
 
 /**
  * Never route users into a placeholder as if it were a working feature.
