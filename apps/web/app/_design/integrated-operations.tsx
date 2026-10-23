@@ -26,7 +26,7 @@ export function IntegratedOperations({ area, route }: { area: string; route?: st
   switch (area) {
     case '产品': return <ProductClient embedded />;
     case '订单': return <CommerceClient embedded />; // Legacy bookmarked order lookup remains valid.
-    case '电商': return <EcommerceAdminWorkspace route={route} />;
+    case '电商': return <EcommerceAdminWorkspace route={route ?? '/admin/ecommerce'} />;
     case '财务': return <FinanceClient embedded />;
     case '物流': return <LogisticsClient embedded />;
     case '生产': return <ProductionClient embedded />;

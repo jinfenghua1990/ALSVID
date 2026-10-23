@@ -24,7 +24,7 @@ const plannedCapabilities = [
 ] as const;
 
 function viewForRoute(route: string): EcommerceView {
-  const path = route.split('?')[0].replace(/\/+$/, '');
+  const path = (route.split('?')[0] ?? route).replace(/\/+$/, '');
   if (path === '/admin/ecommerce/publications') return 'publications';
   if (path === '/admin/ecommerce/homepage') return 'homepage';
   if (path === '/admin/ecommerce/inventory') return 'inventory';
