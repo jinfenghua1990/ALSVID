@@ -77,7 +77,7 @@ test('P0 user interface is authorized, read-only and integrated before the legac
   assert.match(component, /response\.status === 401/);
   assert.match(component, /response\.status === 403/);
   assert.match(component, /数据源不可用/);
-  assert.match(component, /不能按零条数据计算/);
+  assert.match(component, /不按零条数据计算/);
   assert.match(component, /aria-pressed/);
   assert.match(css, /@media \(max-width: 760px\)/);
 });
