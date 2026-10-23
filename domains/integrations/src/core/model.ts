@@ -11,3 +11,15 @@ export interface CreateWarehouseProviderConnectionInput {
   accountRef:string;
   credentialsSecretRef?:string;
 }
+
+export interface CreateExternalWarehouseMappingInput {
+  internalWarehouseId:string;
+  externalWarehouseId:string;
+  externalCode:string;
+  externalName:string;
+}
+export interface CreateExternalSkuMappingInput {
+  internalSkuId:string;
+  externalSku:string;
+  externalItemId:string;
+}

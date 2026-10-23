@@ -18,11 +18,13 @@ type ProviderConnection = {
   created_at: string;
   updated_at: string;
 };
+type WarehouseOption = { id: string; code: string; name: string; country_code: string; timezone: string };
+type SkuOption = { id: string; sku: string; name: string };
 type Mapping = { id: string; provider_code: string; provider_name: string; mapping_status: string; [key: string]: unknown };
 type SyncRun = { id: string; provider_code: string; provider_name: string; sync_type: string; status: string; records_seen: number; records_accepted: number; records_rejected: number; retryable: boolean; error_code: string | null; created_at: string; completed_at: string | null };
-type Summary = { connections: ProviderConnection[]; warehouseMappings: Mapping[]; skuMappings: Mapping[]; syncRuns: SyncRun[] };
+type Summary = { connections: ProviderConnection[]; warehouseMappings: Mapping[]; skuMappings: Mapping[]; syncRuns: SyncRun[]; warehouseOptions: WarehouseOption[]; skuOptions: SkuOption[] };
 type FormState = { providerCode: string; displayName: string; accountRef: string; credentialsSecretRef: string };
-const empty: Summary = { connections: [], warehouseMappings: [], skuMappings: [], syncRuns: [] };
+const empty: Summary = { connections: [], warehouseMappings: [], skuMappings: [], syncRuns: [], warehouseOptions: [], skuOptions: [] };
 const statusLabel: Record<ProviderConnection['connection_status'], string> = {
   NOT_CONFIGURED: '未配置',
   PENDING_REVIEW: '待验证',
@@ -52,6 +54,8 @@ export default function IntegrationsAdminClient() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [form, setForm] = useState<FormState>({ providerCode: '', displayName: '', accountRef: '', credentialsSecretRef: '' });
+  const [warehouseMappingForm, setWarehouseMappingForm] = useState({ connectionId: '', internalWarehouseId: '', externalWarehouseId: '', externalCode: '', externalName: '' });
+  const [skuMappingForm, setSkuMappingForm] = useState({ connectionId: '', internalSkuId: '', externalSku: '', externalItemId: '' });
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -76,6 +80,8 @@ export default function IntegrationsAdminClient() {
         warehouseMappings: Array.isArray(summary?.warehouseMappings) ? summary.warehouseMappings : [],
         skuMappings: Array.isArray(summary?.skuMappings) ? summary.skuMappings : [],
         syncRuns: Array.isArray(summary?.syncRuns) ? summary.syncRuns : [],
+        warehouseOptions: Array.isArray(summary?.warehouseOptions) ? summary.warehouseOptions : [],
+        skuOptions: Array.isArray(summary?.skuOptions) ? summary.skuOptions : [],
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : '第三方仓配置读取失败');
@@ -108,6 +114,55 @@ export default function IntegrationsAdminClient() {
       await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitWarehouseMapping(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      await api(`/v1/integrations/warehouse-providers/${encodeURIComponent(warehouseMappingForm.connectionId)}/warehouse-mappings`, {
+        method: 'POST',
+        body: JSON.stringify({
+          internalWarehouseId: warehouseMappingForm.internalWarehouseId,
+          externalWarehouseId: warehouseMappingForm.externalWarehouseId.trim(),
+          externalCode: warehouseMappingForm.externalCode.trim(),
+          externalName: warehouseMappingForm.externalName.trim(),
+        }),
+      });
+      setWarehouseMappingForm({ connectionId: '', internalWarehouseId: '', externalWarehouseId: '', externalCode: '', externalName: '' });
+      setNotice('仓库映射已保存为“待验证”；系统尚未从仓商 API 验证该映射。');
+      await reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '仓库映射保存失败');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitSkuMapping(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      await api(`/v1/integrations/warehouse-providers/${encodeURIComponent(skuMappingForm.connectionId)}/sku-mappings`, {
+        method: 'POST',
+        body: JSON.stringify({
+          internalSkuId: skuMappingForm.internalSkuId,
+          externalSku: skuMappingForm.externalSku.trim(),
+          externalItemId: skuMappingForm.externalItemId.trim(),
+        }),
+      });
+      setSkuMappingForm({ connectionId: '', internalSkuId: '', externalSku: '', externalItemId: '' });
+      setNotice('SKU 映射已保存为“待验证”；未经仓商 API 验证的库存不会计入可售库存。');
+      await reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'SKU 映射保存失败');
     } finally {
       setSaving(false);
     }
@@ -160,11 +215,37 @@ export default function IntegrationsAdminClient() {
 
     <section className={styles.panel}>
       <div className={styles.heading}><div><span className={styles.eyebrow}>MAPPING</span><h2>仓库与 SKU 映射</h2><p>外部编码必须映射到内部真实仓库 / SKU；没有映射或验证的外部库存不得计入可售库存。</p></div></div>
+      <h3>新增仓库映射</h3>
+      <form className={styles.mappingForm} onSubmit={submitWarehouseMapping}>
+        <label>服务商账号<select required value={warehouseMappingForm.connectionId} onChange={e => setWarehouseMappingForm({ ...warehouseMappingForm, connectionId: e.target.value })}>
+          <option value="">选择服务商</option>{data.connections.map(item => <option key={item.id} value={item.id}>{item.display_name} · {item.account_ref}</option>)}
+        </select></label>
+        <label>内部仓库<select required value={warehouseMappingForm.internalWarehouseId} onChange={e => setWarehouseMappingForm({ ...warehouseMappingForm, internalWarehouseId: e.target.value })}>
+          <option value="">选择内部仓库</option>{data.warehouseOptions.map(item => <option key={item.id} value={item.id}>{item.code} · {item.name} ({item.country_code})</option>)}
+        </select></label>
+        <label>外部仓库 ID<input required maxLength={255} value={warehouseMappingForm.externalWarehouseId} onChange={e => setWarehouseMappingForm({ ...warehouseMappingForm, externalWarehouseId: e.target.value })} placeholder="仓商系统里的原始 ID" /></label>
+        <label>外部仓库代码<input required maxLength={120} value={warehouseMappingForm.externalCode} onChange={e => setWarehouseMappingForm({ ...warehouseMappingForm, externalCode: e.target.value })} placeholder="仓商仓库代码" /></label>
+        <label className={styles.wide}>外部仓库名称<input required maxLength={255} value={warehouseMappingForm.externalName} onChange={e => setWarehouseMappingForm({ ...warehouseMappingForm, externalName: e.target.value })} placeholder="仓商系统中的仓库名称" /></label>
+        <div className={styles.formActions}><button type="submit" disabled={saving || loading || !data.connections.length || !data.warehouseOptions.length}>保存仓库映射</button></div>
+      </form>
+      <p className={styles.formNote}>新建映射初始状态为“待验证”；保存不会调用仓商 API，也不会自动改变库存。</p>
       <h3>仓库映射</h3>
       <div className={styles.tableWrap}><table><thead><tr><th>服务商</th><th>内部仓库</th><th>外部仓库 ID</th><th>外部名称</th><th>状态</th></tr></thead><tbody>
         {data.warehouseMappings.map(row => <tr key={row.id}><td>{value(row, 'provider_name')}</td><td>{value(row, 'internal_warehouse_code')} · {value(row, 'internal_warehouse_name')}</td><td>{value(row, 'external_warehouse_id')}</td><td>{value(row, 'external_name')}</td><td>{mappingStatusLabel[row.mapping_status] ?? row.mapping_status}</td></tr>)}
         {!loading && data.warehouseMappings.length === 0 ? <tr><td colSpan={5} className={styles.empty}>暂无仓库映射</td></tr> : null}
       </tbody></table></div>
+      <h3>新增 SKU 映射</h3>
+      <form className={styles.mappingForm} onSubmit={submitSkuMapping}>
+        <label>服务商账号<select required value={skuMappingForm.connectionId} onChange={e => setSkuMappingForm({ ...skuMappingForm, connectionId: e.target.value })}>
+          <option value="">选择服务商</option>{data.connections.map(item => <option key={item.id} value={item.id}>{item.display_name} · {item.account_ref}</option>)}
+        </select></label>
+        <label>内部 SKU<select required value={skuMappingForm.internalSkuId} onChange={e => setSkuMappingForm({ ...skuMappingForm, internalSkuId: e.target.value })}>
+          <option value="">选择内部 SKU</option>{data.skuOptions.map(item => <option key={item.id} value={item.id}>{item.sku} · {item.name}</option>)}
+        </select></label>
+        <label>外部 SKU<input required maxLength={255} value={skuMappingForm.externalSku} onChange={e => setSkuMappingForm({ ...skuMappingForm, externalSku: e.target.value })} placeholder="仓商使用的 SKU 编码" /></label>
+        <label>外部商品 ID<input required maxLength={255} value={skuMappingForm.externalItemId} onChange={e => setSkuMappingForm({ ...skuMappingForm, externalItemId: e.target.value })} placeholder="仓商系统里的商品 ID" /></label>
+        <div className={styles.formActions}><button type="submit" disabled={saving || loading || !data.connections.length || !data.skuOptions.length}>保存 SKU 映射</button></div>
+      </form>
       <h3>SKU 映射</h3>
       <div className={styles.tableWrap}><table><thead><tr><th>服务商</th><th>内部 SKU</th><th>外部 SKU</th><th>外部商品 ID</th><th>状态</th></tr></thead><tbody>
         {data.skuMappings.map(row => <tr key={row.id}><td>{value(row, 'provider_name')}</td><td>{value(row, 'internal_sku')}</td><td>{value(row, 'external_sku')}</td><td>{value(row, 'external_item_id')}</td><td>{mappingStatusLabel[row.mapping_status] ?? row.mapping_status}</td></tr>)}
