@@ -921,7 +921,7 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 
 /* Commerce inventory is an authorized read-only projection of Inventory ledger data. */
 .av-commerce-stock-filter{display:grid;gap:7px;max-width:360px;margin:16px 0;color:var(--av-text-soft);font-size:12px}
-.av-commerce-stock-filter input{width:100%;min-height:38px;padding:9px 12px;border:1px solid var(--av-line);border-radius:8px;background:var(--av-card);color:var(--av-text);font:inherit}
+.av-commerce-stock-filter input{width:100%;min-height:38px;padding:9px 12px;border:1px solid var(--av-line);border-radius:8px;background:var(--av-panel);color:var(--av-text);font:inherit}
 .av-commerce-stock-filter input:focus-visible{outline:2px solid var(--av-brand);outline-offset:1px}
 .av-commerce-stock-scroll{overflow-x:auto;max-width:100%}
 .av-commerce-stock-table{width:100%;min-width:700px;border-collapse:collapse;text-align:left;font-size:12px;font-variant-numeric:tabular-nums}
@@ -939,7 +939,7 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-module-directory-head h2{font-size:20px;font-weight:720;letter-spacing:-.025em;margin:5px 0 7px;color:var(--av-text)}
 .av-module-directory-head p:not(.av-eyebrow){max-width:800px;line-height:1.7;margin:0;color:var(--av-text-soft);font-size:12px}
 .av-module-directory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.av-module-directory-card{min-height:166px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-card);padding:17px;color:var(--av-text);text-decoration:none;display:flex;flex-direction:column;gap:10px;transition:border-color .2s,box-shadow .2s}
+.av-module-directory-card{min-height:166px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-panel);padding:17px;color:var(--av-text);text-decoration:none;display:flex;flex-direction:column;gap:10px;transition:border-color .2s,box-shadow .2s}
 .av-module-directory-card:hover,.av-module-directory-card:focus-visible{border-color:var(--av-brand);box-shadow:0 6px 22px rgba(45,70,95,.08)}
 .av-module-directory-card-head{display:flex;align-items:start;justify-content:space-between;gap:7px;flex-wrap:wrap}
 .av-module-directory-card-head strong{font-size:14px;font-weight:700}
