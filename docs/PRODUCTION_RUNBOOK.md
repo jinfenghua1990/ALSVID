@@ -25,7 +25,7 @@ Real R2 access is intentionally **not** faked as part of the core Docker smoke c
 | --- | --- |
 | Web | Cloud Run Service `alsvid-web` |
 | API | Cloud Run Service `alsvid-api` |
-| Worker | Cloud Run Worker Pool `alsvid-worker` |
+| Worker | Not deployed; scaffold retained for local/CI use |
 | Migrations | Cloud Run Job `alsvid-migrate` |
 | Container images | Google Artifact Registry |
 | Structured business data | Neon managed PostgreSQL |
@@ -34,7 +34,7 @@ Real R2 access is intentionally **not** faked as part of the core Docker smoke c
 | Logs | Google Cloud Logging |
 | Offline/independent backup layer | Q4 plus portable database/object copies |
 
-Web and API use zero minimum instances for the initial low-traffic profile. The Worker Pool is a continuous background process and therefore runs one instance when enabled.
+Web and API use zero minimum instances for the initial low-traffic profile. Production does not deploy a Worker Pool: the worker has no registered business handlers, and the queue was empty at cutover.
 
 Neon and R2 are selected providers, not Domain dependencies. PostgreSQL and S3-compatible ports remain the application boundaries.
 
@@ -182,15 +182,14 @@ The workflow refuses a commit that is not contained in `main`.
 The workflow performs these steps in order:
 
 1. checkout and validate release SHA
-2. build Web/API/Worker images before cloud authentication
+2. build or reuse the exact Web/API release images
 3. authenticate using Workload Identity Federation
 4. push immutable images tagged with the Git commit SHA
 5. run database migrations in `alsvid-migrate`
 6. deploy API
-7. deploy the continuous Worker Pool
-8. verify API `/api/health`
-9. deploy Web with the resolved API URL
-10. verify the Web root
+7. verify API `/api/health`
+8. deploy Web with the resolved API URL
+9. verify the Web root
 
 A release is identified by its Git commit SHA. Do not patch a running container.
 
@@ -272,7 +271,6 @@ Initial production checks after every release:
 
 - API health returns 200
 - Web root returns 200
-- Worker Pool revision is running
 - migration job succeeded
 - no repeated crash/restart loop
 - Neon database connectivity is healthy
