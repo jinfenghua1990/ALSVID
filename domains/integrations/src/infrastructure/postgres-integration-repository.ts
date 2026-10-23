@@ -20,4 +20,13 @@ export class PostgresIntegrationRepository implements IntegrationRepository{cons
   const r=await this.db.query<any>(`INSERT INTO integrations.warehouse_provider_connections(provider_code,display_name,account_ref,credentials_secret_ref,connection_status,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING id,provider_code,display_name,account_ref,connection_status,capabilities,(credentials_secret_ref IS NOT NULL) AS credentials_configured,last_probe_at,last_success_at,last_error_code,created_at,updated_at`,[i.providerCode,i.displayName,i.accountRef,i.credentialsSecretRef??null,i.connectionStatus,i.actorUserId]);
   return r.rows[0];
  }
+
+ async createExternalWarehouseMapping(i:{connectionId:string;internalWarehouseId:string;externalWarehouseId:string;externalCode:string;externalName:string;actorUserId:string}):Promise<any>{
+  const r=await this.db.query<any>(`INSERT INTO integrations.external_warehouse_mappings(connection_id,internal_warehouse_id,external_warehouse_id,external_code,external_name,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING id,connection_id,internal_warehouse_id,external_warehouse_id,external_code,external_name,mapping_status,last_verified_at,created_at,updated_at`,[i.connectionId,i.internalWarehouseId,i.externalWarehouseId,i.externalCode,i.externalName,i.actorUserId]);
+  return r.rows[0];
+ }
+ async createExternalSkuMapping(i:{connectionId:string;internalSkuId:string;externalSku:string;externalItemId:string;actorUserId:string}):Promise<any>{
+  const r=await this.db.query<any>(`INSERT INTO integrations.external_sku_mappings(connection_id,internal_sku_id,external_sku,external_item_id,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$5) RETURNING id,connection_id,internal_sku_id,external_sku,external_item_id,mapping_status,last_verified_at,created_at,updated_at`,[i.connectionId,i.internalSkuId,i.externalSku,i.externalItemId,i.actorUserId]);
+  return r.rows[0];
+ }
 }
