@@ -182,8 +182,8 @@ export function searchAuthorizedBusinessRecords(
     }
   }
   if (sources.inventory) {
-    for (const row of cap(sources.inventory.filter(item => contains(term, row.part_number, row.part_name, row.sku,
-      row.sku_name, row.frame_number, row.warehouse_code, row.warehouse_name, row.location_code, row.location_name)))) {
+    for (const row of cap(sources.inventory.filter(item => contains(term, item.part_number, item.part_name, item.sku,
+      item.sku_name, item.frame_number, item.warehouse_code, item.warehouse_name, item.location_code, item.location_name)))) {
       const itemCode = row.frame_number || row.sku || row.part_number || '库存记录';
       results.push({ type: 'inventory',
         key: ['inventory', row.item_kind, row.warehouse_code, row.location_code, itemCode].join(':'),
