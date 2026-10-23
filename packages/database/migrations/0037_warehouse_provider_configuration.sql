@@ -21,7 +21,7 @@ CREATE TABLE integrations.warehouse_provider_connections (
   UNIQUE (provider_code, account_ref),
   CHECK (
     credentials_secret_ref IS NULL
-    OR credentials_secret_ref ~ '^projects/[a-z][a-z0-9-]{4,28}[a-z0-9]/secrets/[A-Za-z0-9_-]{1,255}/versions/(latest|[1-9][0-9]*)$'
+    OR credentials_secret_ref ~ '^projects/[a-z][a-z0-9-]{4,28}[a-z0-9]/secrets/alsvid-wms-[A-Za-z0-9_-]{1,240}/versions/(latest|[1-9][0-9]*)$'
   ),
   CHECK (
     (credentials_secret_ref IS NULL AND connection_status = 'NOT_CONFIGURED')
