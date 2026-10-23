@@ -8,8 +8,8 @@ const screen: Screen = {
   id: "ecommerce",
   area: "电商",
   route: "/admin/ecommerce",
-  title: "电商运营",
-  subtitle: "官网商品审核与发布、首页商品绑定、德国/奥地利售价与 B2C 商城订单",
+  title: "电商运营工作台",
+  subtitle: "电商业务入口与待接入能力总览；商品、库存、价格和订单分别进入独立工作区。",
   sourceNode: "module:ecommerce",
   blocks: [],
 };
