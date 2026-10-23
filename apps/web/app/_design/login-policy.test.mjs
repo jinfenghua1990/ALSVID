@@ -41,8 +41,12 @@ test('forgot password uses the existing reset API and carries portal and locale 
   const identity = from('../../../../domains/identity/src/application/identity-service.ts');
 
   assert.match(ui, /JSON\.stringify\(\{ email: nextEmail, portal, locale \}\)/);
-  assert.match(resetPage, /if \(!token\) router\.replace/);
-  assert.match(resetPage, /forgot=1/);
+  assert.match(resetPage, /query\.set\('resetToken', token\)/);
+  assert.match(resetPage, /redirect\(.*locale.*login.*query\.toString/);
+  assert.match(ui, /resetToken\?: string/);
+  assert.match(ui, /\/api\/session\/password-reset\/confirm/);
+  assert.match(ui, /name="confirmPassword"/);
+  assert.match(resetPage, /query\.set\('forgot', '1'\)/);
   assert.match(identity, /searchParams\.set\('portal', portal!\)/);
   assert.match(identity, /searchParams\.set\('locale', locale!\)/);
   assert.match(api, /requestPasswordReset\([\s\S]*portal,[\s\S]*locale/);

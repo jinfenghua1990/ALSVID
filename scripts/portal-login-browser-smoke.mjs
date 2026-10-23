@@ -117,10 +117,34 @@ try {
 
   const resetContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const resetPage = await resetContext.newPage();
+  const deCopy = JSON.parse(readFileSync('apps/web/app/_lib/i18n/auth/de.json', 'utf8'));
+  let resetConfirmCalls = 0;
+  await resetPage.route('**/api/session/password-reset/confirm', async route => {
+    const body = route.request().postDataJSON();
+    assert.equal(body.token,'sample-reset-token');
+    assert.equal(body.password,'SecurePass123');
+    resetConfirmCalls += 1;
+    await route.fulfill({json:{data:{ok:true}}});
+  });
   await resetPage.goto(base+'/reset-password?portal=dealer&locale=de');
   await resetPage.getByRole('dialog').waitFor();
   assert.match(resetPage.url(),/forgot=1/,'A direct no-token reset URL opens the inline forgot-password dialog');
   assert.equal(await resetPage.locator('[data-portal-login="dealer"]').count(),1);
+  await resetPage.goto(base+'/reset-password?token=sample-reset-token&portal=dealer&locale=de');
+  const resetDialog = resetPage.getByRole('dialog');
+  await resetDialog.getByRole('heading',{name:deCopy['auth.reset_title'],exact:true}).waitFor();
+  assert.match(resetPage.url(),/resetToken=sample-reset-token/,'Email reset links open the new-password modal');
+  await resetDialog.locator('input[name=password]').fill('SecurePass123');
+  await resetDialog.locator('input[name=confirmPassword]').fill('MismatchPass123');
+  await resetDialog.getByRole('button',{name:deCopy['auth.reset_submit'],exact:true}).click();
+  await resetDialog.getByRole('alert').waitFor();
+  assert.equal(resetConfirmCalls,0,'Mismatched passwords must not reach the API');
+  await resetDialog.locator('input[name=confirmPassword]').fill('SecurePass123');
+  await resetDialog.getByRole('button',{name:deCopy['auth.reset_submit'],exact:true}).click();
+  await resetDialog.getByRole('status').waitFor();
+  assert.equal(resetConfirmCalls,1,'A valid reset submits exactly once');
+  assert.doesNotMatch(resetPage.url(),/resetToken=/,'The token is removed from the address bar after success');
+  assert.ok(await resetPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Password reset modal fits mobile viewport');
   await resetContext.close();
 
   const context = await browser.newContext({viewport:{width:1440,height:960},reducedMotion:'no-preference'});
