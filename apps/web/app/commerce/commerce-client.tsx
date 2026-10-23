@@ -311,10 +311,10 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       </section>
 
       <div className={styles.metrics}>
-        <div><span>渠道</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.channels}</b></div>
-        <div><span>规范化订单</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.orders}</b></div>
-        <div><span>待处理异常</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.open}</b></div>
-        <div><span>未映射明细</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.unmapped}</b></div>
+        <div><span>渠道</span><b>{sourceStatus.commerce !== 'ready' || sourceErrors.commerce ? '—' : metrics.channels}</b></div>
+        <div><span>规范化订单</span><b>{sourceStatus.commerce !== 'ready' || sourceErrors.commerce ? '—' : metrics.orders}</b></div>
+        <div><span>待处理异常</span><b>{sourceStatus.commerce !== 'ready' || sourceErrors.commerce ? '—' : metrics.open}</b></div>
+        <div><span>未映射明细</span><b>{sourceStatus.commerce !== 'ready' || sourceErrors.commerce ? '—' : metrics.unmapped}</b></div>
       </div>
 
       <section className={styles.topGrid}>
