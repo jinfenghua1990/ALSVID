@@ -147,3 +147,12 @@ WarehouseProviderAdapter
 - Admin「设置 → 集成」新增配置表单、连接状态、仓库/SKU 映射和同步记录视图。
 - 新建配置只会处于「未配置」或「待验证」；没有真实 adapter、服务端 Secret Manager 读取和连接探测，不会显示已连接，也不会触发库存同步或订单履约。
 - **仍未完成**：真实仓商适配器、Secret Manager 资源存在性/访问权限验证、仓库/SKU 映射维护 API、同步任务执行器、真实沙箱和生产验收。外部映射表不会自动生成数据。
+
+
+## 10. 2026-10-23 实施进度：手动仓库与 SKU 映射（PR #323，待验收）
+
+- 新增 `POST /v1/integrations/warehouse-providers/:connectionId/warehouse-mappings` 与 `POST /v1/integrations/warehouse-providers/:connectionId/sku-mappings`。
+- 两个写入接口均要求 `integrations.admin` 权限，并记录审计事件；内部仓库 / SKU 必须引用 ALSVID 已存在的真实记录，外部 ID 在同一服务商账号范围内唯一。
+- Admin 集成页面增加内部仓库和 SKU 下拉选择、外部仓商编码输入和保存反馈。
+- 所有手工创建映射初始状态为 `PENDING`；页面明确说明这不是 API 验证结果，不能因此将外部库存计入可售库存。
+- 真实服务商验证、映射修改/停用、连接探测、同步 worker 和生产沙箱验收仍未完成。
