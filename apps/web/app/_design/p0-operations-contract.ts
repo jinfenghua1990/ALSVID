@@ -50,7 +50,7 @@ export const P0_AREAS: readonly P0Area[] = [
   },
   {
     key: 'orders', title: '订单中心', description: 'B2C 订单、支付验证、履约与退款',
-    href: '/admin/ecommerce#b2c', action: '进入商城订单与售价', owner: 'Commerce',
+    href: '/admin/ecommerce/orders', action: '进入 B2C 订单管理', owner: 'Commerce',
     sourceKeys: ['orders'],
     existing: ['自建商城内部订单草稿与价格版本已接入', '历史渠道订单通过只读兼容入口独立查询'],
     gates: [
