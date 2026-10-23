@@ -161,6 +161,31 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           <div><span>进行中盘点</span><b>{loadState === 'ready' ? metrics.openStocktakes : '—'}</b></div>
         </div>
 
+        <section className={styles.panel} id="warehouse-provider" aria-labelledby="warehouse-provider-title">
+          <div className={styles.sectionHead}>
+            <span>THIRD-PARTY WAREHOUSE / WMS</span>
+            <h2 id="warehouse-provider-title">第三方仓连接状态</h2>
+            <p>当前尚未配置真实仓商 API、商户账号或沙箱凭据。系统不会发起外部同步，也不会把第三方库存计入可售库存。</p>
+          </div>
+          <div className={styles.row}>
+            <div>
+              <b>连接状态：未配置</b>
+              <span>首家服务商：待确认</span>
+              <small>正式接入前需要官方 API 文档、商户 / 仓库 ID、SKU 映射和沙箱凭据。</small>
+            </div>
+          </div>
+          <div className={styles.tableWrap}>
+            <table aria-label="第三方仓接口能力状态">
+              <thead><tr><th>能力</th><th>当前状态</th><th>开启条件</th></tr></thead>
+              <tbody>
+                <tr><td>库存快照与对账</td><td>未接入</td><td>仓库 / SKU 映射及沙箱验收</td></tr>
+                <tr><td>订单履约与运单</td><td>未接入</td><td>真实订单门禁、仓商接单回执与追踪接口</td></tr>
+                <tr><td>收货与退货回执</td><td>未接入</td><td>仓商能力确认、实收证据与权限审计</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section className={styles.topGrid}>
           <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/warehouse/warehouses', (form) => ({ code: form.get('code'), name: form.get('name'), countryCode: form.get('countryCode'), timezone: form.get('timezone') }))}>
             <span>仓库主数据</span><h2>创建仓库</h2>
