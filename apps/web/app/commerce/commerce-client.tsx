@@ -311,10 +311,10 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
       </section>
 
       <div className={styles.metrics}>
-        <div><span>渠道</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.channels}</b></div>
-        <div><span>规范化订单</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.orders}</b></div>
-        <div><span>待处理异常</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.open}</b></div>
-        <div><span>未映射明细</span><b>{sourceStatus.commerce === 'error' ? '—' : metrics.unmapped}</b></div>
+        <div><span>渠道</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.channels}</b></div>
+        <div><span>规范化订单</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.orders}</b></div>
+        <div><span>待处理异常</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.open}</b></div>
+        <div><span>未映射明细</span><b>{sourceStatus.commerce === 'error' || sourceErrors.commerce ? '—' : metrics.unmapped}</b></div>
       </div>
 
       <section className={styles.topGrid}>
@@ -342,7 +342,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
           <div><b>{channel.display_name}</b><small>{providerLabel(channel.provider)} · {channel.channel_key}</small></div>
           <div><span>{channel.external_account_id}</span><small>{channel.enabled ? '启用' : '停用'}{channel.provider === 'AMAZON' ? ' · SP-API 待配置' : ''}</small></div>
         </article>)}
-        {!commerce.channels.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取渠道数据…' : sourceStatus.commerce === 'error' ? '渠道数据不可用，无法确认当前是否已有渠道。' : '尚未登记任何电商渠道。'}</p> : null}
+        {!commerce.channels.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取渠道数据…' : sourceStatus.commerce === 'error' || sourceErrors.commerce ? '渠道数据不可用，无法确认当前是否已有渠道。' : '尚未登记任何电商渠道。'}</p> : null}
       </section>
 
       <section className={styles.topGrid}>
@@ -378,7 +378,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
               <small>{item.total_amount} {item.currency} · {statusLabel(item.fulfillment_status)}</small>
             </a>;
           })}
-          {!commerce.orders.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取订单…' : sourceStatus.commerce === 'error' ? '订单数据不可用，无法确认当前是否有订单。' : '还没有同步进来的规范化订单。'}</p> : null}
+          {!commerce.orders.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取订单…' : sourceStatus.commerce === 'error' || sourceErrors.commerce ? '订单数据不可用，无法确认当前是否有订单。' : '还没有同步进来的规范化订单。'}</p> : null}
         </div>
         {selectedOrder ? <div className={styles.detail}>
           <div className={styles.sectionHead}><span>外部订单事实</span><h2>{selectedOrder.external_order_name ?? selectedOrder.external_order_id}</h2>
@@ -402,12 +402,12 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
         <div className={styles.panel}>
           <div className={styles.sectionHead}><span>对账异常</span><h2>异常保留，不静默丢弃</h2></div>
           {openExceptions.map((item) => <article className={styles.exception} key={item.id}><div><b>{item.exception_type}</b><span>{item.channel_key} · {item.entity_type}</span><p>{item.message}</p></div><div className={styles.actions}><button onClick={() => void action(`/v1/commerce/exceptions/${item.id}/resolve`, { action: 'RESOLVED', resolution: { note: 'Reviewed in Commerce workspace' } })}>标记已解决</button><button className={styles.secondary} onClick={() => void action(`/v1/commerce/exceptions/${item.id}/resolve`, { action: 'IGNORED', resolution: { note: 'Explicitly ignored' } })}>忽略</button></div></article>)}
-          {!openExceptions.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取异常记录…' : sourceStatus.commerce === 'error' ? '订单异常来源不可用，无法确认是否存在待处理异常。' : '当前没有待处理映射异常。'}</p> : null}
+          {!openExceptions.length ? <p className={styles.empty}>{sourceStatus.commerce === 'loading' ? '正在读取异常记录…' : sourceStatus.commerce === 'error' || sourceErrors.commerce ? '订单异常来源不可用，无法确认是否存在待处理异常。' : '当前没有待处理映射异常。'}</p> : null}
         </div>
         <div className={styles.panel}>
           <div className={styles.sectionHead}><span>集成证据</span><h2>Delivery receipts & attempts</h2><p>当前证据流仍来自 Shopify Webhook；Amazon SP-API adapter 尚未接入。</p></div>
           {integrations.receipts.slice(0, 30).map((receipt) => { const attempt = latestAttempt(receipt.id); const channel = channelFor(receipt.channel_id); return <article className={styles.receipt} key={receipt.id}><div><b>{providerLabel(channel?.provider ?? 'OTHER')} · {receipt.topic}</b><span>{receipt.channel_key} · {receipt.provider_event_id}</span><small>{attempt ? `${statusLabel(attempt.outcome)} · 第 ${attempt.attempt_number} 次` : '尚无处理尝试'}</small></div>{channel?.provider === 'SHOPIFY' ? <button onClick={() => void action(`/v1/integrations/shopify/receipts/${receipt.id}/replay`)}>重放</button> : null}</article>; })}
-          {!integrations.receipts.length ? <p className={styles.empty}>{sourceStatus.integrations === 'loading' ? '正在读取渠道事件…' : sourceStatus.integrations === 'error' ? '渠道事件来源不可用，无法确认是否已有集成证据。' : '还没有保留的集成证据。'}</p> : null}
+          {!integrations.receipts.length ? <p className={styles.empty}>{sourceStatus.integrations === 'loading' ? '正在读取渠道事件…' : sourceStatus.integrations === 'error' || sourceErrors.integrations ? '渠道事件来源不可用，无法确认是否已有集成证据。' : '还没有保留的集成证据。'}</p> : null}
         </div>
       </section>
     </OperationsFrame>
