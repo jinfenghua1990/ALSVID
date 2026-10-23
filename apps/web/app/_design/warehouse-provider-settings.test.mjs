@@ -29,3 +29,16 @@ test('provider configuration is gated by the integration admin permission', () =
   assert.match(service, /warehouseProviderSummary\(actor: IntegrationActor\)[\s\S]{0,300}requirePermission\(actor, IntegrationCapability\.Admin\)/);
   assert.match(service, /createWarehouseProviderConnection\([\s\S]{0,300}requirePermission\(actor, IntegrationCapability\.Admin\)/);
 });
+
+test('warehouse and SKU mapping forms persist as pending and are never presented as verified by default', () => {
+  assert.match(ui, /warehouse-mappings/);
+  assert.match(ui, /sku-mappings/);
+  assert.match(ui, /warehouseOptions/);
+  assert.match(ui, /skuOptions/);
+  assert.match(ui, /仓库映射已保存为“待验证”/);
+  assert.match(ui, /SKU 映射已保存为“待验证”/);
+  assert.match(service, /createExternalWarehouseMapping/);
+  assert.match(service, /createExternalSkuMapping/);
+  assert.match(service, /integration\.external_warehouse_mapping_created/);
+  assert.match(service, /integration\.external_sku_mapping_created/);
+});
