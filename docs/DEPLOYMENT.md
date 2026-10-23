@@ -36,7 +36,7 @@ The production architecture is fixed by ADR 0003:
 | Software / migrations / CI | GitHub `main` + commit SHA |
 | Web | Google Cloud Run Service `alsvid-web` |
 | API | Google Cloud Run Service `alsvid-api` |
-| Worker | Google Cloud Run Worker Pool `alsvid-worker` |
+| Worker | Not deployed; no registered production handlers or queued jobs |
 | Migrations | Google Cloud Run Job `alsvid-migrate` |
 | Container images | Google Artifact Registry |
 | Structured business data | Neon managed PostgreSQL |
@@ -94,6 +94,8 @@ Non-secret GitHub `production` Environment variables are documented in `docs/PRO
 
 ## Release
 
+Production deployment builds and publishes only Web and API images. The Worker scaffold remains available to local/CI acceptance, but no Worker Pool is created by the production workflow. Introduce a production worker only with registered business handlers and an explicit processing requirement.
+
 Production releases are reproducible from a Git commit SHA. **Temporary WWW-only staged mode (2026-10-20):** after passing main CI, compatible frontend/workflow-only changes are dispatched to `.github/workflows/www-deploy.yml`, which deploys only `alsvid-web` and verifies the live `www.alsvidbike.com/release-check` commit; it does not migrate the database or touch the API, worker, email or auth base. Backend/database/shared/infrastructure changes are not automatically promoted through this path. `.github/workflows/production-deploy.yml` remains the explicit full-platform release/rollback workflow, and must only be used after its additional domain, authentication and service preflight checks pass. Both workflows validate exact commit CI and immutable image identity.
 
 No production fix is made by editing a running container.
@@ -115,7 +117,7 @@ Repository-side Docker/Test acceptance is complete. Production is not accepted u
 - Google Cloud bootstrap completed
 - required Secret Manager values added
 - first GitHub Production Deploy succeeds
-- API/Web/Worker and database/object-storage access verified live
+- API/Web and database/object-storage access verified live
 - PostgreSQL restore drill succeeds against an isolated target
 - independent backup/Q4 procedure is proven
 - budget/alert/operational monitoring is configured

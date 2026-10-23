@@ -29,8 +29,6 @@ concurrency:
 env:
   WEB_SERVICE: alsvid-web
   API_SERVICE: alsvid-api
-  WORKER_POOL: alsvid-worker
-  WORKER_INSTANCES: ${{ vars.WORKER_INSTANCES || '0' }}
   MIGRATION_JOB: alsvid-migrate
 
 jobs:
@@ -248,36 +246,28 @@ jobs:
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
           # The WWW release pipeline (www-deploy.yml) publishes alsvid-web:<sha> from the
           # same Dockerfile and build args right after main CI succeeds. A pre-existing
-          # web image for this exact commit is therefore reusable; api and worker images
-          # are only produced by this workflow and must stay consistent with each other.
+          # web image for this exact commit is therefore reusable; the API image is
+          # produced by this workflow when it is not already available.
           web_exists=false
           api_exists=false
-          worker_exists=false
           if gcloud artifacts docker images describe "$REGISTRY/alsvid-web:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             web_exists=true
           fi
           if gcloud artifacts docker images describe "$REGISTRY/alsvid-api:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             api_exists=true
           fi
-          if gcloud artifacts docker images describe "$REGISTRY/alsvid-worker:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
-            worker_exists=true
-          fi
-          if [[ "$IS_ROLLBACK" == "true" && ( "$web_exists" != "true" || "$api_exists" != "true" || "$worker_exists" != "true" ) ]]; then
+          if [[ "$IS_ROLLBACK" == "true" && ( "$web_exists" != "true" || "$api_exists" != "true" ) ]]; then
             echo "Rollback requires all previously published release images; refusing to rebuild an older commit." >&2
             exit 1
           fi
-          if [[ "$web_exists" == "true" && "$api_exists" == "true" && "$worker_exists" == "true" ]]; then
+          if [[ "$web_exists" == "true" && "$api_exists" == "true" ]]; then
             echo "reused=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$api_exists" != "$worker_exists" ]]; then
-            echo "Refusing to mix release images: alsvid-api and alsvid-worker must be built together for $RELEASE_SHA." >&2
-            exit 1
           else
             echo "reused=false" >> "$GITHUB_OUTPUT"
           fi
           {
             echo "web_exists=$web_exists"
             echo "api_exists=$api_exists"
-            echo "worker_exists=$worker_exists"
           } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -310,18 +300,6 @@ jobs:
           cache-from: type=gha,scope=alsvid-production-api
           cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
 
-      - name: Build worker image with cache
-        if: steps.image_lookup.outputs.reused != 'true' && steps.image_lookup.outputs.worker_exists != 'true'
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: infra/docker/Dockerfile.worker
-          platforms: linux/amd64
-          load: true
-          tags: ${{ steps.release.outputs.registry }}/alsvid-worker:${{ steps.release.outputs.sha }}
-          cache-from: type=gha,scope=alsvid-production-worker
-          cache-to: type=gha,mode=max,scope=alsvid-production-worker,ignore-error=true
-
       - name: Validate production mail secret exists
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -344,8 +322,9 @@ jobs:
           else
             echo "Reusing alsvid-web:$RELEASE_SHA published by the WWW release pipeline."
           fi
-          docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
-          docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
+          if [[ "${{ steps.image_lookup.outputs.api_exists }}" != "true" ]]; then
+            docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
+          fi
 
       - name: Resolve exact release image digests
         id: images
@@ -355,7 +334,7 @@ jobs:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           set -euo pipefail
-          for image in web api worker; do
+          for image in web api; do
             digest="$(gcloud artifacts docker images describe "$REGISTRY/alsvid-$image:$RELEASE_SHA" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
             if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
               echo "Could not resolve immutable digest for alsvid-$image:$RELEASE_SHA" >&2
@@ -425,29 +404,6 @@ jobs:
             --allow-unauthenticated \
             --set-env-vars "$env_vars" \
             --set-secrets "$secret_bindings" \
-            --quiet
-
-      - name: Deploy worker pool with zero idle instances by default
-        env:
-          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          GCP_REGION: ${{ vars.GCP_REGION }}
-          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
-          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
-          R2_BUCKET: ${{ vars.R2_BUCKET }}
-          REGISTRY: ${{ steps.release.outputs.registry }}
-          RELEASE_SHA: ${{ steps.release.outputs.sha }}
-        run: |
-          set -euo pipefail
-          gcloud run worker-pools deploy "$WORKER_POOL" \
-            --project "$GCP_PROJECT_ID" \
-            --region "$GCP_REGION" \
-            --image "${{ steps.images.outputs.worker_image }}" \
-            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
-            --instances "$WORKER_INSTANCES" \
-            --cpu 1 \
-            --memory 512Mi \
-            --set-env-vars "NODE_ENV=production,OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=$R2_ENDPOINT,OBJECT_STORAGE_BUCKET=$R2_BUCKET,WORKER_QUEUE=default,WORKER_POLL_MS=1000,WORKER_LEASE_MS=300000" \
-            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
             --quiet
 
       - name: Resolve API URL and verify health
@@ -547,6 +503,5 @@ jobs:
             echo "- Release: $RELEASE_SHA"
             echo "- Public site: $PUBLIC_SITE_URL"
             echo "- Admin: $AUTH_BASE_URL"
-            echo "- Worker pool: $WORKER_POOL (instances: $WORKER_INSTANCES)"
             echo "- Email verification: resend"
           } >> "$GITHUB_STEP_SUMMARY"
