@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { translator, type Locale, type TranslationKey } from '../_lib/i18n';
 import type { ProtectedPortalId } from '../_lib/portal-routing';
 import { PortalLoginScene } from './portal-login-scene';
@@ -37,6 +37,17 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const closeForgotPassword = useCallback(() => {
+    if (resetBusy) return;
+    setForgotOpen(false);
+    if (activeResetToken || resetTokenComplete) {
+      setActiveResetToken('');
+      setResetTokenComplete(false);
+      setResetError('');
+      setResetNotice('');
+      router.replace(`/${locale}/login?portal=${encodeURIComponent(portal)}`);
+    }
+  }, [resetBusy, activeResetToken, resetTokenComplete, router, locale, portal]);
   useEffect(() => {
     setSetupRequired(passwordSetupRequired);
     if (passwordSetupRequired) { setMethod('setup'); setOpen(true); }
@@ -64,7 +75,7 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     };
     document.addEventListener('keydown', onKeyDown, true);
     return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, [forgotOpen, activeResetToken, resetTokenComplete, resetBusy]);
+  }, [forgotOpen, activeResetToken, resetTokenComplete, resetBusy, closeForgotPassword]);
   function rememberIdentifier(value: string) {
     try { if (remember) localStorage.setItem('alsvid-login-email:' + portal, value.trim()); else localStorage.removeItem('alsvid-login-email:' + portal); } catch { /* Do not block login when storage is unavailable. */ }
   }
@@ -184,17 +195,6 @@ export function PortalLoginGate({ portal = 'admin', locale = 'zh', authenticated
     setForgotOpen(true);
   }
 
-  function closeForgotPassword() {
-    if (resetBusy) return;
-    setForgotOpen(false);
-    if (activeResetToken || resetTokenComplete) {
-      setActiveResetToken('');
-      setResetTokenComplete(false);
-      setResetError('');
-      setResetNotice('');
-      router.replace(`/${locale}/login?portal=${encodeURIComponent(portal)}`);
-    }
-  }
 
   async function submitPasswordSetup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('');
