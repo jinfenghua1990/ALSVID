@@ -81,8 +81,8 @@ test('search case-insensitive order number and permitted customer email', () => 
 test('global search covers authorized partner, production, VIN, inventory, procurement, service and finance records', () => {
   const cases = [
     ['DL-100', 'partner', '/admin/dealers'],
-    ['MO-2026-010', 'production', '/admin/production'],
-    ['ALS-FC1-000001', 'vehicle', '/admin/production/vin-detail?vehicleId=' + vehicleId],
+    ['BS-FC1-V1', 'production', '/admin/production'],
+    ['VEH-001', 'vehicle', '/admin/production/vin-detail?vehicleId=' + vehicleId],
     ['RACK-SKU-02', 'inventory', '/admin/inventory'],
     ['PO-2026-010', 'purchase-order', '/admin/supply'],
     ['QT-2026-010', 'quotation', '/admin/supply'],
