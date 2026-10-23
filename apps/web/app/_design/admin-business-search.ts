@@ -1,5 +1,3 @@
-import { adminRecordHref, recordId } from './record-links';
-
 /** Search contracts mirror existing authorized domain read models; this module never writes. */
 export type AdminSearchCatalog = {
   models: readonly { id: string; code: string; name: string }[];
@@ -114,6 +112,23 @@ export type AdminBusinessSearchResult = {
   href: string;
 };
 
+const recordUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isRecordId = (value: string | undefined): value is string => Boolean(value && recordUuid.test(value));
+
+// Keep these internal deep links aligned with record-links.ts. This helper remains
+// self-contained so the Node test runner can import it without Next.js path aliases.
+function recordHref(domain: 'vehicle' | 'service' | 'order' | 'customer', id: string): string {
+  if (!recordUuid.test(id)) throw new Error('Valid business record ID required');
+  const routes = {
+    vehicle: ['/admin/production/vin-detail', 'vehicleId'],
+    service: ['/admin/after-sales', 'caseId'],
+    order: ['/admin/orders', 'orderId'],
+    customer: ['/admin/customers', 'partnerId'],
+  } as const;
+  const [path, key] = routes[domain];
+  return path + '?' + key + '=' + encodeURIComponent(id);
+}
+
 const contains = (query: string, ...fields: readonly (string | null | undefined)[]) =>
   fields.some(field => typeof field === 'string' && field.toLocaleLowerCase().includes(query));
 const cap = <T>(rows: readonly T[]) => rows.slice(0, 8);
@@ -121,7 +136,7 @@ const join = (...fields: readonly (string | null | undefined)[]) => fields.filte
 
 function partnerHref(partner: AdminSearchPartner): string {
   const roles = partner.roles ?? [];
-  if (roles.includes('CUSTOMER')) return recordId(partner.id) ? adminRecordHref('customer', partner.id) : '/admin/customers';
+  if (roles.includes('CUSTOMER')) return isRecordId(partner.id) ? recordHref('customer', partner.id) : '/admin/customers';
   if (roles.includes('SUPPLIER')) return '/admin/supply';
   if (roles.includes('FACTORY')) return '/admin/production';
   return '/admin/dealers';
@@ -152,7 +167,7 @@ export function searchAuthorizedBusinessRecords(
       ...(Array.isArray(item.lines) ? item.lines.flatMap(line => [line.skuCode, line.skuName]) : []))))) {
       results.push({ type: 'order', key: 'order:' + order.orderNumber, title: order.orderNumber,
         subtitle: 'ALSVID 自建商城订单 · ' + order.customerEmail,
-        href: recordId(order.id) ? adminRecordHref('order', order.id!) :
+        href: isRecordId(order.id) ? recordHref('order', order.id!) :
           '/admin/orders?orderSearch=' + encodeURIComponent(order.orderNumber) + '#b2c' });
     }
   }
@@ -178,7 +193,7 @@ export function searchAuthorizedBusinessRecords(
       item.sku, item.production_order_number, item.factory_name)))) {
       results.push({ type: 'vehicle', key: 'vehicle:' + vehicle.id, title: vehicle.frame_number,
         subtitle: join(vehicle.sku, vehicle.production_order_number, vehicle.factory_name),
-        href: recordId(vehicle.id) ? adminRecordHref('vehicle', vehicle.id) : '/admin/production' });
+        href: isRecordId(vehicle.id) ? recordHref('vehicle', vehicle.id) : '/admin/production' });
     }
   }
   if (sources.inventory) {
@@ -209,7 +224,7 @@ export function searchAuthorizedBusinessRecords(
       row.title, row.description, row.category, row.status)))) {
       results.push({ type: 'service-case', key: 'service-case:' + item.id, title: item.caseNumber,
         subtitle: join(item.frameNumber, item.sku, item.title, item.status),
-        href: recordId(item.id) ? adminRecordHref('service', item.id) : '/admin/after-sales' });
+        href: isRecordId(item.id) ? recordHref('service', item.id) : '/admin/after-sales' });
     }
   }
   if (sources.finance) {
