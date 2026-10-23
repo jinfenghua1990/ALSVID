@@ -26,7 +26,7 @@ test('all released catalog entries exist in both languages and retain placeholde
   assert.deepEqual(Object.keys(en).sort(), Object.keys(de).sort());
   for (const key of Object.keys(en)) {
     assert.ok(en[key].trim() && de[key].trim() && zh[key].trim(), key);
-    assert.deepEqual(en[key].match(/\\{\\w+\\}/g), zh[key].match(/\\{\\w+\\}/g), key);
-    assert.deepEqual(en[key].match(/\\{\\w+\\}/g), de[key].match(/\\{\\w+\\}/g), key);
+    assert.deepEqual(en[key].match(/\{\w+\}/g), zh[key].match(/\{\w+\}/g), key);
+    assert.deepEqual(en[key].match(/\{\w+\}/g), de[key].match(/\{\w+\}/g), key);
   }
 });
