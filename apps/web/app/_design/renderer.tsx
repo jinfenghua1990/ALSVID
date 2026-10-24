@@ -166,25 +166,6 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     ?? moduleScreens.find(item => clean(item.title).startsWith(term) && term.length > 2)?.route;
 }
 
-function moduleLayoutSections(screen: Screen): string[] {
-  const groups: Record<string, string[]> = {
-    产品: ['页面标题与操作', '产品系列 / 平台卡片', '筛选与型号列表'],
-    订单: ['页面标题与操作', '订单筛选', '销售订单列表'],
-    电商: ['商城商品发布与审核', '首页商品展示绑定', 'DE / AT 价格与库存', 'B2C 订单与履约状态'],
-    生产: ['页面标题与操作', '生产数据看板', '计划与任务列表', '装配流程与车辆追溯'],
-    库存: ['页面标题与操作', '库存概况', '库存筛选与台账', '预警 / 调拨 / 经销商库存'],
-    物流: ['运输单与履约进度', '物流节点与异常', '清关 / 合规资料', '到岸成本所需的运输事实'],
-    设置: ['页面标题与操作', '系统指标概览', '角色与权限管理', '安全审计与系统集成'],
-    数据: ['页面标题与筛选', '经营指标概览', '销售 / 生产 / 库存分析', '供应链 / 渠道 / 售后分析'],
-    供应链: ['页面标题与筛选', '采购与供应商指标', '采购流程与供应商分析', '采购订单与零件供应'],
-    售后: ['页面标题与筛选', '服务指标概览', '车辆 / VIN 快速查询', '工单与服务效率分析'],
-    客户: ['页面标题与筛选', '客户指标概览', '客户分层与服务生命周期', '客户与车辆档案列表'],
-    经销商: ['页面标题与筛选', '渠道指标概览', '区域分布与经销商运营', '经销商档案列表'],
-    财务: ['财务单据与审核', '应收 / 应付义务', '资金流水与分配', '采购成本与合作伙伴余额'],
-  };
-  return groups[screen.area] ?? ['页面标题与筛选', '业务指标概览', '业务列表与操作'];
-}
-
 function BlockView({ block }: { block: Block }) {
   switch (block.kind) {
     case 'platforms':
@@ -618,7 +599,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </div>
             ))}
             {!isIntegratedOverview && !isLiveProductRoot ? <div className="av-railgroup">
-              <div className="av-railtitle">本模块页面 · {moduleScreens.length}</div>
+              <div className="av-railtitle">流程页面预览 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div> : null}
           </aside>
@@ -674,14 +655,12 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             </>
           ) : isIntegratedOverview ? (
             <>
-              <section className="av-card av-module-layout" aria-label="模块页面结构">
-                <div className="av-cardhead"><div><p className="av-eyebrow">ARDOT MODULE WORKSPACE</p><h2 className="av-cardtitle">{screen.title} · 模块工作区</h2><p className="av-cardhint">沿用 Ardot 的模块内容骨架，业务记录由已接入的 ALSVID 领域接口提供。</p></div></div>
-                <div className="av-module-layout-grid">
-                  {moduleLayoutSections(screen).map((label, index) => <div className="av-module-layout-item" key={label}><span className="av-module-layout-step">{String(index + 1).padStart(2, '0')}</span><span>{label}</span></div>)}
-                </div>
-              </section>
-              {screen.area === '数据' ? <div className="av-card av-analytics-empty"><h2 className="av-cardtitle">经营分析数据源</h2><p>跨模块销售、生产、库存、供应链、渠道和售后指标尚无统一且可核验的统计接口，因此不展示设计画布中的样例数字。</p><a className="av-btn" href="/admin/analytics/color-interest">查看已接入的 FC1 颜色偏好统计 →</a></div> : null}
               <IntegratedOperations area={screen.area} route={screen.route} />
+              <details className="av-card av-design-archive">
+                <summary>Ardot 页面内容参考（设计示例数据）</summary>
+                <p className="av-fixture-note">以下保留画布里的页面区块供布局对照；其中示例记录和数值不代表当前业务数据。</p>
+                <Blocks blocks={screen.blocks} stacked />
+              </details>
             </>
           ) : screen.area === '数据' ? (
             <>
@@ -689,10 +668,6 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                 <h2 className="av-cardtitle">{screen.title} · 数据源状态</h2>
                 <p>此分析页的版式已按 Ardot 保留；对应经营统计接口尚未接入，因此暂不展示设计稿中的演示数值或图表。</p>
                 {screen.route === '/admin/analytics' ? <a className="av-btn" href="/admin/analytics/color-interest">查看已接入的 FC1 颜色偏好统计 →</a> : <a className="av-btn" href="/admin/analytics">返回数据总览 →</a>}
-              </section>
-              <section className="av-card av-module-layout" aria-label="分析内容区域">
-                <h2 className="av-cardtitle">分析内容区域</h2>
-                <div className="av-module-layout-grid">{moduleLayoutSections(screen).map((label, index) => <div className="av-module-layout-item" key={label}><span className="av-module-layout-step">{String(index + 1).padStart(2, '0')}</span><span>{label}</span></div>)}</div>
               </section>
             </>
           ) : (
