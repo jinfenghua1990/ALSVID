@@ -15,6 +15,9 @@ test('Admin inventory explicitly shows that third-party WMS is not connected', (
 });
 
 test('the unconfigured WMS card does not advertise a fake connect or sync action', () => {
-  const card = source.slice(source.indexOf('id="warehouse-provider"'), source.indexOf('<section className={styles.topGrid}>', source.indexOf('id="warehouse-provider"')));
+  // Match the section opening tag by prefix: the warehouse grid also carries an anchor id
+  // for sidebar deep links, so the tag is not a fixed literal.
+  const card = source.slice(source.indexOf('id="warehouse-provider"'), source.indexOf('<section className={styles.topGrid}', source.indexOf('id="warehouse-provider"')));
+  assert.ok(card.length > 0, 'the WMS card boundary must resolve to a non-empty slice');
   assert.doesNotMatch(card, /测试连接|立即同步|同步成功|已连接/);
 });

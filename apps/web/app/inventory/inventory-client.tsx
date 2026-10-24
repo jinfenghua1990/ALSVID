@@ -237,7 +237,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           </div>
         </section>
 
-        <section className={styles.topGrid}>
+        <section className={styles.topGrid} id="warehouses" aria-label="仓库、库位与调拨主数据">
           <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/warehouse/warehouses', (form) => ({ code: form.get('code'), name: form.get('name'), countryCode: form.get('countryCode'), timezone: form.get('timezone') }))}>
             <span>仓库主数据</span><h2>创建仓库</h2>
             <div className={styles.inline}><input name="code" placeholder="例如：DE-BERLIN" required /><input name="name" placeholder="例如：德国仓" required /></div>

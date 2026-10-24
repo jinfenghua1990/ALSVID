@@ -32,6 +32,16 @@ const statusTone = (status: string): 'neutral' | 'good' | 'warn' | 'bad' => {
   return 'neutral';
 };
 const OPEN_ORDER_STATUSES: string[] = ['ISSUED', 'CONFIRMED', 'PARTIALLY_FULFILLED'];
+type SupplyView = 'suppliers' | 'quotations' | 'orders' | 'receipts';
+
+/** Sidebar deep links (`/supply#purchasing`) must land on the matching tab, not silently
+ * on the default supplier directory. Unknown hashes fall back to the directory. */
+const supplyViewFromHash = (hash: string): SupplyView => {
+  const anchor = hash.replace(/^#/, '');
+  if (anchor === 'purchasing') return 'orders';
+  if (anchor === 'quotations' || anchor === 'receipts') return anchor;
+  return 'suppliers';
+};
 
 export default function SupplyClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
@@ -46,7 +56,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [quoteItemType, setQuoteItemType] = useState<ItemType>('PART');
   const [poRows, setPoRows] = useState<Array<{ id: number; itemType: ItemType }>>([{ id: 0, itemType: 'PART' }]);
   const nextPoId = useRef(1);
-  const [activeView, setActiveView] = useState<'suppliers' | 'quotations' | 'orders' | 'receipts'>('suppliers');
+  const [activeView, setActiveView] = useState<SupplyView>(() => supplyViewFromHash(typeof window === 'undefined' ? '' : window.location.hash));
   const [supplierQuery, setSupplierQuery] = useState('');
   const [selectedPartner, setSelectedPartner] = useState('all');
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -104,6 +114,13 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   }
 
   useEffect(() => { void reload(); }, []);
+
+  // Follow later hash changes so a sidebar deep link still switches tabs on an open workspace.
+  useEffect(() => {
+    const onHashChange = () => setActiveView(supplyViewFromHash(window.location.hash));
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const metrics = useMemo(() => [
     { label: '供应商组织', value: loading || loadErrors.partners ? '—' : partners.length.toLocaleString('zh-CN'), hint: '已关联供应商 / 工厂' },
@@ -376,7 +393,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
         ) : null}
 
         {activeView === 'orders' ? (
-          <section className={styles.panel}>
+          <section className={styles.panel} id="purchasing" aria-label="采购订单">
             <div className={styles.panelHeader}>
               <div><span className={styles.sectionEyebrow}>PURCHASE ORDERS</span><h2>采购订单</h2><p>{selectedPartnerRecord ? '当前供应商：' + selectedPartnerRecord.displayName : '查看采购单状态、金额与后续履约记录。'}</p></div>
               <span className={styles.count}>{visibleOrders.length} 张采购单</span>
