@@ -2,9 +2,11 @@
    色板取自设计稿：页面底 #F4F7FB、主色 #2D6BFF、分隔线 #E4EAF4 */
 
 .av {
+  color-scheme: light;
   --av-bg: #f4f7fb;
   --av-panel: #ffffff;
   --av-panel-soft: #fafbfe;
+  --av-surface: var(--av-panel);
   --av-line: #e4eaf4;
   --av-line-soft: #eef2f9;
   --av-brand: #2d6bff;
@@ -75,9 +77,11 @@
 }
 
 .av[data-theme='deepblue'] {
+  color-scheme: dark;
   --av-bg: #0f1b33;
   --av-panel: #16243f;
   --av-panel-soft: #1b2c4c;
+  --av-surface: var(--av-panel);
   --av-line: #24365c;
   --av-line-soft: #1e2f52;
   --av-brand: #4b8dff;
@@ -87,6 +91,16 @@
   --av-text-soft: #c3d2ee;
   --av-muted: #8ea3c8;
   --av-faint: #6b7fa6;
+}
+.av[data-theme='deepblue'] :is(.av-btn:not([data-variant='primary']), .av-chip, .av-iconbtn, .av-design-field textarea) {
+  background-color: var(--av-panel);
+  border-color: var(--av-line);
+  color: var(--av-text-soft);
+}
+.av[data-theme='deepblue'] .av-chip[data-active='true'] {
+  border-color: var(--av-line);
+  background: var(--av-brand-soft);
+  color: var(--av-brand);
 }
 .av[data-theme='deepblue'] .av-topbar {
   background: rgba(22, 36, 63, 0.9);
