@@ -43,6 +43,10 @@ function occurred(value:string){const n=Date.parse(value);return Number.isNaN(n)
 
 export function ServiceCaseClient() {
  const [cases,setCases]=useState<CaseRow[]>([]);
+ const [queueFilter,setQueueFilter]=useState<'ALL'|'NEW'|'TRIAGED'|'IN_PROGRESS'|'RESOLVED'|'CLOSED'>('ALL');
+ const [caseQuery,setCaseQuery]=useState('');
+ const filteredCases=cases.filter(c=>(queueFilter==='ALL'||c.status===queueFilter)&&[c.caseNumber,c.frameNumber,c.sku,c.title].some(v=>v.toLowerCase().includes(caseQuery.trim().toLowerCase())));
+ const queueCounts=Object.fromEntries((['NEW','TRIAGED','IN_PROGRESS','RESOLVED','CLOSED'] as CaseStatus[]).map(key=>[key,cases.filter(c=>c.status===key).length])) as Record<CaseStatus,number>;
  const [vehicles,setVehicles]=useState<VehicleRow[]>([]);
  const [intakeVehicleId,setIntakeVehicleId]=useState('');
  const [requestedCaseId,setRequestedCaseId]=useState<string|null>(null);
@@ -156,16 +160,23 @@ export function ServiceCaseClient() {
     <button type="button" className="av-btn" disabled={busy||status==='loading'} onClick={()=>{void reload();}}>刷新工单</button>
    </div>
    <p className={styles.muted}>最近读取：{readAt||'尚未读取'}；最多展示最新 200 条工单。</p>
+   {status==='ready'?<div className={styles.stack}>
+    <div className="av-pageactions" role="group" aria-label="售后工单状态筛选">
+     {([['ALL','全部'],['NEW','待受理'],['TRIAGED','已分诊'],['IN_PROGRESS','处理中'],['RESOLVED','待确认'],['CLOSED','已关闭']] as const).map(([key,label])=><button key={key} type="button" className="av-btn" aria-pressed={queueFilter===key} onClick={()=>setQueueFilter(key)}>{label} · {key==='ALL'?cases.length:queueCounts[key]}</button>)}
+    </div>
+    <label>搜索工单号、车架号、SKU 或标题<input className={styles.search} type="search" value={caseQuery} onChange={event=>setCaseQuery(event.target.value)} placeholder="筛选当前已读取的真实工单" /></label>
+    <p className={styles.muted}>当前显示 {filteredCases.length} / {cases.length} 条；仅筛选已读取记录，未接入负责人及 SLA 时不展示虚构的待分配或超时数量。</p>
+   </div>:null}
    {status==='loading'?<p role="status">正在读取真实售后记录…</p>:status==='error'?<p role="alert" className={styles.error}>{message}（不能将失败视作 0 条）</p>:<>
-    {cases.length?<div className={styles.tableScroll}>
+    {filteredCases.length?<div className={styles.tableScroll}>
      <table className={styles.table}>
       <thead><tr><th>工单号</th><th>车辆</th><th>分类 / 标题</th><th>状态</th><th>操作</th></tr></thead>
-      <tbody>{cases.map(c=><tr key={c.id}>
+      <tbody>{filteredCases.map(c=><tr key={c.id}>
        <td><a href={adminRecordHref('service',c.id)}>{c.caseNumber}</a></td><td><a href={adminRecordHref('vehicle',c.vehicleId)}>{c.frameNumber}</a> · {c.sku}</td><td>{categories[c.category]} · {c.title}</td>
        <td>{states[c.status]}</td><td><a href={adminRecordHref('service',c.id)} className={styles.linkButton}>查看 / 处理</a></td>
       </tr>)}</tbody>
      </table>
-    </div>:<p className={styles.notice}>没有已保存的真实售后工单</p>}
+    </div>:<p className={styles.notice}>{cases.length?'当前筛选无匹配工单':'没有已保存的真实售后工单'}</p>}
    </>}
   </section>
 
