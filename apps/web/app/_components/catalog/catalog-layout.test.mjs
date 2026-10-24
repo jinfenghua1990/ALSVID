@@ -9,7 +9,7 @@ const catalogs = ["zh", "de", "en"].map(locale => JSON.parse(readFileSync(new UR
 test("bike collection places the model catalogue before editorial platform cards", () => {
   assert.ok(page.indexOf('aria-labelledby="models-title"') < page.indexOf('aria-labelledby="platforms-title"'));
   assert.match(page, /data-bikes-catalog="1"/);
-  assert.match(page, /filteredModels\\.map\\(model => <article className=\\{styles\\.modelCard\\}/);
+  assert.match(page, /filteredModels\.map\(model => <article className=\{styles\.modelCard\}/);
 });
 
 test("collection supports platform filtering, sorting and accessible active states", () => {
