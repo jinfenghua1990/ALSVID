@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(appDirectory, '../..'),
   agentRules: false,
   transpilePackages: ['@alsvid/ui'],
+  serverExternalPackages: ['geoip-country'],
+  outputFileTracingIncludes: {
+    '/*': ['../../node_modules/.pnpm/geoip-country@*/node_modules/geoip-country/data/**/*'],
+  },
 };
 
 export default nextConfig;

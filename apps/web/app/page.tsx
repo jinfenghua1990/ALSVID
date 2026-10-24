@@ -1,7 +1,8 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { portalFromHost } from './_lib/portal-routing';
-import { localeCookie, preferredLocale } from './_lib/i18n/routing';
+import { localeCookie } from './_lib/i18n/routing';
+import { requestLocale } from './_lib/i18n/request-locale';
 
 /**
  * WWW 门户首页。
@@ -18,5 +19,5 @@ export default async function WwwHomePage() {
   if (portal === 'my') redirect('/my');
 
   const saved = (await cookies()).get(localeCookie)?.value;
-  redirect(`/${preferredLocale(saved)}/`);
+  redirect(`/${requestLocale(saved, requestHeaders)}/`);
 }

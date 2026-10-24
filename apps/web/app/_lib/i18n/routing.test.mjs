@@ -3,11 +3,16 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { preferredLocale, localizedPath, isLocale } from './routing.ts';
 
-test('German is the default; explicit saved choices take precedence', () => {
-  assert.equal(preferredLocale(undefined), 'de');
-  assert.equal(preferredLocale('invalid'), 'de');
-  assert.equal(preferredLocale(''), 'de');
-  for (const locale of ['de', 'en', 'zh']) assert.equal(preferredLocale(locale), locale);
+test('IP country chooses the initial supported language; explicit choice wins', () => {
+  for (const country of ['DE', 'AT', 'CH', 'LI', 'de']) assert.equal(preferredLocale(undefined, country), 'de');
+  for (const country of ['CN', 'HK', 'MO', 'TW']) assert.equal(preferredLocale(undefined, country), 'zh');
+  for (const country of ['US', 'GB', 'FR', 'NL', 'SG', 'JP']) assert.equal(preferredLocale(undefined, country), 'en');
+  for (const country of [undefined, null, '', 'XX', 'invalid']) assert.equal(preferredLocale(undefined, country), 'de');
+  for (const locale of ['de', 'en', 'zh']) {
+    for (const country of ['DE', 'CN', 'US']) assert.equal(preferredLocale(locale, country), locale);
+  }
+  assert.equal(preferredLocale('invalid', 'DE'), 'de');
+  assert.equal(preferredLocale('invalid', 'CN'), 'zh');
   assert.equal(isLocale('fr'), false);
 });
 test('switching language preserves nested page, query and fragment', () => {

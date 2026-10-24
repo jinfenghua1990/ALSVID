@@ -12,26 +12,27 @@ const report = { sha: process.env.FC1_REVIEW_SHA || '', base, checks: [], errors
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 try {
-  // Root entry must stay German even when the browser prefers Chinese or English.
+  // Initial locale follows the forwarded visitor IP, never browser language.
   const entryContext = await browser.newContext();
   try {
-    for (const accepted of ['zh-CN,zh;q=0.9,en;q=0.8', 'en-US,en;q=0.9', 'de-DE', '']) {
+    for (const [ip, locale] of [['194.25.2.129', 'de'], ['193.170.1.1', 'de'], ['114.114.114.114', 'zh'], ['8.8.8.8', 'en'], ['2001:4860:4860::8888', 'en'], ['', 'de']]) {
       for (const saved of [undefined, 'invalid', 'de', 'en', 'zh']) {
         const response = await entryContext.request.get(base + '/', {
-          headers: { host: 'www.alsvidbike.com', 'accept-language': accepted,
+          headers: { host: 'www.alsvidbike.com', 'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'x-forwarded-for': ip,
             ...(saved ? { cookie: 'alsvid-locale-v2=' + saved } : {}) },
           maxRedirects: 0,
         });
-        const expected = ['de', 'en', 'zh'].includes(saved) ? saved : 'de';
+        const expected = ['de', 'en', 'zh'].includes(saved) ? saved : locale;
         assert.equal(response.status(), 307, 'Root entry redirects to a localized homepage');
-        assert.equal(response.headers().location, '/' + expected + '/', 'Only an explicit preference overrides German');
+        assert.equal(response.headers().location, '/' + expected + '/', 'Explicit choice precedes IP country');
       }
     }
     const page = await entryContext.newPage();
     await page.goto(base + '/de/', { waitUntil: 'domcontentloaded' });
     assert.equal(await page.locator('html').getAttribute('lang'), 'de');
     await page.locator('main[data-home-design="original-migration"]').waitFor({ state: 'visible' });
-    report.checks.push('Root entry: German default for Chinese, English, German and missing browser hints; saved DE/EN/ZH preserved');
+    report.checks.push('Root entry: DE/AT/CN/US/IPv6 country routing, unknown IP German fallback, explicit DE/EN/ZH override');
   } finally { await entryContext.close(); }
 
   for (const locale of ['de', 'en', 'zh']) {

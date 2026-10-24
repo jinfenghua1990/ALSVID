@@ -1,5 +1,6 @@
 import { cookies, headers } from 'next/headers';
-import { isLocale, localeCookie, preferredLocale } from './_lib/i18n/routing';
+import { isLocale, localeCookie } from './_lib/i18n/routing';
+import { requestLocale } from './_lib/i18n/request-locale';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { RefreshButton } from './_components/refresh-button';
@@ -39,7 +40,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const savedLocale = (await cookies()).get(localeCookie)?.value;
   const locale = isLocale(requestedLocale)
     ? requestedLocale
-    : preferredLocale(savedLocale);
+    : requestLocale(savedLocale, requestHeaders);
   const isDevelopment = environment !== 'production';
 
   return (

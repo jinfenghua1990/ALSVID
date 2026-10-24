@@ -61,7 +61,11 @@ For indexable public pages, emit correct locale metadata (including canonical an
 
 ## 4. Language recommendation and remembered choice
 
-On a first visit without a saved preference, browser language and region may be used to recommend a locale or choose a safe initial default. Do not force repeated redirects based on geolocation or browser settings.
+On a first visit without a saved preference, select the initial supported language from the visitor IP country (owner confirmation, 2026-10-25): DE/AT/CH/LI use German; CN/HK/MO/TW use Chinese; other recognized countries use English. Unknown, private or invalid IPs fall back to German. Browser language must not override country selection. Explicit locale URLs take precedence, followed by the user's saved manual choice; do not force repeated redirects on localized pages.
+
+The server resolves the country from Cloud Run's forwarded visitor IP using the bundled country-only database. No visitor IP is sent to a geolocation API, stored in a locale cookie or logged by this lookup. VPNs/proxies can change the apparent country; manual language selection remains available. This hint never grants authorization.
+
+Data attribution: the geoip-country package includes GeoLite2 data created by [MaxMind](https://www.maxmind.com), available from [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data). The package and database notices ship with the dependency. Refresh the pinned data package through a reviewed dependency update; each released image retains its own database snapshot.
 
 When a user explicitly selects a language:
 

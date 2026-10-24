@@ -9,6 +9,7 @@
     ],
     "allowJs": false,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
