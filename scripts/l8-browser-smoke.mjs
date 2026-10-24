@@ -87,7 +87,7 @@ try {
         assert.equal(await language.getAttribute("href"), "/" + target + "/explore/l8");
         await language.click();
         await page.waitForURL("**/" + target + "/explore/l8");
-        assert.ok((await context.cookies()).some(cookie => cookie.name === "alsvid-locale" && cookie.value === target));
+        assert.ok((await context.cookies()).some(cookie => cookie.name === "alsvid-locale-v2" && cookie.value === target));
         assert.deepEqual(errors, [], "No browser runtime errors");
         report.checks.push(locale + " " + device + ": homepage entry, detail route, photos, gallery keyboard, chapter links, reference specs, language switch, metadata, responsive width");
       } finally {
