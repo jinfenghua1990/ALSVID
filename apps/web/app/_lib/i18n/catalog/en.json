@@ -78,5 +78,9 @@
   "catalog.cart.notForSale": "This product is currently preview-only and cannot be purchased.",
   "catalog.cart.storageError": "Could not save your cart. Please check your browser storage settings.",
   "catalog.cart.previewSelection": "This saves an interest selection only, not a purchasable SKU. Compatibility, pricing and stock are unconfirmed.",
-  "catalog.cart.selectionConcept": "Interest selection · final variant / compatibility pending"
+  "catalog.cart.selectionConcept": "Interest selection · final variant / compatibility pending",
+  "catalog.bikes.sort.label": "Sort by",
+  "catalog.bikes.sort.results": "models",
+  "catalog.bikes.sort.featured": "Featured",
+  "catalog.bikes.sort.name": "Model A–Z"
 }
