@@ -989,13 +989,13 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-live-operations > * {
   min-width: 0;
 }
-.av-live-operations > header h1 {
+.av-live-operations header h1 {
   color: var(--av-text);
   font-size: 26px;
   line-height: 1.25;
   letter-spacing: -.01em;
 }
-.av-live-operations > header p {
+.av-live-operations header p {
   color: var(--av-muted);
   font-size: 13px;
   line-height: 1.6;
