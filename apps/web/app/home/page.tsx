@@ -9,6 +9,6 @@ export default async function HomePreviewPage() {
   const host = requestHeaders.get('host') ?? '';
   const isLocal = /^(localhost|127\.0.0.1)(:|$)/.test(host);
   const saved = (await cookies()).get(localeCookie)?.value;
-  const locale = preferredLocale(saved, requestHeaders.get('accept-language') ?? '');
+  const locale = preferredLocale(saved);
   redirect(isLocal ? `/${locale}/` : `${portalUrlFor(host, 'www')}/${locale}/`);
 }
