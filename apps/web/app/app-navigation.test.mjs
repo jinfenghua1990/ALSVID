@@ -5,7 +5,7 @@ import { appNavigation, navigationFor } from './app-navigation.ts';
 
 test('unfinished secondary navigation entries are visible but not clickable', () => {
   const unfinished = appNavigation.filter((item) => item.status === '建设中');
-  assert.equal(unfinished.length, 27, 'current unfinished menu inventory stays explicit');
+  assert.equal(unfinished.length, 25, 'current unfinished menu inventory stays explicit');
   assert.ok(unfinished.every((item) => item.disabled === true), 'unfinished entries must be disabled');
   assert.equal(appNavigation.filter((item) => item.status === '骨架').length, 0, 'raw placeholder status must not reach the UI');
 });
@@ -55,4 +55,22 @@ test('unfinished entries never carry an anchor', () => {
   for (const item of appNavigation.filter((entry) => entry.disabled)) {
     assert.ok(!item.href.includes('#'), `${item.label} is unfinished and must not deep link into ${item.href}`);
   }
+});
+
+// The after-sales work orders are served by ServiceCaseClient at /admin/after-sales, which is
+// wired to /v1/service/cases. The root-path /after-sales and /after-sales/repairs routes are
+// still PortalSectionPage placeholders, so an enabled sidebar entry must not point at them.
+test('after-sales entries target the real workbench instead of the root-path placeholder', () => {
+  const afterSales = appNavigation.filter((item) => item.area === '售后服务' && !item.disabled);
+  assert.ok(afterSales.length > 0, 'after-sales must have an enabled entry');
+  for (const item of afterSales) {
+    assert.equal(item.href, '/admin/after-sales', `${item.label} must point at the real workbench`);
+  }
+  assert.ok(
+    !appNavigation.some((item) => !item.disabled && item.href.startsWith('/after-sales')),
+    'no enabled entry may point at the root-path after-sales placeholder',
+  );
+  const client = readFileSync(new URL('./_design/service-cases.tsx', import.meta.url), 'utf8');
+  assert.match(client, /\/v1\/service\/cases/, 'the after-sales workbench reads real service cases');
+  assert.match(client, /expectedVersion:detail\.case\.version/, 'case transitions are version-guarded');
 });
