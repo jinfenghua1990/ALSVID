@@ -3,15 +3,12 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { preferredLocale, localizedPath, isLocale } from './routing.ts';
 
-test('explicit preference wins; browser recommendations respect language weights', () => {
-  assert.equal(preferredLocale('en', 'de-DE'), 'en');
-  assert.equal(preferredLocale(undefined, 'fr-FR,en-US;q=0.8,de;q=0.2'), 'en');
-  assert.equal(preferredLocale('invalid', 'en;q=0,de;q=0.8'), 'de');
-  assert.equal(preferredLocale(undefined, 'nl'), 'en');
-  assert.equal(preferredLocale(undefined, ''), 'en');
+test('German is the default; explicit saved choices take precedence', () => {
+  assert.equal(preferredLocale(undefined), 'de');
+  assert.equal(preferredLocale('invalid'), 'de');
+  assert.equal(preferredLocale(''), 'de');
+  for (const locale of ['de', 'en', 'zh']) assert.equal(preferredLocale(locale), locale);
   assert.equal(isLocale('fr'), false);
-  assert.equal(preferredLocale('zh', 'de'), 'zh');
-  assert.equal(preferredLocale(undefined, 'zh-CN,en;q=0.9'), 'zh');
 });
 test('switching language preserves nested page, query and fragment', () => {
   assert.equal(localizedPath('/de/models/fc1?campaign=one#details', 'en'), '/en/models/fc1?campaign=one#details');
