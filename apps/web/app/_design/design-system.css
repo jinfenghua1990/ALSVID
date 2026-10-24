@@ -1024,38 +1024,6 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
   color: var(--av-text-soft);
   backdrop-filter: none;
 }
-.av-module-layout {
-  margin: 0 0 14px;
-}
-.av-module-layout .av-cardhead {
-  margin-bottom: 14px;
-}
-.av-module-layout .av-eyebrow {
-  margin-bottom: 4px;
-  font-size: 10px;
-}
-.av-module-layout-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 8px;
-}
-.av-module-layout-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 9px 11px;
-  border: 1px solid rgba(124, 145, 174, .24);
-  border-radius: 10px;
-  color: var(--av-text-soft);
-  font-size: 12px;
-}
-.av-module-layout-step {
-  color: var(--av-brand);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: .04em;
-}
 .av-analytics-empty {
   margin-bottom: 14px;
 }
