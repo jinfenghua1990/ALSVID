@@ -26,7 +26,7 @@ test('one primary navigation maps old areas to new business destinations without
   for (const href of ['/admin/product', '/admin/ecommerce', '/admin/dealers', '/admin/production', '/admin/inventory', '/admin/supply', '/admin/customers', '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings']) {
     assert.ok(registry.includes("href: '" + href + "'"), href);
   }
-  assert.ok(!registry.includes("{ label: '订单', href: '/admin/orders' }"), 'legacy order lookup no longer primary navigation');
+  assert.ok(registry.includes("href: '/admin/orders'"), 'Ardot order workspace remains a top-level navigation entry');
   assert.match(ui, /const AREAS = ADMIN_MODULES/);
   assert.match(ui, /legacyAreas\.includes\(area\)/);
   assert.match(ui, /商城促销与支付配置|营销活动（待接入）/);
@@ -72,14 +72,14 @@ test('finance and logistics mount their original authenticated workspaces, witho
   assert.ok(existsSync(new URL('../logistics/page.tsx', import.meta.url)));
 });
 
-test('framework directory has a single source of 12 Admin modules and does not present mocked KPI records', () => {
+test('framework directory has a single source of 13 Admin modules and does not present mocked KPI records', () => {
   const source = read('./business-module-registry.ts');
   const directory = read('./admin-module-directory.tsx');
   const ui = read('./renderer.tsx');
   const labels = [...source.matchAll(/\{ label: '([^']+)', href: '(\/admin[^']*)'/g)];
-  assert.equal(labels.length, 12, 'exactly twelve top-level modules');
-  assert.equal(new Set(labels.map(match => match[1])).size, 12, 'module labels are unique');
-  assert.equal(new Set(labels.map(match => match[2])).size, 12, 'module routes are unique');
+  assert.equal(labels.length, 13, 'exactly thirteen top-level modules');
+  assert.equal(new Set(labels.map(match => match[1])).size, 13, 'module labels are unique');
+  assert.equal(new Set(labels.map(match => match[2])).size, 13, 'module routes are unique');
   assert.match(directory, /ADMIN_MODULES\.map\(/);
   assert.match(directory, /部分功能接入/);
   assert.match(ui, /<AdminModuleDirectory \/>/);
@@ -128,4 +128,5 @@ test('embedded ecommerce sections inherit the Admin theme and use consistent res
   assert.match(homepagePanel, /检查型号状态与产品类型/);
   assert.match(homepagePanel, /前往产品研发检查型号/);
 });
+
 
