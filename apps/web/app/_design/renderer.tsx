@@ -703,7 +703,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                   <p className="av-pagesub">按订单来源进入真实业务工作台；各业务域继续维护自身订单事实。</p>
                   <div className="av-pageactions">
                     <a className="av-btn" href="/admin/ecommerce/orders">自建商城 B2C 订单 →</a>
-                    <a className="av-btn" href="/admin/dealers/purchase/fulfillment">经销商 B2B 订单 →</a>
+                    <a className="av-btn" href="/admin/dealers">经销商 B2B 订单 →</a>
                     <a className="av-btn" href="/admin/production">生产与排产 →</a>
                     <a className="av-btn" href="/admin/inventory">库存与交付 →</a>
                   </div>
