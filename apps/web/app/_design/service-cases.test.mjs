@@ -59,3 +59,13 @@ test('preliminary warranty evidence is append-only and gated independently from 
  assert.match(ui,/初审意见/);
  assert.match(ui,/不自动建立车主归属/);
 });
+
+
+test('after-sales P1 queue filters only real case records without fabricated SLA or ownership',()=>{
+ const ui=read('./service-cases.tsx');
+ assert.match(ui,/const filteredCases=cases\.filter/);
+ assert.match(ui,/queueCounts=Object\.fromEntries/);
+ assert.match(ui,/aria-label="售后工单状态筛选"/);
+ assert.match(ui,/filteredCases\.map/);
+ assert.match(ui,/未接入负责人及 SLA 时不展示虚构的待分配或超时数量/);
+});
