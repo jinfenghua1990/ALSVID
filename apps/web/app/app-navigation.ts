@@ -50,11 +50,15 @@ const configuredNavigation: readonly AppNavItem[] = [
   { label: '车辆绑定', href: '/vehicle360/ownership', area: '客户车主', section: '客户中心', status: '骨架' },
   { label: '购买与服务记录', href: '/customers', area: '客户车主', section: '客户中心', status: '骨架' },
 
-  { label: '售后服务', href: '/after-sales', area: '售后服务', section: '售后中心' },
+  // The real after-sales workbench lives at /admin/after-sales: ServiceCaseClient there is
+  // wired to /v1/service/cases (list, detail, create, activities, transition). The root-path
+  // /after-sales and /after-sales/repairs routes are still PortalSectionPage placeholders, so
+  // pointing the sidebar at them showed cards instead of the work orders.
+  { label: '售后服务', href: '/admin/after-sales', area: '售后服务', section: '售后中心' },
   { label: 'VIN 查询', href: '/vehicle360/search', area: '售后服务', section: '售后中心', status: '骨架' },
-  { label: '保修申请', href: '/after-sales', area: '售后服务', section: '售后中心', status: '骨架' },
-  { label: '维修工单', href: '/after-sales/repairs', area: '售后服务', section: '售后中心', status: '骨架' },
-  { label: '配件申请与服务记录', href: '/after-sales/repairs', area: '售后服务', section: '售后中心', status: '骨架' },
+  { label: '保修申请', href: '/admin/after-sales', area: '售后服务', section: '售后中心' },
+  { label: '维修工单', href: '/admin/after-sales', area: '售后服务', section: '售后中心' },
+  { label: '配件申请与服务记录', href: '/after-sales', area: '售后服务', section: '售后中心', status: '骨架' },
 
   { label: '供应链采购', href: '/supply', area: '供应链采购', section: '供应链中心' },
   { label: '供应商档案', href: '/supply', area: '供应链采购', section: '供应链中心' },
