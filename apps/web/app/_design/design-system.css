@@ -1054,7 +1054,7 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-body--product .av-railtitle{padding:0 10px 9px;color:#708098;font-size:10px;font-weight:750;letter-spacing:.12em}
 .av-body--product .av-railitem{display:flex;align-items:center;min-height:38px;margin:3px 0;padding:9px 12px;border-radius:9px;color:#35475f;font-size:12px;font-weight:560;line-height:1.4}
 .av-body--product .av-railitem:hover,.av-body--product .av-railitem:focus-visible{background:#eaf0fc;color:#2351b2}
-.av-body--product .av-railitem[href="/admin/product#model-register"]{border-left:2px solid #4d76ec;background:#eff3ff;color:#2d54b7;font-weight:700}
+/* Product section anchors must not show a permanently selected model link. */
 .av-body--product .av-workspace{padding-top:24px}
 .av-body--product .av-live-operations{margin-top:0}
 @media(max-width:1180px){.av-body--product{grid-template-columns:minmax(0,1fr)}.av-body--product .av-rail{position:relative;top:0;max-height:none;display:flex;gap:12px;padding:12px;overflow-x:auto;box-shadow:none;border-right:0;border-bottom:1px solid rgba(140,157,182,.18)}.av-body--product .av-railgroup{display:flex;gap:5px;align-items:center;padding:0;border:0;white-space:nowrap}.av-body--product .av-railgroup + .av-railgroup{margin:0}.av-body--product .av-railtitle{padding:0 5px}.av-body--product .av-railitem{white-space:nowrap;min-height:34px}}
