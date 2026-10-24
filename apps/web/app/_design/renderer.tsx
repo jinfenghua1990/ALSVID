@@ -680,6 +680,18 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               {screen.area === '数据' ? <div className="av-card av-analytics-empty"><h2 className="av-cardtitle">经营分析数据源</h2><p>跨模块销售、生产、库存、供应链、渠道和售后指标尚无统一且可核验的统计接口，因此不展示设计画布中的样例数字。</p><a className="av-btn" href="/admin/analytics/color-interest">查看已接入的 FC1 颜色偏好统计 →</a></div> : null}
               <IntegratedOperations area={screen.area} route={screen.route} />
             </>
+          ) : screen.area === '数据' ? (
+            <>
+              <section className="av-card av-analytics-empty" aria-live="polite">
+                <h2 className="av-cardtitle">{screen.title} · 数据源状态</h2>
+                <p>此分析页的版式已按 Ardot 保留；对应经营统计接口尚未接入，因此暂不展示设计稿中的演示数值或图表。</p>
+                {screen.route === '/admin/analytics' ? <a className="av-btn" href="/admin/analytics/color-interest">查看已接入的 FC1 颜色偏好统计 →</a> : <a className="av-btn" href="/admin/analytics">返回数据总览 →</a>}
+              </section>
+              <section className="av-card av-module-layout" aria-label="分析内容区域">
+                <h2 className="av-cardtitle">分析内容区域</h2>
+                <div className="av-module-layout-grid">{moduleLayoutSections(screen).map((label, index) => <div className="av-module-layout-item" key={label}><span className="av-module-layout-step">{String(index + 1).padStart(2, '0')}</span><span>{label}</span></div>)}</div>
+              </section>
+            </>
           ) : (
             <>
               {screen.sourceNode && screen.route.split('/').length === 3
