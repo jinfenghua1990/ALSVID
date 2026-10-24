@@ -148,7 +148,7 @@ test('product sidebar links to live sections without permanently highlighting mo
 test('integrated Admin order hub links to existing real business workspaces without demo records', () => {
   const ui = read('./renderer.tsx');
   assert.match(ui, /aria-label="订单业务入口"/);
-  for (const href of ['/admin/ecommerce/orders', '/admin/dealers/purchase/fulfillment', '/admin/production', '/admin/inventory']) {
+  for (const href of ['/admin/ecommerce/orders', '/admin/dealers', '/admin/production', '/admin/inventory']) {
     assert.ok(ui.includes('href="' + href + '"'), href);
   }
   assert.match(ui, /<IntegratedOperations area=\{screen\.area\} route=\{screen\.route\} \/>/);
