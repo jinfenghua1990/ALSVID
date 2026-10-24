@@ -1243,3 +1243,15 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
   }
 }
 
+
+/* Group less-frequent Admin modules without losing canonical routes. */
+.av-primarynav { overflow-x: visible; }
+.av-moremenu { position: relative; flex: none; }
+.av-moremenu > summary { display: list-item; list-style: none; cursor: pointer; }
+.av-moremenu > summary::-webkit-details-marker { display: none; }
+.av-moremenu > summary::after { content: ' ▾'; font-size: 11px; }
+.av-moremenu-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: 210px; padding: 8px; border: 1px solid var(--av-line); border-radius: 12px; background: var(--av-surface, #fff); box-shadow: 0 12px 30px rgba(18,33,56,.16); }
+.av-moremenu-link { display: block; padding: 10px 12px; border-radius: 8px; color: var(--av-text-soft); text-decoration: none; font-size: 13px; }
+.av-moremenu-link:hover, .av-moremenu-link[data-active='true'] { background: var(--av-brand-soft); color: var(--av-brand); }
+@media(max-width:1180px) { .av-primarynav { overflow-x: auto; } .av-moremenu-panel { position: fixed; top: 110px; right: 14px; max-height: 65vh; overflow-y: auto; } }
+@media(max-width:720px) { .av-moremenu-panel { top: 105px; } }

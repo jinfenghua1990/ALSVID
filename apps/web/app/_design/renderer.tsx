@@ -16,6 +16,8 @@ import { P0OperationsCenter } from './p0-operations-center';
 import { AdminThemePicker } from './admin-theme-picker';
 
 const AREAS = ADMIN_MODULES;
+const PRIMARY_AREAS = AREAS.filter(area => ['工作台', '产品研发', '订单管理', '电商', '生产制造', '仓储物流', '售后服务'].includes(area.label));
+const MORE_AREAS = AREAS.filter(area => !PRIMARY_AREAS.includes(area));
 
 const QUICK_LINKS: readonly { label: string; portal: 'www' | 'dealer' | 'my'; localHref: string }[] = [
   { label: '官方首页', portal: 'www', localHref: '/home' },
@@ -579,18 +581,23 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           ALSVID <span>OPERATIONS</span>
         </a>
         <nav className="av-primarynav" aria-label="一级导航">
-          {AREAS.map((area) => (
-            <a
-              className="av-navitem"
-              key={area.label}
-              href={area.href}
-              title={area.description}
+          {PRIMARY_AREAS.map((area) => (
+            <a className="av-navitem" key={area.label} href={area.href} title={area.description}
               data-active={isAreaActive(screen.area, area.label)}
-              aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}
-            >
+              aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>
               {area.label}
             </a>
           ))}
+          <details className="av-moremenu">
+            <summary className="av-navitem" data-active={MORE_AREAS.some(area => isAreaActive(screen.area, area.label))}>更多模块</summary>
+            <div className="av-moremenu-panel">
+              {MORE_AREAS.map(area => (
+                <a className="av-moremenu-link" key={area.label} href={area.href} title={area.description}
+                  data-active={isAreaActive(screen.area, area.label)}
+                  aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>{area.label}</a>
+              ))}
+            </div>
+          </details>
         </nav>
         <div className="av-toputils">
           <div className="av-quicklinks">
