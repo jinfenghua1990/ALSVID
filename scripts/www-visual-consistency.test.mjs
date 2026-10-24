@@ -55,6 +55,23 @@ test('zh/de/en public navigation and application copy cover the same controls',a
  }
 });
 
+test('homepage hero uses the clean urban background and authentic FC1 cutout as separate layers',async()=>{
+ const home=await readFile(join(appRoot,'_components/home/home-page.tsx'),'utf8');
+ const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
+ const css=await readFile(join(appRoot,'_components/home/original-home.module.css'),'utf8');
+ assert.match(home,/image:\s*"\/home\/fc1-city-kv\.webp",\s*bikeImage:\s*"\/products\/fc1\/hero-bike-final\.png"/,
+   'Homepage FC1 KV should use the approved urban background plus the real transparent bike photo');
+ assert.doesNotMatch(home,/image:\s*"\/home\/fc1-poster-clean\.png"/,
+   'The older sunset poster must not remain the active homepage KV');
+ assert.match(hero,/bikeImage\?: string/,'Hero slide should support a separate product cutout');
+ assert.match(hero,/className=\{styles\.posterBikeImage\}[\s\S]*?src=\{slide\.bikeImage\}/,
+   'The authentic FC1 cutout must render as a separate responsive image layer');
+ assert.match(css,/\.posterBikeLayer\s*\{[^}]*right:\s*2vw;[^}]*width:\s*min\(57vw,\s*1320px\)/s,
+   'Desktop bike layer should sit on the right, separate from left-side copy');
+ assert.match(css,/\.posterBikeImage\s*\{[^}]*object-fit:\s*contain/s,
+   'The real bike image should not be cropped');
+});
+
 test('homepage KV uses responsive optimized image delivery',async()=>{
  const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
  assert.match(hero,/import Image from "next\/image"/);
