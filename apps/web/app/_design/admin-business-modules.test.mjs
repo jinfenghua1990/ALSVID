@@ -143,3 +143,14 @@ test('product sidebar links to live sections without permanently highlighting mo
   assert.ok(ui.includes("'官网商品发布与审核', '首页商品绑定'"));
   assert.ok(!styles.includes('.av-body--product .av-railitem[href="/admin/product#model-register"]'));
 });
+
+
+test('integrated Admin order hub links to existing real business workspaces without demo records', () => {
+  const ui = read('./renderer.tsx');
+  assert.match(ui, /aria-label="订单业务入口"/);
+  for (const href of ['/admin/ecommerce/orders', '/admin/dealers/purchase/fulfillment', '/admin/production', '/admin/inventory']) {
+    assert.ok(ui.includes('href="' + href + '"'), href);
+  }
+  assert.match(ui, /<IntegratedOperations area=\{screen\.area\} route=\{screen\.route\} \/>/);
+  assert.ok(!ui.includes('Ardot 页面内容参考（设计示例数据）'));
+});
