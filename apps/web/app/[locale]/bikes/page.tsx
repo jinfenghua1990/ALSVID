@@ -68,6 +68,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
         href:model.href,modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
     });
   const visibleModels = sortMode === "name" ? [...models].sort((a,b)=>a.name.localeCompare(b.name, locale)) : models;
+  const filteredModels = visibleModels.filter(model => !active || model.platform === active);
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
     { id: "platforms", label: t("catalog.product.tabs.platforms"), href: prefix + "/bikes#platforms" },
@@ -101,14 +102,14 @@ export default async function BikesPage({ params, searchParams }: Props) {
                 {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "&sort=" + sortMode + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
               </nav>
               <div className={styles.sortControl} role="group" aria-label={t("catalog.bikes.sort.label")}>
-                <span><strong>{visibleModels.length}</strong> {t("catalog.bikes.sort.results")}</span>
+                <span><strong>{filteredModels.length}</strong> {t("catalog.bikes.sort.results")}</span>
                 <a href={prefix + "/bikes?sort=featured" + (active ? "&platform=" + active : "") + "#models"} aria-current={sortMode === "featured" ? "page" : undefined}>{t("catalog.bikes.sort.featured")}</a>
                 <a href={prefix + "/bikes?sort=name" + (active ? "&platform=" + active : "") + "#models"} aria-current={sortMode === "name" ? "page" : undefined}>{t("catalog.bikes.sort.name")}</a>
               </div>
             </div>
             {!publicCatalog.available?<p className={styles.emptyNotice} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
             {(!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
-              {visibleModels.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
+              {filteredModels.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
                 <a href={model.href} className={styles.modelImageLink} aria-label={model.name}>
                   <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
                 </a>
