@@ -1,4 +1,5 @@
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { isLocale, localeCookie, preferredLocale } from './_lib/i18n/routing';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { RefreshButton } from './_components/refresh-button';
@@ -33,7 +34,12 @@ try {
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const environment = runtimeEnvironment();
-  const locale = (await headers()).get('x-alsvid-locale') ?? 'zh-CN';
+  const requestHeaders = await headers();
+  const requestedLocale = requestHeaders.get('x-alsvid-locale');
+  const savedLocale = (await cookies()).get(localeCookie)?.value;
+  const locale = isLocale(requestedLocale)
+    ? requestedLocale
+    : preferredLocale(savedLocale, requestHeaders.get('accept-language') ?? '');
   const isDevelopment = environment !== 'production';
 
   return (
