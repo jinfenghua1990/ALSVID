@@ -125,7 +125,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '配件申请与库存核验': '/admin/after-sales/parts/request', '配件审批与发货': '/admin/after-sales/parts/shipping', '缺货与采购处理': '/admin/after-sales/parts/shortage',
     '旧版订单查询': '/admin/orders',
     '订单详情': '/admin/orders/detail', '选择订单类型': '/admin/orders/new',
-    '自建商城 B2C 订单': '/admin/ecommerce#b2c',
+    '自建商城 B2C 订单': '/admin/ecommerce/orders',
   };
   if (label in operational) return operational[label];
   if (label.includes('（待')) return undefined;
