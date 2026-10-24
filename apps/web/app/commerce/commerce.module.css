@@ -14,3 +14,8 @@
 .firstPartyFilters label{display:grid;gap:5px;min-width:0;font-size:10px;color:var(--alsvid-text-2)}
 .firstPartyFilters input,.firstPartyFilters select{width:100%;min-width:0;min-height:36px;border:1px solid var(--alsvid-line);border-radius:8px;padding:8px 9px;background:var(--alsvid-input);color:var(--alsvid-text);font:inherit}
 @media(max-width:620px){.firstPartyFilters{grid-template-columns:1fr}.orderQuickNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.orderQuickNav a{justify-content:center;text-align:center}}
+
+
+/* Dedicated Admin subroutes can show pricing or orders without an empty second column. */
+.firstPartyCard[data-mode='pricing'] .firstPartyGrid,
+.firstPartyCard[data-mode='orders'] .firstPartyGrid{grid-template-columns:minmax(0,1fr)}

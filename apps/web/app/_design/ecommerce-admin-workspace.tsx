@@ -7,23 +7,47 @@ import { StorefrontOrderDraftPanel } from '../commerce/storefront-orders-panel';
 import { EcommerceInventoryPanel } from './ecommerce-inventory-panel';
 
 type Model = { id: string; code: string; name: string; status: string; product_type_code: string };
+type EcommerceView = 'overview' | 'publications' | 'homepage' | 'inventory' | 'pricing' | 'orders';
 
-const sections = [
-  { href: '#homepage', label: '首页商品绑定', detail: '官网展示位置与产品 ID' },
-  { href: '#publications', label: '商品审核与发布', detail: '商品资料、审核与公开状态' },
-  { href: '#inventory', label: '库存查询', detail: 'SKU 库位与 VIN 整车分开展示' },
-  { href: '#b2c', label: '售价与订单', detail: 'DE / AT 售价及内部订单流程' },
-  { href: '#commerce-next', label: '后续功能', detail: '清晰查看尚未开放的能力' },
+const shortcuts = [
+  { href: '/admin/ecommerce/publications', category: '商品管理', title: '官网商品发布与审核', description: '维护中、德、英商品标题，核对实物图，管理审核和正式发布状态。', action: '进入商品管理' },
+  { href: '/admin/ecommerce/homepage', category: '商品管理', title: '首页商品绑定', description: '将官网首页展示位关联到真实 Model ID，支持自动匹配与手动指定。', action: '管理首页展示' },
+  { href: '/admin/ecommerce/inventory', category: '库存查询', title: '电商库存查询', description: '查看 SKU 库位和 VIN 整车库存；只读查询，不重复维护库存账本。', action: '查询库存' },
+  { href: '/admin/ecommerce/pricing', category: '商城交易', title: '商城价格管理', description: '按 SKU 和德国 / 奥地利市场维护 EUR 含税价格版本。', action: '管理价格' },
+  { href: '/admin/ecommerce/orders', category: '商城交易', title: 'B2C 订单管理', description: '创建内部订单草稿、筛选第一方订单并查看订单状态和流转记录。', action: '管理订单' },
 ] as const;
 
+const plannedCapabilities = [
+  { title: '可售库存 ATP', state: 'pending', detail: '结合发布状态、市场、仓库履约资格和预留量进行服务端判定。' },
+  { title: '公开结账与 PSP 支付', state: 'blocked', detail: '支付服务商、金额校验、回调验签和退款闭环验收前保持关闭。' },
+  { title: '促销与优惠券', state: 'pending', detail: '待补齐适用商品、市场、有效期和服务端价格规则。' },
+] as const;
+
+function viewForRoute(route: string): EcommerceView {
+  const path = (route.split('?')[0] ?? route).replace(/\/+$/, '');
+  if (path === '/admin/ecommerce/publications') return 'publications';
+  if (path === '/admin/ecommerce/homepage') return 'homepage';
+  if (path === '/admin/ecommerce/inventory') return 'inventory';
+  if (path === '/admin/ecommerce/pricing') return 'pricing';
+  if (path === '/admin/ecommerce/orders') return 'orders';
+  return 'overview';
+}
+
 /** Commerce workspace composes authorized Product, Inventory and Commerce capabilities.
- * This is a navigation and status layer only: domain data remains owned by its source domain. */
-export function EcommerceAdminWorkspace() {
+ * Each operational area has its own route; domain data remains owned by its source domain. */
+export function EcommerceAdminWorkspace({ route = '/admin/ecommerce' }: { route?: string }) {
+  const view = viewForRoute(route);
+  const needsModels = view === 'homepage' || view === 'publications';
   const [models, setModels] = useState<Model[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!needsModels) {
+      setStatus('ready');
+      setError('');
+      return;
+    }
     let active = true;
     async function load() {
       setStatus('loading');
@@ -46,76 +70,58 @@ export function EcommerceAdminWorkspace() {
     }
     void load();
     return () => { active = false; };
-  }, []);
+  }, [needsModels]);
 
-  return <div className="av-live-operations av-commerce-workspace" aria-label="电商真实业务工作区">
-    <section className="av-card av-commerce-overview" id="commerce-overview" aria-label="电商运营概览">
-      <div className="av-commerce-overview-copy">
-        <p className="av-eyebrow">ALSVID COMMERCE OPERATIONS</p>
-        <h2 className="av-cardtitle">自建商城 · 运营中心</h2>
-        <p className="av-cardhint">集中管理官网商品发布、首页展示、德国/奥地利售价、库存查询与 B2C 订单。型号、Variant 和 SKU 由产品中心维护；库存、价格、订单与财务分别保留各自的唯一真实记录。</p>
-      </div>
-      <div className="av-commerce-overview-links">
-        <a className="av-btn" href="/admin/product#model-register">产品主数据</a>
-        <a className="av-btn" href="/admin/finance">财务与结算</a>
-      </div>
-      <div className="av-commerce-boundary" role="note">
-        <strong>当前交易边界</strong>
-        <span>内部价格与订单草稿可以管理；公开结账、真实收款和自动库存预留尚未开放。未接入功能不会显示成可执行按钮。</span>
-      </div>
-    </section>
-
-    <nav className="av-commerce-nav" aria-label="电商模块功能导航">
-      {sections.map(section => <a href={section.href} key={section.href}>
-        <strong>{section.label}</strong>
-        <span>{section.detail}</span>
-      </a>)}
-    </nav>
-
-    {status === 'error' ? <div className="av-card" role="alert">无法加载产品主数据：{error}。这不表示商品数量为零；库存、价格和已有订单仍由各自领域接口独立查询。</div> : null}
-    <section id="homepage" aria-label="首页商品绑定">
-      {status === 'ready' ? <HomepageProductBindingPanel models={models} loadError="" /> : <p className="av-cardhint" role="status">{status === 'loading' ? '正在读取首页绑定所需的产品主数据…' : '产品主数据读取失败，首页绑定操作暂不可用。'}</p>}
-    </section>
-    <section id="publications" aria-label="官网商品审核与发布">
-      {status === 'ready' ? <CatalogPublicationPanel models={models} /> : <p className="av-cardhint" role="status">{status === 'loading' ? '正在读取商品发布所需的产品主数据…' : '产品主数据读取失败，商品发布操作暂不可用。'}</p>}
-    </section>
-    <EcommerceInventoryPanel />
-    <StorefrontOrderDraftPanel />
-
-    <section id="commerce-next" className="av-card av-commerce-roadmap" aria-label="电商后续功能与交付状态">
-      <div className="av-commerce-roadmap-head">
+  if (view === 'overview') {
+    return <div className="av-live-operations av-commerce-workspace" aria-label="电商运营工作台">
+      <section className="av-card av-commerce-dashboard-head" aria-label="电商运营概览">
         <div>
-          <p className="av-eyebrow">NEXT DELIVERY · NO MOCK ACTIONS</p>
-          <h2 className="av-cardtitle">电商后续功能</h2>
-          <p className="av-cardhint">这里展示真实建设边界，不代表这些能力已经上线。每项功能需要补齐领域 API、权限、失败处理和验收后，才会开放操作。</p>
+          <p className="av-eyebrow">ALSVID COMMERCE OPERATIONS</p>
+          <h1 className="av-cardtitle">电商运营工作台</h1>
+          <p>商品发布、首页展示、库存查询、DE / AT 售价与第一方 B2C 订单各自独立管理。商品主数据、库存账本、价格版本和订单记录仍由各自领域负责。</p>
         </div>
-      </div>
-      <div className="av-commerce-roadmap-grid">
-        <article className="av-commerce-roadmap-item">
-          <div><h3>可售库存 ATP</h3><span data-state="pending">待开发</span></div>
-          <p>结合商品发布状态、SKU、DE/AT 市场、仓库履约资格和预留量计算可售库存。现有台账可用量不能直接作为商城可售量。</p>
-        </article>
-        <article className="av-commerce-roadmap-item">
-          <div><h3>公开结账与 PSP 支付</h3><span data-state="blocked">暂未开放</span></div>
-          <p>需先选定并接入支付服务商，完成服务端金额/币种核验、回调签名、幂等、防重放、退款和端到端验收。</p>
-        </article>
-        <article className="av-commerce-roadmap-item">
-          <div><h3>促销与优惠券</h3><span data-state="pending">待开发</span></div>
-          <p>包括适用商品、市场、有效期、使用限制和价格计算。未建立服务端规则前不提供可点击的假配置。</p>
-        </article>
-        <article className="av-commerce-roadmap-item">
-          <div><h3>退货、换货与退款协同</h3><span data-state="pending">待开发</span></div>
-          <p>订单、售后工单、仓库退货与 Finance 退款必须按关联 ID 协同，不复制订单或直接伪造资金状态。</p>
-        </article>
-        <article className="av-commerce-roadmap-item">
-          <div><h3>完整订单履约时间线</h3><span data-state="pending">待开发</span></div>
-          <p>整合订单状态、已核验支付、仓库发运和物流节点；每个状态显示来源与更新时间。</p>
-        </article>
-        <article className="av-commerce-roadmap-item">
-          <div><h3>商品分类与商城内容扩展</h3><span data-state="pending">待开发</span></div>
-          <p>扩展整车、配件与维修零件的目录、筛选和详情内容，继续引用产品中心的唯一商品主数据。</p>
-        </article>
-      </div>
-    </section>
+        <span className="av-commerce-market-chip">德国 DE · 奥地利 AT · EUR</span>
+      </section>
+      <section className="av-commerce-shortcut-grid" aria-label="电商功能入口">
+        {shortcuts.map(item => <a className="av-commerce-shortcut" href={item.href} key={item.href}>
+          <span className="av-commerce-shortcut-kicker">{item.category}</span>
+          <strong>{item.title}</strong>
+          <span className="av-commerce-shortcut-description">{item.description}</span>
+          <span className="av-commerce-shortcut-action">{item.action} <span aria-hidden="true">→</span></span>
+        </a>)}
+      </section>
+      <section className="av-commerce-boundary" role="note" aria-label="当前交易边界">
+        <strong>当前交易边界</strong>
+        <span>台账可用量不等于商城可售量。公开结账、真实收款、自动库存预留和生产联动尚未开放；未验收的能力不会显示成可执行操作。</span>
+      </section>
+      <section className="av-card av-commerce-roadmap-compact" aria-label="尚未开放的电商能力">
+        <div>
+          <p className="av-eyebrow">NEXT DELIVERY</p>
+          <h2 className="av-cardtitle">后续能力（尚未开放）</h2>
+          <p className="av-cardhint">以下项目需要补齐领域 API、权限、失败恢复与业务验收后才会开放。</p>
+        </div>
+        <ul>
+          {plannedCapabilities.map(item => <li data-state={item.state} key={item.title}>
+            <div><strong>{item.title}</strong><span>{item.state === 'blocked' ? '暂未开放' : '待开发'}</span></div>
+            <p>{item.detail}</p>
+          </li>)}
+        </ul>
+      </section>
+    </div>;
+  }
+
+  if (view === 'inventory') return <div className="av-live-operations av-commerce-workspace" aria-label="电商库存查询工作区"><EcommerceInventoryPanel /></div>;
+  if (view === 'pricing') return <div className="av-live-operations av-commerce-workspace" aria-label="商城价格管理工作区"><StorefrontOrderDraftPanel mode="pricing" /></div>;
+  if (view === 'orders') return <div className="av-live-operations av-commerce-workspace" aria-label="B2C 订单管理工作区"><StorefrontOrderDraftPanel mode="orders" /></div>;
+
+  return <div className="av-live-operations av-commerce-workspace" aria-label={view === 'homepage' ? '首页商品绑定工作区' : '官网商品发布与审核工作区'}>
+    {status === 'loading' ? <section className="av-card av-commerce-load-state" role="status"><strong>正在读取产品主数据…</strong><p>正在核对真实型号与商品发布记录，请稍候。</p></section> : null}
+    {status === 'error' ? <section className="av-card av-commerce-load-state" role="alert">
+      <strong>产品主数据暂不可用</strong>
+      <p>{error}。读取失败不代表商品数量为零；为避免误操作，本页面暂不开放依赖产品主数据的操作。</p>
+      <a className="av-btn" href="/admin/product#model-register">前往产品研发检查 →</a>
+    </section> : null}
+    {status === 'ready' && view === 'homepage' ? <HomepageProductBindingPanel models={models} loadError="" /> : null}
+    {status === 'ready' && view === 'publications' ? <CatalogPublicationPanel models={models} /> : null}
   </div>;
 }

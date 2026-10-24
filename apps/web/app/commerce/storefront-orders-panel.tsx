@@ -44,7 +44,7 @@ async function callProduction<T>(orderId:string,body:unknown):Promise<T>{
  return payload.data as T;
 }
 const newItem=(skuId=''):ItemInput=>({skuId,quantity:'1'});
-export function StorefrontOrderDraftPanel(){
+export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|'orders'} = {}){
  const [summary,setSummary]=useState<Summary>({checkoutEnabled:false,skus:[],prices:[],orders:[],factories:[]});
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -133,10 +133,10 @@ export function StorefrontOrderDraftPanel(){
    return '订单 '+updated.orderNumber+' 已提交，等待支付通道接入；尚未发起任何支付尝试，也没有资金变动。';
   },'订单已提交。');
  }
- return <section id="b2c" className={styles.firstPartyCard} aria-label="ALSVID 第一方订单与价格管理">
+ return <section id={mode === 'pricing' ? 'pricing' : mode === 'orders' ? 'orders' : 'b2c'} data-mode={mode} className={styles.firstPartyCard} aria-label={mode === 'pricing' ? '商城价格管理' : mode === 'orders' ? 'B2C 订单管理' : 'ALSVID 第一方订单与价格管理'}>
   <div className={styles.firstPartyHeader}>
-   <div><span className={styles.eyebrow}>ALSVID OWNED COMMERCE / 第一方商城</span><h2>自建商城订单与价格</h2>
-    <p>与 Shopify 等外部订单分开保存。此处只创建内部订单草稿；目前没有公开结账、收款、库存预留或自动生产。</p></div>
+   <div><span className={styles.eyebrow}>ALSVID OWNED COMMERCE / 第一方商城</span><h2>{mode === 'pricing' ? '商城价格管理' : mode === 'orders' ? 'B2C 订单管理' : '自建商城订单与价格'}</h2>
+    <p>{mode === 'pricing' ? '按 SKU 与销售市场维护 EUR 含税价格版本；保存草稿后需要单独启用。' : mode === 'orders' ? '管理第一方 B2C 订单、内部草稿和订单状态。公开结账、收款与自动库存预留尚未开放。' : '集中管理 ALSVID 自建商城的价格版本与第一方 B2C 订单；当前只创建内部草稿，尚未开放公开结账、收款、库存预留或自动生产。'}</p></div>
    <span className={styles.releaseBadge}>客户结账未开放</span>
   </div>
   <div className={styles.firstPartyNotice}>正式上线前必须由负责人确认德国/奥地利税务与消费者条款，并接入真实 PSP。此价格表中的含税价和税率均为管理员配置数据，不构成税务合规核验。</div>
@@ -144,8 +144,8 @@ export function StorefrontOrderDraftPanel(){
   {error?<p className={styles.notice} role="alert">{error}</p>:null}
   {notice?<p className={styles.notice} role="status">{notice}</p>:null}
   <div className={styles.firstPartyGrid}>
-   <div className={styles.firstPartyPanel}>
-    <h3>① 配置商品价格</h3>
+   {mode !== 'orders' ? <div className={styles.firstPartyPanel}>
+    <h3>商品价格配置</h3>
     <p>只允许有效商品 SKU。DE/AT 分别维护 EUR 含税价与税率；先保存草稿，再单独启用。</p>
     {pricingTargetStatus==='selected'&&selectedPricingSku?<p className={styles.firstPartyNotice} role="status">已定位产品中心的 SKU：<strong>{selectedPricingSku.sku}</strong>。请核对市场与含税价格后再保存。</p>:null}
     {pricingTargetStatus==='missing'?<p className={styles.firstPartyNotice} role="alert">链接指定的 SKU 不在当前可管理的商品列表中。未自动选择其他商品，请先确认 SKU 状态和权限。</p>:null}
@@ -171,9 +171,9 @@ export function StorefrontOrderDraftPanel(){
      </div>
     </article>)}
     {!summary.prices.length?<p className={styles.firstPartyEmpty}>尚未配置价格。请先选择 SKU 并保存价格草稿。</p>:null}
-   </div>
-   <div className={styles.firstPartyPanel}>
-    <h3>② 创建内部订单草稿</h3>
+   </div> : null}
+   {mode !== 'pricing' ? <div className={styles.firstPartyPanel}>
+    <h3>订单草稿与订单列表</h3>
     <p>服务端只读取已启用价格并重新计算金额。重复提交使用请求 ID 去重。草稿不会发起支付。</p>
     <form className={styles.firstPartyForm} onSubmit={e=>{void createOrder(e);}}>
      <label>客户邮箱<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required maxLength={254} placeholder="customer@example.com" disabled={busy}/></label>
@@ -260,7 +260,7 @@ export function StorefrontOrderDraftPanel(){
        <button type="button" className={styles.secondaryAction} disabled={busy} onClick={()=>setDetail(null)}>收起详情</button>
       </div>
      </section>:null}
-   </div>
+   </div> : null}
   </div>
   <p className={styles.firstPartyFooter}>安全边界：所有新建订单初始状态为 DRAFT / NOT_CONFIGURED；界面和 API 都不提供“手动标记已付款”。数据库要求已核验 PSP 交易、签名验证、订单金额与币种完全匹配，才允许将订单转为已付款。生产单若关联销售订单行，还必须匹配已发布 BOM、SKU 与数量；否则数据库拒绝。</p>
  </section>;

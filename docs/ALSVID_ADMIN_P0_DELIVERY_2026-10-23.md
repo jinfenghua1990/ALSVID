@@ -11,7 +11,7 @@ P0 不是五个展示页面，而是五组能够读取、写入、校验、回�
 | P0 业务模块 | 唯一权威领域 | 内部 Admin 入口 | 已存在的能力基础 | 尚须完成的业务验收/接入 |
 | --- | --- | --- | --- | --- |
 | 产品中心 | Product / Engineering | \`/admin/product\` | 型号、配置/SKU、BOM、首页商品绑定、公开目录审批流程 | 主商品→Variant→SKU 一致性；发布版 BOM 锁定；配件适配、双语内容与实际审核操作验收 |
-| 订单中心 | Commerce | \`/admin/ecommerce#b2c\` | 自建商城内部订单草稿、价格版本；原有订单查询 \`/admin/orders\` | 公开结账、外部 PSP 支付事实核验、取消退款、库存预占、订单履约；B2B 不混入 B2C 单据 |
+| 订单中心 | Commerce | \`/admin/ecommerce/orders\` | 自建商城内部订单草稿、价格版本；原有订单查询 \`/admin/orders\` | 公开结账、外部 PSP 支付事实核验、取消退款、库存预占、订单履约；B2B 不混入 B2C 单据 |
 | 库存仓储 | Inventory / Warehouse / Logistics | \`/admin/inventory\` | 实际库存流水/预留、仓库、库位、盘点、供应商仓配置 | 服务端 ATP 市场/仓库/预留规则、并发防超卖、WMS 沙箱、差异重试与对账 |
 | 生产管理 | Production / Engineering | \`/admin/production\` | 生产计划/工单、质量检查、装配与 VIN 信息 | 锁定 BOM 版本、缺料/生产状态授权、车辆唯一追溯与订单交付关联的端到端验收 |
 | 系统设置 | Identity / Audit / Platform | \`/admin/settings\` | 员工与审计记录、管理门户会话保护、部分系统集成配置 | 角色/动作/组织/数据范围矩阵；邮箱登录/密码策略；关键操作审计；集成健康与失败恢复 |

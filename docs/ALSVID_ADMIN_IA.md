@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | **工作台** | `/admin` | 跨模块待办 / 异常 / 经营概览；不得代替交易或财务事实 |
 | **产品研发** | `/admin/product` | 产品类型（整车 / 配件 / 维修零件）、技术平台、型号、Variant、SKU、BOM、技术资料、版本和生产规格。唯一产品主数据 |
-| **电商** | `/admin/ecommerce` | 官网商品审核与发布、首页商品绑定、**电商库存 SKU 台账查询**、DE/AT 商城售价、第一方 B2C 订单与草稿；未来可扩展品类展示、优惠券、购物车结账和 PSP 接入，但未上线前必须标记 |
+| **电商** | `/admin/ecommerce`（工作台） | 子页面：`/publications` 官网发布、`/homepage` 首页绑定、`/inventory` 库存查询、`/pricing` DE/AT 售价、`/orders` 第一方 B2C 订单与草稿；后续可扩展品类展示、优惠券、购物车结账和 PSP 接入，但未上线前必须标记 |
 | **经销商 / B2B** | `/admin/dealers` | 经销商档案、合作申请、授权、经销商试骑、B2B 产品目录 / 价格 / 订单协同（待按 Dealer/Commerce API 验收） |
 | **生产制造** | `/admin/production` | 工厂计划、生产工单、装配、质检、生产需求、VIN 出生与工厂履约；不能把销售订单当生产工单 |
 | **仓储物流** | `/admin/inventory` | 成品 / 零件库存、仓库与库位、盘点、调拨、第三方 WMS（预留）；出口物流、运输和清关已有 `/admin/logistics` |
@@ -40,7 +40,7 @@
 
 ## 3. 这次代码迁移的范围（按门禁判定）
 
-- 新 `/admin/ecommerce` 复用已存在的官网商品审核/发布、首页绑定与 StorefrontOrderDraftPanel，以及只读 Inventory 汇总查询。产品模块不再重复渲染这些电商发布表单，但保留产品 SKU 管理和跳转电商售价入口。
+- `/admin/ecommerce` 作为电商工作台；`/admin/ecommerce/publications`、`/homepage`、`/inventory`、`/pricing`、`/orders` 分别承载商品发布、首页绑定、只读库存、价格版本和第一方 B2C 订单流程。它们复用既有 Product、Inventory 与 Commerce API，不复制商品、库存或订单事实。产品模块不再重复渲染电商发布表单，但保留产品 SKU 管理和跳转电商售价入口。
 - 新 `/admin/finance` 复用已有 FinanceClient 的领域 API / 表单，新 `/admin/logistics` 复用已有 LogisticsClient。
 - 旧 Admin 产品 / 订单 / 经销商 / 库存 / 供应链 / 售后路由保持有效。顶部导航按业务目的分类；Legacy AppShell 菜单也应保持名称一致。
 - **尚未交付**：真实 B2B 订单门户完整闭环、统一跨渠道订单搜索、优惠券、正式公开付款、第三方 WMS 连接。新 UI 只显示已实现入口，其余标注待接入。

@@ -953,45 +953,69 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 @media(prefers-reduced-motion:reduce){.av-module-directory-card{transition:none}}
 
 
-/* Ecommerce workspace: compact section navigation and an explicit, truthful delivery roadmap. */
+/* Ecommerce workspace: clear operational entry points and independent routes. */
 .av-commerce-workspace{display:grid;gap:16px;scroll-behavior:smooth}
-.av-commerce-overview{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 24px;align-items:start;padding:22px}
-.av-commerce-overview-copy{min-width:0}
-.av-commerce-overview-copy .av-cardtitle{margin:4px 0 8px;font-size:21px;letter-spacing:-.025em}
-.av-commerce-overview-copy .av-cardhint{max-width:900px;line-height:1.75}
-.av-commerce-overview-links{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-.av-commerce-boundary{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;align-items:start;padding:12px 14px;border:1px solid var(--av-line);border-radius:10px;background:var(--av-line-soft);font-size:12px;line-height:1.65;color:var(--av-text-soft)}
+.av-commerce-dashboard-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:24px}
+.av-commerce-dashboard-head .av-cardtitle{margin:4px 0 9px;font-size:24px;letter-spacing:-.035em}
+.av-commerce-dashboard-head p:not(.av-eyebrow){max-width:850px;margin:0;color:var(--av-text-soft);font-size:13px;line-height:1.8}
+.av-commerce-market-chip{flex:0 0 auto;padding:7px 11px;border:1px solid var(--av-line);border-radius:999px;background:var(--av-panel-soft);color:var(--av-text-soft);font-size:11px;font-weight:650;white-space:nowrap}
+.av-commerce-shortcut-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.av-commerce-shortcut{display:flex;min-width:0;min-height:182px;flex-direction:column;gap:11px;padding:20px;border:1px solid var(--av-line);border-radius:14px;background:var(--av-panel);color:var(--av-text);text-decoration:none;transition:border-color .18s,box-shadow .18s,background .18s}
+.av-commerce-shortcut:hover,.av-commerce-shortcut:focus-visible{border-color:var(--av-brand);background:var(--av-panel);box-shadow:var(--av-shadow);outline:none}
+.av-commerce-shortcut:focus-visible{box-shadow:0 0 0 3px var(--av-brand-soft),var(--av-shadow)}
+.av-commerce-shortcut-kicker{color:var(--av-brand);font-size:10px;font-weight:750;letter-spacing:.1em}
+.av-commerce-shortcut>strong{font-size:16px;line-height:1.45;letter-spacing:-.015em}
+.av-commerce-shortcut-description{flex:1;color:var(--av-text-soft);font-size:12px;line-height:1.75}
+.av-commerce-shortcut-action{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:9px;border-top:1px solid var(--av-line-soft);color:var(--av-brand);font-size:12px;font-weight:700}
+.av-commerce-boundary{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;align-items:start;padding:14px 16px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-panel-soft);font-size:12px;line-height:1.75;color:var(--av-text-soft)}
 .av-commerce-boundary strong{color:var(--av-text);white-space:nowrap}
-.av-commerce-nav{position:sticky;top:8px;z-index:8;display:flex;gap:8px;overflow-x:auto;padding:8px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-panel);box-shadow:0 8px 24px rgba(26,42,66,.06);scrollbar-width:thin}
-.av-commerce-nav a{display:flex;flex:0 0 auto;flex-direction:column;gap:4px;min-width:150px;padding:10px 12px;border-radius:8px;color:var(--av-text);text-decoration:none}
-.av-commerce-nav a:hover,.av-commerce-nav a:focus-visible{outline:none;background:var(--av-line-soft)}
-.av-commerce-nav a:focus-visible{box-shadow:inset 0 0 0 2px var(--av-brand)}
-.av-commerce-nav strong{font-size:12px;font-weight:700}
-.av-commerce-nav span{font-size:10px;line-height:1.45;color:var(--av-text-soft)}
-.av-commerce-workspace section[id]{scroll-margin-top:92px}
-.av-commerce-roadmap{padding:22px}
-.av-commerce-roadmap-head{margin-bottom:14px}
-.av-commerce-roadmap-head .av-cardtitle{margin:4px 0 7px;font-size:19px}
-.av-commerce-roadmap-head .av-cardhint{max-width:900px;line-height:1.7}
-.av-commerce-roadmap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.av-commerce-roadmap-item{display:flex;flex-direction:column;gap:9px;min-width:0;padding:15px;border:1px solid var(--av-line);border-radius:10px;background:var(--av-panel)}
-.av-commerce-roadmap-item>div{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.av-commerce-roadmap-item h3{margin:0;color:var(--av-text);font-size:13px;line-height:1.5;font-weight:720}
-.av-commerce-roadmap-item span{flex:0 0 auto;padding:3px 7px;border:1px solid var(--av-line);border-radius:20px;color:var(--av-text-soft);font-size:10px;white-space:nowrap}
-.av-commerce-roadmap-item span[data-state="blocked"]{border-color:#d9c8a7;color:#89662d;background:rgba(218,185,126,.12)}
-.av-commerce-roadmap-item p{margin:0;color:var(--av-text-soft);font-size:11px;line-height:1.75}
-@media(max-width:1050px){.av-commerce-roadmap-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){
- .av-commerce-overview{grid-template-columns:minmax(0,1fr);padding:16px}
- .av-commerce-overview-links{justify-content:flex-start}
- .av-commerce-boundary{grid-template-columns:minmax(0,1fr);gap:4px}
- .av-commerce-nav{top:4px}
- .av-commerce-nav a{min-width:138px;padding:9px 10px}
- .av-commerce-roadmap{padding:16px}
- .av-commerce-roadmap-grid{grid-template-columns:minmax(0,1fr)}
-}
-@media(prefers-reduced-motion:reduce){.av-commerce-workspace{scroll-behavior:auto}}
+.av-commerce-roadmap-compact{display:grid;grid-template-columns:minmax(190px,.32fr) minmax(0,1fr);gap:22px;align-items:start;padding:22px 24px}
+.av-commerce-roadmap-compact .av-cardtitle{margin:4px 0 7px;font-size:18px}
+.av-commerce-roadmap-compact .av-cardhint{font-size:12px;line-height:1.7}
+.av-commerce-roadmap-compact ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;list-style:none;margin:0;padding:0}
+.av-commerce-roadmap-compact li{min-width:0;padding:13px;border:1px solid var(--av-line);border-radius:10px;background:var(--av-panel)}
+.av-commerce-roadmap-compact li>div{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.av-commerce-roadmap-compact li strong{font-size:12px;line-height:1.5}
+.av-commerce-roadmap-compact li span{flex:0 0 auto;padding:3px 6px;border:1px solid var(--av-line);border-radius:999px;color:var(--av-muted);font-size:9px;white-space:nowrap}
+.av-commerce-roadmap-compact li[data-state="blocked"] span{border-color:#e6c9a0;background:#fff8eb;color:#8b6429}
+.av-commerce-roadmap-compact li p{margin:9px 0 0;color:var(--av-text-soft);font-size:11px;line-height:1.7}
+.av-commerce-load-state{display:grid;gap:9px;padding:24px}
+.av-commerce-load-state strong{font-size:15px}
+.av-commerce-load-state p{margin:0;color:var(--av-text-soft);font-size:12px;line-height:1.7}
+.av-commerce-load-state .av-btn{width:max-content;margin-top:4px}
+.av-commerce-workspace section[id]{scroll-margin-top:80px}
 
+/* Ecommerce navigation uses the same quiet visual language as Product Admin. */
+.av-body--ecommerce{grid-template-columns:214px minmax(0,1fr);background:transparent}
+.av-body--ecommerce .av-rail{top:56px;padding:24px 12px 24px 14px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(244,248,253,.92));border-right:1px solid rgba(124,145,174,.16);box-shadow:inset -1px 0 0 rgba(255,255,255,.55)}
+.av-body--ecommerce .av-railgroup{padding-bottom:12px;border-bottom:1px solid rgba(140,157,182,.16)}
+.av-body--ecommerce .av-railgroup+.av-railgroup{margin-top:14px}
+.av-body--ecommerce .av-railtitle{padding:0 10px 9px;color:#708098;font-size:10px;font-weight:750;letter-spacing:.08em}
+.av-body--ecommerce .av-railitem{display:flex;align-items:center;min-height:38px;margin:3px 0;padding:9px 12px;border-radius:9px;color:#35475f;font-size:12px;font-weight:560;line-height:1.4;text-decoration:none}
+.av-body--ecommerce .av-railitem:hover,.av-body--ecommerce .av-railitem:focus-visible{background:#eaf0fc;color:#2351b2}
+.av-body--ecommerce .av-railitem[data-active="true"]{border-left:2px solid #4d76ec;background:#eff3ff;color:#2d54b7;font-weight:700}
+.av-body--ecommerce .av-workspace{padding-top:24px}
+.av-body--ecommerce .av-live-operations{margin-top:0}
+@media(max-width:1180px){
+ .av-body--ecommerce{grid-template-columns:minmax(0,1fr)}
+ .av-body--ecommerce .av-rail{position:relative;top:0;max-height:none;display:flex;gap:12px;padding:12px;overflow-x:auto;box-shadow:none;border-right:0;border-bottom:1px solid rgba(140,157,182,.18)}
+ .av-body--ecommerce .av-railgroup{display:flex;gap:5px;align-items:center;padding:0;border:0;white-space:nowrap}
+ .av-body--ecommerce .av-railgroup+.av-railgroup{margin:0}
+ .av-body--ecommerce .av-railtitle{padding:0 5px}
+ .av-body--ecommerce .av-railitem{white-space:nowrap;min-height:34px}
+}
+@media(max-width:1100px){.av-commerce-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.av-commerce-roadmap-compact{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){
+ .av-commerce-dashboard-head{flex-direction:column;padding:17px}
+ .av-commerce-dashboard-head .av-cardtitle{font-size:21px}
+ .av-commerce-market-chip{white-space:normal}
+ .av-commerce-shortcut-grid{grid-template-columns:minmax(0,1fr)}
+ .av-commerce-shortcut{min-height:0;padding:17px}
+ .av-commerce-boundary{grid-template-columns:minmax(0,1fr);gap:4px}
+ .av-commerce-roadmap-compact{padding:17px}
+ .av-commerce-roadmap-compact ul{grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){.av-commerce-workspace{scroll-behavior:auto}.av-commerce-shortcut{transition:none}}
 
 /* Ecommerce Admin embeds older domain panels inside the newer .av shell.
    Bridge the legacy tokens to the current shell tokens so the page remains

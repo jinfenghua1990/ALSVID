@@ -32,7 +32,7 @@ test('canonical after-sales screen uses real internal workflow and preserves Ard
  const renderer=read('./renderer.tsx');
  const ui=read('./service-cases.tsx');
  assert.match(integrated,/case '售后': return <ServiceCaseClient \/>/);
- assert.match(renderer,/<IntegratedOperations area=\{screen\.area\} \/>/);
+ assert.match(renderer,/<IntegratedOperations area=\{screen\.area\} route=\{screen\.route\} \/>/);
  assert.match(renderer,/av-design-archive/);
  assert.match(ui,/\/v1\/service\/cases/);
  assert.match(ui,/expectedVersion:detail\.case\.version/);
