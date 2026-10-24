@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const savedLocale = (await cookies()).get(localeCookie)?.value;
   const locale = isLocale(requestedLocale)
     ? requestedLocale
-    : preferredLocale(savedLocale, requestHeaders.get('accept-language') ?? '');
+    : preferredLocale(savedLocale);
   const isDevelopment = environment !== 'production';
 
   return (
