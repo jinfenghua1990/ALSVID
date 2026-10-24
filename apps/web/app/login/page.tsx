@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { PortalLoginGate } from '../_components/portal-login';
 import { canAccessPortal, readPortalSession } from '../_lib/portal-access';
 import { portalDefinitions, portalFromHost, type ProtectedPortalId } from '../_lib/portal-routing';
-import { isLocale, localeCookie, preferredLocale } from '../_lib/i18n/routing';
+import { isLocale, localeCookie } from '../_lib/i18n/routing';
+import { requestLocale } from '../_lib/i18n/request-locale';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -37,7 +38,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Searc
   const queryLocale = firstValue(params.locale);
   const requestedLocale = requestHeaders.get('x-alsvid-locale');
   const savedLocale = (await cookies()).get(localeCookie)?.value;
-  const locale = isLocale(queryLocale) ? queryLocale : isLocale(requestedLocale) ? requestedLocale : preferredLocale(savedLocale, requestHeaders.get('accept-language') ?? '');
+  const locale = isLocale(queryLocale) ? queryLocale : isLocale(requestedLocale) ? requestedLocale : requestLocale(savedLocale, requestHeaders);
   return (
     <PortalLoginGate
       portal={portal}

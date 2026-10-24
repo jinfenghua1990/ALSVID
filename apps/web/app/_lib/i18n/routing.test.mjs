@@ -3,15 +3,17 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { preferredLocale, localizedPath, isLocale } from './routing.ts';
 
-test('explicit preference wins; browser recommendations respect language weights', () => {
-  assert.equal(preferredLocale('en', 'de-DE'), 'en');
-  assert.equal(preferredLocale(undefined, 'fr-FR,en-US;q=0.8,de;q=0.2'), 'en');
-  assert.equal(preferredLocale('invalid', 'en;q=0,de;q=0.8'), 'de');
-  assert.equal(preferredLocale(undefined, 'nl'), 'en');
-  assert.equal(preferredLocale(undefined, ''), 'en');
+test('IP country chooses the initial supported language; explicit choice wins', () => {
+  for (const country of ['DE', 'AT', 'CH', 'LI', 'de']) assert.equal(preferredLocale(undefined, country), 'de');
+  for (const country of ['CN', 'HK', 'MO', 'TW']) assert.equal(preferredLocale(undefined, country), 'zh');
+  for (const country of ['US', 'GB', 'FR', 'NL', 'SG', 'JP']) assert.equal(preferredLocale(undefined, country), 'en');
+  for (const country of [undefined, null, '', 'XX', 'invalid']) assert.equal(preferredLocale(undefined, country), 'de');
+  for (const locale of ['de', 'en', 'zh']) {
+    for (const country of ['DE', 'CN', 'US']) assert.equal(preferredLocale(locale, country), locale);
+  }
+  assert.equal(preferredLocale('invalid', 'DE'), 'de');
+  assert.equal(preferredLocale('invalid', 'CN'), 'zh');
   assert.equal(isLocale('fr'), false);
-  assert.equal(preferredLocale('zh', 'de'), 'zh');
-  assert.equal(preferredLocale(undefined, 'zh-CN,en;q=0.9'), 'zh');
 });
 test('switching language preserves nested page, query and fragment', () => {
   assert.equal(localizedPath('/de/models/fc1?campaign=one#details', 'en'), '/en/models/fc1?campaign=one#details');
