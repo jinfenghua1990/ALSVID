@@ -239,6 +239,26 @@ try {
         const tabs = hero.locator('[role="group"] button[aria-pressed]');
         assert.equal(await tabs.count(), 4, 'Keep all four platform scenes');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'true', 'Initial scene is selected');
+        const initialBackground = hero.locator('img').nth(0);
+        const initialBackgroundInfo = await initialBackground.evaluate(async image => {
+          await image.decode();
+          return { source: image.currentSrc || image.src, width: image.naturalWidth, height: image.naturalHeight };
+        });
+        assert.ok(initialBackgroundInfo.source.includes('fc1-city-kv.webp'),
+          'Initial homepage KV should use the clean urban background');
+        assert.ok(initialBackgroundInfo.width > 0 && initialBackgroundInfo.height > 0,
+          'Initial urban background must decode before visual review');
+        const initialBike = hero.locator('img').nth(1);
+        const initialBikeInfo = await initialBike.evaluate(async image => {
+          await image.decode();
+          return { source: image.currentSrc || image.src, width: image.naturalWidth, height: image.naturalHeight };
+        });
+        assert.ok(initialBikeInfo.source.includes('hero-bike-final.png'),
+          'Initial homepage KV should layer the authentic FC1 cutout over the urban background');
+        assert.ok(initialBikeInfo.width > 0 && initialBikeInfo.height > 0,
+          'Authentic FC1 cutout must decode before visual review');
+        await page.screenshot({ path: output + '/official-homepage-initial-' + locale + '-' + device + '.png' });
+        report.checks.push(locale + ' ' + device + ': initial urban KV + authentic FC1 cutout');
         await tabs.nth(1).click();
         assert.equal(await tabs.nth(1).getAttribute('aria-pressed'), 'true', 'Manual platform selection works');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'false', 'Previous scene is deselected');
