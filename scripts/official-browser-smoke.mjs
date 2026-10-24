@@ -314,7 +314,7 @@ try {
         assert.equal(await languageLink.getAttribute('href'),'/'+target+'/explore/fc2');
         await languageLink.click();
         await page.waitForURL('**/'+target+'/explore/fc2');
-        assert.ok((await context.cookies()).some(cookie=>cookie.name==='alsvid-locale'&&cookie.value===target));
+        assert.ok((await context.cookies()).some(cookie=>cookie.name==='alsvid-locale-v2'&&cookie.value===target));
         assert.deepEqual(errors,[]);
         report.checks.push(locale+' '+device+': FC2 route, optimized images, responsive width, gallery click and keyboard, FAQ, canonical and preserved language route');
       } finally { await context.close(); }
