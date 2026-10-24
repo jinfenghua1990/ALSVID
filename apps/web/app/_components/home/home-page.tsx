@@ -1,8 +1,5 @@
 import { HomePosterHero, FoldingSteps } from "./home-interactions";
 import type { HomepageProductBindings } from './public-product-bindings';
-import { L7LaunchCard } from "../product/l7-product";
-import { L8LaunchCard } from "../product/l8-product";
-import { Fc2LaunchCard } from "../product/fc2-product";
 import { PublicSiteHeader } from "../public-site-header";
 import { translator, type Locale } from "../../_lib/i18n";
 import cupStyles from "../product/cup-holder-product.module.css";
@@ -55,151 +52,45 @@ export function HomePage({
         exploreLabel={t("hero.explore_platform")}
         scrollLabel={t("navigation.products")}
       />
-      <L8LaunchCard locale={locale} />
-      <L7LaunchCard locale={locale} />
-      <section id="platforms" className={styles["section"]}>
+      <section id="platforms" className={styles["section"] + " " + styles["home-product-collection"]} data-home-product-collection>
+        <span id="featured" className={styles["home-product-anchor"]} aria-hidden="true" />
         <div className={styles["inner"]}>
           <div className={styles["section-head"]}>
             <div>
               <div className={styles["eyebrow"]} style={{ color: "#808783" }}>
-                {t("platforms.eyebrow")}
+                {t("catalog.bikes.models.kicker")}
               </div>
-              <h2>
-                {t("platforms.title_first")}
-                <br />
-                {t("platforms.title_second")}
-              </h2>
+              <h2>{t("catalog.bikes.models.title")}</h2>
             </div>
-            <p>{t("platforms.description")}</p>
+            <p>{t("catalog.bikes.models.body")}</p>
+            <a className={styles["text-link"]} href={"/" + locale + "/bikes"}>{t("catalog.nav.bikes")} <span aria-hidden="true">→</span></a>
           </div>
-          <div className={styles["platform-grid"]}>
-            <article className={styles["platform"]}>
-              <img
-                src="/home/original/fc1-product.webp"
-                alt={t("images.product")}
-                width="1536"
-                height="1024"
-                loading="lazy"
-              />
-              <div className={styles["copy"]}>
-                <div className={styles["code"]}>{t("platform.fc.code")}</div>
-                <h3>{t("platform.fc.title")}</h3>
-                <p>{t("platform.fc.description")}</p>
-                <a
-                  className={styles["more"] + " " + styles.cardLink}
-                  href={detail("fc")}
-                  aria-label={t("platform.fc.title")}
-                >
-                  {t("platform.explore")}
+          <div className={styles["home-product-grid"]}>
+            {[
+              { code: "FC1", name: t("product.model_fc1"), platform: t("platform.fc.title"), image: "/home/original/fc1-product.webp", alt: t("images.product"), href: detail("fc1"), modelId: productBindings?.FC1_FEATURED ?? productBindings?.FC1_HERO ?? undefined },
+              { code: "FC2", name: t("fc2.model"), platform: t("platform.fc.title"), image: "/products/fc2/side-studio-1536.webp", alt: t("fc2.gallery.alt.side"), href: detail("fc2"), modelId: productBindings?.FC2_LAUNCH ?? undefined },
+              { code: "L7", name: t("l7.model"), platform: t("platform.fc.title"), image: "/products/l7/reference-side.jpg", alt: t("l7.gallery.side.alt"), href: detail("l7") },
+              { code: "L8", name: t("l8.model"), platform: t("platform.fc.title"), image: "/products/l8/retouched-side.webp", alt: t("l8.gallery.side.alt"), href: detail("l8") },
+            ].map(product => (
+              <article className={styles["home-product-card"]} key={product.code} data-product-model-id={product.modelId}>
+                <a href={product.href} className={styles["home-product-image"]} aria-label={product.name}>
+                  <img src={product.image} alt={product.alt} width="1536" height="1024" loading="lazy" />
                 </a>
-              </div>
-            </article>
-            <article className={styles["platform"]}>
-              <img
-                src="/home/original/scene-city.webp"
-                alt={t("images.city")}
-                width="1536"
-                height="1024"
-                loading="lazy"
-              />
-              <div className={styles["copy"]}>
-                <div className={styles["code"]}>{t("platform.ct.code")}</div>
-                <h3>{t("platform.ct.title")}</h3>
-                <p>{t("platform.ct.description")}</p>
-                <a
-                  className={styles["more"] + " " + styles.cardLink}
-                  href={detail("ct")}
-                  aria-label={t("platform.ct.title")}
-                >
-                  {t("platform.explore")}
-                </a>
-              </div>
-            </article>
-            <article className={styles["platform"]}>
-              <img
-                src="/home/original/scene-fat-tire.webp"
-                alt={t("images.fat")}
-                width="1536"
-                height="1024"
-                loading="lazy"
-              />
-              <div className={styles["copy"]}>
-                <div className={styles["code"]}>{t("platform.ft.code")}</div>
-                <h3>{t("platform.ft.title")}</h3>
-                <p>{t("platform.ft.description")}</p>
-                <a
-                  className={styles["more"] + " " + styles.cardLink}
-                  href={detail("ft")}
-                  aria-label={t("platform.ft.title")}
-                >
-                  {t("platform.explore")}
-                </a>
-              </div>
-            </article>
-            <article className={styles["platform"]}>
-              <img
-                src="/home/original/scene-touring.webp"
-                alt={t("images.touring")}
-                width="1536"
-                height="1024"
-                loading="lazy"
-              />
-              <div className={styles["copy"]}>
-                <div className={styles["code"]}>{t("platform.gt.code")}</div>
-                <h3>{t("platform.gt.title")}</h3>
-                <p>{t("platform.gt.description")}</p>
-                <a
-                  className={styles["more"] + " " + styles.cardLink}
-                  href={detail("gt")}
-                  aria-label={t("platform.gt.title")}
-                >
-                  {t("platform.explore")}
-                </a>
-              </div>
-            </article>
+                <div className={styles["home-product-info"]}>
+                  <div className={styles["home-product-meta"]}>
+                    <span className={styles["home-product-platform"]}>{product.platform}</span>
+                    <span className={styles["home-product-code"]}>{product.code}</span>
+                  </div>
+                  <h3>{product.name}</h3>
+                  <a className={styles["home-product-link"]} href={product.href}>
+                    {t("catalog.bikes.models.details")} <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
-      <section id="featured" data-product-model-id={productBindings?.FC1_FEATURED ?? undefined} className={styles["feature"]}>
-        <div className={styles["feature-grid"]}>
-          <div className={styles["feature-copy"]}>
-            <div className={styles["eyebrow"]}>{t("featured.eyebrow")}</div>
-            <h2>{t("product.model_fc1")}</h2>
-            <h3>{t("product.slogan")}</h3>
-            <p>{t("featured.description")}</p>
-            <a className={styles["btn-white"]} href={detail("fc1")}>
-              {t("product.explore_fc1")}
-            </a>
-          </div>
-          <img
-            className={styles["feature-img"]}
-            src="/home/original/fc1-product.webp"
-            alt={t("images.product")}
-            width="1536"
-            height="1024"
-            loading="lazy"
-          />
-          <div className={styles["specs"]}>
-            <div className={styles["spec"]}>
-              <strong>{t("spec.model_value")}</strong>
-              <span>{t("spec.model_label")}</span>
-            </div>
-            <div className={styles["spec"]}>
-              <strong>{t("spec.platform_value")}</strong>
-              <span>{t("spec.platform_label")}</span>
-            </div>
-            <div className={styles["spec"]}>
-              <strong>{t("spec.data_value")}</strong>
-              <span>{t("spec.data_label")}</span>
-            </div>
-            <div className={styles["spec"]}>
-              <strong>{t("spec.design_value")}</strong>
-              <span>{t("spec.design_label")}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      <Fc2LaunchCard locale={locale} productModelId={productBindings?.FC2_LAUNCH ?? null} />
       <section id="folding" className={styles["fold"]}>
         <div className={styles["inner"] + " " + styles["fold-grid"]}>
           <div className={styles["fold-copy"]}>
