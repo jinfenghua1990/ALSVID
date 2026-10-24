@@ -83,3 +83,41 @@
 .modelSideLink{scroll-margin-top:142px}
 @media(max-width:850px){.modelLayout{grid-template-columns:minmax(0,1fr);gap:18px}}
 @media(max-width:760px){.modelSideLink{scroll-margin-top:122px}}
+
+
+/* Collection layout inspired by modern German e-bike storefronts; ALSVID content and assets remain original. */
+.hero{min-height:330px;grid-template-columns:1fr minmax(280px,.82fr)}
+.heroCopy{padding:48px 0 54px clamp(22px,6vw,100px)}
+.hero h1{font-size:clamp(38px,4.2vw,66px);max-width:700px;margin:14px 0}
+.heroCopy>p{max-width:560px;font-size:15px;line-height:1.75}
+.heroImage{max-height:330px;object-fit:contain}
+.heroWatermark{font-size:clamp(90px,12vw,200px);bottom:-58px;left:40%}
+.modelSection{padding-top:58px}
+.modelLayout{display:block}
+.modelContent{min-width:0}
+.catalogToolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px;border-bottom:1px solid #e3e8e1;padding-bottom:15px}
+.filters{margin:0;gap:7px}
+.filters a{padding:9px 15px;border-radius:999px;font-size:12px}
+.sortControl{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;color:#657168;font-size:12px}
+.sortControl>span{margin-right:5px;white-space:nowrap}
+.sortControl strong{color:#1b2a20}
+.sortControl a{color:#59665c;text-decoration:none;padding:7px 0;border-bottom:1px solid transparent;white-space:nowrap}
+.sortControl a:hover,.sortControl a[aria-current=page]{color:#1b2a20;border-color:#acd132}
+.modelGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.modelCard{display:flex;flex-direction:column;min-height:0;scroll-margin-top:142px;border:1px solid #e5e9e2;border-radius:12px;background:#fff;overflow:hidden;transition:box-shadow .2s,border-color .2s}
+.modelCard:hover{border-color:#cbd8c8;box-shadow:0 10px 28px rgba(26,43,31,.08)}
+.modelImageLink{aspect-ratio:1.25;min-height:0;display:grid;place-items:center;background:#f3f5f1;padding:12px}
+.modelImageLink img{width:100%;height:100%;min-height:0;max-height:none;object-fit:contain;mix-blend-mode:multiply;transition:transform .35s}
+.modelInfo{display:flex;flex:1;align-items:stretch;justify-content:flex-start;flex-direction:column;gap:12px;padding:20px 21px 22px}
+.modelMeta{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.modelCode{font-size:11px;letter-spacing:.12em;font-weight:700;color:#718073}
+.modelInfo h3{font-size:clamp(24px,2vw,32px);line-height:1.1;letter-spacing:-.04em;margin:2px 0 0}
+.modelInfo p{font-size:12px;color:#7a857c;letter-spacing:.02em;margin:0;min-height:18px}
+.detailLink{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:15px;border-bottom:0!important;border-top:1px solid #e5e9e2;color:#20372a!important;font-size:13px!important}
+.detailLink span{font-size:19px;transition:transform .2s}
+.detailLink:hover span{transform:translateX(4px)}
+.empty{border-radius:12px}
+@media(max-width:1100px){.modelGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr .8fr}.hero h1{font-size:clamp(36px,4.5vw,58px)}}
+@media(max-width:850px){.catalogToolbar{align-items:flex-start;flex-direction:column}.sortControl{justify-content:flex-start}.hero{min-height:0}.heroCopy{padding:42px 0 45px 5vw}.heroImage{max-height:290px}}
+@media(max-width:700px){.hero{display:flex;flex-direction:column;align-items:stretch}.heroCopy{padding:42px 22px 8px}.hero h1{font-size:42px}.heroImage{width:100%;height:230px;max-height:230px}.heroWatermark{font-size:90px;bottom:-20px;left:10%}.modelSection{padding-top:48px}.catalogToolbar{gap:14px}.filters{flex-wrap:nowrap;max-width:100%;overflow-x:auto;padding:0 0 5px}.filters a{flex:none;padding:9px 13px}.modelGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.modelCard{border-radius:9px}.modelImageLink{aspect-ratio:1/1;padding:7px}.modelInfo{gap:9px;padding:13px}.modelInfo h3{font-size:clamp(20px,5.2vw,27px)}.modelInfo p{font-size:11px}.modelInfo a{white-space:normal}.status{font-size:10px;padding:5px 6px}.modelCode{font-size:9px}.detailLink{font-size:12px!important;padding-top:11px}.sortControl{gap:11px}.sortControl>span{width:100%}}
+@media(max-width:390px){.modelGrid{grid-template-columns:1fr}.modelImageLink{aspect-ratio:1.35}.modelInfo{padding:17px}.modelInfo h3{font-size:28px}}
