@@ -121,3 +121,9 @@
 @media(max-width:850px){.catalogToolbar{align-items:flex-start;flex-direction:column}.sortControl{justify-content:flex-start}.hero{min-height:0}.heroCopy{padding:42px 0 45px 5vw}.heroImage{max-height:290px}}
 @media(max-width:700px){.hero{display:flex;flex-direction:column;align-items:stretch}.heroCopy{padding:42px 22px 8px}.hero h1{font-size:42px}.heroImage{width:100%;height:230px;max-height:230px}.heroWatermark{font-size:90px;bottom:-20px;left:10%}.modelSection{padding-top:48px}.catalogToolbar{gap:14px}.filters{flex-wrap:nowrap;max-width:100%;overflow-x:auto;padding:0 0 5px}.filters a{flex:none;padding:9px 13px}.modelGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.modelCard{border-radius:9px}.modelImageLink{aspect-ratio:1/1;padding:7px}.modelInfo{gap:9px;padding:13px}.modelInfo h3{font-size:clamp(20px,5.2vw,27px)}.modelInfo p{font-size:11px}.modelInfo a{white-space:normal}.status{font-size:10px;padding:5px 6px}.modelCode{font-size:9px}.detailLink{font-size:12px!important;padding-top:11px}.sortControl{gap:11px}.sortControl>span{width:100%}}
 @media(max-width:390px){.modelGrid{grid-template-columns:1fr}.modelImageLink{aspect-ratio:1.35}.modelInfo{padding:17px}.modelInfo h3{font-size:28px}}
+
+
+/* Keep the model-series index in document flow beside the collection on wide screens. */
+.modelLayout{display:grid;grid-template-columns:190px minmax(0,1fr);column-gap:28px;align-items:start}
+.modelContent{min-width:0}
+@media(max-width:850px){.modelLayout{display:block}.modelLayout>nav[data-bikes-model-side-nav]{margin-bottom:20px}}
