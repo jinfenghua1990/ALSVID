@@ -156,3 +156,11 @@ test('primary Admin navigation keeps all 13 canonical modules reachable through 
   assert.match(styles, /\.av-moremenu-panel/);
   assert.match(ui, /MORE_AREAS\.some\(area => isAreaActive/);
 });
+
+
+test('integrated order hub links to real business workspaces without demo fixture records', () => {
+ const ui = read('./renderer.tsx');
+ assert.match(ui, /aria-label="订单业务入口"/);
+ for (const href of ['/admin/ecommerce/orders', '/admin/dealers', '/admin/production', '/admin/inventory']) assert.ok(ui.includes('href="' + href + '"'), href);
+ assert.ok(!ui.includes('Ardot 页面内容参考（设计示例数据）'));
+});
