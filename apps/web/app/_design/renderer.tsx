@@ -651,7 +651,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
 
         <main className="av-workspace">
           {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{screen.area === '数据' ? '分析布局预览 · 除已接入的 FC1 颜色偏好外，经营指标与报表数据源尚未接入。' : '流程布局预览 · 本页内容为设计示例；可保存操作请使用对应模块的真实业务工作台。'}</p>}
-          {!isEcommerceWorkspace && <div className="av-pagehead">
+          {!isEcommerceWorkspace && !isIntegratedOverview && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
