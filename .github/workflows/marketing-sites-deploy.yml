@@ -1,0 +1,68 @@
+name: ALSVID marketing sites deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Static marketing site to deploy
+        required: true
+        type: choice
+        options:
+          - alsvid-fc1
+          - alsvid-pilot-x5
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: alsvid-marketing-site-deploy-${{ inputs.service }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_DEPLOY_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
+      SERVICE: ${{ inputs.service }}
+    steps:
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GCP_PROJECT_ID" = "alsvid-production"
+          test "$GCP_REGION" = "europe-west1"
+          test -n "$GCP_WORKLOAD_IDENTITY_PROVIDER"
+          test -n "$GCP_DEPLOY_SERVICE_ACCOUNT"
+          test -n "$GAR_REPOSITORY"
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Deploy the existing immutable migration image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/${SERVICE}:migration-20261024"
+          digest="$(gcloud artifacts docker images describe "$image" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
+          test -n "$digest"
+          gcloud run deploy "$SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/${SERVICE}@${digest}" \
+            --port 8080 \
+            --memory 256Mi \
+            --cpu 1 \
+            --min 0 \
+            --max 2 \
+            --timeout 30 \
+            --quiet
+          url="$(gcloud run services describe "$SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
+          curl --fail --silent --show-error "$url/health"
