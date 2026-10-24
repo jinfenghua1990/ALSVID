@@ -29,7 +29,8 @@ function isAreaActive(area: string, label: string): boolean {
 
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
   '数据': [
-    { group: '分析与统计', items: ['数据总览', '销售分析', '生产分析', '库存分析', '供应链分析', '渠道分析', '售后分析', 'FC1 颜色偏好'] },
+    { group: '数据分析', items: ['数据总览', '销售分析', '生产与库存分析', '售后与经销商分析'] },
+    { group: '已接入专题', items: ['FC1 颜色偏好'] },
   ],
   '电商': [
     { group: '电商工作台', items: ['电商工作台'] },
@@ -45,41 +46,59 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
   ],
   '库存': [
     { group: '整车库存', items: ['库存台账', '库存详情', '库存预警', '经销商库存'] },
-    { group: '物料与仓储', items: ['出口物流与清关', '第三方仓 WMS（待接入）'] },
+    { group: '物料库存', items: ['零件库存', '半成品库存', '原材料库存'] },
+    { group: '仓储管理', items: ['仓库管理', '库位管理', '库存调拨'] },
+    { group: '库存分析', items: ['库存预警', '周转分析', '呆滞库存'] },
   ],
   '经销商': [
-    { group: '经销商档案', items: ['经销商档案', '渠道与区域授权', '试骑申请与网点'] },
-    { group: '采购管理', items: ['B2B采购申请', 'B2B采购审核', 'B2B采购审核与履约'] },
-    { group: '经销商运营', items: ['B2B收货与入库结果'] },
+    { group: '经销商档案', items: ['经销商列表', '联系信息', '合作状态'] },
+    { group: '渠道管理', items: ['区域授权', '销售区域', '渠道等级', '合作协议'] },
+    { group: '采购管理', items: ['B2B订单', '采购历史', '采购预测'] },
+    { group: '经销商运营', items: ['经销商库存', '销售数据', '售后能力', '培训认证'] },
   ],
   '生产': [
-    { group: '生产计划', items: ['生产工作台', '新建生产计划 · 选择型号', '新建生产计划 · 选择 BOM', '新建生产计划 · 排产信息'] },
-    { group: '生产执行', items: ['VIN 管理', 'VIN / 车辆档案', '装配异常登记'] },
-    { group: '质量管理', items: ['异常处理与复检', '复检通过继续装配'] },
+    { group: '生产计划', items: ['生产计划', '排产管理'] },
+    { group: '生产执行', items: ['生产工单', '装配流程', '生产进度'] },
+    { group: '质量管理', items: ['来料检验', '装配质检', '出厂检测'] },
+    { group: '车辆追溯', items: ['VIN 管理', '出厂记录', '车辆档案'] },
   ],
   '供应链': [
-    { group: '供应商体系', items: ['供应商与采购订单', '供应商详情 · 供应商 A', '供应商综合评分'] },
-    { group: '采购管理', items: ['采购申请 · 缺料需求', '采购审批与下单确认', '到货与质量检验', '采购入库完成'] },
-    { group: '零件供应', items: ['零件供应关系'] },
+    { group: '供应商体系', items: ['供应商列表', '供应商档案', '认证管理', '合作状态'] },
+    { group: '采购管理', items: ['采购申请', '采购订单', '到货管理', '入库记录'] },
+    { group: '零件供应', items: ['零件目录', '供应关系', '交付计划', '缺料预警'] },
+    { group: '供应商分析', items: ['质量分析', '交付分析', '成本分析', '综合评分'] },
   ],
   '客户': [
-    { group: '客户档案', items: ['客户与车主档案', '客户详情', '企业客户'] },
-    { group: '车辆资产', items: ['车辆资产绑定 · 查询 VIN', '车辆资产绑定 · 确认车辆'] },
-    { group: '生命周期', items: ['购买与服务履历'] },
+    { group: '客户档案', items: ['客户列表', '联系信息', '账户状态'] },
+    { group: '车辆资产', items: ['VIN绑定', '我的车辆', '车辆状态', '车辆历史'] },
+    { group: '购买记录', items: ['订单记录', '交付记录', '经销商来源'] },
+    { group: '服务生命周期', items: ['保修状态', '维修记录', '保养记录', '配件记录'] },
   ],
   '售后': [
-    { group: '车辆与保修', items: ['售后工单', '保修管理'] },
-    { group: '维修管理', items: ['服务网络与工单分派'] },
-    { group: '配件服务', items: ['配件申请与库存核验', '配件审批与发货', '缺货与采购处理'] },
+    { group: '车辆查询', items: ['VIN查询', '车辆档案', '出厂记录'] },
+    { group: '保修管理', items: ['保修申请', '保修审核', '保修状态'] },
+    { group: '维修管理', items: ['维修工单', '维修进度', '完成记录'] },
+    { group: '配件服务', items: ['配件申请', '配件库存', '配件更换记录'] },
+    { group: '服务分析', items: ['售后数据', '故障分析', '服务质量'] },
   ],
   '订单': [
-    { group: '销售订单', items: ['旧版订单查询', '订单详情', '选择订单类型', '自建商城 B2C 订单'] },
-    { group: '生产关联', items: ['生产工作台'] },
-    { group: '履约管理', items: ['库存台账', '出口物流与清关'] },
+    { group: '销售订单', items: ['全部订单', 'B2C消费者订单', 'B2B经销商订单', '配件订单'] },
+    { group: '生产关联', items: ['待排产订单', '生产中订单', '待交付订单'] },
+    { group: '履约管理', items: ['发货管理', '物流跟踪', '交付完成'] },
+    { group: '售后订单', items: ['维修订单', '保养订单', '配件补发'] },
+  ],
+  '设置': [
+    { group: '人员与权限', items: ['员工管理', '用户与访问权限', '角色与权限'] },
+    { group: '安全与审计', items: ['安全与登录', '审计日志'] },
+    { group: '系统与集成', items: ['通信与邮件', '系统集成', '环境与基础设施'] },
+    { group: '架构与知识', items: ['系统架构'] },
   ],
 };
 
 function menuDestination(screen: Screen, label: string): string | undefined {
+  if (screen.area === '经销商' && ['联系信息', '合作状态'].includes(label)) return '/admin/dealers';
+  if (screen.area === '供应链' && label === '合作状态') return '/admin/supply';
+  if (screen.area === '客户' && label === '联系信息') return '/admin/customers';
   const operational: Record<string, string> = {
     '电商工作台': '/admin/ecommerce',
     '官网商品发布': '/admin/ecommerce/publications',
@@ -92,18 +111,26 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '电商库存查询': '/admin/ecommerce/inventory',
     'FC1 颜色偏好': '/admin/analytics/color-interest',
     '数据总览': '/admin/analytics', '销售分析': '/admin/analytics/sales', '生产分析': '/admin/analytics/production',
-    '生产与库存分析': '/admin/analytics/production', '库存分析': '/admin/analytics/inventory', '供应链分析': '/admin/analytics/supply',
-    '渠道分析': '/admin/analytics/dealers', '售后分析': '/admin/analytics/service',
+    '生产与库存分析': '/admin/analytics/production', '售后与经销商分析': '/admin/analytics/service',
+    '质量分析': '/admin/supply/score', '交付分析': '/admin/supply/score', '成本分析': '/admin/supply/score',
     '应收 / 应付与资金': '/admin/finance',
     '到岸成本与汇率': '/admin/finance',
     '库存台账': '/admin/inventory',
     '库存详情': '/admin/inventory/detail', '库存预警': '/admin/inventory/warnings', '经销商库存': '/admin/inventory/dealer-stock',
+    '成品车辆': '/admin/inventory', '待交付车辆': '/admin/inventory', '零件库存': '/admin/inventory',
+    '半成品库存': '/admin/inventory', '原材料库存': '/admin/inventory', '仓库管理': '/admin/inventory',
+    '库位管理': '/admin/inventory', '库存调拨': '/admin/inventory/transfers/new', '周转分析': '/admin/inventory', '呆滞库存': '/admin/inventory',
     '出口物流与清关': '/admin/logistics',
     '经销商档案': '/admin/dealers',
     '渠道与区域授权': '/admin/dealers/regions', 'B2B采购申请': '/admin/dealers/purchase/request', 'B2B采购审核': '/admin/dealers/purchase/approval',
     'B2B采购审核与履约': '/admin/dealers/purchase/fulfillment', 'B2B收货与入库结果': '/admin/dealers/purchase/received',
+    '区域授权': '/admin/dealers/regions', '销售区域': '/admin/dealers/regions', '渠道等级': '/admin/dealers/regions', '合作协议': '/admin/dealers/regions',
+    '经销商列表': '/admin/dealers', 'B2B订单': '/admin/dealers/purchase/fulfillment', '采购历史': '/admin/dealers/purchase/received',
+    '采购预测': '/admin/dealers/purchase/request', '销售数据': '/admin/dealers', '售后能力': '/admin/after-sales', '培训认证': '/admin/dealers/regions',
     '试骑申请与网点': '/admin/dealers/test-rides',
     '生产工作台': '/admin/production',
+    '生产计划': '/admin/production', '排产管理': '/admin/production', '生产工单': '/admin/production', '装配流程': '/admin/production',
+    '生产进度': '/admin/production', '来料检验': '/admin/production', '装配质检': '/admin/production', '出厂检测': '/admin/production', '出厂记录': '/admin/production/vin',
     '新建生产计划 · 选择型号': '/admin/production/new/model', '新建生产计划 · 选择 BOM': '/admin/production/new/bom',
     '新建生产计划 · 排产信息': '/admin/production/new/schedule', 'VIN 管理': '/admin/production/vin', '装配异常登记': '/admin/production/assembly/exception',
     '异常处理与复检': '/admin/production/assembly/recheck', '复检通过继续装配': '/admin/production/assembly/passed',
@@ -115,17 +142,33 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '登记运输异常': '/admin/inventory/transfers/exception', '登记收货差异': '/admin/inventory/transfers/difference',
     '调拨入库完成': '/admin/inventory/transfers/completed',
     '供应商与采购订单': '/admin/supply',
+    '供应商列表': '/admin/supply', '供应商档案': '/admin/supply/supplier-detail', '认证管理': '/admin/supply/supplier-detail',
+    '采购申请': '/admin/supply/purchase/request', '采购订单': '/admin/supply/purchase/approval',
+    '到货管理': '/admin/supply/purchase/inspection', '入库记录': '/admin/supply/purchase/received', '零件目录': '/admin/supply/parts',
+    '供应关系': '/admin/supply/parts', '交付计划': '/admin/supply', '缺料预警': '/admin/supply/purchase/request', '综合评分': '/admin/supply/score',
     '供应商详情 · 供应商 A': '/admin/supply/supplier-detail', '供应商综合评分': '/admin/supply/score', '采购申请 · 缺料需求': '/admin/supply/purchase/request',
     '采购审批与下单确认': '/admin/supply/purchase/approval', '到货与质量检验': '/admin/supply/purchase/inspection', '采购入库完成': '/admin/supply/purchase/received', '零件供应关系': '/admin/supply/parts',
     '客户与车主档案': '/admin/customers',
+    '客户列表': '/admin/customers', '账户状态': '/admin/customers', 'VIN绑定': '/admin/customers/binding/search',
+    '我的车辆': '/admin/customers', '车辆状态': '/admin/customers', '车辆历史': '/admin/customers/history', '订单记录': '/admin/orders',
+    '交付记录': '/admin/logistics', '经销商来源': '/admin/dealers', '保修状态': '/admin/after-sales/warranty',
+    '维修记录': '/admin/after-sales', '保养记录': '/admin/after-sales', '配件记录': '/admin/after-sales/parts/replacement',
     '客户详情': '/admin/customers/detail', '企业客户': '/admin/customers/enterprise', '车辆资产绑定 · 查询 VIN': '/admin/customers/binding/search',
     '车辆资产绑定 · 确认车辆': '/admin/customers/binding/confirm', '购买与服务履历': '/admin/customers/history',
     '售后工单': '/admin/after-sales',
+    'VIN查询': '/admin/production/vin-detail', '车辆档案': '/admin/production/vin-detail', '保修申请': '/admin/after-sales/warranty',
+    '保修审核': '/admin/after-sales/warranty', '维修工单': '/admin/after-sales', '维修进度': '/admin/after-sales',
+    '完成记录': '/admin/after-sales', '配件申请': '/admin/after-sales/parts/request', '配件库存': '/admin/inventory',
+    '配件更换记录': '/admin/after-sales/parts/replacement', '售后数据': '/admin/analytics/service', '故障分析': '/admin/analytics/service', '服务质量': '/admin/analytics/service',
     '保修管理': '/admin/after-sales/warranty', '服务网络与工单分派': '/admin/after-sales/network',
     '配件申请与库存核验': '/admin/after-sales/parts/request', '配件审批与发货': '/admin/after-sales/parts/shipping', '缺货与采购处理': '/admin/after-sales/parts/shortage',
     '旧版订单查询': '/admin/orders',
     '订单详情': '/admin/orders/detail', '选择订单类型': '/admin/orders/new',
-    '自建商城 B2C 订单': '/admin/ecommerce/orders',
+    '自建商城 B2C 订单': '/admin/ecommerce/orders', '全部订单': '/admin/orders', 'B2C消费者订单': '/admin/ecommerce/orders',
+    'B2B经销商订单': '/admin/dealers/purchase/fulfillment', '配件订单': '/admin/ecommerce/orders',
+    '待排产订单': '/admin/production', '生产中订单': '/admin/production', '待交付订单': '/admin/inventory',
+    '发货管理': '/admin/logistics', '物流跟踪': '/admin/logistics', '交付完成': '/admin/logistics',
+    '维修订单': '/admin/after-sales', '保养订单': '/admin/after-sales', '配件补发': '/admin/after-sales/parts/shipping',
   };
   if (label in operational) return operational[label];
   if (label.includes('（待')) return undefined;
@@ -142,8 +185,11 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '设置') {
     const settingsRoutes: Record<string, string> = {
       '员工管理': '/admin/settings/employees', '组织管理': '/admin/settings/organization', '角色与数据权限': '/admin/settings/roles',
-      '登录安全': '/admin/settings/security', '审计日志': '/admin/settings/audit', '第三方集成': '/admin/settings/integrations',
-      '消息中心': '/admin/settings/messages', 'API管理': '/admin/settings/api',
+      '角色与权限': '/admin/settings/roles', '用户与访问权限': '/admin/settings/roles',
+      '登录安全': '/admin/settings/security', '安全与登录': '/admin/settings/security', '审计日志': '/admin/settings/audit',
+      '第三方集成': '/admin/settings/integrations', '系统集成': '/admin/settings/integrations',
+      '通信与邮件': '/admin/settings/messages', '消息中心': '/admin/settings/messages', 'API管理': '/admin/settings/api',
+      '环境与基础设施': '/admin/architecture',
     };
     if (settingsRoutes[label]) return settingsRoutes[label];
   }
@@ -517,9 +563,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
         { group: '工程管理', items: ['BOM', '零件库', '工程文件', '版本控制'] },
         { group: '生命周期', items: ['开发中', '量产', '停产', '归档'] },
       ]
-    : screen.area === '设置'
-      ? [...(screen.secondary ?? []), { group: '架构与知识', items: ['系统架构'] }]
-      : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
+    : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
   const isIntegratedOverview = Boolean(screen.sourceNode && hasIntegratedOperations(screen.area) && (
