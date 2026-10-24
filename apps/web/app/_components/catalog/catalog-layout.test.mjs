@@ -18,7 +18,8 @@ test("collection supports platform filtering, sorting and accessible active stat
   assert.match(page, /aria-current=\{sortMode === "name" \? "page" : undefined\}/);
   assert.match(styles, /\.modelGrid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(styles, /@media\(max-width:700px\)/);
-  assert.doesNotMatch(page, /BikesModelSideNavigator/);
+  assert.match(page, /BikesModelSideNavigator title=\{t\("catalog\.bikes\.modelNav\.series"\)\} links=\{modelSideLinks\}/);
+  assert.match(page, /const modelSideLinks = models\.map/);
 });
 
 test("catalog sort labels exist for Chinese, German and English", () => {
