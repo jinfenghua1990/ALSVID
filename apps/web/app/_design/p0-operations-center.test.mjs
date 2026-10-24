@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const read = (name) => readFileSync(join(here, name), 'utf8');
 const time = '2026-10-23 18:00:00';
 
-test('P0 stays within five priority areas of the stable twelve-module Admin', () => {
+test('P0 stays within five priority areas of the stable thirteen-module Admin', () => {
   assert.deepEqual(P0_AREAS.map(item => item.key), ['product', 'orders', 'inventory', 'production', 'settings']);
   assert.equal(new Set(P0_AREAS.map(item => item.key)).size, 5);
   const allowed = new Set(P0_READ_SOURCES.map(source => source.key));
@@ -24,7 +24,7 @@ test('P0 stays within five priority areas of the stable twelve-module Admin', ()
     assert.ok(area.gates.every(gate => ['pending', 'external', 'verify'].includes(gate.state)));
   }
   const registry = read('business-module-registry.ts');
-  assert.equal([...registry.matchAll(/\{ label: '[^']+', href: '\/admin[^']*'/g)].length, 12);
+  assert.equal([...registry.matchAll(/\{ label: '[^']+', href: '\/admin[^']*'/g)].length, 13);
 });
 
 test('P0 authorized data sources point to existing bounded business controllers', () => {
@@ -81,3 +81,4 @@ test('P0 user interface is authorized, read-only and integrated before the legac
   assert.match(component, /aria-pressed/);
   assert.match(css, /@media \(max-width: 760px\)/);
 });
+
