@@ -271,6 +271,9 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             <option value="ACTIVE">启用</option>
             <option value="RETIRED">已退役</option>
           </select>
+          <a href="/admin/ecommerce/publications">官网商品发布与审核 →</a>
+          <a href="/admin/ecommerce/homepage">首页商品绑定 →</a>
+          <a href="#engineering">BOM / 工程版本 ↓</a>
           <a href="/admin/production/vin">VIN / 车辆查询 →</a>
           <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
         </div>
