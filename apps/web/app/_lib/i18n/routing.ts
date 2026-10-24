@@ -6,13 +6,9 @@ export const localeCookie = 'alsvid-locale-v2';
 export function isLocale(value: unknown): value is Locale {
   return locales.some(locale => locale === value);
 }
-export function preferredLocale(saved: unknown, accepted = ''): Locale {
-  if (isLocale(saved)) return saved;
-  const preferences = accepted.split(',').map(item => {
-    const [tag = '', quality] = item.trim().split(';');
-    return { language: tag.toLowerCase().split('-')[0], quality: quality ? Number(quality.trim().replace(/^q=/, '')) : 1 };
-  }).filter(item => item.quality > 0).sort((a, b) => b.quality - a.quality);
-  return preferences.find(item => isLocale(item.language))?.language as Locale | undefined ?? 'en';
+export function preferredLocale(saved: unknown): Locale {
+  // German is the initial locale; only an explicit saved choice overrides it.
+  return isLocale(saved) ? saved : 'de';
 }
 export function localizedPath(path: string, locale: Locale): string {
   const safePath = path.startsWith('/') && !path.startsWith('//') ? path : '/';
