@@ -78,5 +78,9 @@
   "catalog.cart.notForSale": "Dieses Produkt ist nur zur Ansicht verfügbar und kann noch nicht gekauft werden.",
   "catalog.cart.storageError": "Der Warenkorb konnte nicht gespeichert werden. Bitte Browser-Einstellungen prüfen.",
   "catalog.cart.previewSelection": "Nur eine unverbindliche Merkliste, keine kaufbare SKU. Kompatibilität, Preis und Bestand sind unbestätigt.",
-  "catalog.cart.selectionConcept": "Unverbindliche Auswahl · Variante / Kompatibilität offen"
+  "catalog.cart.selectionConcept": "Unverbindliche Auswahl · Variante / Kompatibilität offen",
+  "catalog.bikes.sort.label": "Sortieren nach",
+  "catalog.bikes.sort.results": "Modelle",
+  "catalog.bikes.sort.featured": "Empfohlen",
+  "catalog.bikes.sort.name": "Modell A–Z"
 }
