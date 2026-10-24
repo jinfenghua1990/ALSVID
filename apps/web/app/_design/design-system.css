@@ -24,6 +24,28 @@
   --av-radius-sm: 8px;
   --av-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.06);
 
+  /* Keep existing domain clients on the selected Ardot palette when embedded. */
+  --alsvid-bg: var(--av-bg);
+  --alsvid-bg-soft: var(--av-panel-soft);
+  --alsvid-panel: var(--av-panel);
+  --alsvid-panel-2: var(--av-panel-soft);
+  --alsvid-text: var(--av-text);
+  --alsvid-text-2: var(--av-text-soft);
+  --alsvid-muted: var(--av-muted);
+  --alsvid-line: var(--av-line);
+  --alsvid-line-strong: var(--av-line);
+  --alsvid-accent: var(--av-brand);
+  --alsvid-accent-soft: var(--av-brand-soft);
+  --alsvid-success: var(--av-good);
+  --alsvid-good: var(--av-good);
+  --alsvid-warning: var(--av-warn);
+  --alsvid-warn: var(--av-warn);
+  --alsvid-danger: var(--av-bad);
+  --alsvid-shadow: var(--av-shadow);
+  --alsvid-input: var(--av-panel-soft);
+  --alsvid-header: var(--av-panel);
+  --alsvid-rail: var(--av-panel);
+
   min-height: 100vh;
   background: var(--av-bg);
   color: var(--av-text);
@@ -952,6 +974,41 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 }
 .av-live-operations > * {
   min-width: 0;
+}
+.av-live-operations > header h1 {
+  color: var(--av-text);
+  font-size: 26px;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.av-live-operations > header p {
+  color: var(--av-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.av-live-operations[data-area='product'] > header {
+  min-height: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  align-items: flex-start;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--av-text);
+  box-shadow: none;
+}
+.av-live-operations[data-area='product'] > header h1 {
+  color: var(--av-text);
+}
+.av-live-operations[data-area='product'] > header p {
+  margin-top: 6px;
+}
+.av-live-operations[data-area='product'] > header .releaseBadge {
+  border-color: var(--av-line);
+  background: var(--av-panel);
+  color: var(--av-text-soft);
+  backdrop-filter: none;
 }
 .av-module-layout {
   margin: 0 0 14px;
