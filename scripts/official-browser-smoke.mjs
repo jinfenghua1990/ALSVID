@@ -12,6 +12,28 @@ const report = { sha: process.env.FC1_REVIEW_SHA || '', base, checks: [], errors
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 try {
+  // Root entry must stay German even when the browser prefers Chinese or English.
+  const entryContext = await browser.newContext();
+  try {
+    for (const accepted of ['zh-CN,zh;q=0.9,en;q=0.8', 'en-US,en;q=0.9', 'de-DE', '']) {
+      for (const saved of [undefined, 'invalid', 'de', 'en', 'zh']) {
+        const response = await entryContext.request.get(base + '/', {
+          headers: { host: 'www.alsvidbike.com', 'accept-language': accepted,
+            ...(saved ? { cookie: 'alsvid-locale-v2=' + saved } : {}) },
+          maxRedirects: 0,
+        });
+        const expected = ['de', 'en', 'zh'].includes(saved) ? saved : 'de';
+        assert.equal(response.status(), 307, 'Root entry redirects to a localized homepage');
+        assert.equal(response.headers().location, '/' + expected + '/', 'Only an explicit preference overrides German');
+      }
+    }
+    const page = await entryContext.newPage();
+    await page.goto(base + '/de/', { waitUntil: 'domcontentloaded' });
+    assert.equal(await page.locator('html').getAttribute('lang'), 'de');
+    await page.locator('main[data-home-design="original-migration"]').waitFor({ state: 'visible' });
+    report.checks.push('Root entry: German default for Chinese, English, German and missing browser hints; saved DE/EN/ZH preserved');
+  } finally { await entryContext.close(); }
+
   for (const locale of ['de', 'en', 'zh']) {
     for (const [device, viewport] of [
       ['desktop', { width: 1440, height: 900 }],
