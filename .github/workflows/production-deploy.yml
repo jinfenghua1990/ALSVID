@@ -32,7 +32,33 @@ env:
   MIGRATION_JOB: alsvid-migrate
 
 jobs:
+  validate_dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release inputs before checkout
+        env:
+          RELEASE_SHA_INPUT: ${{ inputs.release_sha }}
+          CONFIRM_INPUT: ${{ inputs.confirm }}
+          ROLLBACK_INPUT: ${{ inputs.rollback }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRM_INPUT" != "deploy" ]]; then
+            echo "::error title=Invalid confirmation::Set confirm to deploy." >&2
+            exit 1
+          fi
+          if [[ -n "$RELEASE_SHA_INPUT" && ! "$RELEASE_SHA_INPUT" =~ ^[a-fA-F0-9]{40}$ ]]; then
+            echo "::error title=Invalid release SHA::Leave release_sha blank for current main, or provide a full 40-character commit SHA. Do not enter deploy here." >&2
+            exit 1
+          fi
+          if [[ "$ROLLBACK_INPUT" == "true" && -z "$RELEASE_SHA_INPUT" ]]; then
+            echo "::error title=Missing rollback SHA::Explicit rollback requires a full 40-character release_sha." >&2
+            exit 1
+          fi
+
   change_scope:
+    needs: validate_dispatch
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
