@@ -697,12 +697,19 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
             </>
           ) : isIntegratedOverview ? (
             <>
+              {screen.area === '订单' ? (
+                <nav className="av-card av-order-channel-links" aria-label="订单业务入口">
+                  <h2 className="av-cardtitle">订单业务入口</h2>
+                  <p className="av-pagesub">按订单来源进入真实业务工作台；各业务域继续维护自身订单事实。</p>
+                  <div className="av-pageactions">
+                    <a className="av-btn" href="/admin/ecommerce/orders">自建商城 B2C 订单 →</a>
+                    <a className="av-btn" href="/admin/dealers/purchase/fulfillment">经销商 B2B 订单 →</a>
+                    <a className="av-btn" href="/admin/production">生产与排产 →</a>
+                    <a className="av-btn" href="/admin/inventory">库存与交付 →</a>
+                  </div>
+                </nav>
+              ) : null}
               <IntegratedOperations area={screen.area} route={screen.route} />
-              <details className="av-card av-design-archive">
-                <summary>Ardot 页面内容参考（设计示例数据）</summary>
-                <p className="av-fixture-note">以下保留画布里的页面区块供布局对照；其中示例记录和数值不代表当前业务数据。</p>
-                <Blocks blocks={screen.blocks} stacked />
-              </details>
             </>
           ) : screen.area === '数据' ? (
             <>
