@@ -130,3 +130,16 @@ test('embedded ecommerce sections inherit the Admin theme and use consistent res
 });
 
 
+
+
+test('product sidebar links to live sections without permanently highlighting models', () => {
+  const ui = read('./renderer.tsx');
+  const styles = read('./design-system.css');
+  const product = read('../product/product-client.tsx');
+  for (const anchor of ['product-types', 'series', 'model-register', 'models', 'engineering', 'parts']) {
+    assert.ok(product.includes('id="' + anchor + '"'), 'product section exists: ' + anchor);
+  }
+  assert.ok(ui.includes("'产品类型': '/admin/product#product-types'"));
+  assert.ok(ui.includes("'官网商品发布与审核', '首页商品绑定'"));
+  assert.ok(!styles.includes('.av-body--product .av-railitem[href="/admin/product#model-register"]'));
+});
