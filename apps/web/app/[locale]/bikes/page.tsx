@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CatalogShell } from "../../_components/catalog/catalog-shell";
 import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navigator";
+import { BikesModelSideNavigator } from "../../_components/catalog/bikes-model-side-navigator";
 import { AccessoriesCatalogSection } from "../../_components/catalog/accessories-catalog-section";
 import { publishedBikeCatalog } from "../../_components/catalog/published-product-catalog";
 import { translator, type TranslationKey } from "../../_lib/i18n";
@@ -68,6 +69,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
         href:model.href,modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
     });
   const visibleModels = sortMode === "name" ? [...models].sort((a,b)=>a.name.localeCompare(b.name, locale)) : models;
+  const modelSideLinks = models.map(model => ({ id: "model-" + model.id, label: model.name, href: prefix + "/bikes?platform=" + model.platform + "#model-" + model.id }));
   const filteredModels = visibleModels.filter(model => !active || model.platform === active);
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
@@ -95,6 +97,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
           <p>{t("catalog.bikes.models.body")}</p>
         </div>
         <div className={styles.modelLayout}>
+          <BikesModelSideNavigator title={t("catalog.bikes.modelNav.series")} links={modelSideLinks} />
           <div className={styles.modelContent}>
             <div className={styles.catalogToolbar}>
               <nav className={styles.filters} aria-label={t("catalog.bikes.filter.label")}>
