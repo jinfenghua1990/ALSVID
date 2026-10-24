@@ -13,6 +13,7 @@ import { ArchitectureOverview } from './architecture-overview';
 import { ADMIN_MODULES } from './business-module-registry';
 import { AdminModuleDirectory } from './admin-module-directory';
 import { P0OperationsCenter } from './p0-operations-center';
+import { AdminThemePicker } from './admin-theme-picker';
 
 const AREAS = ADMIN_MODULES;
 
@@ -478,7 +479,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
 
   return (
-    <div className="av av-ambient" data-theme={theme}>
+    <div className="av av-ambient" data-admin-theme data-theme={theme ?? 'day'}>
       <header className="av-topbar">
         <a className="av-brand" href="/admin">
           ALSVID <span>OPERATIONS</span>
@@ -510,9 +511,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           <button className="av-iconbtn" type="button" aria-label="通知尚未接入" title="通知中心尚未接入" disabled>
             ◔
           </button>
-          <button className="av-iconbtn" type="button" aria-label="主题切换尚未接入" title="主题切换尚未接入" disabled>
-            ◐
-          </button>
+          <AdminThemePicker initialTheme={theme} />
           <AdminLogout />
           <div className="av-user">
             <span className="av-avatar" aria-hidden="true">
@@ -548,7 +547,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
               </div>
             ))}
             {!isIntegratedOverview && !isLiveProductRoot ? <div className="av-railgroup">
-              <div className="av-railtitle">设计页面与流程 · {moduleScreens.length}</div>
+              <div className="av-railtitle">本模块页面 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div> : null}
           </aside>
