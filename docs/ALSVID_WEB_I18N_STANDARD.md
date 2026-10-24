@@ -61,7 +61,7 @@ For indexable public pages, emit correct locale metadata (including canonical an
 
 ## 4. Language recommendation and remembered choice
 
-The initial locale is German (`de`) when no valid explicit preference is saved (owner confirmation, 2026-10-24). Browser language, region and `Accept-Language` must not automatically select Chinese or English. Explicit locale URLs and a user's saved language choice continue to take precedence; do not force repeated redirects based on geolocation or browser settings.
+On a first visit without a saved preference, browser language and region may be used to recommend a locale or choose a safe initial default. Do not force repeated redirects based on geolocation or browser settings.
 
 When a user explicitly selects a language:
 
