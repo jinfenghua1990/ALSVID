@@ -194,6 +194,9 @@ try {
         assert.equal(await shopping.locator('article[data-cart-product="ACCESSORY"]').count(),1);
         assert.equal(await shopping.locator('main[data-storefront-cart="cart"] button:disabled').count(),2,'No payment and minimum quantity controls stay gated');
         await shopping.goto(base+'/'+locale+'/checkout',{waitUntil:'domcontentloaded'});
+        // Wait for the client cart to hydrate before counting checkout line items;
+        // DOMContentLoaded alone can observe the empty server shell transiently.
+        await shopping.waitForFunction(()=>document.querySelectorAll('main[data-storefront-cart="checkout"] article').length===3,{timeout:15000});
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] article').count(),3,'Unpriced mixed selections appear in checkout preview');
         assert.equal(await shopping.locator('main[data-storefront-cart="checkout"] button:disabled').count(),1,'Real checkout remains blocked');
         assert.ok(await shopping.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Cart and product pages do not overflow');
