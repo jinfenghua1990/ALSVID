@@ -44,7 +44,7 @@ export function InfoDialog({
   );
 }
 
-type HeroSlide = { href: string; label: string; image: string; alt: string };
+type HeroSlide = { href: string; label: string; image: string; bikeImage?: string; alt: string };
 
 export function HomePosterHero({
   title,
@@ -111,7 +111,27 @@ export function HomePosterHero({
         }
         touchStart.current = null;
       }}>
-        <Image key={slide.image} className={`${styles.posterImage} ${styles.carouselImage}`} src={slide.image} alt={active === 0 ? posterAlt : slide.alt} fill sizes="100vw" preload={active === 0} />
+        <Image
+          key={slide.image}
+          className={`${styles.posterImage} ${styles.carouselImage}`}
+          src={slide.image}
+          alt={active === 0 && slide.bikeImage ? "" : slide.alt}
+          fill
+          sizes="100vw"
+          preload={active === 0}
+        />
+        {active === 0 && slide.bikeImage && (
+          <div className={styles.posterBikeLayer}>
+            <Image
+              className={styles.posterBikeImage}
+              src={slide.bikeImage}
+              alt={posterAlt}
+              fill
+              sizes="(max-width: 760px) 96vw, 57vw"
+              preload
+            />
+          </div>
+        )}
         <div className={styles.posterContent}>
           <h1 id={headingId}>{active === 0 ? title : slide.label}</h1>
           <p className={styles.posterTagline}>{active === 0 ? tagline : conceptLabel}</p>
