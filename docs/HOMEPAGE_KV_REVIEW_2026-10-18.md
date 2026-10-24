@@ -1,5 +1,8 @@
 # Homepage KV and motion review
 
+> **Current direction (2026-10-24):** The 2026-10-18 sunset-lake poster described below is historical and is no longer the active homepage KV. The current homepage hero uses the clean urban background `/home/fc1-city-kv.webp` plus the genuine transparent FC1 side-view cutout `/products/fc1/hero-bike-final.png` as separate layers. Text and controls remain HTML, not baked into the image. Desktop keeps copy on the left and the bike on the right; mobile uses a separate responsive arrangement. The older poster can remain as a historical/detail-page asset but must not be selected as the homepage hero.
+
+
 The preview header orders FC1, Products, Global dealers and Company together. Owner services links to the existing My ALSVID portal. Chinese uses the owner's requested labels “品牌公司” and “车主服务”.
 
 The hero has four centered platform selectors, a green active marker, seven-second automatic cycling, a pause/play control and touch swipe. Selecting a slide pauses automatic cycling. Pointer hover and keyboard focus suspend cycling; hidden documents do not advance. Reduced-motion preference disables automatic cycling and image entrance animation.
