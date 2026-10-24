@@ -18,5 +18,5 @@ export default async function WwwHomePage() {
   if (portal === 'my') redirect('/my');
 
   const saved = (await cookies()).get(localeCookie)?.value;
-  redirect(`/${preferredLocale(saved, requestHeaders.get('accept-language') ?? '')}/`);
+  redirect(`/${preferredLocale(saved)}/`);
 }
