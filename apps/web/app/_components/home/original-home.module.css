@@ -1875,7 +1875,7 @@
     background:
       linear-gradient(180deg, rgba(5, 10, 14, .5) 0%, rgba(5, 10, 14, .14) 42%, rgba(5, 10, 14, .34) 100%);
   }
-  .posterImage { object-position: center center; }
+  .posterImage { object-position: 51% top; }
   .posterBikeLayer {
     right: 0;
     bottom: 14%;
