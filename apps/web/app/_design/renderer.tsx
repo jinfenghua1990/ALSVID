@@ -175,7 +175,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '产品') {
     const destinations: Record<string, string> = {
       'FC Platform': '/admin/product#series', 'CT Platform': '/admin/product#series', 'FT Platform': '/admin/product#series', 'GT Platform': '/admin/product#series',
-      '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product#model-register', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
+      '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product#model-register', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
       'BOM': '/admin/product#engineering', '零件库': '/admin/product#parts', '工程文件': '/admin/product#engineering', '版本控制': '/admin/product#engineering',
       '开发中': '/admin/product#model-register', '量产': '/admin/product#model-register', '停产': '/admin/product#model-register', '归档': '/admin/product#model-register',
     };
@@ -557,11 +557,9 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
   const isCustomLiveModule = Boolean(screen.sourceNode?.startsWith('module:'));
   const secondaryNavigation = isLiveProductRoot
     ? [
-        { group: '产品组合', items: ['FC Platform', 'CT Platform', 'FT Platform', 'GT Platform'] },
-        { group: '平台管理', items: ['产品平台', '技术平台'] },
-        { group: '型号管理', items: ['型号', '配置', 'SKU'] },
-        { group: '工程管理', items: ['BOM', '零件库', '工程文件', '版本控制'] },
-        { group: '生命周期', items: ['开发中', '量产', '停产', '归档'] },
+        { group: '产品主数据', items: ['产品类型', '技术平台', '型号'] },
+        { group: '规格与工程', items: ['配置', 'SKU', 'BOM', '零件库'] },
+        { group: '商城联动', items: ['官网商品发布与审核', '首页商品绑定'] },
       ]
     : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
