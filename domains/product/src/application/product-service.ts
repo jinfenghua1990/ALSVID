@@ -140,6 +140,7 @@ export class ProductService {
     requireCapability(actor, ProductCapability.Write);
     const code = normalizeProductCode(input.code);
     if (!input.name?.trim()) throw new ProductValidationError('Variant name is required');
+    validateProductAttributes(input.attributes);
     try {
       const row = await this.repository.createVariant({ modelId: input.modelId, code, name: input.name.trim(), description: input.description?.trim() ?? '', attributes: input.attributes ?? {}, actorUserId: actor.userId });
       await this.audit.record({ actorUserId: actor.userId, action: 'product.variant_created', targetType: 'product.variant', targetId: row.id, metadata: { code } });
@@ -153,6 +154,7 @@ export class ProductService {
     requireCapability(actor, ProductCapability.Write);
     const sku = normalizeProductCode(input.sku);
     if (!input.name?.trim()) throw new ProductValidationError('SKU name is required');
+    validateProductAttributes(input.attributes);
     try {
       const row = await this.repository.createSku({
         variantId: input.variantId,
@@ -208,4 +210,12 @@ function mapCreateError(error: unknown, duplicateMessage: string, parentMessage:
   if (code === '23505') throw new ProductConflictError(duplicateMessage);
   if (code === '23503') throw new ProductNotFoundError(parentMessage);
   throw error;
+}
+
+/** Reject malformed client JSON before it reaches the repository JSONB adapter. */
+function validateProductAttributes(value: unknown): void {
+  if (value === undefined) return;
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ProductValidationError('Product attributes must be a JSON object');
+  }
 }
