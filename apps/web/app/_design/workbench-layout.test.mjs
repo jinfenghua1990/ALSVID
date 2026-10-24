@@ -9,8 +9,8 @@ test('workbench uses the full-width layout instead of reserving an empty seconda
   const css = read('./design-system.css');
 
   assert.match(renderer, /const secondaryNavigation = isLiveProductRoot/);
-  assert.match(renderer, /screen\.area === '设置'/);
-  assert.match(renderer, /\? \[\.\.\.\(screen\.secondary \?\? \[\]\), \{ group: '架构与知识', items: \['系统架构'\] \}\]/);
+  assert.match(renderer, /'设置': \[/);
+  assert.match(renderer, /\{ group: '架构与知识', items: \['系统架构'\] \}/);
   assert.match(renderer, /: \[\.\.\.\(scopedMenus\[screen\.area\] \?\? screen\.secondary \?\? \[\]\)\];/);
   assert.match(renderer, /av-body\$\{hasSecondaryNavigation \? '' : ' av-body--wide'\}/);
   assert.match(renderer, /\{hasSecondaryNavigation \? \(/);
@@ -30,3 +30,4 @@ test('workbench typography and dashboard card spacing remain readable', () => {
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(renderer, /screen\.id !== 'workbench' && screen\.sourceNode/);
 });
+

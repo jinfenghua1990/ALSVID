@@ -21,7 +21,8 @@ export function OperationsFrame({
   classNames?: { workspace?: string };
 }) {
   if (embedded) {
-    return <div className={`av-live-operations ${classNames?.workspace ?? ''}`} aria-label="真实业务操作区">{children}</div>;
+    return <div className={`av-live-operations ${classNames?.workspace ?? ''}`} data-area={area} aria-label="真实业务操作区">{children}</div>;
   }
   return <AppShell navigation={navigationFor('/' + area)} footer={footer} {...(classNames ? { classNames } : {})}>{children}</AppShell>;
 }
+
