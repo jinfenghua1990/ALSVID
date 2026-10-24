@@ -45,7 +45,7 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '仓储物流', items: ['库存台账', '出口物流与清关'] },
   ],
   '库存': [
-    { group: '整车库存', items: ['库存台账', '库存详情', '库存预警', '经销商库存'] },
+    { group: '整车库存', items: ['成品车辆', '待交付车辆', '经销商库存', '库存详情'] },
     { group: '物料库存', items: ['零件库存', '半成品库存', '原材料库存'] },
     { group: '仓储管理', items: ['仓库管理', '库位管理', '库存调拨'] },
     { group: '库存分析', items: ['库存预警', '周转分析', '呆滞库存'] },
