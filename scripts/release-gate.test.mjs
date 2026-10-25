@@ -97,7 +97,7 @@ test('full production deployment verifies exact web SHA and the zh/de/en public 
 
 test('official FC1 reservation inbox fallback is consistently included in release images', () => {
   const expected = "${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}";
-  for (const [filename, occurrences] of [['production-deploy.yml', 4], ['www-deploy.yml', 3]]) {
+  for (const [filename, occurrences] of [['production-deploy.yml', 5], ['www-deploy.yml', 3]]) {
     const workflow = readFileSync(new URL('../.github/workflows/' + filename, import.meta.url), 'utf8');
     assert.equal(workflow.split(expected).length - 1, occurrences, filename + ' must use the approved inbox for validation and Web build');
     assert.match(workflow, /FC1 reservation email is not configured/, filename + ' must continue checking email format');
