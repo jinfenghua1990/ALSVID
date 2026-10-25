@@ -127,5 +127,10 @@
   "catalog.bikes.facts.carbon": "Carbon fibre",
   "catalog.bikes.facts.versions": "Planned versions",
   "catalog.bikes.facts.pending": "To be verified",
-  "catalog.bikes.facts.price": "Price"
+  "catalog.bikes.facts.price": "Price",
+  "catalog.discovery.quickView.open": "Quick view",
+  "catalog.discovery.quickView.close": "Close quick view",
+  "catalog.discovery.quickView.previewNotice": "Reference configuration only. No approved price, stock, or live purchasable SKU.",
+  "catalog.discovery.quickView.save": "Save interest selection",
+  "catalog.discovery.quickView.unavailable": "Interest selections are not available for this model yet. See the details."
 }
