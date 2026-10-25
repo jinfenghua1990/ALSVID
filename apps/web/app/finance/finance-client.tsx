@@ -4,6 +4,7 @@ import { OperationsFrame } from '../_components/operations-frame';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './finance.module.css';
+import { localDateTimeToBusinessInstant } from './finance-timezone.mjs';
 
 // API returns serialized DB rows rendered as-is in this viewer component.
 // Property types are intentionally permissive: React escapes all output,
@@ -104,7 +105,14 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
 
   async function createFx(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget);
-    await action('/v1/finance/fx', { baseCurrency: form.get('baseCurrency'), quoteCurrency: form.get('quoteCurrency'), rate: form.get('rate'), effectiveAt: form.get('effectiveAt'), source: form.get('source') });
+    let effectiveAt: string;
+    try {
+      effectiveAt = localDateTimeToBusinessInstant(String(form.get('effectiveAt') ?? ''));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '汇率生效时间无效。');
+      return;
+    }
+    await action('/v1/finance/fx', { baseCurrency: form.get('baseCurrency'), quoteCurrency: form.get('quoteCurrency'), rate: form.get('rate'), effectiveAt, source: form.get('source') });
   }
 
   async function createLandedBatch(event: FormEvent<HTMLFormElement>) {
@@ -174,7 +182,7 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
         </div>
       </form>
       <form className={`${styles.card} ${styles.compact}`} onSubmit={createFx}>
-        <span className={styles.label}>汇率证据</span><h2>记录汇率</h2><div className={styles.stack}><div className={styles.split}><input name="baseCurrency" defaultValue="USD" maxLength={3}/><input name="quoteCurrency" defaultValue="EUR" maxLength={3}/></div><input name="rate" placeholder="汇率，例如 0.900000" required/><input name="effectiveAt" type="datetime-local" required/><input name="source" placeholder="汇率来源 / 依据" required/><button>记录汇率</button><p className={styles.hint}>跨币种结算必须存在明确且兼容的汇率证据，否则系统拒绝结算。</p></div>
+        <span className={styles.label}>汇率证据</span><h2>记录汇率</h2><div className={styles.stack}><div className={styles.split}><input name="baseCurrency" defaultValue="USD" maxLength={3}/><input name="quoteCurrency" defaultValue="EUR" maxLength={3}/></div><input name="rate" placeholder="汇率，例如 0.900000" required/><label>生效时间（Europe/Berlin）<input name="effectiveAt" type="datetime-local" required aria-label="汇率生效时间（Europe/Berlin）"/></label><input name="source" placeholder="汇率来源 / 依据" required/><button>记录汇率</button><p className={styles.hint}>跨币种结算必须存在明确且兼容的汇率证据，否则系统拒绝结算。</p></div>
       </form>
     </section>
 

@@ -58,6 +58,16 @@ jobs:
             exit 1
           fi
 
+      - name: Require a confirmed FC1 reservation recipient before production Web build
+        env:
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
+            echo "::error title=FC1 reservation email is not configured::Set and verify the official NEXT_PUBLIC_FC1_RESERVATION_EMAIL production variable before deploying a Web build." >&2
+            exit 1
+          fi
+
       - name: Verify public hostname before changing the Web service
         run: |
           set -euo pipefail
@@ -107,13 +117,17 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION }}
           GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
         run: |
           set -euo pipefail
           [[ -n "$GAR_REPOSITORY" ]]
           release_sha="$(git rev-parse HEAD)"
-          image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GAR_REPOSITORY/alsvid-web:$release_sha"
+          reservation_email_hash="$(printf '%s' "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" | sha256sum | cut -c1-12)"
+          image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GAR_REPOSITORY/alsvid-web:$release_sha-reservation-$reservation_email_hash"
+          rollback_image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GAR_REPOSITORY/alsvid-web:$release_sha"
           echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "rollback_image=$rollback_image" >> "$GITHUB_OUTPUT"
           if gcloud artifacts docker images describe "$image" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
@@ -132,7 +146,9 @@ jobs:
           file: infra/docker/Dockerfile.web
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.image.outputs.image }}
+          tags: |
+            ${{ steps.image.outputs.image }}
+            ${{ steps.image.outputs.rollback_image }}
           build-args: |
             ALSVID_ENV=production
             NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
