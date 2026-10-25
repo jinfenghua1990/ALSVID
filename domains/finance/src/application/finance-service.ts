@@ -12,7 +12,7 @@ import {
   type CreatePaymentInput,
 } from '../core/model.js';
 import { FinanceConflictError, FinanceNotFoundError, FinanceValidationError } from '../core/errors.js';
-import { financeCurrency, financeNonNegative, financePositive, financeRequired, financeSource, financeVersion } from '../core/validation.js';
+import { financeCurrency, financeEffectiveAt, financeNonNegative, financePositive, financeRequired, financeSource, financeVersion } from '../core/validation.js';
 import type { FinanceActor, FinanceAuditPort, FinanceRepository } from './ports.js';
 
 type PostedFinanceObligation = Record<string, unknown> & { id: string };
@@ -145,7 +145,7 @@ export class FinanceService {
   async createFxRate(actor: FinanceActor, input: CreateFxRateInput): Promise<any> {
     requirePermission(actor, FinanceCapability.Allocate);
     try {
-      const row = await this.repository.createFxRate({ ...input, baseCurrency: financeCurrency(input.baseCurrency), quoteCurrency: financeCurrency(input.quoteCurrency), rate: financePositive(input.rate, 'rate'), source: financeRequired(input.source, 'source'), actorUserId: actor.userId });
+      const row = await this.repository.createFxRate({ ...input, baseCurrency: financeCurrency(input.baseCurrency), quoteCurrency: financeCurrency(input.quoteCurrency), rate: financePositive(input.rate, 'rate'), effectiveAt: financeEffectiveAt(input.effectiveAt), source: financeRequired(input.source, 'source'), actorUserId: actor.userId });
       await this.audit.record({ actorUserId: actor.userId, action: 'finance.fx_rate_recorded', targetType: 'finance.fx_rate', targetId: row.id });
       return row;
     } catch (error) { this.rethrow(error); }
