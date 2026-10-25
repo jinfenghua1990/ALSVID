@@ -13,6 +13,11 @@ export function BikesModelSideNavigator({ title, links }: { title: string; links
     let frame = 0;
     const update = () => {
       frame = 0;
+      const hashTarget = window.location.hash.slice(1);
+      if (links.some(link => link.id === hashTarget) && document.getElementById(hashTarget)) {
+        setActive(previous => previous === hashTarget ? previous : hashTarget);
+        return;
+      }
       const stickyOffset = window.innerWidth <= 760 ? 64 + 50 + 24 : 70 + 58 + 28;
       const probe = window.scrollY + stickyOffset + 100;
       const candidates = links.map(link => {
@@ -27,11 +32,15 @@ export function BikesModelSideNavigator({ title, links }: { title: string; links
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     window.addEventListener("hashchange", onScroll);
+    window.addEventListener("popstate", onScroll);
+    window.addEventListener("pageshow", onScroll);
     update();
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       window.removeEventListener("hashchange", onScroll);
+      window.removeEventListener("popstate", onScroll);
+      window.removeEventListener("pageshow", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [links]);
