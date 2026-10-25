@@ -10,7 +10,7 @@ import { translator, type TranslationKey } from "../../_lib/i18n";
 import { isLocale, locales } from "../../_lib/i18n/routing";
 import styles from "./page.module.css";
 
-type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ platform?: string; category?: string }> };
+type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ platform?: string; category?: string; sort?: string }> };
 const platformIds = ["fc", "ct", "ft", "gt"] as const;
 type PlatformId = typeof platformIds[number];
 const platformAssets: Record<PlatformId, string> = {
@@ -43,6 +43,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
   const query = await searchParams;
   const requested = query.platform?.toLowerCase();
   const active: PlatformId | null = platformIds.find(id => id === requested) ?? null;
+  const sortMode = query.sort === "name" ? "name" : "featured";
   const prefix = "/" + locale;
   const publicCatalog = await publishedBikeCatalog();
   // Brand previews remain visibly distinct from an approved public catalogue item.
@@ -68,10 +69,8 @@ export default async function BikesPage({ params, searchParams }: Props) {
         image:reviewed?.image??model.image,alt:reviewed?.title[locale]??model.alt,
         href:model.href,modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
     });
-  const modelSideLinks = models.map(model=>({
-    id:"model-"+model.id,label:model.name,
-    href:prefix+"/bikes?platform="+model.platform+"#model-"+model.id,
-  }));
+  const modelSideLinks = models.map(model => ({ id: "model-" + model.id, label: model.name, href: prefix + "/bikes?platform=" + model.platform + "#model-" + model.id }));
+  const filteredModels = models.filter(model => !active || model.platform === active);
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
     { id: "platforms", label: t("catalog.product.tabs.platforms"), href: prefix + "/bikes#platforms" },
@@ -92,6 +91,36 @@ export default async function BikesPage({ params, searchParams }: Props) {
       </section>
 
 
+      <section className={styles.section + " " + styles.modelSection} aria-labelledby="models-title" id="models">
+        <div className={styles.sectionHeading}>
+          <div><p className={styles.kicker}>{t("catalog.bikes.models.kicker")}</p><h2 id="models-title">{t("catalog.bikes.models.title")}</h2></div>
+          <p>{t("catalog.bikes.models.body")}</p>
+        </div>
+        <div className={styles.modelLayout}>
+          <BikesModelSideNavigator title={t("catalog.bikes.modelNav.series")} links={modelSideLinks} />
+          <div className={styles.modelContent}>
+            <div className={styles.catalogToolbar}>
+              <nav className={styles.filters} aria-label={t("catalog.bikes.filter.label")}>
+                <a href={prefix + "/bikes?sort=" + sortMode + "#models"} aria-current={!active ? "page" : undefined}>{t("catalog.bikes.filter.all")}</a>
+                {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "&sort=" + sortMode + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
+              </nav>
+              <div className={styles.sortControl} role="group" aria-label={t("catalog.bikes.sort.label")}>
+                <span><strong>{filteredModels.length}</strong> {t("catalog.bikes.sort.results")}</span>
+                <a href={prefix + "/bikes?sort=featured" + (active ? "&platform=" + active : "") + "#models"} aria-current={sortMode === "featured" ? "page" : undefined}>{t("catalog.bikes.sort.featured")}</a>
+                <a href={prefix + "/bikes?sort=name" + (active ? "&platform=" + active : "") + "#models"} aria-current={sortMode === "name" ? "page" : undefined}>{t("catalog.bikes.sort.name")}</a>
+              </div>
+            </div>
+            {!publicCatalog.available?<p className={styles.emptyNotice} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
+            {(!active || active === "fc") && models.length ? <BikesDiscovery locale={locale} models={filteredModels} sortMode={sortMode} /> : active && active !== 'fc' ? <div className={styles.empty}>
+              <span>{active.toUpperCase()} PLATFORM</span>
+              <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
+              <p>{t("catalog.bikes.models.none")}</p>
+              <a href={prefix + "/explore/" + active}>{t("catalog.bikes.platforms.link")}</a>
+            </div> : null}
+          </div>
+        </div>
+      </section>
+
       <section className={styles.section} aria-labelledby="platforms-title" id="platforms">
         <div className={styles.sectionHeading}>
           <div><p className={styles.kicker}>{t("catalog.bikes.platforms.kicker")}</p><h2 id="platforms-title">{t("catalog.bikes.platforms.title")}</h2></div>
@@ -103,29 +132,6 @@ export default async function BikesPage({ params, searchParams }: Props) {
             <span className={styles.platformShade} />
             <div className={styles.platformText}><span>{t(`platform.${id}.code` as TranslationKey)}</span><h3>{t(`platform.${id}.title` as TranslationKey)}</h3><small>{t("catalog.bikes.platforms.link")}</small></div>
           </a>)}
-        </div>
-      </section>
-
-      <section className={styles.section + " " + styles.modelSection} aria-labelledby="models-title" id="models">
-        <div className={styles.sectionHeading}>
-          <div><p className={styles.kicker}>{t("catalog.bikes.models.kicker")}</p><h2 id="models-title">{t("catalog.bikes.models.title")}</h2></div>
-          <p>{t("catalog.bikes.models.body")}</p>
-        </div>
-        <div className={styles.modelLayout}>
-          <BikesModelSideNavigator title={t("catalog.bikes.modelNav.series")} links={modelSideLinks} />
-          <div className={styles.modelContent}>
-            <nav className={styles.filters} aria-label={t("catalog.bikes.filter.label")}>
-              <a href={prefix + "/bikes#models"} aria-current={!active ? "page" : undefined}>{t("catalog.bikes.filter.all")}</a>
-              {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
-            </nav>
-            {!publicCatalog.available?<p className={styles.emptyNotice} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
-            {(!active || active === "fc") && models.length ? <BikesDiscovery locale={locale} models={models}/> : active && active !== 'fc' ? <div className={styles.empty}>
-              <span>{active.toUpperCase()} PLATFORM</span>
-              <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
-              <p>{t("catalog.bikes.models.none")}</p>
-              <a href={prefix + "/explore/" + active}>{t("catalog.bikes.platforms.link")}</a>
-            </div> : null}
-          </div>
         </div>
       </section>
 

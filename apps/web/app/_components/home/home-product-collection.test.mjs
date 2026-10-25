@@ -1,0 +1,32 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const page = readFileSync(new URL("./home-page.tsx", import.meta.url), "utf8");
+const styles = readFileSync(new URL("./original-home.module.css", import.meta.url), "utf8");
+const catalogs = ["zh", "de", "en"].map(locale => JSON.parse(readFileSync(new URL("../../_lib/i18n/catalog/" + locale + ".json", import.meta.url), "utf8")));
+
+test("official homepage keeps the brand hero and shows the collection grid before editorial sections", () => {
+  assert.match(page, /<HomePosterHero/);
+  assert.match(page, /data-home-product-collection/);
+  assert.ok(page.indexOf('data-home-product-collection') < page.indexOf('<section id="folding"'));
+  assert.match(page, /id="featured"/);
+});
+
+test("homepage product cards use existing ALSVID models and detail routes", () => {
+  for (const code of ["FC1", "FC2", "L7", "L8"]) assert.match(page, new RegExp('code: "' + code + '"'));
+  for (const slug of ["fc1", "fc2", "l7", "l8"]) assert.match(page, new RegExp('detail\\("' + slug + '"\\)'));
+  assert.match(page, /catalog\.bikes\.models\.details/);
+  assert.doesNotMatch(page, /<L8LaunchCard|<L7LaunchCard|<Fc2LaunchCard/);
+});
+
+test("homepage collection has the same responsive image-card layout and complete locale labels", () => {
+  assert.match(styles, /\.home-product-grid\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(styles, /@media\(max-width:700px\)/);
+  for (const catalog of catalogs) {
+    for (const key of ["catalog.bikes.models.kicker", "catalog.bikes.models.title", "catalog.bikes.models.body", "catalog.bikes.models.details", "catalog.nav.bikes"]) {
+      assert.equal(typeof catalog[key], "string", key);
+      assert.ok(catalog[key].length > 0, key);
+    }
+  }
+});
