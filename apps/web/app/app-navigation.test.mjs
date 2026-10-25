@@ -30,7 +30,8 @@ test('warehouse integration settings are reachable from the Admin sidebar', () =
 
 // A `#anchor` href only works when the target workspace renders that id. Anchors used to
 // point at sections that never existed, so the click silently landed on the page top.
-// `/admin/*` is excluded on purpose: the Ardot renderer owns those anchors.
+// `/admin/*` is covered by its own assertion below: those screens are drawn from a data-only
+// `Block` union, so they can never carry an id and must not advertise an anchor at all.
 const workspaceSources = {
   '/product': './product/product-client.tsx',
   '/production': './production/production-client.tsx',
@@ -55,6 +56,18 @@ test('unfinished entries never carry an anchor', () => {
   for (const item of appNavigation.filter((entry) => entry.disabled)) {
     assert.ok(!item.href.includes('#'), `${item.label} is unfinished and must not deep link into ${item.href}`);
   }
+});
+
+// `/admin/*` screens come from the Ardot renderer, whose `Block` union has no `id` field, so
+// nothing on those pages can be an anchor target. `/admin#overview` and `/admin#attention`
+// promised sections that could never exist and silently dropped the visitor at the page top.
+test('design-rendered admin entries never promise an anchor', () => {
+  const anchored = appNavigation.filter((item) => item.href.startsWith('/admin') && item.href.includes('#'));
+  assert.deepEqual(
+    anchored.map((item) => `${item.label} -> ${item.href}`),
+    [],
+    'the design renderer draws blocks without ids, so an /admin anchor cannot resolve',
+  );
 });
 
 // The after-sales work orders are served by ServiceCaseClient at /admin/after-sales, which is
