@@ -91,6 +91,11 @@ export default async function BikesPage({ params, searchParams }: Props) {
       </section>
 
 
+      <aside className={styles.shopPreviewEntry} data-shop-preview-entry>
+        <div><strong>{t('shopPreview.linkLabel')}</strong><p>{t('shopPreview.linkBody')}</p></div>
+        <a href={prefix + '/shop-preview'}>{t('shopPreview.open')} →</a>
+      </aside>
+
       <nav className={styles.quickModels} aria-label={t("catalog.bikes.quickModels.title")} data-bikes-quick-models>
         <div className={styles.quickModelsHeading}>
           <span>{t("catalog.bikes.quickModels.title")}</span>

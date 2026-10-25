@@ -25,3 +25,14 @@ Medusa 当前 dtc-starter 的 storefront 使用 Medusa 后端契约。CRMEB 不�
 - https://github.com/medusajs/dtc-starter
 - https://github.com/medusajs/nextjs-starter-medusa
 - https://github.com/crmeb/CRMEB
+
+## WWW 产品预览页与发布授权（2026-10-26）
+负责人确认“可以，直接帮忙搭建，WWW 里面产品页面，以及 ADMIN 后台新建一个菜单”，授权本独立对比功能按原发布链交付。
+
+- 新增 /zh/shop-preview、/de/shop-preview、/en/shop-preview；原 /{locale}/bikes 只增加可辨识的方案预览入口。
+- 新页共享 WWW 顶栏、语言切换与页脚，使用集中三语词库；页面 noindex，不加入正式商品索引。
+- FC1 / FC2 使用既有参考图片。版本为规划选项，售价待确认；没有虚构评分、折扣或库存。
+- 新页预览袋使用独立 sessionStorage 键 alsvid-independent-shop-preview-v1，严格校验型号/版本/数量；不写原购物袋 localStorage。
+- 原 Admin 独立对比菜单新增三个语言版本的 WWW 直达链接，保留原系统入口。
+- Medusa/CRMEB 原生服务仍未部署/对接；这次是负责人确认的独立页面和操作预览，不将其升级为真实交易或“后端融合已完成”。
+- PR 验证在临时 CI；完成后经 main 精确提交检查和现有 WWW 发布流程交付，实际部署状态以运行证据为准。
