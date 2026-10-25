@@ -134,7 +134,8 @@ jobs:
           R2_BUCKET: ${{ vars.R2_BUCKET }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
-          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+          # Official confirmed FC1 reservations inbox; production override remains supported.
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
           AUTH_BASE_URL: https://admin.alsvidbike.com
           RELEASE_EVENT: ${{ github.event_name }}
         run: |
@@ -272,7 +273,7 @@ jobs:
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           IS_ROLLBACK: ${{ steps.release.outputs.rollback }}
-          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
         run: |
           set -euo pipefail
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
@@ -325,7 +326,7 @@ jobs:
             ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.release.outputs.sha }}
           build-args: |
             ALSVID_ENV=production
-            NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+            NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
           cache-from: type=gha,scope=alsvid-production-web
           cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
 
@@ -425,7 +426,7 @@ jobs:
           ALSVID_INITIAL_ADMIN_EMAIL: ${{ vars.ALSVID_INITIAL_ADMIN_EMAIL }}
           MAIL_PROVIDER: ${{ vars.MAIL_PROVIDER }}
           MAIL_FROM_ADDRESS: ${{ vars.MAIL_FROM_ADDRESS }}
-          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
           AUTH_BASE_URL: https://admin.alsvidbike.com
         run: |
           set -euo pipefail
