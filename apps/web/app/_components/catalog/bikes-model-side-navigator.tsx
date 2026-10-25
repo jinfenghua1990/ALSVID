@@ -20,7 +20,10 @@ export function BikesModelSideNavigator({ title, links }: { title: string; links
         return element ? { id: link.id, top: element.getBoundingClientRect().top + window.scrollY } : null;
       }).filter((item): item is { id: string; top: number } => item !== null && item.top <= probe)
         .sort((a, b) => b.top - a.top);
-      const current = candidates[0]?.id ?? null;
+      const first = candidates[0];
+      const hash = window.location.hash.slice(1);
+      const current = candidates.find(item => item.id === hash && first && Math.abs(item.top - first.top) < 2)?.id
+        ?? first?.id ?? null;
       setActive(previous => previous === current ? previous : current);
     };
     const onScroll = () => { if (frame === 0) frame = window.requestAnimationFrame(update); };
