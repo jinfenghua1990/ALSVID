@@ -108,6 +108,15 @@ try {
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/l7"]').count() > 0, true, 'L7 detail link exists');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/l8"]').count() > 0, true, 'L8 detail link exists');
         assert.equal(await bicycles.locator('#models article').count(), 4, 'The catalogue includes FC1, FC2, L7 and L8 model previews');
+        const quickModels=bicycles.locator('nav[data-bikes-quick-models]');
+        assert.equal(await quickModels.count(),1,'Bike catalogue includes the model image shortcut strip');
+        assert.equal(await quickModels.locator('a[data-quick-model]').count(),4,'Quick model strip uses published or visible catalogue records only');
+        assert.equal(await quickModels.locator('a[data-quick-model="fc2"]').getAttribute('href'),'/'+locale+'/bikes?platform=fc#model-fc2');
+        assert.equal(await bicycles.locator('[data-bikes-facts]').count(),2,'Reference specification tiles appear only for documented FC1 and FC2 models');
+        assert.equal(await bicycles.locator('[data-bikes-price-pending]').count(),4,'No invented sale prices or discounts');
+        assert.ok(await bicycles.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth + 1),
+          'Model shortcut strip fits the viewport');
+
         const discovery = bicycles.locator('[data-bikes-discovery]');
         assert.equal(await discovery.count(), 1, 'Model discovery component renders for FC platform');
         const firstBikeSrc = await discovery.locator('#model-fc1 img').getAttribute('src');
