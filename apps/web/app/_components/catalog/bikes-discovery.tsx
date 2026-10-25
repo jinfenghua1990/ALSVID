@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { translator, type Locale } from "../../_lib/i18n";
+import { translator, type Locale, type TranslationKey } from "../../_lib/i18n";
 import styles from "../../[locale]/bikes/page.module.css";
 
 export type DiscoveryBike = {
@@ -30,7 +30,7 @@ const FC1_COLOURS: { id: Colour; hex: string }[] = [
  * Consumer-facing discovery only. Never derive purchase price, stock, performance
  * or sellable SKUs from the marketing preview models.
  */
-export function BikesDiscovery({ locale, models }: { locale: Locale; models: DiscoveryBike[] }) {
+export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; models: DiscoveryBike[]; sortMode: "featured" | "name" }) {
   const t = translator(locale);
   const [query, setQuery] = useState("");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
@@ -42,7 +42,7 @@ export function BikesDiscovery({ locale, models }: { locale: Locale; models: Dis
     const search = query.trim().toLocaleLowerCase(locale);
     return (!search || (model.code + " " + model.name).toLocaleLowerCase(locale).includes(search))
       && (reviewFilter === "all" || (reviewFilter === "reviewed" ? model.reviewed : !model.reviewed));
-  });
+  }).sort((a, b) => sortMode === "name" ? a.name.localeCompare(b.name, locale) : 0);
   const selected = models.filter(model => compare.includes(model.id));
   const toggleCompare = (id: string) => {
     if (compare.includes(id)) {
@@ -98,13 +98,12 @@ export function BikesDiscovery({ locale, models }: { locale: Locale; models: Dis
           <a href={model.href} className={styles.modelImageLink} aria-label={model.name}>
             <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
           </a>
-          <span className={styles.modelImageCode}>{model.code} / {model.platform.toUpperCase()}</span>
         </div>
         <div className={styles.modelInfo}>
           <div>
-            <span className={styles.status}>{model.status}</span>
+            <div className={styles.modelMeta}><span className={styles.status}>{model.status}</span><span className={styles.modelCode}>{model.code}</span></div>
             <h3 id={"model-" + model.id + "-title"}>{model.name}</h3>
-            <p>{model.platform.toUpperCase()} PLATFORM</p>
+            <p>{t(`platform.${model.platform}.title` as TranslationKey)}</p>
           </div>
           <p className={styles.discoveryModelNote}>{model.id === "fc1"
             ? t("catalog.discovery.fc1.note") : t("catalog.discovery.other.note")}</p>
@@ -129,7 +128,7 @@ export function BikesDiscovery({ locale, models }: { locale: Locale; models: Dis
             </a>
           </div> : <p className={styles.discoveryOtherFinish}>{t("catalog.discovery.colour.pending")}</p>}
           <div className={styles.discoveryActions}>
-            <a href={model.href}>{t("catalog.bikes.models.details")}</a>
+            <a className={styles.detailLink} href={model.href}>{t("catalog.bikes.models.details")} <span aria-hidden="true">→</span></a>
             <button type="button" aria-pressed={compare.includes(model.id)}
               data-bikes-compare-toggle={model.code}
               onClick={() => toggleCompare(model.id)}>
