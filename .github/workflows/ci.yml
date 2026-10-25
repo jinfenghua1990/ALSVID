@@ -96,6 +96,7 @@ jobs:
         if: steps.scope.outputs.docs_only != 'true'
       - run: node --test scripts/www-visual-consistency.test.mjs
       - run: node --test scripts/release-gate.test.mjs
+      - run: node --test scripts/release-scope.test.mjs
       - run: node --test scripts/check-dealer-api-readiness.test.mjs
         if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm db:migrate
@@ -296,7 +297,7 @@ jobs:
                 docs/*|*.md|AGENTS.md|.github/ISSUE_TEMPLATE/*) ;;
                 *) docs_only=false; break ;;
               esac
-            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+            done < <(git diff --no-renames --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
             if [[ "$docs_only" == "true" ]]; then
               echo "Documentation-only change; Production deployment is not needed."
               exit 0
@@ -305,17 +306,19 @@ jobs:
 
           # Backend, schema, infrastructure, and release-pipeline changes require the
           # full production workflow so API routes and database migrations ship together.
-          full_stack=false
+          full_stack=true
           if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
+            full_stack=false
             while IFS= read -r file; do
               case "$file" in
-                apps/api/*|apps/worker/*|packages/*|infra/docker/Dockerfile.api|infra/docker/Dockerfile.worker|infra/gcp/*|.github/workflows/ci.yml|.github/workflows/production-deploy.yml)
+                apps/web/*|docs/*|*.md|.github/ISSUE_TEMPLATE/*) ;;
+                *)
                   full_stack=true
                   echo "Full-stack production change detected: $file."
                   break
                   ;;
               esac
-            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+            done < <(git diff --no-renames --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
           fi
 
           main_sha="$(gh api "repos/$GH_REPO/commits/main" --jq .sha)"
