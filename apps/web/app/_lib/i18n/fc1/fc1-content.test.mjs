@@ -57,6 +57,11 @@ test("FC1 keeps explicit email reservation and safe cart preview, with no live p
   assert.match(configurator, /addCartLine\(/);
   assert.match(configurator, /className=\{styles\.cartBuyButton\} disabled/);
   assert.doesNotMatch(configurator, /saveFc1PreviewCart|paymentIntent|createOrder|\/checkout/);
+  for (const workflowPath of ["../../../../../../.github/workflows/production-deploy.yml", "../../../../../../.github/workflows/www-deploy.yml"]) {
+    const workflow = await readFile(path.join(directory, workflowPath), "utf8");
+    assert.match(workflow, /NEXT_PUBLIC_FC1_RESERVATION_EMAIL/);
+    assert.match(workflow, /reservation_email_hash/);
+  }
 });
 
 test("FC1 story and classic product layouts retain no direct paid checkout links", async () => {

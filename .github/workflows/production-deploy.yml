@@ -165,6 +165,11 @@ jobs:
             exit 1
           fi
 
+          if "${{ inputs.rollback }}" != "true" && [[ ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
+            echo "::error title=FC1 reservation email is not configured::Set and verify the official NEXT_PUBLIC_FC1_RESERVATION_EMAIL production variable before deploying a Web build." >&2
+            exit 1
+          fi
+
           git fetch origin main
           release_sha="$(git rev-parse HEAD)"
           if ! git merge-base --is-ancestor "$release_sha" origin/main; then
@@ -267,6 +272,7 @@ jobs:
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           IS_ROLLBACK: ${{ steps.release.outputs.rollback }}
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
         run: |
           set -euo pipefail
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
@@ -274,9 +280,15 @@ jobs:
           # same Dockerfile and build args right after main CI succeeds. A pre-existing
           # web image for this exact commit is therefore reusable; the API image is
           # produced by this workflow when it is not already available.
+          if [[ "$IS_ROLLBACK" == "true" ]]; then
+            web_tag="$RELEASE_SHA"
+          else
+            reservation_email_hash="$(printf '%s' "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" | sha256sum | cut -c1-12)"
+            web_tag="$RELEASE_SHA-reservation-$reservation_email_hash"
+          fi
           web_exists=false
           api_exists=false
-          if gcloud artifacts docker images describe "$REGISTRY/alsvid-web:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+          if gcloud artifacts docker images describe "$REGISTRY/alsvid-web:$web_tag" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             web_exists=true
           fi
           if gcloud artifacts docker images describe "$REGISTRY/alsvid-api:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
@@ -293,6 +305,7 @@ jobs:
           fi
           {
             echo "web_exists=$web_exists"
+            echo "web_tag=$web_tag"
             echo "api_exists=$api_exists"
           } >> "$GITHUB_OUTPUT"
 
@@ -307,7 +320,7 @@ jobs:
           file: infra/docker/Dockerfile.web
           platforms: linux/amd64
           load: true
-          tags: ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.release.outputs.sha }}
+          tags: ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.image_lookup.outputs.web_tag }}
           build-args: |
             ALSVID_ENV=production
             NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
