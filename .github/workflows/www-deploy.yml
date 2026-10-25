@@ -60,7 +60,8 @@ jobs:
 
       - name: Require a confirmed FC1 reservation recipient before production Web build
         env:
-          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+          # Official confirmed FC1 reservations inbox; production override remains supported.
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
         run: |
           set -euo pipefail
           if [[ ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
@@ -117,7 +118,7 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION }}
           GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY }}
-          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
         run: |
           set -euo pipefail
           [[ -n "$GAR_REPOSITORY" ]]
@@ -151,7 +152,7 @@ jobs:
             ${{ steps.image.outputs.rollback_image }}
           build-args: |
             ALSVID_ENV=production
-            NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
+            NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
           cache-from: type=gha,scope=alsvid-production-web
           cache-to: type=gha,mode=max,scope=alsvid-production-web,ignore-error=true
 
