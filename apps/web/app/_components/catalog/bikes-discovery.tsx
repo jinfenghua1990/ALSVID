@@ -13,7 +13,7 @@ export type DiscoveryBike = {
   image: string;
   alt: string;
   href: string;
-  modelId?: string;
+  modelId?: string | undefined;
   reviewed: boolean;
 };
 
