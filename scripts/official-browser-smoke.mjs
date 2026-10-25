@@ -108,6 +108,32 @@ try {
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/l7"]').count() > 0, true, 'L7 detail link exists');
         assert.equal(await bicycles.locator('a[href="/' + locale + '/explore/l8"]').count() > 0, true, 'L8 detail link exists');
         assert.equal(await bicycles.locator('#models article').count(), 4, 'The catalogue includes FC1, FC2, L7 and L8 model previews');
+        const discovery = bicycles.locator('[data-bikes-discovery]');
+        assert.equal(await discovery.count(), 1, 'Model discovery component renders for FC platform');
+        const firstBikeSrc = await discovery.locator('#model-fc1 img').getAttribute('src');
+        const swatches = discovery.locator('[data-bikes-color-preview] button');
+        assert.equal(await swatches.count(), 4, 'FC1 offers one real sample and three explicitly proposed swatches');
+        await swatches.nth(1).click();
+        assert.equal(await swatches.nth(1).getAttribute('aria-pressed'), 'true', 'Proposal swatch can be selected');
+        assert.equal(await discovery.locator('#model-fc1 img').getAttribute('src'), firstBikeSrc,
+          'Proposal selection must not impersonate a real bike photograph');
+        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 3,
+          'Initial comparison includes a label column and two selected model columns');
+        await discovery.locator('[data-bikes-compare-toggle="FC2"]').click();
+        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 2,
+          'Removing a model updates the comparison');
+        await discovery.locator('[data-bikes-compare-toggle="FC2"]').click();
+        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 3,
+          'Adding the model back updates the comparison');
+        const bikeSearch = discovery.locator('input[data-bikes-search]');
+        await bikeSearch.fill('FC2');
+        assert.equal(await bicycles.locator('#models article').count(), 1,
+          'Searching model names filters the visible catalogue');
+        assert.equal(await bicycles.locator('#model-fc2').count(), 1);
+        await bikeSearch.fill('');
+        assert.equal(await bicycles.locator('#models article').count(), 4,
+          'Clearing search restores all available model previews');
+        report.checks.push(locale + ' ' + device + ': model search, swatches, compare selection');
         const modelNavigator = bicycles.locator('nav[data-bikes-model-nav]');
         await modelNavigator.waitFor({ state: 'visible', timeout: 8000 });
         assert.equal(await modelNavigator.count(), 1, 'Sticky category navigation is present from the top of the page');
