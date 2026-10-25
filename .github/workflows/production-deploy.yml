@@ -166,10 +166,9 @@ jobs:
             exit 1
           fi
 
-          if [[ "${{ inputs.rollback }}" != "true" && ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
-            echo "::error title=FC1 reservation email is not configured::Set and verify the official NEXT_PUBLIC_FC1_RESERVATION_EMAIL production variable before deploying a Web build." >&2
-            exit 1
-          fi
+          # FC1 reservation email is required only when this release builds/publishes a Web
+          # image; see "Require FC1 reservation email before Web build" after image lookup so
+          # API-only releases are not blocked.
 
           git fetch origin main
           release_sha="$(git rev-parse HEAD)"
@@ -310,6 +309,17 @@ jobs:
             echo "api_exists=$api_exists"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Require FC1 reservation email before Web build
+        if: steps.image_lookup.outputs.reused != 'true' && steps.image_lookup.outputs.web_exists != 'true'
+        env:
+          NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL || 'info@alsvidbike.com' }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
+            echo "::error title=FC1 reservation email is not configured::Set and verify the official NEXT_PUBLIC_FC1_RESERVATION_EMAIL production variable before deploying a Web build." >&2
+            exit 1
+          fi
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -357,12 +367,17 @@ jobs:
         env:
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          WEB_TAG: ${{ steps.image_lookup.outputs.web_tag }}
         run: |
           set -euo pipefail
           if [[ "${{ steps.image_lookup.outputs.web_exists }}" != "true" ]]; then
-            docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
+            # Mirror www-deploy.yml: publish both the reservation-hash tag and the plain SHA tag.
+            docker push "$REGISTRY/alsvid-web:$WEB_TAG"
+            if [[ "$WEB_TAG" != "$RELEASE_SHA" ]]; then
+              docker push "$REGISTRY/alsvid-web:$RELEASE_SHA"
+            fi
           else
-            echo "Reusing alsvid-web:$RELEASE_SHA published by the WWW release pipeline."
+            echo "Reusing alsvid-web:$WEB_TAG published by the WWW release pipeline."
           fi
           if [[ "${{ steps.image_lookup.outputs.api_exists }}" != "true" ]]; then
             docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
@@ -374,16 +389,21 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           REGISTRY: ${{ steps.release.outputs.registry }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          WEB_TAG: ${{ steps.image_lookup.outputs.web_tag }}
         run: |
           set -euo pipefail
-          for image in web api; do
-            digest="$(gcloud artifacts docker images describe "$REGISTRY/alsvid-$image:$RELEASE_SHA" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
-            if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
-              echo "Could not resolve immutable digest for alsvid-$image:$RELEASE_SHA" >&2
-              exit 1
-            fi
-            echo "${image}_image=$REGISTRY/alsvid-$image@$digest" >> "$GITHUB_OUTPUT"
-          done
+          web_digest="$(gcloud artifacts docker images describe "$REGISTRY/alsvid-web:$WEB_TAG" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
+          if [[ ! "$web_digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "Could not resolve immutable digest for alsvid-web:$WEB_TAG" >&2
+            exit 1
+          fi
+          echo "web_image=$REGISTRY/alsvid-web@$web_digest" >> "$GITHUB_OUTPUT"
+          api_digest="$(gcloud artifacts docker images describe "$REGISTRY/alsvid-api:$RELEASE_SHA" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
+          if [[ ! "$api_digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "Could not resolve immutable digest for alsvid-api:$RELEASE_SHA" >&2
+            exit 1
+          fi
+          echo "api_image=$REGISTRY/alsvid-api@$api_digest" >> "$GITHUB_OUTPUT"
 
       - name: Run database migrations as an explicit release job
         env:

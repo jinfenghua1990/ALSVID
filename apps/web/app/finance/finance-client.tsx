@@ -33,9 +33,11 @@ const emptySummary: FinanceSummary = {
 };
 
 const labels: Record<string, string> = {
-  DRAFT: '草稿', VERIFIED: '已核验', POSTED: '已入账', VOID: '已作废',
+  // Document status uses VOIDED; obligation settlement_status view uses VOID.
+  DRAFT: '草稿', VERIFIED: '已核验', POSTED: '已入账', VOIDED: '已作废', VOID: '已作废',
   OPEN: '未结清', PARTIALLY_SETTLED: '部分结清', SETTLED: '已结清',
-  UNALLOCATED: '未分配', PARTIALLY_ALLOCATED: '部分分配', ALLOCATED: '已分配', REVERSED: '已冲销',
+  // Payment allocation_status view uses PARTIAL (not PARTIALLY_ALLOCATED).
+  UNALLOCATED: '未分配', PARTIAL: '部分分配', ALLOCATED: '已分配', REVERSED: '已冲销',
   INBOUND: '收款', OUTBOUND: '付款', AR: '应收', AP: '应付',
   QUANTITY: '按数量', VALUE: '按货值', WEIGHT: '按重量', MANUAL: '手工', FINALIZED: '已冻结',
 };
