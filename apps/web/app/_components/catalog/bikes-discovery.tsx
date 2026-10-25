@@ -45,18 +45,15 @@ export function BikesDiscovery({ locale, models }: { locale: Locale; models: Dis
   });
   const selected = models.filter(model => compare.includes(model.id));
   const toggleCompare = (id: string) => {
-    setCompare(previous => {
-      if (previous.includes(id)) {
-        setCompareNotice("");
-        return previous.filter(item => item !== id);
-      }
-      if (previous.length >= 3) {
-        setCompareNotice(t("catalog.discovery.compare.limit"));
-        return previous;
-      }
+    if (compare.includes(id)) {
+      setCompare(compare.filter(item => item !== id));
       setCompareNotice("");
-      return [...previous, id];
-    });
+    } else if (compare.length >= 3) {
+      setCompareNotice(t("catalog.discovery.compare.limit"));
+    } else {
+      setCompare([...compare, id]);
+      setCompareNotice("");
+    }
   };
   const filters: ReviewFilter[] = ["all", "reviewed", "preview"];
   const filterLabel = (value: ReviewFilter) =>
