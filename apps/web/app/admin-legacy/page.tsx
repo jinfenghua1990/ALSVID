@@ -51,7 +51,7 @@ const quickLinks = [
   {
     label: "售后",
     desc: "售后服务",
-    href: "/after-sales",
+    href: "/admin/after-sales",
     icon: "headset",
     tone: "blue",
   },
@@ -102,7 +102,7 @@ const attention = [
   {
     title: "售后工单",
     desc: "保修申请 · 服务跟进 · 客户催单",
-    href: "/after-sales",
+    href: "/admin/after-sales",
     icon: "headset",
     tone: "green",
   },
@@ -125,7 +125,7 @@ const metrics = [
   {
     title: "保修工单",
     source: "保修数据尚未接入",
-    href: "/after-sales",
+    href: "/admin/after-sales",
     icon: "shield",
     tone: "cyan",
   },

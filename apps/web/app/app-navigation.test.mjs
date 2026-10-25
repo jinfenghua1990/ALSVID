@@ -73,6 +73,27 @@ test('design-rendered admin entries never promise an anchor', () => {
 // The after-sales work orders are served by ServiceCaseClient at /admin/after-sales, which is
 // wired to /v1/service/cases. The root-path /after-sales and /after-sales/repairs routes are
 // still PortalSectionPage placeholders, so an enabled sidebar entry must not point at them.
+
+// Finance used to expose both /admin/finance (Admin shell + FinanceClient) and a parallel
+// /finance OperationsFrame entry. Keep one canonical Admin route; /finance redirects there.
+test('finance entries consolidate on the Admin finance workspace', () => {
+  const finance = appNavigation.filter((item) => item.area === '财务结算' && !item.disabled);
+  assert.ok(finance.length >= 2, 'finance must keep enabled entries');
+  for (const item of finance) {
+    assert.equal(item.href, '/admin/finance', `${item.label} must point at /admin/finance`);
+  }
+  assert.ok(
+    !appNavigation.some((item) => !item.disabled && item.href === '/finance'),
+    'no enabled sidebar entry may keep the parallel /finance route',
+  );
+  const legacy = readFileSync(new URL('./finance/page.tsx', import.meta.url), 'utf8');
+  assert.match(legacy, /redirect\('\/admin\/finance'\)/);
+  assert.match(
+    readFileSync(new URL('./_design/integrated-operations.tsx', import.meta.url), 'utf8'),
+    /<FinanceClient embedded \/>/,
+  );
+});
+
 test('after-sales entries target the real workbench instead of the root-path placeholder', () => {
   const afterSales = appNavigation.filter((item) => item.area === '售后服务' && !item.disabled);
   assert.ok(afterSales.length > 0, 'after-sales must have an enabled entry');

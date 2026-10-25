@@ -13,6 +13,7 @@ import { ArchitectureOverview } from './architecture-overview';
 import { ADMIN_MODULES } from './business-module-registry';
 import { AdminModuleDirectory } from './admin-module-directory';
 import { P0OperationsCenter } from './p0-operations-center';
+import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 
 const AREAS = ADMIN_MODULES;
@@ -688,9 +689,10 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           {screen.id === 'workbench' ? (
             <>
               <P0OperationsCenter />
+              <LiveWorkbenchTodos />
               <details className="av-card av-design-archive"><summary>其他业务数据概览（原有看板）</summary><LiveWorkbench /></details>
               <AdminModuleDirectory />
-              <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis')} />
+              <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis' && block.kind !== 'tasks')} />
             </>
           ) : screen.id === 'system-architecture' ? (
             <ArchitectureOverview />
