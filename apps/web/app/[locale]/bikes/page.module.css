@@ -219,3 +219,31 @@
 @media(max-width:1050px){.quickModelsList{display:flex;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;padding:0 0 5px}.quickModel{flex:0 0 210px;scroll-snap-align:start}.quickModels{padding-right:22px}}
 @media(max-width:700px){.quickModels{padding:17px 20px 20px}.quickModelsHeading{display:block}.quickModelsHeading small{display:block;margin-top:4px}.quickModel{flex-basis:170px;padding:8px}.quickModel img{width:65px;height:51px}.quickModel strong{font-size:13px}.quickModel small{font-size:9px}.bikeFacts{gap:10px}.bikeFacts dd{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.quickModel{transition:none}.quickModel:hover{transform:none}}
+
+
+/* Self-contained product quick view: familiar e-bike commerce UX, no invented checkout. */
+.discoveryActions .quickViewTrigger{border-color:#c7d4c7;background:#f4f7f1;color:#243c2c}
+.bikeQuickDialog{width:min(920px,calc(100vw - 32px));max-width:920px;max-height:min(90vh,850px);padding:0;overflow-y:auto;border:1px solid #dce6d9;border-radius:14px;box-shadow:0 24px 75px rgba(10,28,16,.22);background:#fff;color:#1e3026}
+.bikeQuickDialog::backdrop{background:rgba(13,27,19,.61);backdrop-filter:blur(3px)}
+.bikeQuickContent{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:stretch;min-width:0}
+.bikeQuickPhoto{background:#f3f6f2;display:grid;place-items:center;padding:24px;min-width:0}
+.bikeQuickPhoto img{width:100%;height:auto;max-height:570px;object-fit:contain;mix-blend-mode:multiply}
+.bikeQuickDetails{padding:clamp(22px,3vw,36px);min-width:0}
+.bikeQuickHeading{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.bikeQuickClose{border:1px solid #cfd9d0;background:#fff;color:#27392c;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:25px;line-height:1}
+.bikeQuickClose:hover{background:#eef4e9}
+.bikeQuickEyebrow{margin:20px 0 5px;font-size:10px;letter-spacing:.16em;color:#657567}
+.bikeQuickDetails h3{font-size:clamp(26px,3vw,39px);line-height:1.08;letter-spacing:-.045em;margin:8px 0 16px}
+.bikeQuickPrice{display:flex;gap:10px;align-items:baseline;border-top:1px solid #e4e9e2;border-bottom:1px solid #e4e9e2;padding:13px 0;font-size:12px;color:#607162}
+.bikeQuickPrice strong{font-size:16px;color:#283d2d}
+.bikeQuickNote,.bikeQuickWarning,.bikeQuickColourNote,.bikeQuickFeedback{font-size:12px;line-height:1.65;color:#637569}
+.bikeQuickWarning{margin:13px 0;padding:11px 12px;background:#f0f5eb;border-left:3px solid #b9d892}
+.bikeQuickLabel{display:flex;justify-content:space-between;align-items:center;gap:14px;font-size:12px;font-weight:650;color:#334c3b;margin:13px 0}
+.bikeQuickLabel select{min-width:120px;max-width:65%;min-height:40px;padding:8px 10px;border:1px solid #bacbbb;border-radius:6px;background:#fff;color:#243a2b;font:inherit}
+.bikeQuickAdd{width:100%;min-height:48px;border:1px solid #1d3325;border-radius:6px;background:#1d3325;color:#fff;font:inherit;font-size:13px;font-weight:750;cursor:pointer;margin-top:13px}
+.bikeQuickAdd:hover{background:#33523b}
+.bikeQuickDialog :is(button,select,a):focus-visible{outline:2px solid #84ab5d;outline-offset:3px}
+.bikeQuickFeedback a{color:#28583b;text-decoration:underline;font-weight:750}
+.bikeQuickDetail{display:flex;justify-content:space-between;align-items:center;text-decoration:none;border-top:1px solid #e0e8df;padding:16px 0 0;margin-top:18px;color:#213d2a;font-size:13px;font-weight:750}
+.bikeQuickDetail:hover{text-decoration:underline}
+@media(max-width:700px){.bikeQuickContent{grid-template-columns:1fr}.bikeQuickPhoto{padding:14px}.bikeQuickPhoto img{max-height:210px}.bikeQuickDetails{padding:20px}.bikeQuickEyebrow{margin-top:12px}.bikeQuickDialog{max-height:calc(100vh - 24px);width:calc(100vw - 20px)}.discovery .discoveryActions .quickViewTrigger{font-size:11px;padding:8px 9px;min-height:40px}}
