@@ -91,6 +91,21 @@ export default async function BikesPage({ params, searchParams }: Props) {
       </section>
 
 
+      <nav className={styles.quickModels} aria-label={t("catalog.bikes.quickModels.title")} data-bikes-quick-models>
+        <div className={styles.quickModelsHeading}>
+          <span>{t("catalog.bikes.quickModels.title")}</span>
+          <small>{t("catalog.bikes.quickModels.note")}</small>
+        </div>
+        <div className={styles.quickModelsList}>
+          {models.map(model => <a key={model.id}
+            href={prefix + "/bikes?platform=" + model.platform + "#model-" + model.id}
+            className={styles.quickModel} data-quick-model={model.id}>
+            <img src={model.image} alt="" loading="lazy" width={180} height={120} />
+            <span><strong>{model.code}</strong><small>{model.status}</small></span>
+          </a>)}
+        </div>
+      </nav>
+
       <section className={styles.section + " " + styles.modelSection} aria-labelledby="models-title" id="models">
         <div className={styles.sectionHeading}>
           <div><p className={styles.kicker}>{t("catalog.bikes.models.kicker")}</p><h2 id="models-title">{t("catalog.bikes.models.title")}</h2></div>

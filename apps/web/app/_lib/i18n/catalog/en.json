@@ -117,5 +117,15 @@
   "catalog.discovery.compare.finish": "Colour information",
   "catalog.discovery.compare.action": "Explore model",
   "catalog.discovery.empty": "No matching models. Change your search or filter.",
-  "catalog.discovery.reset": "Reset filters"
+  "catalog.discovery.reset": "Reset filters",
+  "catalog.bikes.quickModels.title": "Explore by model",
+  "catalog.bikes.quickModels.note": "Jump to a model to explore its details",
+  "catalog.bikes.facts.reference": "Reference information · not final production specifications",
+  "catalog.bikes.facts.platform": "Platform",
+  "catalog.bikes.facts.wheels": "Reference wheels",
+  "catalog.bikes.facts.frame": "Reference frame",
+  "catalog.bikes.facts.carbon": "Carbon fibre",
+  "catalog.bikes.facts.versions": "Planned versions",
+  "catalog.bikes.facts.pending": "To be verified",
+  "catalog.bikes.facts.price": "Price"
 }
