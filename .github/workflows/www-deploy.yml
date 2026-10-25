@@ -124,8 +124,10 @@ jobs:
           release_sha="$(git rev-parse HEAD)"
           reservation_email_hash="$(printf '%s' "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" | sha256sum | cut -c1-12)"
           image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GAR_REPOSITORY/alsvid-web:$release_sha-reservation-$reservation_email_hash"
+          rollback_image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GAR_REPOSITORY/alsvid-web:$release_sha"
           echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "rollback_image=$rollback_image" >> "$GITHUB_OUTPUT"
           if gcloud artifacts docker images describe "$image" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
@@ -144,7 +146,9 @@ jobs:
           file: infra/docker/Dockerfile.web
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.image.outputs.image }}
+          tags: |
+            ${{ steps.image.outputs.image }}
+            ${{ steps.image.outputs.rollback_image }}
           build-args: |
             ALSVID_ENV=production
             NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}

@@ -320,7 +320,9 @@ jobs:
           file: infra/docker/Dockerfile.web
           platforms: linux/amd64
           load: true
-          tags: ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.image_lookup.outputs.web_tag }}
+          tags: |
+            ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.image_lookup.outputs.web_tag }}
+            ${{ steps.release.outputs.registry }}/alsvid-web:${{ steps.release.outputs.sha }}
           build-args: |
             ALSVID_ENV=production
             NEXT_PUBLIC_FC1_RESERVATION_EMAIL=${{ vars.NEXT_PUBLIC_FC1_RESERVATION_EMAIL }}
