@@ -17,7 +17,7 @@ const auth = createServer((request, response) => {
       displayName: 'CI Admin', roles: ['system_admin'], permissions: [] } }));
   } else { response.statusCode = 401; response.end('{}'); }
 });
-await new Promise((resolve, reject) => { auth.once('error', reject); auth.listen(4000, '127.0.0.1', resolve); });
+await new Promise((resolve, reject) => { auth.once('error', reject); auth.listen(4000, resolve); });
 const browser = await chromium.launch({ headless: true });
 const report = { sha: process.env.FC1_REVIEW_SHA, checks: [] };
 try {

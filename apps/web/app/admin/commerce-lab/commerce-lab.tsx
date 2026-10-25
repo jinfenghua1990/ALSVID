@@ -84,15 +84,15 @@ export function CommerceLab() {
       <div className={styles.columns}>
         <section className={styles.panel}><span className={styles.badge}>原有系统 · 独立保留</span><h3>现在的 ALSVID</h3>
           <p>已有品牌官网、商品发布、价格和订单工作区。当前公开购物袋是非约束性预览；页面或接口存在不代表真实交易已验收。</p>
-          <div className={styles.links}><a href="https://www.alsvidbike.com/zh/bikes" target="_blank" rel="noopener noreferrer">查看现有购买页面 ↗</a>
-            <a href="/admin/ecommerce" target="_blank" rel="noopener noreferrer">查看现有电商后台 ↗</a>
-            <a href="/admin/architecture" target="_blank" rel="noopener noreferrer">查看当前系统架构 ↗</a></div>
+          <div className={styles.links}><a href="https://www.alsvidbike.com/zh/bikes" target="_blank" rel="noopener noreferrer">查看现有购买页面（新窗口）</a>
+            <a href="/admin/ecommerce" target="_blank" rel="noopener noreferrer">查看现有电商后台（新窗口）</a>
+            <a href="/admin/architecture" target="_blank" rel="noopener noreferrer">查看当前系统架构（新窗口）</a></div>
         </section>
         <section className={styles.panel}><span className={styles.badge}>候选融合方案 · 未接通</span><h3>Medusa 前台 × CRMEB 后端</h3>
           <p>前台参考 Medusa 的商品、购物袋和结账体验，中文运营参考 CRMEB。两个项目不直接兼容，需要替换前台数据调用并开发适配层。</p>
-          <div className={styles.links}><a href="https://github.com/medusajs/dtc-starter" target="_blank" rel="noopener noreferrer">Medusa 当前 DTC 模板 ↗</a>
-            <a href="https://github.com/crmeb/CRMEB" target="_blank" rel="noopener noreferrer">CRMEB 源码 ↗</a>
-            <a href="http://v6.crmeb.net/admin" target="_blank" rel="noopener noreferrer">CRMEB 官方演示 ↗</a></div>
+          <div className={styles.links}><a href="https://github.com/medusajs/dtc-starter" target="_blank" rel="noopener noreferrer">Medusa 当前 DTC 模板（新窗口）</a>
+            <a href="https://github.com/crmeb/CRMEB" target="_blank" rel="noopener noreferrer">CRMEB 源码（新窗口）</a>
+            <a href="http://v6.crmeb.net/admin" target="_blank" rel="noopener noreferrer">CRMEB 官方演示（新窗口）</a></div>
         </section>
       </div>
       <section className={styles.panel}><h3>你可以实际比较的交互</h3>
@@ -140,7 +140,7 @@ export function CommerceLab() {
       <aside className={styles.demoRail}><strong>ALSVID 运营</strong><small>CRMEB 风格样机</small>
         <button type="button" aria-pressed={adminTab === 'products'} onClick={() => setAdminTab('products')}>商品管理</button>
         <button type="button" aria-pressed={adminTab === 'orders'} onClick={() => setAdminTab('orders')}>订单管理 ({orders.length})</button>
-        <button type="button" onClick={() => setView('storefront')}>预览商城 ↗</button>
+        <button type="button" onClick={() => setView('storefront')}>预览商城（新窗口）</button>
       </aside>
       <div className={styles.adminWork}>
         <div className={styles.adminHeading}><div><small>独立演示数据</small><h2>{adminTab === 'products' ? '商品管理' : '订单管理'}</h2></div>
