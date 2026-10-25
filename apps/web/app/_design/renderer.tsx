@@ -597,6 +597,9 @@ export async function AdminScreen({ screen, theme, children }: { screen: Screen;
                   data-active={isAreaActive(screen.area, area.label)}
                   aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>{area.label}</a>
               ))}
+              <a className="av-moremenu-link" href="/admin/commerce-lab"
+                data-active={screen.area === '商城方案对比'}
+                aria-current={screen.area === '商城方案对比' ? 'page' : undefined}>商城方案对比 · 独立实验区</a>
             </div>
           </details>
         </nav>

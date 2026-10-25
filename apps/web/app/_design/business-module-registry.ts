@@ -15,7 +15,6 @@ export type BusinessModule = {
 };
 
 export const ADMIN_MODULES: readonly BusinessModule[] = [
-  { label: '商城方案对比', href: '/admin/commerce-lab', description: '独立比较 Medusa 风格购买页面与 CRMEB 风格后台；仅演示数据', legacyAreas: ['商城方案对比'], readiness: 'early', focus: '独立交互样机与接口评估，不连接原有业务数据' },
   { label: '工作台', href: '/admin', description: '跨模块运营概览、待办与异常', legacyAreas: ['工作台'], readiness: 'core', focus: '跨模块待办、业务异常与模块入口' },
   { label: '产品研发', href: '/admin/product', description: '产品类型、型号、SKU、BOM 与工程规格', legacyAreas: ['产品'], readiness: 'partial', focus: '可扩展型号、BOM 版本与商城商品 ID 关联' },
   { label: '订单管理', href: '/admin/orders', description: '跨渠道订单查询与履约导航；订单事实仍由所属业务域维护', legacyAreas: ['订单'], readiness: 'partial', focus: '统一查询与履约视图，不复制 Commerce 或 Dealer 订单事实' },
