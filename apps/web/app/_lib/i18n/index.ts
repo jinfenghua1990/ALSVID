@@ -25,11 +25,14 @@ import networkEn from './public-network/en.json';
 import catalogZh from './catalog/zh.json';
 import catalogDe from './catalog/de.json';
 import catalogEn from './catalog/en.json';
+import shopPreviewZh from './shop-preview/zh.json';
+import shopPreviewDe from './shop-preview/de.json';
+import shopPreviewEn from './shop-preview/en.json';
 import type { Locale } from './routing';
 export type { Locale } from './routing';
-const zhCatalog = { ...zh, ...fc1Zh, ...fc2Zh, ...l8Zh, ...l7Zh, ...cupZh, ...authZh, ...networkZh, ...catalogZh };
-const deCatalog = { ...de, ...fc1De, ...fc2De, ...l8De, ...l7De, ...cupDe, ...authDe, ...networkDe, ...catalogDe };
-const enCatalog = { ...en, ...fc1En, ...fc2En, ...l8En, ...l7En, ...cupEn, ...authEn, ...networkEn, ...catalogEn };
+const zhCatalog = { ...zh, ...fc1Zh, ...fc2Zh, ...l8Zh, ...l7Zh, ...cupZh, ...authZh, ...networkZh, ...catalogZh, ...shopPreviewZh };
+const deCatalog = { ...de, ...fc1De, ...fc2De, ...l8De, ...l7De, ...cupDe, ...authDe, ...networkDe, ...catalogDe, ...shopPreviewDe };
+const enCatalog = { ...en, ...fc1En, ...fc2En, ...l8En, ...l7En, ...cupEn, ...authEn, ...networkEn, ...catalogEn, ...shopPreviewEn };
 export type TranslationKey = keyof typeof enCatalog;
 const catalogs: Record<Locale, Record<TranslationKey, string>> = {
   zh: zhCatalog,
