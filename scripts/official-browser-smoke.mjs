@@ -267,21 +267,17 @@ try {
           await image.decode();
           return { source: image.currentSrc || image.src, width: image.naturalWidth, height: image.naturalHeight };
         });
-        assert.ok(initialBackgroundInfo.source.includes('fc1-city-kv.webp'),
-          'Initial homepage KV should use the clean urban background');
+        assert.ok(initialBackgroundInfo.source.includes('fc1-poster-clean.png'),
+          'Initial homepage KV must show the owner-restored original person-and-bike poster');
         assert.ok(initialBackgroundInfo.width > 0 && initialBackgroundInfo.height > 0,
-          'Initial urban background must decode before visual review');
-        const initialBike = hero.locator('img').nth(1);
-        const initialBikeInfo = await initialBike.evaluate(async image => {
-          await image.decode();
-          return { source: image.currentSrc || image.src, width: image.naturalWidth, height: image.naturalHeight };
-        });
-        assert.ok(initialBikeInfo.source.includes('hero-bike-final.png'),
-          'Initial homepage KV should layer the authentic FC1 cutout over the urban background');
-        assert.ok(initialBikeInfo.width > 0 && initialBikeInfo.height > 0,
-          'Authentic FC1 cutout must decode before visual review');
+          'Restored first KV image must decode before visual review');
+        assert.equal(await hero.locator('img').count(), 1,
+          'The archived poster already contains the bicycle; do not superimpose a second bike');
+        const approvedTitles = { zh: '接下来去哪里？', de: 'Wohin geht es als Nächstes?', en: 'Where to next?' };
+        assert.equal((await hero.locator('h1').textContent())?.trim(), approvedTitles[locale],
+          'Original journey headline must be displayed in the selected language');
         await page.screenshot({ path: output + '/official-homepage-initial-' + locale + '-' + device + '.png' });
-        report.checks.push(locale + ' ' + device + ': initial urban KV + authentic FC1 cutout');
+        report.checks.push(locale + ' ' + device + ': restored original KV + journey headline');
         await tabs.nth(1).click();
         assert.equal(await tabs.nth(1).getAttribute('aria-pressed'), 'true', 'Manual platform selection works');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'false', 'Previous scene is deselected');
