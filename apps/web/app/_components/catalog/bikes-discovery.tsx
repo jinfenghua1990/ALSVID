@@ -107,6 +107,16 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
           </div>
           <p className={styles.discoveryModelNote}>{model.id === "fc1"
             ? t("catalog.discovery.fc1.note") : t("catalog.discovery.other.note")}</p>
+          {(model.id === "fc1" || model.id === "fc2") ? <div className={styles.bikeFactsBlock} data-bikes-facts={model.id}>
+            <span className={styles.bikeFactsCaption}>{t("catalog.bikes.facts.reference")}</span>
+            <dl className={styles.bikeFacts}>
+              <div><dt>{t("catalog.bikes.facts.platform")}</dt><dd>FC</dd></div>
+              <div><dt>{t("catalog.bikes.facts.wheels")}</dt><dd>20″</dd></div>
+              <div><dt>{t("catalog.bikes.facts.frame")}</dt><dd>{t("catalog.bikes.facts.carbon")}</dd></div>
+              <div><dt>{t("catalog.bikes.facts.versions")}</dt><dd>{model.id === "fc1" ? "Standard / Pro" : t("catalog.bikes.facts.pending")}</dd></div>
+            </dl>
+          </div> : null}
+          <p className={styles.bikePricePending} data-bikes-price-pending>{t("catalog.bikes.facts.price")} <strong>{t("catalog.cart.pricePending")}</strong></p>
           {model.id === "fc1" ? <div className={styles.discoveryColours} data-bikes-color-preview>
             <span className={styles.discoveryLabel}>{t("catalog.discovery.colour.label")}</span>
             <div className={styles.discoverySwatches} role="group" aria-label={t("catalog.discovery.colour.label")}>
