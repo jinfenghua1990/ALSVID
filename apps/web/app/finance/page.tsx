@@ -1,5 +1,6 @@
-import FinanceClient from './finance-client';
+import { redirect } from 'next/navigation';
 
-export default function FinancePage() {
-  return <FinanceClient />;
+/** Compatibility entrypoint. Canonical finance workspace lives in Admin. */
+export default function FinanceLegacyPage() {
+  redirect('/admin/finance');
 }

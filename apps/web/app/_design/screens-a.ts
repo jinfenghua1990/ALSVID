@@ -47,7 +47,7 @@ export const screensA: Screen[] = [
         kind: 'tasks',
         title: '最近任务',
         items: [],
-        emptyMessage: '暂无已分配任务。任务接入后会按当前员工权限集中展示。',
+        emptyMessage: '真实待办已改由工作台「最近任务 · 已接入业务」读取授权 API；本块仅为设计占位。',
       },
     ],
   },

@@ -67,7 +67,7 @@ const configuredNavigation: readonly AppNavItem[] = [
   { label: '成本分析', href: '/supply', area: '供应链采购', section: '质量与成本', status: '骨架' },
 
   { label: '财务结算', href: '/admin/finance', area: '财务结算', section: '资金与结算' },
-  { label: '应收应付与资金', href: '/finance', area: '财务结算', section: '资金与结算' },
+  { label: '应收应付与资金', href: '/admin/finance', area: '财务结算', section: '资金与结算' },
   { label: '到岸成本与汇率', href: '/admin/finance', area: '财务结算', section: '成本与汇率' },
 
   { label: '数据分析', href: '/overview', area: '数据分析', section: '数据分析' },

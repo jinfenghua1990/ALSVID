@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { WorkbenchIcon } from "./workbench-icon";
+import { LiveWorkbenchTodos } from "../_design/live-workbench-todos";
 import styles from "./workbench.module.css";
 function PanelHeader({ title, href }: { title: string; href: string }) {
   return (
@@ -22,7 +23,7 @@ export function WorkbenchPanels() {
       aria-label="业务动态、数据分析与最近任务"
     >
       <article className={styles.panel}>
-        <PanelHeader title="业务动态" href="/overview" />
+        <PanelHeader title="业务动态" href="/admin" />
         <div className={styles.tabs} role="group" aria-label="业务动态分类">
           {["全部", "订单", "生产", "库存", "售后"].map((label) => (
             <button
@@ -45,7 +46,7 @@ export function WorkbenchPanels() {
         </div>
       </article>
       <article className={styles.panel}>
-        <PanelHeader title="数据分析" href="/overview" />
+        <PanelHeader title="数据分析" href="/admin" />
         <div className={styles.tabs} role="group" aria-label="数据趋势分类">
           {["订单趋势", "生产趋势", "库存趋势", "售后趋势"].map((label) => (
             <button
@@ -68,19 +69,8 @@ export function WorkbenchPanels() {
           </span>
         </div>
       </article>
-      <article className={styles.panel}>
-        <PanelHeader title="最近任务" href="/overview" />
-        <div className={styles.taskSummary}>
-          <span className={styles.statusDot} />
-          任务概览<span>尚未接入</span>
-        </div>
-        <div className={styles.empty}>
-          <span className={`${styles.emptyIcon} ${styles.cyan}`}>
-            <WorkbenchIcon name="clipboard" />
-          </span>
-          <strong>暂无可展示的任务</strong>
-          <p>审批、生产和售后任务接入后集中展示。</p>
-        </div>
+      <article className={styles.panel} aria-label="最近任务">
+        <LiveWorkbenchTodos />
       </article>
     </section>
   );
