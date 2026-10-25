@@ -165,7 +165,7 @@ jobs:
             exit 1
           fi
 
-          if "${{ inputs.rollback }}" != "true" && [[ ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
+          if [[ "${{ inputs.rollback }}" != "true" && ! "$NEXT_PUBLIC_FC1_RESERVATION_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
             echo "::error title=FC1 reservation email is not configured::Set and verify the official NEXT_PUBLIC_FC1_RESERVATION_EMAIL production variable before deploying a Web build." >&2
             exit 1
           fi
