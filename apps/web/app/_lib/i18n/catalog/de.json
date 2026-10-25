@@ -127,5 +127,10 @@
   "catalog.bikes.facts.carbon": "Carbon",
   "catalog.bikes.facts.versions": "Geplante Varianten",
   "catalog.bikes.facts.pending": "Noch zu prüfen",
-  "catalog.bikes.facts.price": "Preis"
+  "catalog.bikes.facts.price": "Preis",
+  "catalog.discovery.quickView.open": "Schnellansicht",
+  "catalog.discovery.quickView.close": "Schnellansicht schließen",
+  "catalog.discovery.quickView.previewNotice": "Nur eine Konfigurationsvorschau. Kein freigegebener Preis, Lagerbestand oder kaufbarer SKU.",
+  "catalog.discovery.quickView.save": "Unverbindliche Auswahl merken",
+  "catalog.discovery.quickView.unavailable": "Dieses Modell kann noch nicht vorgemerkt werden. Bitte die Details ansehen."
 }
