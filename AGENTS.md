@@ -63,7 +63,7 @@ Production has been deployed. Never assume a target has no business data based o
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
 - Development workflow (owner decision, 2026-10-21): edit application code directly through GitHub task branches/PRs; run builds, tests and browser previews on disposable GitHub Actions runners; deploy verified main commits through the existing Cloud Run release workflows. Codespaces is optional, never a prerequisite. Do not clone, install, build or run ALSVID development servers on home/company workstations.
-- The only active cloud runtime is Production in `alsvid-prod`; the former shared Cloud Run Development/Test runtime in `alsvid-dev` is retired from the release architecture.
+- Production is the only active cloud runtime; the former shared Cloud Run Development/Test runtime in `alsvid-dev` is retired. **Observed live deployment (2026-10-25, run #40169393607):** `GCP_PROJECT_ID=alsvid-production`, region `europe-west1`. The separately created `alsvid-prod` project is an intended migration target, **not a verified deployed replacement**. Never silently retarget GitHub production variables, credentials, database or DNS; require an audited cutover and rollback plan.
 - Local/CI databases and storage are isolated and temporary. Do not assume Neon/R2 Test resources exist, and never use Production credentials for validation.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
@@ -92,7 +92,7 @@ Production has been deployed. Never assume a target has no business data based o
 
 ## Database
 
-- There is no production migration compatibility obligation yet. Before first production deployment, destructive baseline cleanup is allowed when intentional and reviewed.
+- Production has live deployments. Schema migrations must preserve existing data, authorization and rollback/forward-fix safety. Never assume an empty database or perform destructive baseline cleanup without separately verified data ownership, backup/restore evidence and a reviewed migration plan.
 - Monetary values require currency and decimal-safe storage.
 - Inventory truth is movement-ledger based.
 - Finance truth separates document, obligation, payment and allocation.
