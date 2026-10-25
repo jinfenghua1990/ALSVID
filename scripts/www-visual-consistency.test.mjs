@@ -55,21 +55,19 @@ test('zh/de/en public navigation and application copy cover the same controls',a
  }
 });
 
-test('homepage hero uses the clean urban background and authentic FC1 cutout as separate layers',async()=>{
+test('homepage first KV restores the archived owner-selected poster and journey headline',async()=>{
  const home=await readFile(join(appRoot,'_components/home/home-page.tsx'),'utf8');
  const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
- const css=await readFile(join(appRoot,'_components/home/original-home.module.css'),'utf8');
- assert.match(home,/image:\s*"\/home\/fc1-city-kv\.webp",\s*bikeImage:\s*"\/products\/fc1\/hero-bike-final\.png"/,
-   'Homepage FC1 KV should use the approved urban background plus the real transparent bike photo');
- assert.doesNotMatch(home,/image:\s*"\/home\/fc1-poster-clean\.png"/,
-   'The older sunset poster must not remain the active homepage KV');
- assert.match(hero,/bikeImage\?: string/,'Hero slide should support a separate product cutout');
- assert.match(hero,/className=\{styles\.posterBikeImage\}[\s\S]*?src=\{slide\.bikeImage\}/,
-   'The authentic FC1 cutout must render as a separate responsive image layer');
- assert.match(css,/\.posterBikeLayer\s*\{[^}]*right:\s*2vw;[^}]*width:\s*min\(57vw,\s*1320px\)/s,
-   'Desktop bike layer should sit on the right, separate from left-side copy');
- assert.match(css,/\.posterBikeImage\s*\{[^}]*object-fit:\s*contain/s,
-   'The real bike image should not be cropped');
+ assert.match(home,/image:\\s*"\\/home\\/fc1-poster-clean\\.png",\\s*alt:\\s*t\\("hero\\.poster_alt"\\)/,
+   'First KV uses the archived clean poster with the original person-and-bike composition');
+ assert.doesNotMatch(home,/image:\\s*"\\/home\\/fc1-city-kv\\.webp",\\s*bikeImage:/,
+   'Do not replace the archived first KV with the later empty city background and separate bike');
+ assert.match(hero,/className=\\{styles\\.posterImage\\}/,'Hero image must remain responsive');
+ const titleByLocale={zh:'接下来去哪里？',de:'Wohin geht es als Nächstes?',en:'Where to next?'};
+ for(const [locale,title] of Object.entries(titleByLocale)){
+   const catalog=JSON.parse(await readFile(join(appRoot,'_lib/i18n/fc1',locale+'.json'),'utf8'));
+   assert.equal(catalog['hero.poster_title'],title,locale+' first slide journey headline');
+ }
 });
 
 test('homepage KV uses responsive optimized image delivery',async()=>{
