@@ -324,7 +324,8 @@ try {
           assert.ok(copyTop <= 70, 'Mobile hero copy should remain in the top safe area above the rider');
           assert.ok(imagePosition.startsWith('51%'), 'Mobile hero crop should preserve the full bicycle focal area');
         }
-        assert.ok(await root.locator('[data-fc2-launch] a[href="/' + locale + '/explore/fc2"]').count() > 0, 'New model is discoverable from homepage');
+        assert.equal(await root.locator('[data-home-product-collection] article:has(a[href="/' + locale + '/explore/fc2"])').count(), 1,
+          'FC2 remains discoverable in the homepage model collection');
         const title = hero.locator('h1');
         assert.ok((await title.innerText()).trim().length > 0, 'Hero retains readable headline');
         await page.screenshot({ path: output + '/official-' + locale + '-' + device + '.png' });

@@ -24,11 +24,11 @@ try {
         page.on("pageerror", error => errors.push(error.message));
         const home = await page.goto(base + "/" + locale + "/", { waitUntil: "domcontentloaded" });
         assert.equal(home?.status(), 200);
-        const launch = page.locator("[data-l8-launch]");
-        assert.equal(await launch.count(), 1, "One L8 feature on the homepage");
+        const launch = page.locator('[data-home-product-collection] article:has(a[href="/' + locale + '/explore/l8"])');
+        assert.equal(await launch.count(), 1, "One L8 card in the homepage collection");
         await launch.scrollIntoViewIfNeeded();
         await page.waitForFunction(() => {
-          const image = document.querySelector("[data-l8-launch] img");
+          const image = document.querySelector('[data-home-product-collection] a[href$="/explore/l8"] img');
           return image?.complete && image.naturalWidth > 0;
         });
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "Homepage fits viewport");

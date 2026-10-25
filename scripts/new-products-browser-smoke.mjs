@@ -37,7 +37,8 @@ try {
         }
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "Homepage fits viewport");
         await header.screenshot({ path: output + "/model-header-" + locale + "-" + device + ".png" });
-        assert.equal(await page.locator("[data-l7-launch]").count(), 1);
+        assert.equal(await page.locator('[data-home-product-collection] article:has(a[href="/' + locale + '/explore/l7"])').count(), 1,
+          'L7 remains discoverable in the homepage model collection');
         await header.locator('a[href="/' + locale + '/explore/l7"]:visible').first().click();
         await page.waitForURL("**/" + locale + "/explore/l7");
         const product = page.locator('[data-l7-product="1"]');
