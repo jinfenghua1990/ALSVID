@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns, mainReleaseRuns, mainProductionRuns, releaseCandidates, failedRequiredJobs } from './release-gate.mjs';
 
 const passed = (head_sha, conclusion = 'success') => ({
@@ -77,4 +78,18 @@ test('release gate retries missing job records but recognizes explicit required-
   assert.equal(failedRequiredJobs([job('verify'), job('containers', 'failure')]), true);
   assert.equal(failedRequiredJobs([job('verify'), job('containers', null, 'in_progress')]), false);
   assert.equal(failedRequiredJobs([job('verify'), job('containers')]), false);
+});
+
+
+test('full production deployment verifies exact web SHA and the zh/de/en public catalogs', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/production-deploy.yml', import.meta.url), 'utf8');
+  const verify = workflow.split('- name: Verify public website and admin, record deployed release')[1];
+  assert.ok(verify, 'post-deployment production verification must exist');
+  assert.match(verify, /\/release-check/);
+  assert.match(verify, /payload\.service !== "alsvid-web" \|\| payload\.release !== process\.argv\[1\]/);
+  assert.match(verify, /for locale in zh de en; do/);
+  assert.match(verify, /for section in bikes accessories; do/);
+  assert.match(verify, /data-bikes-catalog/);
+  assert.match(verify, /data-accessories-catalog/);
+  assert.match(verify, /Admin login mode verification failed/);
 });
