@@ -297,7 +297,7 @@ jobs:
                 docs/*|*.md|AGENTS.md|.github/ISSUE_TEMPLATE/*) ;;
                 *) docs_only=false; break ;;
               esac
-            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+            done < <(git diff --no-renames --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
             if [[ "$docs_only" == "true" ]]; then
               echo "Documentation-only change; Production deployment is not needed."
               exit 0
@@ -318,7 +318,7 @@ jobs:
                   break
                   ;;
               esac
-            done < <(git diff --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+            done < <(git diff --no-renames --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
           fi
 
           main_sha="$(gh api "repos/$GH_REPO/commits/main" --jq .sha)"

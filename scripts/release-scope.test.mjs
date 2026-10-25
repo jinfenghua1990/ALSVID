@@ -37,3 +37,8 @@ test('backend code and shared build inputs require a full-platform release', () 
 test('missing parent history conservatively defaults to full-platform release', () => {
   assert.match(dispatch, /^          full_stack=true\n          if git rev-parse/);
 });
+
+test('backend files moved into the web tree retain their deleted source in release classification', () => {
+  assert.equal(fullStack(['domains/identity/src/core/auth.ts', 'apps/web/auth.ts']), true);
+  assert.match(dispatch, /git diff --no-renames --name-only/);
+});
