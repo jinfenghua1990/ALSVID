@@ -126,6 +126,38 @@ try {
         assert.equal(await swatches.nth(1).getAttribute('aria-pressed'), 'true', 'Proposal swatch can be selected');
         assert.equal(await discovery.locator('#model-fc1 img').getAttribute('src'), firstBikeSrc,
           'Proposal selection must not impersonate a real bike photograph');
+        // Storefront-style quick view is real UI, while actual purchase remains gated.
+        assert.equal(await discovery.locator('button[data-bikes-quick-view]').count(), 4,
+          'Every visible bike has a quick-view action');
+        await discovery.locator('button[data-bikes-quick-view="fc1"]').click();
+        const quick=bicycles.locator('dialog[data-bikes-quick-dialog]');
+        await quick.waitFor({state:'visible'});
+        assert.equal(await quick.locator('button[data-bikes-quick-save]').count(),1,
+          'FC1 quick view allows a preview selection, not checkout');
+        assert.equal(await quick.locator('select').count(),3,'FC1 quick view exposes variant, finish and quantity');
+        await quick.locator('select').nth(0).selectOption('pro');
+        await quick.locator('select').nth(1).selectOption('blue');
+        await quick.locator('select').nth(2).selectOption('2');
+        await quick.locator('button[data-bikes-quick-save]').click();
+        await bicycles.waitForFunction(()=>{
+          const raw=localStorage.getItem('alsvid_storefront_cart_preview_v1');
+          const items=raw?JSON.parse(raw).items:[];
+          return items?.length===1 && items[0].product==='FC1' &&
+            items[0].model==='pro' && items[0].colour==='blue' && items[0].quantity===2;
+        });
+        assert.equal(await quick.locator('button[data-bikes-quick-save]').count(),1,
+          'Only local cart selection is offered, not a payment button');
+        await quick.locator('button').first().click();
+        await quick.waitFor({state:'hidden'});
+        await discovery.locator('button[data-bikes-quick-view="l7"]').click();
+        await quick.waitFor({state:'visible'});
+        assert.equal(await quick.locator('button[data-bikes-quick-save]').count(),0,
+          'Unverified concept bikes cannot be added to the cart');
+        await quick.locator('button').first().click();
+        await quick.waitFor({state:'hidden'});
+        // Isolate existing FC1/cart smoke: its new page begins with an empty store.
+        await bicycles.evaluate(()=>localStorage.removeItem('alsvid_storefront_cart_preview_v1'));
+
         assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 3,
           'Initial comparison includes a label column and two selected model columns');
         await discovery.locator('[data-bikes-compare-toggle="FC2"]').click();
