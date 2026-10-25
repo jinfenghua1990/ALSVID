@@ -117,5 +117,15 @@
   "catalog.discovery.compare.finish": "Farbangaben",
   "catalog.discovery.compare.action": "Modell ansehen",
   "catalog.discovery.empty": "Keine passenden Modelle. Bitte Suche oder Filter anpassen.",
-  "catalog.discovery.reset": "Filter zurücksetzen"
+  "catalog.discovery.reset": "Filter zurücksetzen",
+  "catalog.bikes.quickModels.title": "Modelle entdecken",
+  "catalog.bikes.quickModels.note": "Wähle ein Modell und entdecke die Details",
+  "catalog.bikes.facts.reference": "Referenzdaten · keine verbindlichen Serienspezifikationen",
+  "catalog.bikes.facts.platform": "Plattform",
+  "catalog.bikes.facts.wheels": "Referenz-Laufräder",
+  "catalog.bikes.facts.frame": "Referenzrahmen",
+  "catalog.bikes.facts.carbon": "Carbon",
+  "catalog.bikes.facts.versions": "Geplante Varianten",
+  "catalog.bikes.facts.pending": "Noch zu prüfen",
+  "catalog.bikes.facts.price": "Preis"
 }
