@@ -44,7 +44,7 @@ export function HomePage({
         modelHref={detail("fc1")}
         deliveryNote={t("hero.poster_delivery")}
         categories={[
-          {href: detail("fc1"), label: t("platform.fc.title"), image: "/home/fc1-city-kv.webp", bikeImage: "/products/fc1/hero-bike-final.png", alt: t("hero.poster_alt")},
+          {href: detail("fc1"), label: t("platform.fc.title"), image: "/home/fc1-poster-clean.png", alt: t("hero.poster_alt")},
           {href: detail("ct"), label: t("platform.ct.title"), image: "/home/original/scene-city.webp", alt: t("images.city")},
           {href: detail("ft"), label: t("platform.ft.title"), image: "/home/original/scene-fat-tire.webp", alt: t("images.fat")},
           {href: detail("gt"), label: t("platform.gt.title"), image: "/home/original/scene-touring.webp", alt: t("images.touring")},
