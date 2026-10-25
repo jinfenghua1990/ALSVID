@@ -1,5 +1,7 @@
 # Homepage KV and motion review
 
+> **Owner correction (2026-10-25):** Restore the archived first homepage KV `/home/fc1-poster-clean.png` (original silhouette/person-and-bike scene) and the "Where to next?" journey headline in zh/de/en. This specifically reverts the first slide's asset choice from PR #349 while leaving the other three platform slides unchanged. Preserve the clean archival image without adding a second cutout bike layer. The 2026-10-24 urban-background direction below is now superseded by this owner correction.
+
 > **Current direction (2026-10-24):** The 2026-10-18 sunset-lake poster described below is historical and is no longer the active homepage KV. The current homepage hero uses the clean urban background `/home/fc1-city-kv.webp` plus the genuine transparent FC1 side-view cutout `/products/fc1/hero-bike-final.png` as separate layers. Text and controls remain HTML, not baked into the image. Desktop keeps copy on the left and the bike on the right; mobile uses a separate responsive arrangement. The older poster can remain as a historical/detail-page asset but must not be selected as the homepage hero.
 
 
