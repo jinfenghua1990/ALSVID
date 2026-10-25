@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CatalogShell } from "../../_components/catalog/catalog-shell";
 import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navigator";
 import { BikesModelSideNavigator } from "../../_components/catalog/bikes-model-side-navigator";
+import { BikesDiscovery } from "../../_components/catalog/bikes-discovery";
 import { AccessoriesCatalogSection } from "../../_components/catalog/accessories-catalog-section";
 import { publishedBikeCatalog } from "../../_components/catalog/published-product-catalog";
 import { translator, type TranslationKey } from "../../_lib/i18n";
@@ -118,16 +119,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
               {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
             </nav>
             {!publicCatalog.available?<p className={styles.emptyNotice} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
-            {(!active || active === "fc") && models.length ? <div className={styles.modelGrid}>
-              {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id} data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed?true:undefined} aria-labelledby={"model-" + model.id + "-title"}>
-                <a href={model.href} className={styles.modelImageLink} aria-label={model.name}>
-                  <img src={model.image} width={1536} height={1024} alt={model.alt} loading="lazy" />
-                </a>
-                <div className={styles.modelInfo}><div><span className={styles.status}>{model.status}</span><h3 id={"model-" + model.id + "-title"}>{model.name}</h3><p>{model.platform.toUpperCase()} PLATFORM</p></div>
-                  <a href={model.href}>{t("catalog.bikes.models.details")}</a>
-                </div>
-              </article>)}
-            </div> : active && active !== 'fc' ? <div className={styles.empty}>
+            {(!active || active === "fc") && models.length ? <BikesDiscovery locale={locale} models={models}/> : active && active !== 'fc' ? <div className={styles.empty}>
               <span>{active.toUpperCase()} PLATFORM</span>
               <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
               <p>{t("catalog.bikes.models.none")}</p>
