@@ -83,3 +83,55 @@
 .modelSideLink{scroll-margin-top:142px}
 @media(max-width:850px){.modelLayout{grid-template-columns:minmax(0,1fr);gap:18px}}
 @media(max-width:760px){.modelSideLink{scroll-margin-top:122px}}
+
+
+/* P0 customer-facing discovery: keep a calm premium catalogue and show only verified facts. */
+.discovery{min-width:0}
+.discoveryTools{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:18px;margin-bottom:16px;padding:22px;background:#f4f6f3;border:1px solid #e1e7df;border-radius:12px}
+.discoveryLabel{display:block;margin-bottom:10px;font-size:11px;letter-spacing:.06em;font-weight:650;color:#52635a}
+.discoverySearchWrap{flex:1 1 220px;max-width:420px;min-width:0}
+.discoverySearch{width:100%;min-height:45px;border:1px solid #cbd8cc;border-radius:6px;background:white;padding:11px 14px;font:inherit;color:#192821;outline-offset:3px}
+.discoverySearch:focus-visible{outline:2px solid #648f68}
+.discoveryFilterWrap{flex:1 1 290px;min-width:0}
+.discoveryPills{display:flex;gap:7px;flex-wrap:wrap}
+.discoveryPills button{border:1px solid #cbd8cc;border-radius:5px;background:#fff;padding:11px 15px;min-height:44px;font:inherit;font-size:12px;color:#384b40;cursor:pointer}
+.discoveryPills button[aria-pressed=true]{background:#1b2b22;border-color:#1b2b22;color:#fff}
+.discoveryResults{margin:0 0 16px;font-size:12px;color:#6b7770}
+.discovery .modelGrid{gap:20px}
+.discovery .modelCard{min-height:430px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);background:#f1f4f0}
+.modelImagePanel{position:relative;min-width:0;display:flex;flex-direction:column}
+.discovery .modelImageLink{flex:1;min-height:100%;display:grid;place-items:center}
+.modelImageCode{position:absolute;bottom:22px;left:23px;background:#ffffffdc;border:1px solid #e0e8df;border-radius:4px;padding:8px 11px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#334438;pointer-events:none}
+.discovery .modelInfo{padding:clamp(24px,3.5vw,54px);gap:17px;min-width:0}
+.discovery .modelInfo h3{font-size:clamp(34px,4vw,56px);margin:12px 0 8px}
+.discoveryModelNote{font-size:13px;line-height:1.7;letter-spacing:normal!important;color:#526358!important;max-width:390px}
+.discoveryColours{padding:12px 0;border-top:1px solid #d8e2d7;border-bottom:1px solid #d8e2d7}
+.discoverySwatches{display:flex;align-items:center;gap:10px;padding:4px 0}
+.discoverySwatches button{width:28px;height:28px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #b4c3b7;cursor:pointer;transition:box-shadow .18s;flex:none}
+.discoverySwatches button[aria-pressed=true]{box-shadow:0 0 0 2px #1d402c}
+.discovery .discoveryColourNote{margin:8px 0 0;font-size:12px;letter-spacing:normal;color:#293f32}
+.discovery .discoveryPhotoDisclaimer{margin:7px 0;font-size:11px;line-height:1.5;color:#64756a;letter-spacing:normal}
+.discovery .discoveryConfigurator{font-size:12px;border:0;text-decoration:underline;text-underline-offset:4px;color:#2b6342;white-space:normal}
+.discoveryOtherFinish{padding:12px 0;border-top:1px solid #d8e2d7;font-size:12px!important;letter-spacing:normal!important;color:#627367!important}
+.discoveryActions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.discovery .discoveryActions>a{display:inline-flex;min-height:44px;align-items:center;padding:10px 0}
+.discoveryActions button{min-height:44px;padding:10px 16px;border-radius:4px;border:1px solid #395643;color:#243e2b;background:transparent;cursor:pointer;font-size:12px;font-weight:650}
+.discoveryActions button[aria-pressed=true]{border-color:#b6d994;background:#e3eedb}
+.discoveryActions button:hover{background:#dcebd9}
+.discoveryEmpty{padding:38px;text-align:center;background:#f1f4f0;border-radius:10px;color:#526358}
+.discoveryEmpty button{margin-top:13px;padding:11px 18px;min-height:44px;cursor:pointer;border:1px solid #78987d;background:white;border-radius:4px;color:#183524}
+.discoveryCompare{margin-top:34px;padding:clamp(20px,3vw,40px);border-radius:12px;background:#16261d;color:#f5f8f3;overflow:hidden}
+.discoveryCompareTop{display:flex;align-items:end;justify-content:space-between;gap:16px}
+.discoveryCompareTop h3{font-size:clamp(26px,3vw,40px);letter-spacing:-.035em;line-height:1.14;margin:12px 0 0}
+.discoveryCompareTop>span{font-size:12px;color:#cbdec9;white-space:nowrap}
+.discovery .discoveryCompareNote{margin:12px 0 18px;color:#c0d2c3;font-size:12px;line-height:1.7;letter-spacing:normal}
+.discoveryLimit{color:#ffdfad;font-size:12px}
+.discoveryCompareScroll{max-width:100%;overflow-x:auto}
+.discoveryCompareScroll table{width:100%;min-width:480px;border-collapse:collapse;font-size:12px;line-height:1.6;color:#edf6ed}
+.discoveryCompareScroll th,.discoveryCompareScroll td{padding:15px 12px;border-bottom:1px solid #456047;text-align:left;vertical-align:top;min-width:110px}
+.discoveryCompareScroll thead th{font-weight:700;font-size:14px}
+.discoveryCompareScroll tbody th{font-weight:500;color:#bfd1c0}
+.discoveryCompareScroll a{color:#c7edb3;text-underline-offset:4px}
+@media(max-width:1100px){.discovery .modelCard{grid-template-columns:1fr}.discovery .modelImageLink{min-height:300px}.discovery .modelImageLink img{height:310px;min-height:0}.discovery .modelInfo{gap:13px}}
+@media(max-width:760px){.discoveryTools{padding:15px}.discoverySearchWrap,.discoveryFilterWrap{flex-basis:100%;max-width:none}.discoveryPills button{flex:1;white-space:nowrap;padding:10px 8px}.discovery .modelImageLink{min-height:260px}.discovery .modelImageLink img{height:270px}.discovery .modelInfo{padding:21px}.discovery .modelInfo h3{font-size:34px}.discoveryCompare{padding:20px 16px}.discoveryCompareTop{display:block}.discoveryCompareTop>span{display:inline-block;margin-top:13px}}
+@media(prefers-reduced-motion:reduce){.discoverySwatches button{transition:none}}
