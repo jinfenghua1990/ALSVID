@@ -35,3 +35,13 @@ test("catalog sort labels exist for Chinese, German and English", () => {
     }
   }
 });
+
+
+test("catalog columns follow the available collection width, not just the viewport", () => {
+  assert.match(styles, /\.discovery\{container-name:alsvid-bike-cards;container-type:inline-size\}/);
+  assert.match(styles, /@container alsvid-bike-cards \(max-width:960px\)/);
+  assert.match(styles, /@container alsvid-bike-cards \(max-width:600px\)/);
+  assert.match(styles, /\.discovery \.modelImageLink\{flex:none;width:100%;aspect-ratio:4\/3;/);
+  assert.match(styles, /\.discovery \.discoveryActions>a\.detailLink\{flex:1 1 100%/);
+  assert.match(styles, /\.discovery a:focus-visible,\.discovery button:focus-visible/);
+});
