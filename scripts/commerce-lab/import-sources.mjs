@@ -47,7 +47,7 @@ writeFileSync('docs/COMMERCE_SOURCE_LOCK.json', JSON.stringify({ format:1, sourc
 git('config','user.name','github-actions[bot]');
 git('config','user.email','41898282+github-actions[bot]@users.noreply.github.com');
 git('add','--force','--','external/crmeb','external/medusa-dtc','docs/COMMERCE_SOURCE_LOCK.json');
-git('commit','-m','vendor(commerce-lab): import approved CRMEB and Medusa source snapshots');
+git('commit','--quiet','-m','vendor(commerce-lab): import approved CRMEB and Medusa source snapshots');
 if (git('ls-remote','origin','refs/heads/' + process.env.SOURCE_BRANCH).split(/\s+/)[0] !== process.env.EXPECTED_HEAD)
   throw new Error('Remote task branch changed before push; nothing has been overwritten.');
 const askpass = resolve(process.env.RUNNER_TEMP, 'alsvid-source-import-askpass.sh');
