@@ -1,6 +1,6 @@
 # Independent comparison product media
 
-Status: implementation prepared in draft PR #375; isolated acceptance and Production rollout remain separate.
+Status: PR #375 merged and deployed as `5cff0a37eb0911add744e4fb368056c3a2bb79e9`; isolated acceptance passed, live signed-in/R2 acceptance remains pending.
 
 The owner already has Cloudflare R2, Neon PostgreSQL and Cloud Run and requested continued catalog optimization. Reuse these providers. Do not create a second storage service or write binary data into PostgreSQL.
 
@@ -18,4 +18,6 @@ Image bytes pass through the existing authenticated Web/API routes, avoiding a b
 
 Ordinary CI uses real isolated PostgreSQL with a substitute ObjectStoragePort for media invariants, plus the existing R2 adapter tests. HTTP acceptance checks real authentication, binary transport limits and unavailable-storage behavior without Production credentials. Browser media redirects are fixtures and cannot prove a live R2 upload.
 
-Production signed-in upload, private preview, publish/read and withdrawal still require acceptance on the owner's existing R2 binding after the release is approved. No Production upload was performed while preparing this change. The earlier automatic merge rejection still applies; keep the PR draft until the owner explicitly approves the reviewed release.
+The owner explicitly approved direct deployment of PR #375 (“不用，直接部署”). Main CI and full Production run 40342257454 succeeded for `5cff0a37eb0911add744e4fb368056c3a2bb79e9`; migration 0040 is confirmed in Neon, and both WWW/Admin release checks and the API health version match. The earlier approval hold for this reviewed release is resolved.
+
+Production signed-in upload, private preview, publish/read and withdrawal still require acceptance on the owner's existing R2 binding. No Production upload or test product was created during preparation or read-only rollout verification. Isolated PostgreSQL/storage-port tests and browser decode against temporary HTTPS media fixtures must not be described as live R2 acceptance.
