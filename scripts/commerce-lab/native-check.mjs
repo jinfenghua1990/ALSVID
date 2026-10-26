@@ -35,7 +35,7 @@ assert.match(await admin.text(), /<html|<!doctype/i);
 await mkdir('.tmp/crmeb-native-evidence', { recursive: true });
 await writeFile('.tmp/crmeb-native-evidence/report.json', JSON.stringify({
   appCommit: process.env.APP_COMMIT, upstreamCommit: 'da8d3b93400f3c660aa54d38b54ada387c963cd9',
-  nativeRuntime: 'PHP 7.4 / MySQL 8 / Redis 7', before, after,
+  nativeRuntime: 'PHP 7.4 / MySQL ' + process.env.MYSQL_VERSION + ' / Redis 7', before, after,
   nativeAdminHtml: true, transport: 'loopback-only CI, production adapter with injected transport',
   liveDeployment: false, paymentsEnabled: false,
 }, null, 2));

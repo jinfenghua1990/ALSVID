@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 # Candidate comparison runtime only. Upstream CRMEB currently requires PHP 7.4.
 FROM php:7.4-apache-bullseye
-RUN apt-get update \
+RUN sed -i 's#http://deb.debian.org#https://deb.debian.org#g' /etc/apt/sources.list \
+ && apt-get -o Acquire::Retries=3 -o Acquire::http::No-Cache=true update \
  && apt-get install -y --no-install-recommends libcurl4-openssl-dev libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j2 pdo_mysql mysqli pcntl bcmath mbstring curl gd zip \

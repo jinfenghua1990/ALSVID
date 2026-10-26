@@ -15,11 +15,15 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native:
+    strategy:
+      fail-fast: false
+      matrix:
+        mysql: ['8.0', '8.4']
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:${{ matrix.mysql }}
         env:
           MYSQL_ROOT_PASSWORD: ci-root-disposable
           MYSQL_DATABASE: crmeb_native_ci
@@ -43,6 +47,7 @@ jobs:
           --health-retries=20
     env:
       CRMEB_NATIVE_CI: disposable
+      MYSQL_VERSION: ${{ matrix.mysql }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -132,7 +137,7 @@ jobs:
         uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: crmeb-native-evidence
+          name: crmeb-native-evidence-mysql-${{ matrix.mysql }}
           path: .tmp/crmeb-native-evidence
           retention-days: 14
           if-no-files-found: warn
