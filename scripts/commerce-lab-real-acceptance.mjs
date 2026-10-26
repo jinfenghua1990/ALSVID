@@ -40,7 +40,7 @@ async function ready(){
   throw Error('Real CI API/Web did not become ready');
 }
 function persisted(id){
-  return JSON.parse(runtime("try { const r=await database.query('SELECT id,code,title,status,version,proposed_price_minor,created_by FROM commerce_lab.catalog_products WHERE id=$1',[process.argv[1]]); console.log(JSON.stringify(r.rows[0])); } finally { await database.close(); }",[id]));
+  return JSON.parse(runtime("try { const r=await database.query('SELECT id,code,title,status,version,proposed_price_minor,created_by,specifications FROM commerce_lab.catalog_products WHERE id=$1',[process.argv[1]]); console.log(JSON.stringify(r.rows[0])); } finally { await database.close(); }",[id]));
 }
 async function publicPage(){
   return (await expect(await request('/api/v1/commerce-lab/public/products'),200,'public catalog')).data;
@@ -66,7 +66,10 @@ try{
   assert.equal((await publicPage()).total,0);
   const fields={title:{zh:'真实链路 CI 商品',de:'Realer CI Vergleich',en:'Real CI comparison'},
     description:{zh:'仅临时验收数据',de:'Nur temporäre Testdaten',en:'Disposable acceptance data only'},
-    referenceImage:'FC1',proposedPriceMinor:259900};
+    referenceImage:'FC1',proposedPriceMinor:259900,specifications:[
+      {label:{zh:'电池容量',de:'Akkukapazität',en:'Battery capacity'},value:{zh:'768 Wh',de:'768 Wh',en:'768 Wh'},featured:true},
+      {label:{zh:'扭矩',de:'Drehmoment',en:'Torque'},value:{zh:'90 Nm',de:'90 Nm',en:'90 Nm'},featured:false}
+    ]};
   const wrongPort=await request('/admin/commerce-lab/api/products','POST',{code:'WRONG-PORT-CI',...fields},cookie,'http://127.0.0.1');
   assert.equal(wrongPort.status,403,'origin without the gateway port is a different origin');
   const created=await expect(await request('/admin/commerce-lab/api/products','POST',{code,...fields},cookie),201,'create through real authenticated Web proxy');
@@ -74,8 +77,10 @@ try{
   assert.match(id,/^[a-f0-9-]{36}$/i);
   let row=persisted(id);
   assert.equal(row.code,code);assert.equal(row.status,'DRAFT');assert.equal(row.version,1);
+  assert.deepEqual(row.specifications,fields.specifications);
   assert.equal(row.created_by,user.userId);assert.equal(row.proposed_price_minor,259900);
   assert.equal((await publicPage()).total,0,'persisted drafts are not public');
+  assert.equal((await request('/zh/shop-preview/products/'+id)).status,404,'direct draft detail is private');
   const imagePath='/admin/commerce-lab/api/products/'+id+'/image';
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
   const imageUpload=async(bytes,origin=base,session=cookie)=>fetch(base+imagePath,{method:'POST',redirect:'manual',
@@ -111,6 +116,13 @@ try{
     const html=await (await request('/'+locale+'/shop-preview')).text();
     assert.ok(html.includes('data-state="connected"')&&html.includes('data-comparison-product="'+id+'"'),locale+' SSR reads actual published PostgreSQL product');
     assert.ok(html.includes(fields.title[locale]));
+    assert.ok(html.includes('768 Wh'),'featured specification reaches SSR');
+    const detailResponse=await request('/'+locale+'/shop-preview/products/'+id);
+    assert.equal(detailResponse.status,200);
+    assert.match(detailResponse.headers.get('cache-control')??'',/no-store/);
+    const detailHtml=await detailResponse.text();
+    assert.ok(detailHtml.includes('data-public-product-detail')&&detailHtml.includes(fields.specifications[1].label[locale])&&detailHtml.includes('90 Nm'));
+    assert.ok(detailHtml.includes(fields.title[locale]));
   }
   const updated={...fields,title:{...fields.title,zh:'真实链路 CI 已更新',en:'Real CI updated'}};
   await patch({...updated,status:'PUBLISHED',expectedVersion:2});
@@ -122,7 +134,7 @@ try{
   assert.equal(csrf.status,403);
   const anonymous=await request('/admin/commerce-lab/api/products','POST',{code:'ANON-CI',...fields});
   assert.equal(anonymous.status,401);
-  report.checks.push('publication and edit reflected by real API and three-locale SSR; stale write 409, foreign-origin 403 and anonymous 401');
+  report.checks.push('ordered parameters and stable product detail reflected by real API and three-locale no-store SSR; publication and edit; stale write 409, foreign-origin 403 and anonymous 401');
 
   execFileSync('docker',[...compose,'restart','api'],{stdio:'pipe',timeout:60000});
   await ready();
@@ -130,6 +142,7 @@ try{
   assert.equal(reloaded.items.find(item=>item.id===id).version,3);
   await patch({...updated,status:'DRAFT',expectedVersion:3});
   assert.equal((await publicPage()).total,0);
+  assert.equal((await request('/zh/shop-preview/products/'+id)).status,404,'withdrawn detail is no longer public');
   assert.ok(!(await (await request('/zh/shop-preview')).text()).includes('data-comparison-product="'+id+'"'));
   const evidence=JSON.parse(runtime("try { const a=await database.query('SELECT action FROM audit.events WHERE target_type=$1 AND target_id=$2 ORDER BY occurred_at',['commerce_lab.catalog_product',process.argv[1]]); const p=await database.query('SELECT count(*)::int AS count FROM product.models WHERE code=$1',[process.argv[2]]); console.log(JSON.stringify({actions:a.rows.map(r=>r.action),originalProductCount:p.rows[0].count})); } finally { await database.close(); }",[id,code]));
   assert.equal(evidence.actions.filter(value=>value==='commerce.lab.product_created').length,1);

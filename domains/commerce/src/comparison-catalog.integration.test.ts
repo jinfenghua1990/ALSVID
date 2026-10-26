@@ -61,3 +61,25 @@ test('audit failure rolls back comparison writes',{skip:!hasDatabase},async()=>{
     assert.equal(found.rows[0]!.count,'0');
   }finally{await db.close();}
 });
+
+test('ordered specifications persist and publication-only older updates never erase them',{skip:!hasDatabase},async()=>{
+  const db=new Database();const code='SPEC-'+randomUUID().replaceAll('-','').slice(0,16).toUpperCase();
+  try{
+    const auth=await owner(db),service=createComparisonCatalogService(db,noopAudit);
+    const spec={label:{zh:'电池容量',de:'Akkukapazität',en:'Battery capacity'},value:{zh:'768 Wh',de:'768 Wh',en:'768 Wh'},featured:true};
+    const second={label:{zh:'扭矩',de:'Drehmoment',en:'Torque'},value:{zh:'90 Nm',de:'90 Nm',en:'90 Nm'},featured:false};
+    const row=await service.create(auth,{...input(code),specifications:[spec,second]});
+    assert.deepEqual(row.specifications,[spec,second]);
+    const base={title:row.title,description:row.description,referenceImage:row.referenceImage,proposedPriceMinor:null};
+    await service.update(auth,row.id,{...base,status:'DRAFT',expectedVersion:1,specifications:[second,spec]});
+    const published=await service.update(auth,row.id,{...base,status:'PUBLISHED',expectedVersion:2});
+    assert.deepEqual(published.specifications,[second,spec],'omitting the field preserves existing parameters');
+    assert.deepEqual((await service.publicProduct(row.id)).specifications,[second,spec]);
+    const actual=await db.query<{specifications:unknown}>('SELECT specifications FROM commerce_lab.catalog_products WHERE id=$1',[row.id]);
+    assert.deepEqual(actual.rows[0]!.specifications,[second,spec]);
+    await assert.rejects(service.update(auth,row.id,{...base,status:'PUBLISHED',expectedVersion:2,specifications:[]}),CommerceConflictError);
+    assert.deepEqual((await service.adminProduct(auth,row.id)).specifications,[second,spec]);
+    await service.update(auth,row.id,{...base,status:'PUBLISHED',expectedVersion:3,specifications:[]});
+    assert.deepEqual((await service.publicProduct(row.id)).specifications,[],'explicit empty array clears the section');
+  }finally{await db.close();}
+});

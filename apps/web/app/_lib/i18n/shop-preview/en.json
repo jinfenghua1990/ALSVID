@@ -57,5 +57,9 @@
   "comparison.inspect": "View details",
   "comparison.proposedPrice": "Proposed {amount}",
   "comparison.refresh": "Reload after changes are published. The preview bag stores non-binding selections for this tab only.",
-  "comparison.unavailableSelection": "Selected product currently unavailable. Please refresh."
+  "comparison.unavailableSelection": "Selected product currently unavailable. Please refresh.",
+  "comparison.specifications": "Specifications",
+  "comparison.highlights": "Key specifications",
+  "comparison.backToCatalog": "Back to products",
+  "comparison.productUnavailable": "This product is temporarily unavailable. Please try again later."
 }

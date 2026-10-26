@@ -6,12 +6,12 @@ interface Row {
   [key:string]:unknown;
   id:string;code:string;title:ComparisonCatalogProduct['title'];description:ComparisonCatalogProduct['description'];
   reference_image:ComparisonCatalogProduct['referenceImage'];proposed_price_minor:number|null;
-  cover_asset_id:string|null;currency:'EUR';status:ComparisonCatalogProduct['status'];version:number;created_at:Date;updated_at:Date;
+  specifications:ComparisonCatalogProduct['specifications'];cover_asset_id:string|null;currency:'EUR';status:ComparisonCatalogProduct['status'];version:number;created_at:Date;updated_at:Date;
 }
 function product(row:Row):ComparisonCatalogProduct {
   return {id:row.id,code:row.code,title:row.title,description:row.description,referenceImage:row.reference_image,
     proposedPriceMinor:row.proposed_price_minor,currency:row.currency,status:row.status,version:row.version,
-    createdAt:row.created_at.toISOString(),updatedAt:row.updated_at.toISOString(),hasCustomImage:Boolean(row.cover_asset_id)};
+    specifications:row.specifications,createdAt:row.created_at.toISOString(),updatedAt:row.updated_at.toISOString(),hasCustomImage:Boolean(row.cover_asset_id)};
 }
 class PostgresComparisonCatalogRepository implements ComparisonCatalogRepository {
   constructor(private readonly database:DatabasePort) {}
@@ -43,16 +43,16 @@ class PostgresComparisonCatalogRepository implements ComparisonCatalogRepository
   }
   async create(input:ComparisonCreateInput,actor:string,e:QueryExecutor):Promise<ComparisonCatalogProduct> {
     const result=await e.query<Row>(`INSERT INTO commerce_lab.catalog_products
-      (code,title,description,reference_image,proposed_price_minor,created_by,updated_by)
-      VALUES($1,$2::jsonb,$3::jsonb,$4,$5,$6,$6) RETURNING *`,
-      [input.code,JSON.stringify(input.title),JSON.stringify(input.description),input.referenceImage,input.proposedPriceMinor,actor]);
+      (code,title,description,reference_image,proposed_price_minor,created_by,updated_by,specifications)
+      VALUES($1,$2::jsonb,$3::jsonb,$4,$5,$6,$6,$7::jsonb) RETURNING *`,
+      [input.code,JSON.stringify(input.title),JSON.stringify(input.description),input.referenceImage,input.proposedPriceMinor,actor,JSON.stringify(input.specifications??[])]);
     return product(result.rows[0]!);
   }
   async update(id:string,input:ComparisonUpdateInput,actor:string,e:QueryExecutor):Promise<ComparisonCatalogProduct|null> {
     const result=await e.query<Row>(`UPDATE commerce_lab.catalog_products SET title=$3::jsonb,description=$4::jsonb,
-      reference_image=$5,proposed_price_minor=$6,status=$7,version=version+1,updated_by=$8,updated_at=now()
+      reference_image=$5,proposed_price_minor=$6,status=$7,specifications=COALESCE($9::jsonb,specifications),version=version+1,updated_by=$8,updated_at=now()
       WHERE id=$1 AND version=$2 RETURNING *`,
-      [id,input.expectedVersion,JSON.stringify(input.title),JSON.stringify(input.description),input.referenceImage,input.proposedPriceMinor,input.status,actor]);
+      [id,input.expectedVersion,JSON.stringify(input.title),JSON.stringify(input.description),input.referenceImage,input.proposedPriceMinor,input.status,actor,input.specifications===undefined?null:JSON.stringify(input.specifications)]);
     return result.rows[0]?product(result.rows[0]):null;
   }
 }

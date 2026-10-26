@@ -1,6 +1,9 @@
 import {notFound} from 'next/navigation';
 import AdminScreen from '../../../../../_design/renderer';
 import type {Screen} from '../../../../../_design';
+import {ProductSpecifications} from '../../../../../_components/shop-preview/product-specifications';
+import {translator} from '../../../../../_lib/i18n';
+import detailStyles from '../../../../../_components/shop-preview/product-detail.module.css';
 import {MedusaProductPreview} from '../../../../../_components/shop-preview/medusa-product-preview';
 import {readComparisonAdminProduct} from '../../../../../_experiments/commerce-lab/admin-product.server';
 import type {Locale} from '../../../../../_lib/i18n';
@@ -20,6 +23,7 @@ export default async function Page({params,searchParams}:{params:Promise<{id:str
   const query=await searchParams;
   const locale:Locale=query.locale==='de'?'de':query.locale==='en'?'en':'zh';
   const labels={zh:'中文',de:'德语',en:'英语'};
+  const t=translator(locale);
   const status={DRAFT:'草稿',PUBLISHED:'已发布',ARCHIVED:'已归档'}[snapshot.product.status];
   return <AdminScreen screen={screen}>
     <section data-private-product-preview data-status={snapshot.product.status} className={styles.preview}>
@@ -28,7 +32,11 @@ export default async function Page({params,searchParams}:{params:Promise<{id:str
       <p className={styles.notice}>本页仅管理员可见。草稿与已归档商品不会出现在官网；请回商品管理确认后发布。</p>
       <nav className={styles.languages} aria-label="预览语言">{(['zh','de','en'] as const).map(language=>
         <a key={language} href={'?locale='+language} aria-current={language===locale?'page':undefined}>{labels[language]}</a>)}</nav>
-      <div className={styles.sample}><MedusaProductPreview product={snapshot.product} locale={locale} customImageSrc={'/admin/commerce-lab/api/products/'+id+'/image?v='+snapshot.product.version}/></div>
+      <div className={styles.sample}><MedusaProductPreview product={snapshot.product} locale={locale} detail headingLevel="h2" customImageSrc={'/admin/commerce-lab/api/products/'+id+'/image?v='+snapshot.product.version}/>
+        {snapshot.product.specifications.length>0&&<section className={detailStyles.specificationSection}>
+          <h2>{t('comparison.specifications')}</h2><ProductSpecifications specifications={snapshot.product.specifications} locale={locale}/>
+        </section>}
+      </div>
     </section>
   </AdminScreen>;
 }

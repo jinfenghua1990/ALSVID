@@ -38,6 +38,10 @@ const server=createServer(async(req,res)=>{
     const row=records.get(id);
     return row&&row.status==='PUBLISHED'&&row.hasCustomImage?send(200,{data:{url:mediaUrl}}):send(404,{message:'not found'});
   }
+  if(url.pathname==='/api/v1/commerce-lab/public/products/'+id){
+    const row=records.get(id);
+    return row&&row.status==='PUBLISHED'?send(200,{data:row}):send(404,{message:'not found'});
+  }
   if(url.pathname==='/api/v1/commerce-lab/public/products'){
     const items=[...records.values()].filter(row=>row.status==='PUBLISHED');
     return send(200,{data:{items,total:items.length,page:1,limit:100}});
@@ -147,9 +151,36 @@ try{
   await fill('方案价 EUR（可留空）','2599.00');
   await frame.locator('.el-dialog__body .el-form-item').filter({hasText:'参考图片'}).locator('.el-select').click();
   await frame.getByText('FC1 参考图',{exact:true}).click();
+
+  await frame.getByRole('button',{name:'添加参数',exact:true}).click();
+  await frame.getByRole('button',{name:'保存',exact:true}).click();
+  await frame.getByText('请填写参数1的中文名称与数值',{exact:true}).waitFor();
+  assert.equal(writes,0,'incomplete parameter never reaches the create endpoint');
+  async function fillSpecification(index,labels,value){
+    const row=frame.locator('[data-spec-index="'+index+'"]');
+    for(const locale of ['zh','de','en']){
+      const fields=row.locator('[data-locale="'+locale+'"] input');
+      await fields.nth(0).fill(labels[locale]);await fields.nth(1).fill(value);
+    }
+  }
+  await fillSpecification(0,{zh:'电池容量',de:'Akkukapazität',en:'Battery capacity'},'768 Wh');
+  await frame.getByRole('button',{name:'添加参数',exact:true}).click();
+  await fillSpecification(1,{zh:'扭矩',de:'Drehmoment',en:'Torque'},'90 Nm');
+  await frame.getByRole('button',{name:'上移参数 2',exact:true}).click();
+  assert.equal(await frame.locator('[data-spec-index="0"] [data-locale="zh"] input').first().inputValue(),'扭矩');
+  await frame.getByRole('button',{name:'下移参数 1',exact:true}).click();
+  await frame.getByRole('button',{name:'删除参数 2',exact:true}).click();
+  assert.equal(await frame.locator('[data-spec-index]').count(),1);
+  await frame.getByRole('button',{name:'添加参数',exact:true}).click();
+  await fillSpecification(1,{zh:'扭矩',de:'Drehmoment',en:'Torque'},'90 Nm');
+  await page.screenshot({path:path.join(output,'postgres-commerce-parameters-editor-desktop.png'),fullPage:true});
+
   await expectWrite('保存','POST',201);
   assert.equal(records.get(id).status,'DRAFT');
   assert.equal(records.get(id).proposedPriceMinor,259900);
+  assert.deepEqual(records.get(id).specifications.map(row=>row.value.zh),['768 Wh','90 Nm']);
+  const draftDetail=await buyer.request.get(base+'/zh/shop-preview/products/'+id);
+  assert.equal(draftDetail.status(),404,'unpublished details are not public');
   await shop.reload();await shop.locator('[data-database-catalog]').waitFor();
   assert.equal(await shop.locator('[data-comparison-product]').count(),0,'drafts stay private');
   const popupPromise=admin.waitForEvent('page');
@@ -161,6 +192,8 @@ try{
   for(const [language,locale] of [['中文','zh'],['德语','de'],['英语','en']]){
     await preview.getByRole('navigation',{name:'预览语言',exact:true}).getByRole('link',{name:language,exact:true}).click();
     await preview.getByTestId('product-title').filter({hasText:records.get(id).title[locale]}).waitFor();
+    assert.deepEqual(await preview.locator('[data-product-specifications="all"] dt').allTextContents(),
+      records.get(id).specifications.map(row=>row.label[locale]));
   }
   assert.equal(records.get(id).status,'DRAFT','preview does not publish');
   assert.equal(writes,1,'private preview is read-only');
@@ -179,6 +212,7 @@ try{
   await frame.getByRole('button',{name:'编辑',exact:true}).click();
   await fill('中文名称（必填）','ALSVID FC1 已更新');
   await fill('英语名称（必填）','ALSVID FC1 updated');
+  for(const locale of ['zh','de','en'])await frame.locator('[data-spec-index="0"] [data-locale="'+locale+'"] input').nth(1).fill('960 Wh');
   await expectWrite('保存','PATCH',200);
   assert.equal(records.get(id).version,3);
   await page.reload();
@@ -238,20 +272,42 @@ try{
     await shop.screenshot({path:path.join(output,'postgres-commerce-'+locale+'-mobile.png'),fullPage:true});
     assert.ok(await shop.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),locale+' fits mobile');
     await shop.setViewportSize({width:1440,height:1000});
+    assert.deepEqual(await shop.locator('[data-product-specifications="featured"] dd').allTextContents(),['960 Wh','90 Nm']);
+    await shop.getByRole('link',{name:copy['comparison.inspect'],exact:true}).click();
+    await shop.waitForURL(base+'/'+locale+'/shop-preview/products/'+id);
+    await shop.locator('[data-public-product-detail]').waitFor();
+    await expectLoadedImage(shop.locator('[data-comparison-product] img'),locale+' detail cover');
+    assert.deepEqual(await shop.locator('[data-product-specifications="all"] dt').allTextContents(),
+      records.get(id).specifications.map(row=>row.label[locale]));
+    assert.deepEqual(await shop.locator('[data-product-specifications="all"] dd').allTextContents(),['960 Wh','90 Nm']);
+    for(const language of ['zh','de','en'])assert.equal(await shop.locator('link[rel="alternate"][hreflang="'+language+'"]').getAttribute('href'),
+      'https://www.alsvidbike.com/'+language+'/shop-preview/products/'+id);
+    await shop.screenshot({path:path.join(output,'postgres-commerce-detail-'+locale+'-desktop.png'),fullPage:true});
+    await shop.setViewportSize({width:390,height:844});
+    await shop.screenshot({path:path.join(output,'postgres-commerce-detail-'+locale+'-mobile.png'),fullPage:true});
+    assert.ok(await shop.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),locale+' product detail fits mobile');
+    await shop.setViewportSize({width:1440,height:1000});
   }
+  report.checks.push('Admin add/remove/reorder and required parameters; edit survives reload; featured card values and three-locale stable details follow saved data');
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-mobile.png'),fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Admin page fits mobile');
   assert.ok(await frame.locator('html').evaluate(element=>element.scrollWidth<=innerWidth+1),'native editor fits mobile');
+  await frame.getByRole('button',{name:'编辑',exact:true}).click();
+  await frame.locator('[data-spec-index="0"] input').first().scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(output,'postgres-commerce-parameters-editor-mobile.png'),fullPage:true});
+  assert.ok(await frame.locator('html').evaluate(element=>element.scrollWidth<=innerWidth+1),'parameter editor fits mobile');
+  await frame.getByRole('button',{name:'取消',exact:true}).click();
   const removal=page.waitForResponse(response=>response.url().includes('/image')&&response.request().method()==='DELETE');
   await frame.getByRole('button',{name:'移除上传主图',exact:true}).click();
   assert.equal((await removal).status(),200);
   await frame.getByRole('button',{name:'移除上传主图',exact:true}).waitFor({state:'hidden'});
   assert.equal(records.get(id).hasCustomImage,false);
   await expectWrite('下架','PATCH',200);
-  await shop.reload();await shop.locator('[data-database-catalog]').waitFor();
+  await shop.goto(base+'/zh/shop-preview');await shop.locator('[data-database-catalog]').waitFor();
   assert.equal(await shop.locator('[data-comparison-product]').count(),0,'withdrawal becomes visible after refresh');
+  assert.equal((await buyer.request.get(base+'/zh/shop-preview/products/'+id)).status(),404,'withdrawal closes direct detail links');
   assert.deepEqual(buyerWrites,[],'buyer comparison never creates real orders');
   assert.deepEqual(errors,[]);
   report.checks.push('three locales; public refresh reflects saved changes; independent bag; no live checkout; withdrawal; mobile desktop; no original localStorage writes');
