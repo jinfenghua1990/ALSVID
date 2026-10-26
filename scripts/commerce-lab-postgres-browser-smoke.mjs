@@ -24,6 +24,10 @@ const server=createServer(async(req,res)=>{
   }
   if(url.pathname.startsWith('/api/v1/commerce-lab/products')){
     if(req.headers.authorization!=='Bearer '+token)return send(401,{message:'unauthorized'});
+    if(req.method==='GET'&&url.pathname!=='/api/v1/commerce-lab/products'){
+      const row=records.get(url.pathname.split('/').pop());
+      return row?send(200,{data:row}):send(404,{message:'not found'});
+    }
     if(req.method==='GET'){
       const q=(url.searchParams.get('query')||'').toLowerCase();
       const items=[...records.values()].filter(row=>(row.code+' '+row.title.zh).toLowerCase().includes(q));
@@ -97,6 +101,26 @@ try{
   assert.equal(records.get(id).proposedPriceMinor,259900);
   await shop.reload();await shop.locator('[data-database-catalog]').waitFor();
   assert.equal(await shop.locator('[data-comparison-product]').count(),0,'drafts stay private');
+  const popupPromise=admin.waitForEvent('page');
+  await frame.getByRole('link',{name:'预览',exact:true}).click();
+  const preview=await popupPromise;preview.on('pageerror',error=>errors.push(error.message));
+  await preview.locator('[data-private-product-preview][data-status="DRAFT"]').waitFor();
+  assert.match(await preview.locator('meta[name="robots"]').getAttribute('content'),/noindex/);
+  assert.equal(await preview.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
+  for(const [language,locale] of [['中文','zh'],['德语','de'],['英语','en']]){
+    await preview.getByRole('navigation',{name:'预览语言',exact:true}).getByRole('link',{name:language,exact:true}).click();
+    await preview.getByTestId('product-title').filter({hasText:records.get(id).title[locale]}).waitFor();
+  }
+  assert.equal(records.get(id).status,'DRAFT','preview does not publish');
+  assert.equal(writes,1,'private preview is read-only');
+  await preview.screenshot({path:path.join(output,'postgres-commerce-draft-preview-desktop.png'),fullPage:true});
+  await preview.setViewportSize({width:390,height:844});
+  await preview.screenshot({path:path.join(output,'postgres-commerce-draft-preview-mobile.png'),fullPage:true});
+  assert.ok(await preview.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'private preview fits mobile');
+  const anonPreview=await buyer.request.get(base+'/admin/commerce-lab/catalog/'+id+'/preview',{maxRedirects:0});
+  assert.equal(anonPreview.status(),307,'private preview stays behind Admin login');
+  await preview.close();
+  report.checks.push('private saved draft preview uses the storefront card in three locales, is read-only and protected, and retains catalog navigation');
   await expectWrite('发布','PATCH',200);
   await shop.reload();await shop.locator('[data-comparison-product]').waitFor();
   assert.equal(await shop.getByTestId('product-title').innerText(),'ALSVID FC1 原生联动');

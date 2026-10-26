@@ -575,6 +575,10 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
       ]
     : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
+  const menuActive = (item: string) => {
+    const href=menuRouteFor(item);
+    return href===screen.route||(href==='/admin/commerce-lab/catalog'&&screen.route.startsWith(href+'/'));
+  };
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
   const isIntegratedOverview = Boolean(screen.sourceNode && hasIntegratedOperations(screen.area) && (
     (screen.route.split('/').length === 3 && screen.area !== '订单') ||
@@ -650,8 +654,8 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
                     {menuRouteFor(item) ? <a
                       className="av-railitem"
                       href={menuRouteFor(item)}
-                      data-active={menuRouteFor(item) === screen.route}
-                      aria-current={menuRouteFor(item) === screen.route ? 'page' : undefined}
+                      data-active={menuActive(item)}
+                      aria-current={menuActive(item) ? 'page' : undefined}
                     >
                       {item}
                     </a> : <span className="av-railitem" aria-disabled="true" title="该业务入口尚未单独实现">{item}</span>}

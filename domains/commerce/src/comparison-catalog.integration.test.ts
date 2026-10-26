@@ -21,6 +21,10 @@ test('comparison catalog persists independently, protects drafts, checks version
     const original=await db.query<{count:string}>('SELECT count(*)::text AS count FROM product.models WHERE code=$1',[code]);
     const created=await service.create(auth,input(code));
     assert.equal(created.status,'DRAFT'); assert.equal(created.version,1);
+    assert.equal((await service.adminProduct(auth,created.id)).status,'DRAFT');
+    await assert.rejects(service.adminProduct({...auth,roles:['dealer_user']},created.id),ForbiddenError);
+    await assert.rejects(service.adminProduct({...auth,permissions:['commerce.map']},created.id),ForbiddenError);
+    await assert.rejects(service.adminProduct(auth,randomUUID()),CommerceNotFoundError);
     assert.equal((await service.adminList(auth,{query:code})).items[0]!.id,created.id);
     assert.equal((await service.publicList({query:code})).total,0);
     await assert.rejects(service.publicProduct(created.id),CommerceNotFoundError);
@@ -34,6 +38,7 @@ test('comparison catalog persists independently, protects drafts, checks version
     await assert.rejects(service.update(auth,created.id,update),CommerceConflictError);
     const archived=await service.update(auth,created.id,{...update,expectedVersion:2,status:'ARCHIVED'});
     assert.equal(archived.version,3);
+    assert.equal((await service.adminProduct(auth,created.id)).status,'ARCHIVED');
     assert.equal((await service.publicList({query:code})).total,0);
     await assert.rejects(service.create({...auth,roles:['dealer_user']},input(code+'-D')),ForbiddenError);
     await assert.rejects(service.create({...auth,permissions:['commerce.read']},input(code+'-R')),ForbiddenError);

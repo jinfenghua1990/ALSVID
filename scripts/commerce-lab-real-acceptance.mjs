@@ -76,7 +76,19 @@ try{
   assert.equal(row.code,code);assert.equal(row.status,'DRAFT');assert.equal(row.version,1);
   assert.equal(row.created_by,user.userId);assert.equal(row.proposed_price_minor,259900);
   assert.equal((await publicPage()).total,0,'persisted drafts are not public');
-  report.checks.push('authenticated BFF create reaches actual PostgreSQL with the real actor; draft stays private');
+  const privateRow=(await expect(await request('/admin/commerce-lab/api/products/'+id,'GET',undefined,cookie),200,'private product lookup')).data;
+  assert.equal(privateRow.status,'DRAFT');assert.equal(privateRow.id,id);
+  assert.equal((await request('/admin/commerce-lab/api/products/'+id)).status,401);
+  assert.equal((await request('/api/v1/commerce-lab/public/products/'+id)).status,404);
+  const draftPreview=await request('/admin/commerce-lab/catalog/'+id+'/preview','GET',undefined,cookie);
+  assert.equal(draftPreview.status,200);
+  assert.match(draftPreview.headers.get('cache-control')??'',/no-store/);
+  const draftHtml=await draftPreview.text();
+  assert.ok(draftHtml.includes('data-private-product-preview')&&draftHtml.includes('data-status="DRAFT"'));
+  assert.ok(draftHtml.includes(fields.title.zh));
+  assert.equal((await request('/admin/commerce-lab/catalog/'+id+'/preview')).status,307);
+
+  report.checks.push('authenticated BFF create and private preview reach actual PostgreSQL; draft remains absent from public API, anonymous reads denied, private SSR is no-store');
 
   const patch=async(value)=>expect(await request('/admin/commerce-lab/api/products/'+id,'PATCH',value,cookie),200,'real catalog update');
   await patch({...fields,status:'PUBLISHED',expectedVersion:1});

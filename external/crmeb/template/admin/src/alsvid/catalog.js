@@ -106,6 +106,7 @@
           <el-table-column label="版本" width="70" prop="version"></el-table-column>
           <el-table-column label="操作" min-width="180"><template slot-scope="scope">
             <el-button type="text" @click="edit(scope.row)" :disabled="saving">编辑</el-button>
+            <a class="el-button el-button--text" :href="'/admin/commerce-lab/catalog/'+scope.row.id+'/preview'" target="_blank" rel="noopener noreferrer">预览</a>
             <el-button type="text" @click="publish(scope.row)" :disabled="saving">{{scope.row.status==='PUBLISHED'?'下架':'发布'}}</el-button>
           </template></el-table-column>
         </el-table></div>

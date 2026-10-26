@@ -23,6 +23,12 @@ export class ComparisonCatalogService {
   async adminList(actor:ComparisonActor,query:{page?:unknown;limit?:unknown;query?:unknown}={}):Promise<ComparisonProductPage> {
     permission(actor,false);return this.repository.list(comparisonList(query),false);
   }
+  async adminProduct(actor:ComparisonActor,id:string):Promise<ComparisonCatalogProduct> {
+    permission(actor,false);
+    const row=await this.repository.get(comparisonId(id),false);
+    if(!row)throw new CommerceNotFoundError('Comparison product not found');
+    return row;
+  }
   async publicList(query:{page?:unknown;limit?:unknown;query?:unknown}={}):Promise<ComparisonProductPage> {
     return this.repository.list(comparisonList(query),true);
   }
