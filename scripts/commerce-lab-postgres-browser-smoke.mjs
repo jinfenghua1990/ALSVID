@@ -65,9 +65,27 @@ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(4
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch(),report={sha:process.env.FC1_REVIEW_SHA,
   scope:'Browser integration uses isolated API fixtures; PostgreSQL persistence/authorization/audit invariants are separately tested by the commerce domain integration suite.',
-  checks:[]};
+  checks:[],mediaResponses:[],mediaFailures:[]};
+function watchMedia(context){
+  context.on('response',response=>{
+    const url=new URL(response.url());
+    if(url.pathname.includes('/image')||url.pathname.startsWith('/shop-preview/media/')||url.hostname==='comparison-images.example.test')
+      report.mediaResponses.push({url:response.url(),status:response.status()});
+  });
+  context.on('requestfailed',request=>{
+    const url=new URL(request.url());
+    if(url.pathname.includes('/image')||url.pathname.startsWith('/shop-preview/media/')||url.hostname==='comparison-images.example.test')
+      report.mediaFailures.push({url:request.url(),error:request.failure()?.errorText});
+  });
+}
+async function expectLoadedImage(locator,label){
+  await locator.waitFor();
+  try{await locator.evaluate(image=>image.decode());}
+  catch(error){throw new Error(label+' did not decode: '+JSON.stringify({source:await locator.getAttribute('src'),responses:report.mediaResponses,failures:report.mediaFailures}));}
+  assert.ok(await locator.evaluate(image=>image.complete&&image.naturalWidth>0),label+' displays decoded image bytes');
+}
 try{
-  const buyer=await browser.newContext({viewport:{width:1440,height:1000}});
+  const buyer=await browser.newContext({viewport:{width:1440,height:1000}});watchMedia(buyer);
   const imageBytes=await readFile('apps/web/public/home/original/fc1-product.webp');
   await buyer.route('https://comparison-images.example.test/**',route=>route.fulfill({body:imageBytes,contentType:'image/webp'}));
   const shop=await buyer.newPage(),buyerWrites=[],errors=[];
@@ -79,7 +97,7 @@ try{
   const anon=await buyer.request.post(base+'/admin/commerce-lab/api/products',{headers:{origin:base},data:{}});
   assert.equal(anon.status(),401);
 
-  const admin=await browser.newContext({viewport:{width:1440,height:1100}});
+  const admin=await browser.newContext({viewport:{width:1440,height:1100}});watchMedia(admin);
   await admin.route('https://comparison-images.example.test/**',route=>route.fulfill({body:imageBytes,contentType:'image/webp'}));
   await admin.addCookies([{name:'alsvid_session',value:token,domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   const page=await admin.newPage();page.on('pageerror',error=>errors.push(error.message));
@@ -173,11 +191,24 @@ try{
   assert.equal((await uploadResponse).status(),201);
   await frame.getByRole('button',{name:'移除上传主图',exact:true}).waitFor();
   assert.equal(records.get(id).hasCustomImage,true);assert.equal(records.get(id).status,'PUBLISHED');
+  const privateImage=await admin.request.get(base+'/admin/commerce-lab/api/products/'+id+'/image',{maxRedirects:0});
+  assert.equal(privateImage.status(),307,'private media issues the controlled signed redirect: '+await privateImage.text());
+  const publicImage=await buyer.request.get(base+'/shop-preview/media/'+id,{maxRedirects:0});
+  assert.equal(publicImage.status(),307,'published media issues the controlled signed redirect: '+await publicImage.text());
+  await expectLoadedImage(frame.locator('.product-name img'),'native catalog custom cover');
+  const customPreview=await admin.newPage();
+  await customPreview.goto(base+'/admin/commerce-lab/catalog/'+id+'/preview');
+  await expectLoadedImage(customPreview.locator('[data-comparison-product] img'),'private preview custom cover');
+  await customPreview.screenshot({path:path.join(output,'postgres-commerce-custom-cover-preview-desktop.png'),fullPage:true});
+  await customPreview.close();
+  report.checks.push('private and public media return signed redirects; native and private-preview custom covers decode in the actual browser');
+
   report.checks.push('native image upload UI saves the custom-image flag without changing publication; media redirects are isolated HTTPS fixtures');
   for(const locale of ['zh','de','en']){
     const copy=JSON.parse(await readFile('apps/web/app/_lib/i18n/shop-preview/'+locale+'.json','utf8'));
     await shop.goto(base+'/'+locale+'/shop-preview');
     await shop.locator('[data-comparison-product]').waitFor();
+    await expectLoadedImage(shop.locator('[data-comparison-product] img'),locale+' public custom cover');
     assert.equal(await shop.getByTestId('product-title').innerText(),records.get(id).title[locale]);
     assert.match(await shop.locator('meta[name="robots"]').getAttribute('content'),/noindex/);
     assert.equal(await shop.locator('[data-public-site-header]').count(),1);
@@ -211,6 +242,10 @@ try{
   report.checks.push('three locales; public refresh reflects saved changes; independent bag; no live checkout; withdrawal; mobile desktop; no original localStorage writes');
   await writeFile(path.join(output,'postgres-commerce-browser-report.json'),JSON.stringify(report,null,2));
   await admin.close();await buyer.close();
+}catch(error){
+  report.failure=error.message;
+  await writeFile(path.join(output,'postgres-commerce-browser-report.json'),JSON.stringify(report,null,2));
+  throw error;
 }finally{
   await browser.close();await new Promise(resolve=>server.close(resolve));
 }
