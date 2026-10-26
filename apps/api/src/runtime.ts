@@ -1,6 +1,6 @@
 import { createAssetService } from '@alsvid/assets';
 import { createAuditService } from '@alsvid/audit';
-import { createCommerceService,CommerceOrderOperationsService,StorefrontOrderService } from '@alsvid/commerce';
+import { createCommerceService,createComparisonCatalogService,CommerceOrderOperationsService,StorefrontOrderService } from '@alsvid/commerce';
 import { Database } from '@alsvid/database';
 import { createDealerService } from '@alsvid/dealer';
 import { createEngineeringService } from '@alsvid/engineering';
@@ -47,3 +47,5 @@ export const commerceOrderOperationsService = new CommerceOrderOperationsService
 export const storefrontOrderService = new StorefrontOrderService(database, auditService);
 export const integrationService = createIntegrationService(database, auditService, commerceService);
 export const financeService = createFinanceService(database, auditService);
+
+export const comparisonCatalogService = createComparisonCatalogService(database, auditService);
