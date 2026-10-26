@@ -30,3 +30,12 @@ test("homepage collection has the same responsive image-card layout and complete
     }
   }
 });
+
+
+test("home cards retain a three-column desktop grid, with a legible single-column phone layout", () => {
+  assert.match(styles, /\.home-product-image\{aspect-ratio:4\/3;/);
+  assert.match(styles, /\.home-product-info h3\{margin:0;font-size:/);
+  assert.match(styles, /@media\(max-width:600px\)\{[\s\S]*?\.home-product-grid\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(styles, /\.home-product-collection a:focus-visible/);
+  assert.match(page, /<HomePosterHero/);
+});

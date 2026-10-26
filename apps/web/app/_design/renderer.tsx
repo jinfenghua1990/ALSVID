@@ -547,7 +547,7 @@ function Blocks({ blocks, stacked = false }: { blocks: readonly Block[]; stacked
   return <>{nodes}</>;
 }
 
-export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: string }) {
+export async function AdminScreen({ screen, theme, children }: { screen: Screen; theme?: string; children?: React.ReactNode }) {
   const requestHost = (await headers()).get('host') ?? '';
   const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestHost);
   const quickLinks = QUICK_LINKS.map(link => ({
@@ -597,6 +597,9 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                   data-active={isAreaActive(screen.area, area.label)}
                   aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>{area.label}</a>
               ))}
+              <a className="av-moremenu-link" href="/admin/commerce-lab"
+                data-active={screen.area === '商城方案对比'}
+                aria-current={screen.area === '商城方案对比' ? 'page' : undefined}>商城方案对比 · 独立实验区</a>
             </div>
           </details>
         </nav>
@@ -686,7 +689,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
           </div>}
 
           {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
-          {screen.id === 'workbench' ? (
+          {children ?? (screen.id === 'workbench' ? (
             <>
               <P0OperationsCenter />
               <LiveWorkbenchTodos />
@@ -735,7 +738,7 @@ export async function AdminScreen({ screen, theme }: { screen: Screen; theme?: s
                 : null}
               <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
             </>
-          )}
+          ))}
           {!isIntegratedOverview && !isLiveProductRoot && moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>
