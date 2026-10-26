@@ -32,7 +32,7 @@ function isAreaActive(area: string, label: string): boolean {
 
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
   '商城方案对比': [
-    { group: '独立商城', items: ['方案总览与布局比较', '独立商品管理'] },
+    { group: '独立商城', items: ['方案总览与布局比较', '独立商品管理', '旧版交互样机'] },
   ],
   '数据': [
     { group: '数据分析', items: ['数据总览', '销售分析', '生产与库存分析', '售后与经销商分析'] },
@@ -105,6 +105,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '商城方案对比') {
     if (label === '方案总览与布局比较') return '/admin/commerce-lab';
     if (label === '独立商品管理') return '/admin/commerce-lab/catalog';
+    if (label === '旧版交互样机') return '/admin/commerce-lab/reference';
     return undefined;
   }
   if (screen.area === '经销商' && ['联系信息', '合作状态'].includes(label)) return '/admin/dealers';
@@ -555,7 +556,7 @@ function Blocks({ blocks, stacked = false }: { blocks: readonly Block[]; stacked
   return <>{nodes}</>;
 }
 
-export async function AdminScreen({ screen, theme, children }: { screen: Screen; theme?: string; children?: React.ReactNode }) {
+export async function AdminScreen({ screen, theme, children, hidePageHeading = false }: { screen: Screen; theme?: string; children?: React.ReactNode; hidePageHeading?: boolean }) {
   const requestHost = (await headers()).get('host') ?? '';
   const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestHost);
   const quickLinks = QUICK_LINKS.map(link => ({
@@ -659,7 +660,7 @@ export async function AdminScreen({ screen, theme, children }: { screen: Screen;
                 <div className="av-railspacer" />
               </div>
             ))}
-            {!isIntegratedOverview && !isLiveProductRoot ? <div className="av-railgroup">
+            {!isIntegratedOverview && !isLiveProductRoot && moduleScreens.length > 0 ? <div className="av-railgroup">
               <div className="av-railtitle">设计页面 / 流程预览 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div> : null}
@@ -668,7 +669,7 @@ export async function AdminScreen({ screen, theme, children }: { screen: Screen;
 
         <main className="av-workspace">
           {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{screen.area === '数据' ? '分析布局预览 · 除已接入的 FC1 颜色偏好外，经营指标与报表数据源尚未接入。' : '流程布局预览 · 本页内容为设计示例；可保存操作请使用对应模块的真实业务工作台。'}</p>}
-          {!isEcommerceWorkspace && !isIntegratedOverview && <div className="av-pagehead">
+          {!hidePageHeading && !isEcommerceWorkspace && !isIntegratedOverview && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
