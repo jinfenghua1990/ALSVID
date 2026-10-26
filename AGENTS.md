@@ -1,3 +1,9 @@
+> ⛔ **ALSVID ONE-SYSTEM CONTRACT (owner decision 2026-10-26) — mandatory for every AI/agent/developer.**
+>
+> **Read first:** [docs/ONE_SYSTEM_DEVELOPMENT_CONTRACT.md](docs/ONE_SYSTEM_DEVELOPMENT_CONTRACT.md) from the CURRENT main branch, then the architecture and data ownership files below. ALSVID is ONE integrated monorepo and modular-monolith business platform, not separate module systems to join afterward. Web/API/Worker are processes of that system; Official/Admin/Dealer/My/Supplier remain distinct permission-scoped user experiences but SHARE domain contracts and authoritative data. Never fork standalone systems, duplicate identity/orders/stock/business databases, or add an independent deployment/DB without explicit owner approval and an ADR.
+>
+> Before changing a module, identify upstream/downstream business contracts, IDs, states, write authorities and required integration tests; implement the affected producers AND consumers as one compatible change. Resolve conflicts within the task branch/PR BEFORE merge; do NOT ask a future agent to figure out integration. Protect Production credentials/data. All agents must follow the PR integration checklist and CI gates. **Documentation alone cannot force agents that never read the repo; branch protection and CI enforce only checks actually configured and executed.**
+
 # ALSVID Agent Contract
 
 This repository is the clean-slate implementation authority for ALSVID.
