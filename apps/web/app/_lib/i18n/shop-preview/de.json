@@ -35,5 +35,14 @@
   "shopPreview.restore": "Diese Tasche bleibt nur in diesem Browser-Tab und ist von der bisherigen Shop-Tasche getrennt.",
   "shopPreview.linkLabel": "Shop-Konzepte vergleichen",
   "shopPreview.linkBody": "Behalte den bisherigen Produktbereich und entdecke ein neues Produkt- und Taschenlayout.",
-  "shopPreview.notConnected": "Unabhängige ALSVID-Interaktionsvorschau. Medusa- und CRMEB-Dienste sind noch nicht verbunden."
+  "shopPreview.notConnected": "Unabhängige ALSVID-Interaktionsvorschau. Medusa- und CRMEB-Dienste sind noch nicht verbunden.",
+  "shopPreview.connectionHeading": "CRMEB-Katalogverbindung",
+  "shopPreview.connectionUnconfigured": "Die externe Produktquelle ist noch nicht aktiviert. Die Modelle unten bleiben eine unabhängige Vorschau.",
+  "shopPreview.connectionConfiguration": "Die Konfiguration der Produktquelle muss geprüft werden. Bitte kontaktieren Sie die Administration.",
+  "shopPreview.connectionUnavailable": "Die Produktquelle ist derzeit nicht erreichbar. Es werden keine Beispieldaten als Ersatz angezeigt.",
+  "shopPreview.connectionReady": "CRMEB-Produktliste geladen (nur zum Vergleich).",
+  "shopPreview.connectionScope": "Es werden nur externe Produktnamen angezeigt. Preise, Bestand, SKUs und Kaufabwicklung sind nicht verifiziert.",
+  "shopPreview.connectionCount": "{count} Produkte der ersten Seite geladen (maximal 20)",
+  "shopPreview.connectionChecked": "Zuletzt geprüft:",
+  "shopPreview.connectionRefresh": "Seite neu laden, um erneut abzurufen. Keine automatische Synchronisierung oder Änderungen im bestehenden System."
 }
