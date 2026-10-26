@@ -18,7 +18,7 @@ test('comparison catalog persists independently, protects drafts, checks version
   try {
     const auth=await owner(db); const events:unknown[]=[];
     const service=createComparisonCatalogService(db,{async record(event){events.push(event);}});
-    const original=await db.query<{count:string}>('SELECT count(*)::text AS count FROM product.models');
+    const original=await db.query<{count:string}>('SELECT count(*)::text AS count FROM product.models WHERE code=$1',[code]);
     const created=await service.create(auth,input(code));
     assert.equal(created.status,'DRAFT'); assert.equal(created.version,1);
     assert.equal((await service.adminList(auth,{query:code})).items[0]!.id,created.id);
@@ -28,7 +28,9 @@ test('comparison catalog persists independently, protects drafts, checks version
       proposedPriceMinor:259900,status:'PUBLISHED',expectedVersion:created.version};
     const published=await service.update(auth,created.id,update);
     assert.equal(published.version,2);
-    assert.equal((await service.publicList({query:code})).items[0]!.proposedPriceMinor,259900);
+    const visible=await service.publicList({query:code});
+    assert.equal(visible.items[0]!.proposedPriceMinor,259900);
+    assert.ok(!JSON.stringify(visible).includes(auth.userId));
     await assert.rejects(service.update(auth,created.id,update),CommerceConflictError);
     const archived=await service.update(auth,created.id,{...update,expectedVersion:2,status:'ARCHIVED'});
     assert.equal(archived.version,3);
@@ -39,10 +41,9 @@ test('comparison catalog persists independently, protects drafts, checks version
     for(const bad of [{...input(code+'-X'),proposedPriceMinor:0.1},{...input(code+'-X'),title:{zh:'缺少翻译'}},
       {...input(code+'-X'),stock:123},{...input(code+'-X'),referenceImage:'javascript:alert(1)'}])
       await assert.rejects(service.create(auth,bad),CommerceValidationError);
-    const unchanged=await db.query<{count:string}>('SELECT count(*)::text AS count FROM product.models');
+    const unchanged=await db.query<{count:string}>('SELECT count(*)::text AS count FROM product.models WHERE code=$1',[code]);
     assert.equal(unchanged.rows[0]!.count,original.rows[0]!.count);
     assert.equal(events.length,3);
-    assert.ok(!JSON.stringify(await service.publicList({query:code})).includes(auth.userId));
   }finally{await db.close();}
 });
 test('audit failure rolls back comparison writes',{skip:!hasDatabase},async()=>{

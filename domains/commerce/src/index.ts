@@ -8,3 +8,4 @@ export type {StorefrontActor,CreateStorefrontPriceInput,CreateStorefrontOrderInp
 
 export { createComparisonCatalogService } from './infrastructure/comparison-catalog.js';
 export type { ComparisonCatalogProduct,ComparisonProductPage,ComparisonCreateInput,ComparisonUpdateInput,ComparisonLocaleText } from './core/comparison-catalog.js';
+export { ComparisonCatalogService } from './application/comparison-catalog.js';
