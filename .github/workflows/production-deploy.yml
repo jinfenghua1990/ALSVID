@@ -30,6 +30,7 @@ env:
   WEB_SERVICE: alsvid-web
   API_SERVICE: alsvid-api
   MIGRATION_JOB: alsvid-migrate
+  WORKER_POOL: alsvid-worker
 
 jobs:
   validate_dispatch:
@@ -278,8 +279,8 @@ jobs:
           gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
           # The WWW release pipeline (www-deploy.yml) publishes alsvid-web:<sha> from the
           # same Dockerfile and build args right after main CI succeeds. A pre-existing
-          # web image for this exact commit is therefore reusable; the API image is
-          # produced by this workflow when it is not already available.
+          # web image for this exact commit is therefore reusable; the API and worker
+          # images are produced by this workflow when they are not already available.
           if [[ "$IS_ROLLBACK" == "true" ]]; then
             web_tag="$RELEASE_SHA"
           else
@@ -288,17 +289,21 @@ jobs:
           fi
           web_exists=false
           api_exists=false
+          worker_exists=false
           if gcloud artifacts docker images describe "$REGISTRY/alsvid-web:$web_tag" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             web_exists=true
           fi
           if gcloud artifacts docker images describe "$REGISTRY/alsvid-api:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
             api_exists=true
           fi
-          if [[ "$IS_ROLLBACK" == "true" && ( "$web_exists" != "true" || "$api_exists" != "true" ) ]]; then
+          if gcloud artifacts docker images describe "$REGISTRY/alsvid-worker:$RELEASE_SHA" --project "$GCP_PROJECT_ID" >/dev/null 2>&1; then
+            worker_exists=true
+          fi
+          if [[ "$IS_ROLLBACK" == "true" && ( "$web_exists" != "true" || "$api_exists" != "true" || "$worker_exists" != "true" ) ]]; then
             echo "Rollback requires all previously published release images; refusing to rebuild an older commit." >&2
             exit 1
           fi
-          if [[ "$web_exists" == "true" && "$api_exists" == "true" ]]; then
+          if [[ "$web_exists" == "true" && "$api_exists" == "true" && "$worker_exists" == "true" ]]; then
             echo "reused=true" >> "$GITHUB_OUTPUT"
           else
             echo "reused=false" >> "$GITHUB_OUTPUT"
@@ -307,6 +312,7 @@ jobs:
             echo "web_exists=$web_exists"
             echo "web_tag=$web_tag"
             echo "api_exists=$api_exists"
+            echo "worker_exists=$worker_exists"
           } >> "$GITHUB_OUTPUT"
 
       - name: Require FC1 reservation email before Web build
@@ -352,6 +358,18 @@ jobs:
           cache-from: type=gha,scope=alsvid-production-api
           cache-to: type=gha,mode=max,scope=alsvid-production-api,ignore-error=true
 
+      - name: Build worker image with cache
+        if: steps.image_lookup.outputs.reused != 'true' && steps.image_lookup.outputs.worker_exists != 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/docker/Dockerfile.worker
+          platforms: linux/amd64
+          load: true
+          tags: ${{ steps.release.outputs.registry }}/alsvid-worker:${{ steps.release.outputs.sha }}
+          cache-from: type=gha,scope=alsvid-production-worker
+          cache-to: type=gha,mode=max,scope=alsvid-production-worker,ignore-error=true
+
       - name: Validate production mail secret exists
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -382,6 +400,9 @@ jobs:
           if [[ "${{ steps.image_lookup.outputs.api_exists }}" != "true" ]]; then
             docker push "$REGISTRY/alsvid-api:$RELEASE_SHA"
           fi
+          if [[ "${{ steps.image_lookup.outputs.worker_exists }}" != "true" ]]; then
+            docker push "$REGISTRY/alsvid-worker:$RELEASE_SHA"
+          fi
 
       - name: Resolve exact release image digests
         id: images
@@ -404,6 +425,12 @@ jobs:
             exit 1
           fi
           echo "api_image=$REGISTRY/alsvid-api@$api_digest" >> "$GITHUB_OUTPUT"
+          worker_digest="$(gcloud artifacts docker images describe "$REGISTRY/alsvid-worker:$RELEASE_SHA" --project "$GCP_PROJECT_ID" --format='value(image_summary.digest)')"
+          if [[ ! "$worker_digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "Could not resolve immutable digest for alsvid-worker:$RELEASE_SHA" >&2
+            exit 1
+          fi
+          echo "worker_image=$REGISTRY/alsvid-worker@$worker_digest" >> "$GITHUB_OUTPUT"
 
       - name: Run database migrations as an explicit release job
         env:
@@ -540,6 +567,49 @@ jobs:
             --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},ALSVID_API_BASE_URL=${API_URL}/api,AUTH_BASE_URL=${AUTH_BASE_URL},ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED=true,ALSVID_DEALER_PASSWORD_LOGIN_ENABLED=true,ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED=true" \
             --quiet
 
+      - name: Deploy worker pool
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          WORKER_ID: alsvid-worker-production
+          WORKER_QUEUE: default
+          WORKER_POLL_MS: "1000"
+          WORKER_LEASE_MS: "300000"
+        run: |
+          set -euo pipefail
+          # The worker is a long-running non-HTTP process that polls the Postgres job
+          # queue, so it is deployed as a Cloud Run worker pool. Worker pools do not
+          # expose an endpoint and do not autoscale; instance count is fixed.
+          # Command availability varies by gcloud release channel, so pick the first present.
+          if gcloud run worker-pools deploy --help >/dev/null 2>&1; then
+            worker_pools_cmd="gcloud run worker-pools"
+          elif gcloud beta run worker-pools deploy --help >/dev/null 2>&1; then
+            worker_pools_cmd="gcloud beta run worker-pools"
+          else
+            worker_pools_cmd="gcloud alpha run worker-pools"
+          fi
+          echo "Using worker pool command: $worker_pools_cmd"
+          $worker_pools_cmd deploy "$WORKER_POOL" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --image "${{ steps.images.outputs.worker_image }}" \
+            --service-account "$RUNTIME_SERVICE_ACCOUNT" \
+            --cpu 1 \
+            --memory 512Mi \
+            --instances 1 \
+            --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET},WORKER_ID=${WORKER_ID},WORKER_QUEUE=${WORKER_QUEUE},WORKER_POLL_MS=${WORKER_POLL_MS},WORKER_LEASE_MS=${WORKER_LEASE_MS}" \
+            --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
+            --quiet
+          $worker_pools_cmd describe "$WORKER_POOL" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --format='value(name)' >/dev/null
+          echo "Deployed worker pool $WORKER_POOL for release $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Verify public website and admin, record deployed release
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -596,4 +666,5 @@ jobs:
             echo "- Public site: $PUBLIC_SITE_URL"
             echo "- Admin: $AUTH_BASE_URL"
             echo "- Email verification: resend"
+            echo "- Worker pool: $WORKER_POOL"
           } >> "$GITHUB_STEP_SUMMARY"
