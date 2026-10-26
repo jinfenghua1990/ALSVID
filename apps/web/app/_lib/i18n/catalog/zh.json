@@ -127,5 +127,10 @@
   "catalog.bikes.facts.carbon": "碳纤维",
   "catalog.bikes.facts.versions": "版本规划",
   "catalog.bikes.facts.pending": "待核实",
-  "catalog.bikes.facts.price": "售价"
+  "catalog.bikes.facts.price": "售价",
+  "catalog.discovery.quickView.open": "快速浏览",
+  "catalog.discovery.quickView.close": "关闭快速浏览",
+  "catalog.discovery.quickView.previewNotice": "此车型仅用于配置预览，未有核准售价、库存或正式可售 SKU。",
+  "catalog.discovery.quickView.save": "加入选购意向",
+  "catalog.discovery.quickView.unavailable": "该车型尚未开放选购意向。请先查看详情。"
 }

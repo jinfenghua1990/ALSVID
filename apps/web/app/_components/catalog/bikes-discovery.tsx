@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { translator, type Locale, type TranslationKey } from "../../_lib/i18n";
 import styles from "../../[locale]/bikes/page.module.css";
+import { addCartLine, type CartModel } from "../../_lib/commerce/storefront-cart";
 
 export type DiscoveryBike = {
   id: string;
@@ -37,6 +38,39 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
   const [compare, setCompare] = useState<string[]>(["fc1", "fc2"]);
   const [colour, setColour] = useState<Colour>("sample");
   const [compareNotice, setCompareNotice] = useState("");
+  const quickDialog = useRef<HTMLDialogElement>(null);
+  const [quickId, setQuickId] = useState<string | null>(null);
+  const [quickVariant, setQuickVariant] = useState<CartModel>("standard");
+  const [quickColour, setQuickColour] = useState<Colour>("sample");
+  const [quickQuantity, setQuickQuantity] = useState(1);
+  const [quickStatus, setQuickStatus] = useState<"idle" | "added" | "failed">("idle");
+  const quickBike = models.find(model => model.id === quickId);
+  useEffect(() => {
+    const dialog = quickDialog.current;
+    if (!dialog) return;
+    if (quickId && !dialog.open) dialog.showModal();
+    if (!quickId && dialog.open) dialog.close();
+  }, [quickId]);
+  const openQuick = (id: string) => {
+    setQuickId(id);
+    setQuickStatus("idle");
+    setQuickVariant("standard");
+    setQuickColour("sample");
+    setQuickQuantity(1);
+  };
+  const closeQuick = () => {
+    quickDialog.current?.close();
+    setQuickId(null);
+  };
+  const savePreview = () => {
+    if (!quickBike) return;
+    const success = quickBike.id === "fc1"
+      ? addCartLine({ product: "FC1", model: quickVariant, colour: quickColour, quantity: quickQuantity })
+      : quickBike.id === "fc2"
+        ? addCartLine({ product: "FC2", quantity: quickQuantity })
+        : false;
+    setQuickStatus(success ? "added" : "failed");
+  };
 
   const matching = models.filter(model => {
     const search = query.trim().toLocaleLowerCase(locale);
@@ -139,6 +173,8 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
           </div> : <p className={styles.discoveryOtherFinish}>{t("catalog.discovery.colour.pending")}</p>}
           <div className={styles.discoveryActions}>
             <a className={styles.detailLink} href={model.href}>{t("catalog.bikes.models.details")} <span aria-hidden="true">→</span></a>
+            <button type="button" className={styles.quickViewTrigger} data-bikes-quick-view={model.id}
+              onClick={() => openQuick(model.id)}>{t("catalog.discovery.quickView.open")}</button>
             <button type="button" aria-pressed={compare.includes(model.id)}
               data-bikes-compare-toggle={model.code}
               onClick={() => toggleCompare(model.id)}>
@@ -189,5 +225,60 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
         </table>
       </div> : <p role="status">{t("catalog.discovery.compare.empty")}</p>}
     </section>
+    <dialog ref={quickDialog} className={styles.bikeQuickDialog} data-bikes-quick-dialog
+      aria-label={t("catalog.discovery.quickView.open")} onClose={() => setQuickId(null)}
+      onClick={event => { if (event.target === event.currentTarget) closeQuick(); }}>
+      {quickBike ? <div className={styles.bikeQuickContent}>
+        <div className={styles.bikeQuickPhoto}>
+          <img src={quickBike.image} alt={quickBike.alt} width={900} height={650} />
+        </div>
+        <div className={styles.bikeQuickDetails}>
+          <div className={styles.bikeQuickHeading}>
+            <span className={styles.status}>{quickBike.status}</span>
+            <button type="button" className={styles.bikeQuickClose} onClick={closeQuick}
+              aria-label={t("catalog.discovery.quickView.close")}>×</button>
+          </div>
+          <p className={styles.bikeQuickEyebrow}>{quickBike.platform.toUpperCase()} / ALSVID</p>
+          <h3>{quickBike.name}</h3>
+          <p className={styles.bikeQuickPrice}>{t("catalog.bikes.facts.price")}: <strong>{t("catalog.cart.pricePending")}</strong></p>
+          <p className={styles.bikeQuickNote}>{quickBike.id === "fc1"
+            ? t("catalog.discovery.fc1.note") : t("catalog.discovery.other.note")}</p>
+          {(quickBike.id === "fc1" || quickBike.id === "fc2") ? <>
+            <p className={styles.bikeQuickWarning}>{t("catalog.discovery.quickView.previewNotice")}</p>
+            {quickBike.id === "fc1" ? <>
+              <label className={styles.bikeQuickLabel}>
+                {t("catalog.bikes.facts.versions")}
+                <select value={quickVariant} onChange={event => {setQuickVariant(event.target.value as CartModel);setQuickStatus("idle");}}>
+                  <option value="standard">Standard</option>
+                  <option value="pro">Pro</option>
+                </select>
+              </label>
+              <label className={styles.bikeQuickLabel}>
+                {t("catalog.discovery.colour.label")}
+                <select value={quickColour} onChange={event => {setQuickColour(event.target.value as Colour);setQuickStatus("idle");}}>
+                  {FC1_COLOURS.map(option => <option key={option.id} value={option.id}>{colourLabel(option.id)}</option>)}
+                </select>
+              </label>
+              <p className={styles.bikeQuickColourNote}>{t("catalog.discovery.colour.photo")}</p>
+            </> : <p className={styles.bikeQuickColourNote}>{t("catalog.discovery.colour.pending")}</p>}
+            <label className={styles.bikeQuickLabel}>
+              {t("catalog.cart.quantity")}
+              <select value={quickQuantity} onChange={event => {setQuickQuantity(Number(event.target.value));setQuickStatus("idle");}}>
+                {Array.from({length:9}, (_,i) => i+1).map(q => <option key={q} value={q}>{q}</option>)}
+              </select>
+            </label>
+            <button type="button" className={styles.bikeQuickAdd} data-bikes-quick-save onClick={savePreview}>
+              {t("catalog.discovery.quickView.save")}
+            </button>
+            <p className={styles.bikeQuickFeedback} role="status">
+              {quickStatus === "added" ? <>
+                {t("catalog.cart.added")} <a href={"/"+locale+"/cart"}>{t("catalog.cart.view")}</a>
+              </> : quickStatus === "failed" ? t("catalog.cart.storageError") : t("catalog.cart.previewNotice")}
+            </p>
+          </> : <p className={styles.bikeQuickWarning}>{t("catalog.discovery.quickView.unavailable")}</p>}
+          <a href={quickBike.href} className={styles.bikeQuickDetail}>{t("catalog.bikes.models.details")} <span aria-hidden="true">→</span></a>
+        </div>
+      </div> : null}
+    </dialog>
   </div>;
 }
