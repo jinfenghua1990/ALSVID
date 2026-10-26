@@ -1,5 +1,15 @@
 # Decision Log
 
+## 2026-10-26 — 单一 ALSVID 系统、多 AI 共同开发、联动优先
+
+- 状态：active（负责人明确确认；以本次主干合并为共享生效点）。
+- ALSVID **始终是一套系统**：唯一 GitHub 代码权威、统一 pnpm 工作区、模块化单体业务 API/领域和生产数据权威。Web/API/Worker 是同一系统的运行进程；Official/Admin/Dealer/My 等门户保持独立体验/授权，但不能复制订单、身份、库存、生产或售后主账。
+- 多 AI/多 Docker 环境只用于对**同一套程序**并行开发和验证；分工不等于拆系统，禁止多个机器人各自开发独立模块系统，再交由下一台机器人从头分析如何合并。
+- 任务先确认产品 SKU/BOM→生产→库存/订单→Vehicle/VIN→车主/售后等受影响的统一接口、写入权威、调用方；在同一兼容性变更内连通并测试，合并前消化冲突。代码合并、部署和业务联动验收需分别提供证据。
+- 云端 Neon/R2 正式数据权威不变；开发/CI 数据和密钥与生产隔离。统一 Docker 可移植启动是后续独立交付，不得将其或所有业务联动谎称已完成。
+- 强制执行入口：[AGENTS](../../AGENTS.md)、[单一系统契约](../../docs/ONE_SYSTEM_DEVELOPMENT_CONTRACT.md)、Claude/Copilot 入口、[PR 模板](../../.github/pull_request_template.md) 和 CI 结构守卫。纯文档不能强制未读取仓库的外部机器人，实际约束依赖 CI/主干保护。
+
+
 ## 2026-10-21 — 直接 GitHub 开发与 Cloud Run 发布
 
 - 状态：active（负责人确认）。

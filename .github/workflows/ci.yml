@@ -47,6 +47,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Enforce ALSVID single-system contract
+        run: node scripts/check-single-system-contract.mjs
+
       - name: Classify changed paths
         id: scope
         env:
