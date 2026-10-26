@@ -6,6 +6,7 @@ on:
       - 'scripts/commerce-lab/**'
       - 'infra/commerce-lab/**'
       - 'apps/web/app/_experiments/commerce-lab/**'
+      - 'external/crmeb/**'
       - '.github/workflows/crmeb-native.yml'
   workflow_dispatch:
 permissions:
@@ -52,13 +53,11 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Check out fixed native CRMEB source and bundled dependencies
-        uses: actions/checkout@v7
-        with:
-          repository: crmeb/CRMEB
-          ref: da8d3b93400f3c660aa54d38b54ada387c963cd9
-          path: .tmp/crmeb-upstream
-          persist-credentials: false
+      - name: Use CRMEB source imported into this repository
+        shell: bash
+        run: |
+          mkdir -p .tmp/crmeb-upstream
+          cp -a external/crmeb/. .tmp/crmeb-upstream/
       - name: Set up native PHP runtime
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
         with:
@@ -86,7 +85,7 @@ jobs:
             sleep 2
           done
           node scripts/commerce-lab/native-check.mjs
-      - name: Build the candidate native Apache container
+      - name: Build the candidate native PHP and Nginx containers
         shell: bash
         run: |
           set -euo pipefail
@@ -104,6 +103,8 @@ jobs:
           IGNORE
           docker buildx build --load --build-context deployment=infra/commerce-lab \
             -f infra/commerce-lab/Dockerfile -t alsvid-crmeb-runtime-ci .tmp/crmeb-upstream
+          docker buildx build --load --build-context deployment=infra/commerce-lab \
+            -f infra/commerce-lab/Dockerfile.nginx -t alsvid-crmeb-nginx-ci .tmp/crmeb-upstream
       - name: Verify packaged native runtime
         env:
           APP_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -126,7 +127,8 @@ jobs:
             -e CRMEB_DB_PASSWORD=ci-only-disposable-password \
             -e CRMEB_APP_KEY=ci-only-application-key-not-a-live-secret \
             alsvid-crmeb-runtime-ci
-          trap 'docker rm -f alsvid-crmeb-runtime-ci >/dev/null 2>&1 || true' EXIT
+          trap 'docker rm -f alsvid-crmeb-runtime-ci alsvid-crmeb-nginx-ci >/dev/null 2>&1 || true' EXIT
+          docker run -d --name alsvid-crmeb-nginx-ci --network host alsvid-crmeb-nginx-ci
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:8080/api/products?page=1 > /dev/null; then break; fi
             if [[ "$attempt" == "30" ]]; then docker logs alsvid-crmeb-runtime-ci; exit 1; fi

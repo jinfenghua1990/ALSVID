@@ -1,21 +1,12 @@
 # syntax=docker/dockerfile:1
-# Candidate comparison runtime only. Upstream CRMEB currently requires PHP 7.4.
-FROM php:7.4-apache-bullseye
-RUN printf 'deb https://deb.debian.org/debian bullseye main\ndeb https://security.debian.org/debian-security bullseye-security main\n' > /etc/apt/sources.list \
- && apt-get -o Acquire::Retries=3 -o Acquire::http::No-Cache=true update \
- && apt-get install -y --no-install-recommends libcurl4-openssl-dev libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev \
- && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install -j2 pdo_mysql mysqli pcntl bcmath mbstring curl gd zip \
- && a2enmod rewrite headers \
- && rm -rf /var/lib/apt/lists/*
+# Use the native PHP runtime published by CRMEB, retaining its runtime contract.
+FROM ccr.ccs.tencentyun.com/crmebky_php/php:v7.4
 COPY crmeb/ /var/www/html/
 COPY LICENSE /opt/alsvid/CRMEB-LICENSE
-COPY --from=deployment apache.conf /etc/apache2/sites-available/000-default.conf
-COPY --from=deployment prepare-runtime.php entrypoint.php init-crmeb.php /opt/alsvid/
-RUN php /opt/alsvid/prepare-runtime.php \
- && sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
- && printf 'expose_php=Off\ndisplay_errors=Off\nlog_errors=On\nerror_log=/proc/self/fd/2\n' > /usr/local/etc/php/conf.d/alsvid.ini \
+COPY --from=deployment prepare-runtime.php entrypoint.php init-crmeb.php php-fpm.conf /opt/alsvid/
+RUN php -r 'foreach(["pdo_mysql","bcmath","mbstring","curl","gd","zip","pcntl"] as $extension){if(!extension_loaded($extension)){fwrite(STDERR,"Missing native runtime extension: ".$extension.PHP_EOL);exit(1);}}' \
+ && php /opt/alsvid/prepare-runtime.php \
  && mkdir -p /var/www/html/runtime /var/www/html/public/uploads \
  && chown -R www-data:www-data /var/www/html/runtime /var/www/html/public/uploads
-EXPOSE 8080
+EXPOSE 9000
 ENTRYPOINT ["php", "/opt/alsvid/entrypoint.php"]

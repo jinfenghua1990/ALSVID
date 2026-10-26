@@ -39,7 +39,7 @@ assert.notEqual(retry.status, 0); assert.match(retry.stderr + retry.stdout, /non
 await mkdir('.tmp/crmeb-native-evidence', { recursive: true });
 await writeFile('.tmp/crmeb-native-evidence/container-report.json', JSON.stringify({
   appCommit: process.env.APP_COMMIT, upstreamCommit: 'da8d3b93400f3c660aa54d38b54ada387c963cd9',
-  empty, before, after, nativeApacheContainer: true, adminHtml: true,
+  empty, before, after, nativeFpmNginxContainers: true, adminHtml: true,
   emptyInitialization: true, defaultDemoCustomersOrdersProductsRemoved: true, reinitializationRejected: true,
   blocked: ['web installer', 'public consumer POST', 'public scheduled tasks', 'payment callbacks'],
   liveDeployment: false,
