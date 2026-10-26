@@ -254,6 +254,21 @@ jobs:
           [[ "$code" == "401" ]]
           curl --fail --silent http://127.0.0.1:8080/commerce-lab-native/index.html >/dev/null
 
+      - name: Verify real login and PostgreSQL catalog chain
+        if: steps.scope.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -p alsvid-ci -f infra/docker-compose.test.yml -f infra/docker-compose.commerce-acceptance.yml up -d --no-build api web
+          node scripts/commerce-lab-real-acceptance.mjs
+      - name: Upload real catalog acceptance report
+        if: always() && steps.scope.outputs.docs_only != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: commerce-lab-real-acceptance
+          path: .tmp/commerce-lab-real-acceptance.json
+          if-no-files-found: warn
+
       - name: Verify API and worker remain running
         if: steps.scope.outputs.docs_only != 'true'
         run: |
