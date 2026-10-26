@@ -81,7 +81,7 @@
     },
     template:`<div class="article-manager">
       <header class="lab-heading"><div><small>ALSVID · CRMEB</small><h1>独立商城商品管理</h1></div>
-        <a href="https://www.alsvidbike.com/zh/shop-preview/catalog" target="_blank" rel="noopener">打开独立产品页 ↗</a></header>
+        <a href="https://www.alsvidbike.com/zh/shop-preview/catalog" target="_blank" rel="noopener">打开独立产品页（新窗口）</a></header>
       <el-alert title="本区为独立方案比较。方案价、参考图片和发布状态不代表正式售价、库存或量产规格；付款仍未开放。"
         type="info" :closable="false" show-icon></el-alert>
       <el-card shadow="never" class="ivu-mt">
