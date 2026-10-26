@@ -1,7 +1,8 @@
 import type { AppNavItem } from '@alsvid/ui';
 
 const configuredNavigation: readonly AppNavItem[] = [
-  { label: '商城方案对比', href: '/admin/commerce-lab', area: '商城方案对比', section: '独立实验区' },
+  { label: '商城方案对比', href: '/admin/commerce-lab', area: '商城方案对比', section: '独立商城' },
+  { label: '独立商品管理', href: '/admin/commerce-lab/catalog', area: '商城方案对比', section: '独立商城' },
   { label: '工作台', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '今日概览', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '待办与异常', href: '/admin', area: '工作台', section: '运营概览' },

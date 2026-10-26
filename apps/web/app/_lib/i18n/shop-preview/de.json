@@ -44,5 +44,18 @@
   "shopPreview.connectionScope": "Es werden nur externe Produktnamen angezeigt. Preise, Bestand, SKUs und Kaufabwicklung sind nicht verifiziert.",
   "shopPreview.connectionCount": "{count} Produkte der ersten Seite geladen (maximal 20)",
   "shopPreview.connectionChecked": "Zuletzt geprüft:",
-  "shopPreview.connectionRefresh": "Seite neu laden, um erneut abzurufen. Keine automatische Synchronisierung oder Änderungen im bestehenden System."
+  "shopPreview.connectionRefresh": "Seite neu laden, um erneut abzurufen. Keine automatische Synchronisierung oder Änderungen im bestehenden System.",
+  "comparison.heading": "Bereit für dein nächstes Kapitel.",
+  "comparison.body": "Vergleiche Modelle und entdecke dein ALSVID.",
+  "comparison.notice": "Unabhängiger Vergleich: Bilder, Texte und Planpreise dienen als Referenz. Serienspezifikation, Preis und Lieferung sind unbestätigt. Keine verbindlichen Bestellungen oder Zahlungen.",
+  "comparison.count": "{count} von {total} Vergleichsprodukten",
+  "comparison.empty": "Es wurden noch keine Vergleichsprodukte veröffentlicht.",
+  "comparison.unavailable": "Die Vergleichsprodukte sind vorübergehend nicht verfügbar. Es werden keine Beispieldaten als Ersatz angezeigt.",
+  "comparison.referenceView": "Frühere interaktive Vorschau ansehen",
+  "comparison.mainView": "Produktseite mit den verwalteten Daten ansehen",
+  "comparison.imagePending": "Bild folgt",
+  "comparison.inspect": "Details ansehen",
+  "comparison.proposedPrice": "Planpreis {amount}",
+  "comparison.refresh": "Lade diese Seite nach Änderungen neu. Die Vorschautasche enthält unverbindliche Auswahlen nur für diesen Tab.",
+  "comparison.unavailableSelection": "Ausgewähltes Produkt derzeit nicht verfügbar. Bitte aktualisieren."
 }

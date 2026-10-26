@@ -44,5 +44,18 @@
   "shopPreview.connectionScope": "Only external product names are shown. Prices, stock, SKUs and purchasing have not been verified.",
   "shopPreview.connectionCount": "Loaded {count} products from the first page (maximum 20)",
   "shopPreview.connectionChecked": "Last checked:",
-  "shopPreview.connectionRefresh": "Reload this page to fetch again. No automatic synchronization or changes to the existing system."
+  "shopPreview.connectionRefresh": "Reload this page to fetch again. No automatic synchronization or changes to the existing system.",
+  "comparison.heading": "Find your next chapter.",
+  "comparison.body": "Compare models and discover your ALSVID.",
+  "comparison.notice": "Independent comparison: images, descriptions and proposed prices are for reference. Production specifications, pricing and delivery remain unconfirmed. No binding orders or payments.",
+  "comparison.count": "Showing {count} of {total} comparison products",
+  "comparison.empty": "No comparison products have been published yet.",
+  "comparison.unavailable": "Comparison products are temporarily unavailable. No sample products have been substituted.",
+  "comparison.referenceView": "View the earlier interactive preview",
+  "comparison.mainView": "View the product page linked to managed data",
+  "comparison.imagePending": "Image to follow",
+  "comparison.inspect": "View details",
+  "comparison.proposedPrice": "Proposed {amount}",
+  "comparison.refresh": "Reload after changes are published. The preview bag stores non-binding selections for this tab only.",
+  "comparison.unavailableSelection": "Selected product currently unavailable. Please refresh."
 }

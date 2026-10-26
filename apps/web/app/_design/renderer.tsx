@@ -31,6 +31,9 @@ function isAreaActive(area: string, label: string): boolean {
 }
 
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
+  '商城方案对比': [
+    { group: '独立商城', items: ['方案总览与布局比较', '独立商品管理'] },
+  ],
   '数据': [
     { group: '数据分析', items: ['数据总览', '销售分析', '生产与库存分析', '售后与经销商分析'] },
     { group: '已接入专题', items: ['FC1 颜色偏好'] },
@@ -99,6 +102,11 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
 };
 
 function menuDestination(screen: Screen, label: string): string | undefined {
+  if (screen.area === '商城方案对比') {
+    if (label === '方案总览与布局比较') return '/admin/commerce-lab';
+    if (label === '独立商品管理') return '/admin/commerce-lab/catalog';
+    return undefined;
+  }
   if (screen.area === '经销商' && ['联系信息', '合作状态'].includes(label)) return '/admin/dealers';
   if (screen.area === '供应链' && label === '合作状态') return '/admin/supply';
   if (screen.area === '客户' && label === '联系信息') return '/admin/customers';
@@ -589,6 +597,9 @@ export async function AdminScreen({ screen, theme, children }: { screen: Screen;
               {area.label}
             </a>
           ))}
+          <a className="av-navitem" href="/admin/commerce-lab" title="独立商城方案、商品管理与页面比较"
+            data-active={screen.area === '商城方案对比'}
+            aria-current={screen.area === '商城方案对比' ? 'page' : undefined}>商城方案对比</a>
           <details className="av-moremenu">
             <summary className="av-navitem" data-active={MORE_AREAS.some(area => isAreaActive(screen.area, area.label))}>更多模块</summary>
             <div className="av-moremenu-panel">
@@ -597,9 +608,6 @@ export async function AdminScreen({ screen, theme, children }: { screen: Screen;
                   data-active={isAreaActive(screen.area, area.label)}
                   aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>{area.label}</a>
               ))}
-              <a className="av-moremenu-link" href="/admin/commerce-lab"
-                data-active={screen.area === '商城方案对比'}
-                aria-current={screen.area === '商城方案对比' ? 'page' : undefined}>商城方案对比 · 独立实验区</a>
             </div>
           </details>
         </nav>

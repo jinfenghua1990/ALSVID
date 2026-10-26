@@ -1,3 +1,4 @@
+import { CommerceLabController } from './commerce-lab.controller.js';
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AssetsController } from './assets.controller.js';
@@ -54,6 +55,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     DealerController,
     DealerPartnershipController,
     CommerceController,
+    CommerceLabController,
     CommerceOrderOperationsController,
     StorefrontOrdersController,
     ColourInterestController,

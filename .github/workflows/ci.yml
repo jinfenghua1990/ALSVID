@@ -243,6 +243,17 @@ jobs:
             fi
           done
 
+      - name: Verify PostgreSQL comparison routes and native editor assets
+        if: steps.scope.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent http://127.0.0.1:8080/api/v1/commerce-lab/public/products > "$RUNNER_TEMP/comparison-catalog.json"
+          node -e 'const fs=require("node:fs"),a=require("node:assert/strict");const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));a.deepEqual(p.data.items,[]);a.equal(p.data.total,0)' "$RUNNER_TEMP/comparison-catalog.json"
+          code="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/v1/commerce-lab/products)"
+          [[ "$code" == "401" ]]
+          curl --fail --silent http://127.0.0.1:8080/commerce-lab-native/index.html >/dev/null
+
       - name: Verify API and worker remain running
         if: steps.scope.outputs.docs_only != 'true'
         run: |

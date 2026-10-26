@@ -44,5 +44,18 @@
   "shopPreview.connectionScope": "仅展示外部商品名称；不代表价格、库存、SKU 或交易已核验。",
   "shopPreview.connectionCount": "本次读取首页 {count} 件商品（最多 20 件）",
   "shopPreview.connectionChecked": "最近检查：",
-  "shopPreview.connectionRefresh": "刷新本页重新读取；不自动同步，不写入原系统。"
+  "shopPreview.connectionRefresh": "刷新本页重新读取；不自动同步，不写入原系统。",
+  "comparison.heading": "探索你的下一程。",
+  "comparison.body": "比较车型展示与选择体验，找到适合自己的 ALSVID。",
+  "comparison.notice": "独立方案比较：图片、说明及方案价供参考，量产规格、售价与交付待确认；不创建真实订单或接受付款。",
+  "comparison.count": "显示 {count} / {total} 件独立商品",
+  "comparison.empty": "尚未发布独立商品。商品发布后将在这里展示。",
+  "comparison.unavailable": "暂时无法加载独立商品，请稍后刷新。未以示例商品替代。",
+  "comparison.referenceView": "查看此前的交互预览",
+  "comparison.mainView": "查看与后台同步的产品页",
+  "comparison.imagePending": "图片待补充",
+  "comparison.inspect": "查看详情",
+  "comparison.proposedPrice": "方案价 {amount}",
+  "comparison.refresh": "后台发布或修改后，刷新本页读取最新资料。预览袋仅用于当前标签页的非约束性选择。",
+  "comparison.unavailableSelection": "所选商品当前不可用，请刷新核对"
 }
