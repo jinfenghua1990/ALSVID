@@ -106,6 +106,7 @@ try{
   await frame.getByText('ALSVID FC1 已更新',{exact:true}).waitFor();
   assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page');
   assert.equal(await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
+  await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-desktop.png'),fullPage:true});
 
   const prior=writes;
@@ -137,6 +138,7 @@ try{
     await shop.setViewportSize({width:1440,height:1000});
   }
   await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-mobile.png'),fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Admin page fits mobile');
   assert.ok(await frame.locator('html').evaluate(element=>element.scrollWidth<=innerWidth+1),'native editor fits mobile');

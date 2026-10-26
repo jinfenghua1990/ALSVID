@@ -659,7 +659,7 @@ export async function AdminScreen({ screen, theme, children }: { screen: Screen;
                 <div className="av-railspacer" />
               </div>
             ))}
-            {!isIntegratedOverview && !isLiveProductRoot && screen.area !== '商城方案对比' ? <div className="av-railgroup">
+            {!isIntegratedOverview && !isLiveProductRoot ? <div className="av-railgroup">
               <div className="av-railtitle">设计页面 / 流程预览 · {moduleScreens.length}</div>
               {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
             </div> : null}
