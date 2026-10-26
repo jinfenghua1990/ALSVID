@@ -35,5 +35,14 @@
   "shopPreview.restore": "本页预览袋仅保存在当前标签页，不同步原商城购物袋。",
   "shopPreview.linkLabel": "方案比较",
   "shopPreview.linkBody": "保留当前产品中心，同时体验新的产品浏览与购物袋布局。",
-  "shopPreview.notConnected": "此页面为 ALSVID 独立交互预览；Medusa 与 CRMEB 服务尚未连接。"
+  "shopPreview.notConnected": "此页面为 ALSVID 独立交互预览；Medusa 与 CRMEB 服务尚未连接。",
+  "shopPreview.connectionHeading": "CRMEB 商品接口试接",
+  "shopPreview.connectionUnconfigured": "尚未启用真实商品源。下方车型仍为独立预览。",
+  "shopPreview.connectionConfiguration": "商品源配置需要检查，请联系管理员。",
+  "shopPreview.connectionUnavailable": "暂时无法读取商品源；未使用示例数据替代。",
+  "shopPreview.connectionReady": "已读取 CRMEB 商品列表（仅供比较）。",
+  "shopPreview.connectionScope": "仅展示外部商品名称；不代表价格、库存、SKU 或交易已核验。",
+  "shopPreview.connectionCount": "本次读取首页 {count} 件商品（最多 20 件）",
+  "shopPreview.connectionChecked": "最近检查：",
+  "shopPreview.connectionRefresh": "刷新本页重新读取；不自动同步，不写入原系统。"
 }

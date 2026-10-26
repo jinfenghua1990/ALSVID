@@ -35,5 +35,14 @@
   "shopPreview.restore": "This bag is stored only in this browser tab, separately from the existing shop bag.",
   "shopPreview.linkLabel": "Compare the storefront concepts",
   "shopPreview.linkBody": "Keep the current product centre and explore a new product and bag layout.",
-  "shopPreview.notConnected": "This is an independent ALSVID interaction preview. Medusa and CRMEB services are not connected."
+  "shopPreview.notConnected": "This is an independent ALSVID interaction preview. Medusa and CRMEB services are not connected.",
+  "shopPreview.connectionHeading": "CRMEB catalog connection",
+  "shopPreview.connectionUnconfigured": "The external product source is not enabled. The models below remain an independent preview.",
+  "shopPreview.connectionConfiguration": "The product source configuration needs checking. Please contact the administrator.",
+  "shopPreview.connectionUnavailable": "The product source is currently unavailable. No sample data has been substituted.",
+  "shopPreview.connectionReady": "CRMEB product list loaded (for comparison only).",
+  "shopPreview.connectionScope": "Only external product names are shown. Prices, stock, SKUs and purchasing have not been verified.",
+  "shopPreview.connectionCount": "Loaded {count} products from the first page (maximum 20)",
+  "shopPreview.connectionChecked": "Last checked:",
+  "shopPreview.connectionRefresh": "Reload this page to fetch again. No automatic synchronization or changes to the existing system."
 }
