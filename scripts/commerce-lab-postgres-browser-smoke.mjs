@@ -66,6 +66,12 @@ try{
   await page.goto(base+'/admin/commerce-lab/catalog');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
   await frame.getByRole('button',{name:'添加实验商品',exact:true}).click();
+  async function expectWrite(button,method,status){
+    const response=page.waitForResponse(response=>new URL(response.url()).pathname.startsWith('/admin/commerce-lab/api/products')&&response.request().method()===method);
+    await frame.getByRole('button',{name:button,exact:true}).click();
+    assert.equal((await response).status(),status,'native editor write succeeds');
+    if(button==='保存')await frame.locator('.el-dialog__wrapper').waitFor({state:'hidden'});
+  }
   async function fill(label,value){
     await frame.locator('.el-dialog__body .el-form-item').filter({hasText:label}).getByRole('textbox').fill(value);
   }
@@ -79,22 +85,19 @@ try{
   await fill('方案价 EUR（可留空）','2599.00');
   await frame.locator('.el-dialog__body .el-form-item').filter({hasText:'参考图片'}).locator('.el-select').click();
   await frame.getByText('FC1 参考图',{exact:true}).click();
-  await frame.getByRole('button',{name:'保存',exact:true}).click();
-  await frame.getByText('已保存到独立实验区',{exact:true}).waitFor();
+  await expectWrite('保存','POST',201);
   assert.equal(records.get(id).status,'DRAFT');
   assert.equal(records.get(id).proposedPriceMinor,259900);
   await shop.reload();await shop.locator('[data-database-catalog]').waitFor();
   assert.equal(await shop.locator('[data-comparison-product]').count(),0,'drafts stay private');
-  await frame.getByRole('button',{name:'发布',exact:true}).click();
-  await frame.getByText('发布状态已保存',{exact:true}).waitFor();
+  await expectWrite('发布','PATCH',200);
   await shop.reload();await shop.locator('[data-comparison-product]').waitFor();
   assert.equal(await shop.getByTestId('product-title').innerText(),'ALSVID FC1 原生联动');
 
   await frame.getByRole('button',{name:'编辑',exact:true}).click();
   await fill('中文名称（必填）','ALSVID FC1 已更新');
   await fill('英语名称（必填）','ALSVID FC1 updated');
-  await frame.getByRole('button',{name:'保存',exact:true}).click();
-  await frame.getByText('已保存到独立实验区',{exact:true}).waitFor();
+  await expectWrite('保存','PATCH',200);
   assert.equal(records.get(id).version,3);
   await page.reload();
   await frame.getByText('ALSVID FC1 已更新',{exact:true}).waitFor();
@@ -132,8 +135,7 @@ try{
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-mobile.png'),fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Admin page fits mobile');
   assert.ok(await frame.locator('html').evaluate(element=>element.scrollWidth<=innerWidth+1),'native editor fits mobile');
-  await frame.getByRole('button',{name:'下架',exact:true}).click();
-  await frame.getByText('发布状态已保存',{exact:true}).waitFor();
+  await expectWrite('下架','PATCH',200);
   await shop.reload();await shop.locator('[data-database-catalog]').waitFor();
   assert.equal(await shop.locator('[data-comparison-product]').count(),0,'withdrawal becomes visible after refresh');
   assert.deepEqual(buyerWrites,[],'buyer comparison never creates real orders');
