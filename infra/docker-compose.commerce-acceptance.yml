@@ -1,0 +1,8 @@
+# Disposable CI override only. Never use this file for Production.
+services:
+  api:
+    environment:
+      ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED: "true"
+  web:
+    environment:
+      ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED: "true"

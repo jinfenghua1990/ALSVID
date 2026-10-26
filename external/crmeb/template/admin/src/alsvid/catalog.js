@@ -31,16 +31,31 @@
     }
     return result.data;
   }
+  async function imageApi(id,method,version,file){
+    var headers={'x-product-version':String(version)};
+    if(file){headers['content-type']=file.type;headers['x-upload-filename']=encodeURIComponent(file.name);}
+    var response=await fetch('/admin/commerce-lab/api/products/'+id+'/image',{
+      method:method,credentials:'same-origin',headers:headers,body:file||undefined
+    });
+    var result;try{result=await response.json();}catch(error){throw new Error('图片服务响应异常，请稍后重试');}
+    if(!response.ok){
+      var messages={400:'请检查图片格式和文件名称',401:'请先登录 Admin',403:'当前账号没有图片操作权限',
+        409:'商品已变化，请刷新后重新操作',413:'图片不能超过 5 MiB',503:'图片存储暂不可用，请稍后重试'};
+      throw new Error(messages[response.status]||result.message||'暂时无法保存图片');
+    }
+    return result.data;
+  }
   new Vue({
     el:'#app',
     data:function(){return{locales:locales,artFrom:{page:1,limit:20,query:''},tableList:[],total:0,
-      loading:false,saving:false,errorMsg:'',dialogVisible:false,dialogWidth:'760px',editId:null,form:empty()};},
+      loading:false,saving:false,uploadTarget:null,errorMsg:'',dialogVisible:false,dialogWidth:'760px',editId:null,form:empty()};},
     mounted:function(){this.resize();window.addEventListener('resize',this.resize);this.load();},
     beforeDestroy:function(){window.removeEventListener('resize',this.resize);},
     methods:{
       resize:function(){this.dialogWidth=window.innerWidth<800?'96%':'760px';},
       label:function(status){return{DRAFT:'草稿',PUBLISHED:'已发布到独立产品页',ARCHIVED:'已归档'}[status]||status;},
-      image:function(row){return row.referenceImage==='FC1'?'/home/original/fc1-product.webp':
+      image:function(row){if(row.hasCustomImage)return '/admin/commerce-lab/api/products/'+row.id+'/image?v='+row.version;
+        return row.referenceImage==='FC1'?'/home/original/fc1-product.webp':
         row.referenceImage==='FC2'?'/products/fc2/side-studio-1536.webp':null;},
       price:function(row){return row.proposedPriceMinor===null?'待填写':'€ '+decimal(row.proposedPriceMinor)+'（方案价）';},
       load:async function(){
@@ -54,19 +69,53 @@
       },
       search:function(){this.artFrom.page=1;this.load();},
       reset:function(){this.artFrom.query='';this.artFrom.page=1;this.load();},
+      chooseImage:function(row){
+        if(this.saving)return;this.uploadTarget={id:row.id,version:row.version};
+        this.$refs.imageFile.value='';this.$refs.imageFile.click();
+      },
+      uploadImage:async function(event){
+        var file=event.target.files&&event.target.files[0],target=this.uploadTarget;
+        if(!file||!target)return;
+        if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0||file.size<1||file.size>5*1024*1024){
+          this.$message.error('请选择 5 MiB 以内的 JPEG、PNG 或 WebP 图片');return;
+        }
+        if(file.name.length>180){this.$message.error('图片文件名称过长，请缩短后上传');return;}
+        this.saving=true;
+        try{await imageApi(target.id,'POST',target.version,file);this.$message.success('主图已保存，发布状态保持不变');await this.load();}
+        catch(error){this.$message.error(error.message);}
+        finally{this.saving=false;this.uploadTarget=null;event.target.value='';}
+      },
+      removeImage:async function(row){
+        if(this.saving)return;this.saving=true;
+        try{await imageApi(row.id,'DELETE',row.version);this.$message.success('已移除上传主图，使用所选参考图');await this.load();}
+        catch(error){this.$message.error(error.message);}finally{this.saving=false;}
+      },
       create:function(){this.editId=null;this.form=empty();this.dialogVisible=true;},
       edit:function(row){this.editId=row.id;this.form={code:row.code,title:Object.assign({},row.title),
         description:Object.assign({},row.description),referenceImage:row.referenceImage||'',
         price:decimal(row.proposedPriceMinor),status:row.status,version:row.version};this.dialogVisible=true;},
       uppercaseCode:function(){this.form.code=this.form.code.toUpperCase();},
-      fields:function(){return{title:this.form.title,description:this.form.description,
-        referenceImage:this.form.referenceImage||null,proposedPriceMinor:minor(this.form.price)};},
+      fields:function(){
+        var title={},description={},form=this.form;
+        locales.forEach(function(lang){
+          var name=String(form.title[lang.id]||'').trim(),detail=String(form.description[lang.id]||'').trim();
+          if(!name)throw new Error('请填写'+lang.name+'名称');
+          if(name.length>120)throw new Error(lang.name+'名称不能超过120字');
+          if(detail.length>2000)throw new Error(lang.name+'说明不能超过2000字');
+          title[lang.id]=name;description[lang.id]=detail;
+        });
+        return{title:title,description:description,referenceImage:form.referenceImage||null,proposedPriceMinor:minor(form.price)};
+      },
       save:async function(){
         if(this.saving)return;this.saving=true;
         try{
           var value=this.fields();
           if(this.editId){value.expectedVersion=this.form.version;value.status=this.form.status;await api('/'+this.editId,'PATCH',value);}
-          else{value.code=this.form.code;await api('','POST',value);}
+          else{
+            var code=this.form.code.trim().toUpperCase();
+            if(!/^[A-Z0-9][A-Z0-9_-]{1,40}$/.test(code))throw new Error('实验编码至少2位，只能使用字母、数字、连字符或下划线');
+            this.form.code=code;value.code=code;await api('','POST',value);
+          }
           this.dialogVisible=false;this.$message.success('已保存到独立实验区');await this.load();
         }catch(error){this.$message.error(error.message);}finally{this.saving=false;}
       },
@@ -80,6 +129,7 @@
       }
     },
     template:`<div class="article-manager">
+      <input ref="imageFile" type="file" accept="image/jpeg,image/png,image/webp" @change="uploadImage" hidden aria-label="上传商品图片">
       <header class="lab-heading"><div><small>ALSVID · CRMEB</small><h1>独立商城商品管理</h1></div>
         <a href="https://www.alsvidbike.com/zh/shop-preview/catalog" target="_blank" rel="noopener">打开独立产品页（新窗口）</a></header>
       <el-alert title="本区为独立方案比较。方案价、参考图片和发布状态不代表正式售价、库存或量产规格；付款仍未开放。"
@@ -104,8 +154,11 @@
           <el-table-column label="状态" min-width="170"><template slot-scope="scope">
             <el-tag :type="scope.row.status==='PUBLISHED'?'success':'info'">{{label(scope.row.status)}}</el-tag></template></el-table-column>
           <el-table-column label="版本" width="70" prop="version"></el-table-column>
-          <el-table-column label="操作" min-width="180"><template slot-scope="scope">
+          <el-table-column label="操作" min-width="300"><template slot-scope="scope">
             <el-button type="text" @click="edit(scope.row)" :disabled="saving">编辑</el-button>
+            <el-button type="text" @click="chooseImage(scope.row)" :disabled="saving">上传主图</el-button>
+            <el-button v-if="scope.row.hasCustomImage" type="text" @click="removeImage(scope.row)" :disabled="saving">移除上传主图</el-button>
+            <a class="el-button el-button--text" :href="'/admin/commerce-lab/catalog/'+scope.row.id+'/preview'" target="_blank" rel="noopener noreferrer">预览</a>
             <el-button type="text" @click="publish(scope.row)" :disabled="saving">{{scope.row.status==='PUBLISHED'?'下架':'发布'}}</el-button>
           </template></el-table-column>
         </el-table></div>
@@ -126,7 +179,8 @@
           <el-form-item v-if="editId" label="发布状态"><el-select v-model="form.status">
             <el-option label="草稿" value="DRAFT"></el-option><el-option label="发布到独立产品页" value="PUBLISHED"></el-option>
             <el-option label="归档" value="ARCHIVED"></el-option></el-select></el-form-item>
-          <p v-else>新建商品先保存为草稿，之后再发布。</p>
+          <p v-else>新建商品先保存为草稿，之后可在列表上传主图、预览，再决定发布。</p>
+          <p v-if="editId">上传主图会优先显示；在列表移除上传主图后，才使用这里选择的参考图。</p>
         </el-form>
         <div slot="footer"><el-button @click="dialogVisible=false" :disabled="saving">取消</el-button>
           <el-button type="primary" @click="save" :loading="saving">保存</el-button></div>

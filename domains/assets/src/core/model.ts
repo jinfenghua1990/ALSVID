@@ -1,2 +1,4 @@
 export const AssetCapability={Read:'asset.read',Write:'asset.write'}as const;export interface AssetActor{userId:string;permissions:readonly string[]}
 export interface RegisterAssetInput{provider:string;bucket:string;objectKey:string;checksumSha256?:string;contentType?:string;byteSize?:number;originalFilename?:string;visibility?:'PRIVATE'|'INTERNAL'|'PUBLIC';classification?:'PRODUCT_MEDIA'|'ENGINEERING_DOC'|'MANUAL'|'CERTIFICATE'|'OTHER';metadata?:Record<string,unknown>}
+
+export interface PublicAssetMediaReference { id:string;provider:string;bucket:string;objectKey:string;contentType:string|null;byteSize:number|null }

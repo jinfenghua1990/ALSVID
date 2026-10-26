@@ -4,7 +4,7 @@ export type ComparisonStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export interface ComparisonCatalogProduct {
   id: string; code: string; title: ComparisonLocaleText; description: ComparisonLocaleText;
   referenceImage: 'FC1' | 'FC2' | null; proposedPriceMinor: number | null; currency: 'EUR';
-  status: ComparisonStatus; version: number; createdAt: string; updatedAt: string;
+  status: ComparisonStatus; version: number; createdAt: string; updatedAt: string; hasCustomImage: boolean;
 }
 export interface ComparisonProductFields {
   title: ComparisonLocaleText; description: ComparisonLocaleText;
