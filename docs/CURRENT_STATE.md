@@ -1,6 +1,18 @@
 # Current State
 
-## 2026-10-26 independent Medusa/CRMEB catalog release
+## 2026-10-26 saved-product preview and custom covers — latest application deployment
+
+The owner explicitly approved direct deployment of PR #375 (“不用，直接部署”). The PR is merged and release `5cff0a37eb0911add744e4fb368056c3a2bb79e9` is deployed on the existing `alsvid-production` / `europe-west1` Cloud Run services. [Main CI](https://github.com/jinfenghua1990/ALSVID/actions/runs/40341440288) and the [full production deployment](https://github.com/jinfenghua1990/ALSVID/actions/runs/40342257454) succeeded.
+
+WWW and Admin `/release-check` both returned this exact release; API `/api/health` returned the same version with status ok. Revisions: Web `alsvid-web-00040-n87`, API `alsvid-api-00014-7gq`. Migration execution `alsvid-migrate-g8h8n` succeeded; read-only Neon metadata confirms the cover UUID reference and comparison media link type from migration 0040.
+
+The independent menu remains **商城方案对比**. Saved products now have an authenticated draft preview in zh/de/en, and the native editor supports custom cover upload/replace/detach through the existing Assets/R2 adapter with a 5 MiB limit, version checks and unchanged publication state. “Private preview” means an unpublished product is visible only to an authenticated administrator; source development still happens directly in GitHub branches/PRs.
+
+Live read-only checks confirm all three public preview catalogs connect, anonymous internal catalog/image requests are rejected (401), protected pages redirect to login (307), an unknown public image is unavailable (404), and the deployed native editor JavaScript is reachable. The public catalog had 0 published products at this observation; that is not a permanent constraint or proof that no private drafts exist.
+
+The accepted PR browser tests verify actual cover decode using temporary HTTPS image fixtures, and real CI checks exercise login, BFF/API/PostgreSQL/audit, persistence across API restart and withdrawal. **Production signed-in catalog operations and a live R2 upload/read are still unaccepted.** No Production product or object was created as an acceptance fixture. Full checkout/payment/fulfillment remains outside the delivered comparison slice. See [current commerce scope and remaining work](COMMERCE_SOURCE_DELIVERY_SCOPE_2026-10-26.md).
+
+## 2026-10-26 initial independent catalog release — historical record
 
 PR #372 is merged and the independent comparison catalog is deployed on existing Cloud Run and Neon. The Admin primary menu is **商城方案对比**, separate from the original Ecommerce workspace. WWW reads published comparison products in zh/de/en; additive migration 0039 creates commerce_lab.catalog_products. Original business modules and payment gates remain in place.
 
