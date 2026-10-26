@@ -34,10 +34,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return localizedPaths.map((path) => ({
       url: `${siteUrl}${path}`,
       alternates: {
-        languages: Object.fromEntries(locales.map((lang) => [
-          lang,
-          `${siteUrl}/${lang}${path === homePath ? '/' : path.slice(locale.length + 1)}`,
-        ])),
+        languages: {
+          ...Object.fromEntries(locales.map((lang) => [
+            lang,
+            `${siteUrl}/${lang}${path === homePath ? '/' : path.slice(locale.length + 1)}`,
+          ])),
+          'x-default': `${siteUrl}/en${path === homePath ? '/' : path.slice(locale.length + 1)}`,
+        },
       },
       changeFrequency: path === homePath ? "weekly" as const : "monthly" as const,
       priority: path === homePath ? 1 : path.includes("/explore/") ? 0.8 : 0.7,
