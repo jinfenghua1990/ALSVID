@@ -15,6 +15,7 @@
 | 需要查找 | 唯一维护处 |
 | --- | --- |
 | AI 工作方式、部署/权限/变更边界 | [AGENTS.md](../AGENTS.md) |
+| **所有机器人共用一套 ALSVID 系统（不可拆分）/跨模块联动 / PR 强制验收** | [单一系统与多 AI 协作契约](ONE_SYSTEM_DEVELOPMENT_CONTRACT.md) |
 | 公司长期业务知识与分类 | [knowledge/README.md](../knowledge/README.md) |
 | 已确认的长期业务变更 | [Decision Log](../knowledge/00-Company/Decision-Log.md) |
 | 业务、技术架构变更原因与被替代关系 | [docs/adr](adr/) |
