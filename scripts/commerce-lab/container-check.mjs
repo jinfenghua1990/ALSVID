@@ -30,11 +30,11 @@ assert.equal((await fetch('http://127.0.0.1:8080/api/cart/add', { method: 'POST'
 const admin = await fetch('http://127.0.0.1:8080/admin/index.html');
 assert.equal(admin.status, 200);
 assert.match(await admin.text(), /<html|<!doctype/i);
-php("if(file_exists('/var/www/html/public/install/index.php'))exit(1);if(!is_file('/opt/alsvid/CRMEB-LICENSE'))exit(2);");
+php("if(file_exists('/var/www/html/public/install/index.php'))exit(1);if(!is_file('/var/alsvid-runtime/CRMEB-LICENSE'))exit(2);");
 const retry = spawnSync('docker', ['exec',
   '-e', 'CRMEB_INIT_CONFIRM=initialize-new-crmeb-comparison',
   '-e', 'CRMEB_INITIAL_ADMIN_PASSWORD=ci-only-initial-admin-password-123456',
-  container, 'php', '/opt/alsvid/init-crmeb.php'], { encoding: 'utf8' });
+  container, 'php', '/var/alsvid-runtime/init-crmeb.php'], { encoding: 'utf8' });
 assert.notEqual(retry.status, 0); assert.match(retry.stderr + retry.stdout, /nonempty database/);
 await mkdir('.tmp/crmeb-native-evidence', { recursive: true });
 await writeFile('.tmp/crmeb-native-evidence/container-report.json', JSON.stringify({

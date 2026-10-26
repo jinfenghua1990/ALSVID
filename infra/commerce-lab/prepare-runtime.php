@@ -8,7 +8,9 @@ if (substr_count($config, $needle) !== 1) {
     throw new RuntimeException('Pinned upstream DSN configuration changed; review required.');
 }
 file_put_contents($path, str_replace($needle, "'dsn'             => getenv('CRMEB_DB_DSN') ?: '',", $config));
-rename($root . '/public/install/crmeb.sql', '/opt/alsvid/crmeb-install.sql');
+if (!rename($root . '/public/install/crmeb.sql', '/var/alsvid-runtime/crmeb-install.sql')) {
+    throw new RuntimeException('Unable to package the initializer SQL outside the public directory.');
+}
 // Web installation is not available; initialization is an explicit empty-DB job.
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/public/install', FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
 foreach ($iterator as $item) {

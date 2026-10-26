@@ -119,7 +119,7 @@ jobs:
             -e CRMEB_DB_PASSWORD=ci-only-disposable-password \
             -e CRMEB_INIT_CONFIRM=initialize-new-crmeb-comparison \
             -e CRMEB_INITIAL_ADMIN_PASSWORD=ci-only-initial-admin-password-123456 \
-            alsvid-crmeb-runtime-ci /opt/alsvid/init-crmeb.php
+            alsvid-crmeb-runtime-ci /var/alsvid-runtime/init-crmeb.php
           # Public CI-only values, never reused by any deployed service.
           docker run -d --name alsvid-crmeb-runtime-ci --network host \
             -e 'CRMEB_DB_DSN=mysql:host=127.0.0.1;port=3307;dbname=crmeb_comparison;charset=utf8mb4' \

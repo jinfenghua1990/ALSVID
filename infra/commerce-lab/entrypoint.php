@@ -21,5 +21,5 @@ touch('/var/www/html/public/install.lock');
 chdir('/var/www/html');
 exec('command -v php-fpm', $binaries, $status);
 if ($status !== 0 || count($binaries) !== 1) throw new RuntimeException('Native PHP-FPM binary is missing.');
-pcntl_exec($binaries[0], ['--nodaemonize', '--fpm-config', '/opt/alsvid/php-fpm.conf']);
+pcntl_exec($binaries[0], ['--nodaemonize', '--fpm-config', '/var/alsvid-runtime/php-fpm.conf']);
 throw new RuntimeException('Unable to start PHP-FPM.');

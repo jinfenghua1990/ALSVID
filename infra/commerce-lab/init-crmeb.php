@@ -28,7 +28,7 @@ if ($pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_sche
     throw new RuntimeException('Refusing to initialize a nonempty database. No reset is supported.');
 }
 $pdo->exec("SET SESSION sql_mode = ''");
-$pdo->exec(file_get_contents('/opt/alsvid/crmeb-install.sql'));
+$pdo->exec(file_get_contents('/var/alsvid-runtime/crmeb-install.sql'));
 // Same configuration allowlist as the pinned upstream empty installation path.
 $keep = ['agent_level','agreement','cache','diy','express','lang_code','lang_country','lang_type',
 'member_right','member_ship','out_interface','page_categroy','page_link','shipping_templates',
