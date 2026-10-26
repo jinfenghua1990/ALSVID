@@ -8,7 +8,7 @@ if (!$root || !is_file($root . '/public/install/crmeb.sql') || !is_file($root . 
     throw new RuntimeException('Pinned native CRMEB checkout is missing.');
 }
 $pdo = new PDO('mysql:host=127.0.0.1;port=3307;dbname=crmeb_native_ci;charset=utf8mb4',
-    'crmeb_ci', 'ci-only-disposable', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    'crmeb_ci', 'ci-only-disposable-password', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 if (($argv[1] ?? '') === 'rename') {
     $statement = $pdo->prepare('UPDATE eb_store_product SET store_name = ? WHERE id = 910001');
     $statement->execute(['ALSVID FC1 native CI renamed']);
@@ -31,7 +31,7 @@ foreach ([[910001, 'ALSVID FC1 native CI'], [910002, 'ALSVID FC2 native CI']] as
 $statement = $pdo->prepare('UPDATE eb_system_admin SET pwd = ?');
 $statement->execute([password_hash(bin2hex(random_bytes(32)), PASSWORD_BCRYPT)]);
 $config = "APP_DEBUG = false\n[APP]\nDEFAULT_TIMEZONE = UTC\nAPP_KEY = " . bin2hex(random_bytes(24)) .
-    "\n[DATABASE]\nTYPE = mysql\nHOSTNAME = 127.0.0.1\nHOSTPORT = 3307\nUSERNAME = crmeb_ci\nPASSWORD = ci-only-disposable\nDATABASE = crmeb_native_ci\nPREFIX = eb_\nCHARSET = utf8mb4\nDEBUG = false" .
+    "\n[DATABASE]\nTYPE = mysql\nHOSTNAME = 127.0.0.1\nHOSTPORT = 3307\nUSERNAME = crmeb_ci\nPASSWORD = ci-only-disposable-password\nDATABASE = crmeb_native_ci\nPREFIX = eb_\nCHARSET = utf8mb4\nDEBUG = false" .
     "\n[CACHE]\nDRIVER = file\nCACHE_PREFIX = native_ci_\nCACHE_TAG_PREFIX = native_ci_tag_" .
     "\n[REDIS]\nREDIS_HOSTNAME = 127.0.0.1\nPORT = 6380\nREDIS_PASSWORD = \nSELECT = 0\n[QUEUE]\nQUEUE_NAME = native_ci\n";
 file_put_contents($root . '/.env', $config);

@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/commerce-lab/**'
+      - 'infra/commerce-lab/**'
       - 'apps/web/app/_experiments/commerce-lab/**'
       - '.github/workflows/crmeb-native.yml'
   workflow_dispatch:
@@ -23,7 +24,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: ci-root-disposable
           MYSQL_DATABASE: crmeb_native_ci
           MYSQL_USER: crmeb_ci
-          MYSQL_PASSWORD: ci-only-disposable
+          MYSQL_PASSWORD: ci-only-disposable-password
         ports:
           - 3307:3306
         options: >-
@@ -80,6 +81,53 @@ jobs:
             sleep 2
           done
           node scripts/commerce-lab/native-check.mjs
+      - name: Build the candidate native Apache container
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > .tmp/crmeb-upstream/.dockerignore <<'IGNORE'
+          **
+          !crmeb/
+          !crmeb/**
+          !LICENSE
+          crmeb/.env
+          crmeb/.constant
+          crmeb/runtime
+          crmeb/backup
+          crmeb/public/uploads
+          crmeb/public/install.lock
+          IGNORE
+          docker buildx build --load --build-context deployment=infra/commerce-lab \
+            -f infra/commerce-lab/Dockerfile -t alsvid-crmeb-runtime-ci .tmp/crmeb-upstream
+      - name: Verify packaged native runtime
+        env:
+          APP_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec -e MYSQL_PWD=ci-root-disposable "${{ job.services.mysql.id }}" mysql -uroot -e \
+            "CREATE DATABASE crmeb_comparison CHARACTER SET utf8mb4; GRANT ALL ON crmeb_comparison.* TO 'crmeb_ci'@'%';"
+          docker run --rm --network host --entrypoint php \
+            -e 'CRMEB_DB_DSN=mysql:host=127.0.0.1;port=3307;dbname=crmeb_comparison;charset=utf8mb4' \
+            -e CRMEB_DB_USER=crmeb_ci \
+            -e CRMEB_DB_PASSWORD=ci-only-disposable-password \
+            -e CRMEB_INIT_CONFIRM=initialize-new-crmeb-comparison \
+            -e CRMEB_INITIAL_ADMIN_PASSWORD=ci-only-initial-admin-password-123456 \
+            alsvid-crmeb-runtime-ci /opt/alsvid/init-crmeb.php
+          # Public CI-only values, never reused by any deployed service.
+          docker run -d --name alsvid-crmeb-runtime-ci --network host \
+            -e 'CRMEB_DB_DSN=mysql:host=127.0.0.1;port=3307;dbname=crmeb_comparison;charset=utf8mb4' \
+            -e CRMEB_DB_USER=crmeb_ci \
+            -e CRMEB_DB_PASSWORD=ci-only-disposable-password \
+            -e CRMEB_APP_KEY=ci-only-application-key-not-a-live-secret \
+            alsvid-crmeb-runtime-ci
+          trap 'docker rm -f alsvid-crmeb-runtime-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/api/products?page=1 > /dev/null; then break; fi
+            if [[ "$attempt" == "30" ]]; then docker logs alsvid-crmeb-runtime-ci; exit 1; fi
+            sleep 2
+          done
+          node scripts/commerce-lab/container-check.mjs
       - name: Upload sanitized native evidence
         uses: actions/upload-artifact@v7
         if: always()
