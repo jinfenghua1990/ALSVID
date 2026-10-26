@@ -2,6 +2,8 @@
 
 status: active
 
+负责人再次确认：Admin 必须单独增加一级菜单进行布局与比较。商城方案对比直接出现在主导航，独立二级入口为方案总览与布局比较、独立商品管理；不放入“更多模块”或原有电商业务菜单。复用数据库/身份属于技术接入，不改变这一独立布局要求。
+
 负责人要求把 Medusa 前台与 CRMEB 中文后台源码引入自己的 GitHub，然后发布至现有 ALSVID 官方网站和 Admin 的独立菜单，保留原系统用于比较。已有 Neon PostgreSQL、Cloudflare R2、Google Cloud Run；负责人进一步确认重新编写代码复用现有数据库。实现决定见 [PostgreSQL 适配 ADR](adr/2026-10-26-commerce-comparison-postgresql.md)。
 
 ## 源码与适配

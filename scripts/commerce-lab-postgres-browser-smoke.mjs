@@ -63,7 +63,10 @@ try{
   const admin=await browser.newContext({viewport:{width:1440,height:1100}});
   await admin.addCookies([{name:'alsvid_session',value:token,domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   const page=await admin.newPage();page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(base+'/admin/commerce-lab/catalog');
+  await page.goto(base+'/admin/commerce-lab');
+  await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).waitFor();
+  await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).click();
+  await page.waitForURL(base+'/admin/commerce-lab/catalog');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
   await frame.getByRole('button',{name:'添加实验商品',exact:true}).click();
   async function expectWrite(button,method,status){
@@ -101,6 +104,8 @@ try{
   assert.equal(records.get(id).version,3);
   await page.reload();
   await frame.getByText('ALSVID FC1 已更新',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page');
+  assert.equal(await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-desktop.png'),fullPage:true});
 
   const prior=writes;
