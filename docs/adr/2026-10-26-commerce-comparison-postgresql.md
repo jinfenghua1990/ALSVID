@@ -1,6 +1,6 @@
 # Medusa/CRMEB comparison on existing PostgreSQL, 2026-10-26
 
-Status: owner-authorized rewrite; implementation and production acceptance pending.
+Status: accepted; independent catalog slice implemented and deployed. Authenticated production write acceptance remains open.
 
 The owner clarified that the goal is to bring the actual Medusa storefront and CRMEB Chinese Admin source into ALSVID's GitHub and publish under WWW and a separate Admin menu. The owner already has Neon PostgreSQL, R2 and Cloud Run, and explicitly requested rewriting the integration for the existing database instead of adding MySQL.
 
@@ -16,5 +16,8 @@ The existing reviewed migration/deployment chain must validate the additive sche
 ## Superseded deployment assumptions
 A pre-existing CRMEB host or a new MySQL service is not required. The earlier native PHP/MySQL workflow proves upstream contracts only. The proposed Cloud SQL inventory is no longer on the delivery path; existing Neon production metadata was verified read-only.
 
-## Remaining acceptance
-Native-source-derived Admin and storefront surfaces, persistent CRUD/publication synchronization, role/error/mobile/browser checks, existing R2 media mapping and actual exact-SHA production acceptance. Importing source or adding a table alone does not complete the requested integration.
+## Implementation and evidence
+The native-source-derived product surfaces and persistent catalog behavior shipped through PR #372. PostgreSQL integration tests and isolated browser checks passed. The exact production commit, migration and live read-only checks are recorded in [the delivery scope](../COMMERCE_SOURCE_DELIVERY_SCOPE_2026-10-26.md), the maintained release/acceptance record for this slice.
+
+## Remaining acceptance and optional extensions
+Authenticated production Admin create/edit/publish/withdraw and public refresh still need a recorded end-to-end acceptance. Isolated fixture writes do not establish that evidence. Custom R2 media mapping and any formal SKU/price/stock/checkout/payment/fulfillment work are separate extensions; the current comparison feature intentionally uses allowed reference images and does not transact. CRMEB's full module set has not been ported merely because its source is present.

@@ -1,5 +1,13 @@
 # Current State
 
+## 2026-10-26 independent Medusa/CRMEB catalog release
+
+PR #372 is merged and the independent comparison catalog is deployed on existing Cloud Run and Neon. The Admin primary menu is **商城方案对比**, separate from the original Ecommerce workspace. WWW reads published comparison products in zh/de/en; additive migration 0039 creates commerce_lab.catalog_products. Original business modules and payment gates remain in place.
+
+The verified application release is `1d2475559b529d8a6d65789b5e42157e7eed03f9`. Exact-commit main CI, full production deployment, WWW/Admin release checks, connected public catalog pages and the new Neon table were verified. Authenticated production catalog writes have **not** been accepted yet. This delivers the comparison catalog slice, not every CRMEB module or a complete live transaction engine.
+
+[Commerce delivery scope and remaining work](COMMERCE_SOURCE_DELIVERY_SCOPE_2026-10-26.md) is the maintained evidence/checklist. It supersedes earlier pending-production statements for this slice. The dated entries below remain historical snapshots; do not treat older first-deployment or unprovisioned-resource notes as a fresh live-resource audit.
+
 ## 2026-10-22 release and acceptance audit snapshot (updated after PR #302 / #303 / #305 production deployment)
 
 This dated snapshot separates repository state from live production acceptance. A successful exact-SHA deployment confirms the code release, but does not replace visual, authenticated business, Network or external-service acceptance.
