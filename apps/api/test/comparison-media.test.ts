@@ -24,7 +24,7 @@ class Storage implements ObjectStoragePort{
   }
   async delete(key:string){this.deleteCalls++;this.objects.delete(key);}
   async signedReadUrl(key:string,expiry:number){assert.ok(this.objects.has(key));this.lastExpiry=expiry;return'https://media.example.test/'+key;}
-  async signedWriteUrl(){throw new Error('Direct write URLs are not used by this upload path');}
+  async signedWriteUrl():Promise<string>{throw new Error('Direct write URLs are not used by this upload path');}
 }
 const enabled=process.env.GITHUB_ACTIONS==='true'&&Boolean(process.env.DATABASE_URL);
 test('comparison images use Assets ownership and publication-gated access without changing publication state',{skip:!enabled},async()=>{

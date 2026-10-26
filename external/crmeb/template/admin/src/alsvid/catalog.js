@@ -95,14 +95,27 @@
         description:Object.assign({},row.description),referenceImage:row.referenceImage||'',
         price:decimal(row.proposedPriceMinor),status:row.status,version:row.version};this.dialogVisible=true;},
       uppercaseCode:function(){this.form.code=this.form.code.toUpperCase();},
-      fields:function(){return{title:this.form.title,description:this.form.description,
-        referenceImage:this.form.referenceImage||null,proposedPriceMinor:minor(this.form.price)};},
+      fields:function(){
+        var title={},description={},form=this.form;
+        locales.forEach(function(lang){
+          var name=String(form.title[lang.id]||'').trim(),detail=String(form.description[lang.id]||'').trim();
+          if(!name)throw new Error('请填写'+lang.name+'名称');
+          if(name.length>120)throw new Error(lang.name+'名称不能超过120字');
+          if(detail.length>2000)throw new Error(lang.name+'说明不能超过2000字');
+          title[lang.id]=name;description[lang.id]=detail;
+        });
+        return{title:title,description:description,referenceImage:form.referenceImage||null,proposedPriceMinor:minor(form.price)};
+      },
       save:async function(){
         if(this.saving)return;this.saving=true;
         try{
           var value=this.fields();
           if(this.editId){value.expectedVersion=this.form.version;value.status=this.form.status;await api('/'+this.editId,'PATCH',value);}
-          else{value.code=this.form.code;await api('','POST',value);}
+          else{
+            var code=this.form.code.trim().toUpperCase();
+            if(!/^[A-Z0-9][A-Z0-9_-]{1,40}$/.test(code))throw new Error('实验编码至少2位，只能使用字母、数字、连字符或下划线');
+            this.form.code=code;value.code=code;await api('','POST',value);
+          }
           this.dialogVisible=false;this.$message.success('已保存到独立实验区');await this.load();
         }catch(error){this.$message.error(error.message);}finally{this.saving=false;}
       },

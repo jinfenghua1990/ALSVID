@@ -103,6 +103,10 @@ try{
     await frame.locator('.el-dialog__body .el-form-item').filter({hasText:label}).getByRole('textbox').fill(value);
   }
   await fill('实验编码（保存后固定）','FC1-BROWSER-CI');
+  await frame.getByRole('button',{name:'保存',exact:true}).click();
+  await frame.getByText('请填写中文名称',{exact:true}).waitFor();
+  assert.equal(writes,0,'missing title is explained before issuing a create request');
+  report.checks.push('required locale title validation gives a precise message without creating a record');
   await fill('中文名称（必填）','ALSVID FC1 原生联动');
   await fill('德语名称（必填）','ALSVID FC1 Vergleich');
   await fill('英语名称（必填）','ALSVID FC1 comparison');
