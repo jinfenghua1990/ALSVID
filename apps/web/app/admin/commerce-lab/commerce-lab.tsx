@@ -65,7 +65,7 @@ export function CommerceLab() {
   }
   return <div className={styles.lab} data-commerce-lab>
     <div className={styles.disclosure}>
-      <strong>独立交互样机 · 尚未运行 Medusa / CRMEB 服务</strong>
+      <strong>历史交互样机 · 仅浏览器内演示</strong>
       <span>示例价格与订单仅用于比较；刷新即清空，不读取或同步真实客户、订单、库存与购物袋。</span>
     </div>
     <nav className={styles.tabs} aria-label="商城方案对比">
@@ -88,7 +88,7 @@ export function CommerceLab() {
             <a href="/admin/ecommerce" target="_blank" rel="noopener noreferrer">查看现有电商后台（新窗口）</a>
             <a href="/admin/architecture" target="_blank" rel="noopener noreferrer">查看当前系统架构（新窗口）</a></div>
         </section>
-        <section className={styles.panel}><span className={styles.badge}>候选融合方案 · 未接通</span><h3>Medusa 前台 × CRMEB 后端</h3>
+        <section className={styles.panel}><span className={styles.badge}>旧版交互方案 · 不保存</span><h3>Medusa 前台 × CRMEB 后端</h3>
           <p>前台参考 Medusa 的商品、购物袋和结账体验，中文运营参考 CRMEB。两个项目不直接兼容，需要替换前台数据调用并开发适配层。</p>
           <div className={styles.links}><a href="https://www.alsvidbike.com/zh/shop-preview" target="_blank" rel="noopener noreferrer">打开 WWW 新版产品页面（中文）</a>
             <a href="https://www.alsvidbike.com/de/shop-preview" target="_blank" rel="noopener noreferrer">打开 WWW 新版产品页面（德语）</a>
@@ -100,7 +100,7 @@ export function CommerceLab() {
       </div>
       <section className={styles.panel}><h3>你可以实际比较的交互</h3>
         <ol><li>在购买页面加入演示商品，生成一张演示单。</li><li>进入中文后台查看同一张演示单，修改演示商品名称、价格或上架状态。</li><li>回到购买页面查看变化；全部状态仅存在于当前浏览器页面内。</li></ol>
-        <p>正式融合仍需独立确定数据写入权威、账号、支付、数据库与部署边界；本样机不代表原生源码已经整合。</p>
+        <p>当前独立商品管理已复用 ALSVID 的身份、API 与 PostgreSQL。本页仅保留旧版交互设计；管理已保存商品请使用左侧“独立商品管理”。</p>
       </section>
     </div>}
 

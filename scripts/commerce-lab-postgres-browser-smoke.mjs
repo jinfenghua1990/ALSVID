@@ -68,6 +68,10 @@ try{
   await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).click();
   await page.waitForURL(base+'/admin/commerce-lab/catalog');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
+  await frame.getByRole('heading',{name:'独立商城商品管理',exact:true}).waitFor();
+  assert.equal(await page.locator('.av-pagehead').count(),0,'embedded editor owns its page heading');
+  assert.equal(await frame.getByRole('heading',{name:'独立商城商品管理',exact:true}).count(),1);
+  assert.equal(await page.getByText('设计页面 / 流程预览 · 0',{exact:true}).count(),0);
   await frame.getByRole('button',{name:'添加实验商品',exact:true}).click();
   async function expectWrite(button,method,status){
     const response=page.waitForResponse(response=>new URL(response.url()).pathname.startsWith('/admin/commerce-lab/api/products')&&response.request().method()===method);
@@ -106,7 +110,7 @@ try{
   await frame.getByText('ALSVID FC1 已更新',{exact:true}).waitFor();
   assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page');
   assert.equal(await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
-  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-desktop.png'),fullPage:true});
 
   const prior=writes;
@@ -138,7 +142,7 @@ try{
     await shop.setViewportSize({width:1440,height:1000});
   }
   await page.setViewportSize({width:390,height:844});
-  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-mobile.png'),fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Admin page fits mobile');
   assert.ok(await frame.locator('html').evaluate(element=>element.scrollWidth<=innerWidth+1),'native editor fits mobile');

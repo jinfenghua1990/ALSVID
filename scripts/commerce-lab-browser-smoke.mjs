@@ -30,8 +30,9 @@ try {
   report.checks.push('unauthenticated route remains protected');
   await context.addCookies([{ name: 'alsvid_session', value: 'commerce-lab-ci', url: base, httpOnly: true }]);
   await page.goto(base + '/admin/commerce-lab');
-  const lab = page.locator('[data-commerce-lab]');
-  await lab.waitFor();
+  await page.locator('[data-commerce-lab-overview]').waitFor();
+  assert.equal(await page.locator('[data-commerce-lab]').count(), 0, 'overview does not mount the in-memory demo');
+  assert.equal(await page.getByText('设计页面 / 流程预览 · 0', { exact: true }).count(), 0, 'empty design groups stay hidden');
   const primary = page.getByRole('navigation', { name: '一级导航', exact: true });
   const entry = primary.getByRole('link', { name: '商城方案对比', exact: true });
   assert.equal(await entry.count(), 1, 'independent catalog has one primary menu entry');
@@ -42,6 +43,13 @@ try {
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
   assert.equal(await secondary.getByRole('link', { name: '独立商品管理', exact: true }).getAttribute('href'), '/admin/commerce-lab/catalog');
   report.checks.push('comparison is a direct primary menu with its own secondary layout; original ecommerce entry preserved');
+  await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
+  await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
+  await page.waitForURL(base + '/admin/commerce-lab/reference');
+  const lab = page.locator('[data-commerce-lab]');
+  await lab.waitFor();
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比', exact: true }).getAttribute('aria-current'), 'page');
+  report.checks.push('legacy demo remains reachable under its own protected reference route');
   const mutations = [];
   page.on('request', request => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) mutations.push(request.url()); });
   const before = await page.evaluate(() => JSON.stringify({ ...localStorage }));
