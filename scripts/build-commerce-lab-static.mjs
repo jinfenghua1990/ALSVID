@@ -20,3 +20,5 @@ for(const name of ['index.html','catalog.js','catalog.css'])
   await copyFile(join(root,'external/crmeb/template/admin/src/alsvid',name),join(out,name));
 await copyFile(join(root,'external/crmeb/LICENSE'),join(out,'CRMEB-LICENSE.txt'));
 console.log('Built CRMEB-derived comparison UI using the imported native Vue/Element UI runtime.');
+
+await copyFile(join(root,'external/medusa-dtc/LICENSE'),join(out,'MEDUSA-LICENSE.txt'));

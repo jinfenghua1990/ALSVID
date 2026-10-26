@@ -18,7 +18,7 @@ try {
     const mutations = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) mutations.push(request.url()); });
-    await page.goto(base + '/' + locale + '/shop-preview');
+    await page.goto(base + '/' + locale + '/shop-preview/reference');
     const preview = page.locator('[data-shop-preview]');
     await preview.waitFor();
     assert.equal(await page.locator('[data-public-site-header]').count(), 1);
