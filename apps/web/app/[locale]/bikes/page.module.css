@@ -195,6 +195,48 @@
 @media(max-width:390px){.discovery .modelGrid{grid-template-columns:1fr}.discovery .modelImageLink{aspect-ratio:1.35}}
 
 
+/* Polished model cards: responsive to the actual content width after the model sidebar. */
+.discovery{container-name:alsvid-bike-cards;container-type:inline-size}
+.discovery .modelGrid{gap:clamp(16px,1.6vw,24px);grid-template-columns:repeat(3,minmax(0,1fr))}
+.discovery .modelCard{min-width:0;min-height:0;border-radius:14px;border-color:#e2e9e3;overflow:hidden}
+.discovery .modelImagePanel{min-width:0}
+.discovery .modelImageLink{flex:none;width:100%;aspect-ratio:4/3;min-height:0;padding:clamp(14px,1.7vw,24px);background:#f5f7f4;overflow:hidden}
+.discovery .modelImageLink img{display:block;width:100%;height:100%;min-width:0;min-height:0;max-height:100%;object-fit:contain}
+.discovery .modelInfo{gap:14px;padding:clamp(18px,2vw,28px);min-width:0}
+.discovery .modelMeta{align-items:start;gap:8px;min-width:0}
+.discovery .status{max-width:100%;white-space:normal;line-height:1.45}
+.discovery .modelCode{flex:none;font-size:11px;line-height:1.5}
+.discovery .modelInfo h3{margin:4px 0 2px;font-size:clamp(25px,2.15vw,34px);line-height:1.15;letter-spacing:-.035em;overflow-wrap:anywhere}
+.discovery .modelInfo p{line-height:1.55;overflow-wrap:anywhere}
+.discovery .discoveryModelNote{font-size:13px;line-height:1.68}
+.discovery .bikeFacts{gap:13px 10px}
+.discovery .bikeFacts dd{overflow-wrap:anywhere}
+.discovery .discoveryColours{padding:15px 0}
+.discovery .discoveryActions{display:flex;flex-wrap:wrap;gap:10px}
+.discovery .discoveryActions>a.detailLink{flex:1 1 100%;min-width:0;margin-top:0;font-size:13px!important;line-height:1.45}
+.discovery .discoveryActions button{flex:1 1 116px;min-width:0;line-height:1.45}
+.discovery a:focus-visible,.discovery button:focus-visible{outline:2px solid #52764f;outline-offset:3px}
+@container alsvid-bike-cards (max-width:960px){
+  .discovery .modelGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container alsvid-bike-cards (max-width:600px){
+  .discovery .modelGrid{grid-template-columns:minmax(0,1fr);gap:16px}
+  .discovery .modelImageLink{aspect-ratio:3/2;min-height:0;padding:16px}
+  .discovery .modelInfo{padding:21px;gap:13px}
+  .discovery .modelInfo h3{font-size:clamp(26px,5.8vw,34px)}
+  .discovery .discoveryActions button{flex:1 1 130px}
+}
+@media(max-width:700px){
+  .discovery .modelImageLink{min-height:0}
+  .discovery .modelImageLink img{width:100%;height:100%;min-height:0}
+  .discovery .modelInfo{padding:18px}
+}
+@media(max-width:600px){
+  .discovery .modelInfo{padding:21px}
+}
+
+/* Keep the quick-view integration from its separate PR scoped to its own dialog. */
+
 /* Product-collection image index: editorial styling inspired by German e-bike catalogues. */
 .quickModels{background:#fff;border-bottom:1px solid #e1e8e2;padding:22px clamp(22px,6vw,110px) 25px}
 .quickModelsHeading{display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:15px}
