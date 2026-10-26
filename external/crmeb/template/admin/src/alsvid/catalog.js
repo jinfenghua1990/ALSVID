@@ -9,8 +9,18 @@
   var Vue=window.Vue;
   Vue.use(window.ELEMENT); Vue.config.productionTip=false;
   var locales=[{id:'zh',name:'中文'},{id:'de',name:'德语'},{id:'en',name:'英语'}];
+  var specificationPresets=[
+    {id:'battery',name:'电池容量',label:{zh:'电池容量',de:'Akkukapazität',en:'Battery capacity'}},
+    {id:'torque',name:'电机扭矩',label:{zh:'电机扭矩',de:'Drehmoment',en:'Motor torque'}},
+    {id:'range',name:'续航里程',label:{zh:'续航里程',de:'Reichweite',en:'Range'}},
+    {id:'weight',name:'整车重量',label:{zh:'整车重量',de:'Fahrradgewicht',en:'Bike weight'}},
+    {id:'wheel',name:'轮径',label:{zh:'轮径',de:'Radgröße',en:'Wheel size'}},
+    {id:'suspension',name:'悬挂',label:{zh:'悬挂',de:'Federung',en:'Suspension'}},
+    {id:'brakes',name:'刹车',label:{zh:'刹车',de:'Bremsen',en:'Brakes'}},
+    {id:'height',name:'适用身高',label:{zh:'适用身高',de:'Körpergröße',en:'Rider height'}}
+  ];
   function empty(){return{code:'',title:{zh:'',de:'',en:''},description:{zh:'',de:'',en:''},
-    referenceImage:'',price:'',status:'DRAFT',version:1};}
+    specifications:[],referenceImage:'',price:'',status:'DRAFT',version:1};}
   function decimal(minor){return minor===null?'':String(Math.floor(minor/100))+'.'+String(minor%100).padStart(2,'0');}
   function minor(value){
     if(value.trim()==='')return null;
@@ -47,7 +57,7 @@
   }
   new Vue({
     el:'#app',
-    data:function(){return{locales:locales,artFrom:{page:1,limit:20,query:''},tableList:[],total:0,
+    data:function(){return{locales:locales,specificationPresets:specificationPresets,presetChoice:'',artFrom:{page:1,limit:20,query:''},tableList:[],total:0,
       loading:false,saving:false,uploadTarget:null,errorMsg:'',dialogVisible:false,dialogWidth:'760px',editId:null,form:empty()};},
     mounted:function(){this.resize();window.addEventListener('resize',this.resize);this.load();},
     beforeDestroy:function(){window.removeEventListener('resize',this.resize);},
@@ -90,9 +100,26 @@
         try{await imageApi(row.id,'DELETE',row.version);this.$message.success('已移除上传主图，使用所选参考图');await this.load();}
         catch(error){this.$message.error(error.message);}finally{this.saving=false;}
       },
-      create:function(){this.editId=null;this.form=empty();this.dialogVisible=true;},
+      featuredCount:function(){return this.form.specifications.filter(function(row){return row.featured;}).length;},
+      addSpecification:function(){
+        if(this.form.specifications.length>=20){this.$message.error('最多添加20项参数');return;}
+        var choice=this.presetChoice,preset=specificationPresets.find(function(row){return row.id===choice;});
+        this.form.specifications.push({label:preset?Object.assign({},preset.label):{zh:'',de:'',en:''},
+          value:{zh:'',de:'',en:''},featured:this.featuredCount()<4});
+        this.presetChoice='';
+      },
+      moveSpecification:function(index,offset){
+        var next=index+offset;if(next<0||next>=this.form.specifications.length)return;
+        var row=this.form.specifications.splice(index,1)[0];this.form.specifications.splice(next,0,row);
+      },
+      copySpecificationValue:function(index){
+        var row=this.form.specifications[index];
+        ['de','en'].forEach(function(lang){if(!row.value[lang].trim())row.value[lang]=row.value.zh;});
+      },
+      create:function(){this.editId=null;this.form=empty();this.presetChoice='';this.dialogVisible=true;},
       edit:function(row){this.editId=row.id;this.form={code:row.code,title:Object.assign({},row.title),
         description:Object.assign({},row.description),referenceImage:row.referenceImage||'',
+        specifications:(row.specifications||[]).map(function(spec){return{label:Object.assign({},spec.label),value:Object.assign({},spec.value),featured:spec.featured};}),
         price:decimal(row.proposedPriceMinor),status:row.status,version:row.version};this.dialogVisible=true;},
       uppercaseCode:function(){this.form.code=this.form.code.toUpperCase();},
       fields:function(){
@@ -104,7 +131,19 @@
           if(detail.length>2000)throw new Error(lang.name+'说明不能超过2000字');
           title[lang.id]=name;description[lang.id]=detail;
         });
-        return{title:title,description:description,referenceImage:form.referenceImage||null,proposedPriceMinor:minor(form.price)};
+        if(form.specifications.length>20)throw new Error('最多添加20项参数');
+        if(this.featuredCount()>4)throw new Error('商品卡片最多显示4项参数');
+        var specifications=form.specifications.map(function(spec,index){
+          var label={},value={};
+          locales.forEach(function(lang){
+            var name=String(spec.label[lang.id]||'').trim(),detail=String(spec.value[lang.id]||'').trim();
+            if(!name||!detail)throw new Error('请填写参数'+(index+1)+'的'+lang.name+'名称与数值');
+            if(name.length>60||detail.length>160)throw new Error('参数名称最多60字，数值最多160字');
+            label[lang.id]=name;value[lang.id]=detail;
+          });
+          return{label:label,value:value,featured:!!spec.featured};
+        });
+        return{title:title,description:description,specifications:specifications,referenceImage:form.referenceImage||null,proposedPriceMinor:minor(form.price)};
       },
       save:async function(){
         if(this.saving)return;this.saving=true;
@@ -123,7 +162,7 @@
         if(this.saving)return;this.saving=true;
         try{
           await api('/'+row.id,'PATCH',{title:row.title,description:row.description,referenceImage:row.referenceImage,
-            proposedPriceMinor:row.proposedPriceMinor,expectedVersion:row.version,status:row.status==='PUBLISHED'?'DRAFT':'PUBLISHED'});
+            proposedPriceMinor:row.proposedPriceMinor,specifications:row.specifications||[],expectedVersion:row.version,status:row.status==='PUBLISHED'?'DRAFT':'PUBLISHED'});
           this.$message.success('发布状态已保存');await this.load();
         }catch(error){this.$message.error(error.message);}finally{this.saving=false;}
       }
@@ -154,11 +193,13 @@
           <el-table-column label="状态" min-width="170"><template slot-scope="scope">
             <el-tag :type="scope.row.status==='PUBLISHED'?'success':'info'">{{label(scope.row.status)}}</el-tag></template></el-table-column>
           <el-table-column label="版本" width="70" prop="version"></el-table-column>
-          <el-table-column label="操作" min-width="300"><template slot-scope="scope">
+          <el-table-column label="参数" width="90"><template slot-scope="scope">{{(scope.row.specifications||[]).length}} 项</template></el-table-column>
+          <el-table-column label="操作" min-width="370"><template slot-scope="scope">
             <el-button type="text" @click="edit(scope.row)" :disabled="saving">编辑</el-button>
             <el-button type="text" @click="chooseImage(scope.row)" :disabled="saving">上传主图</el-button>
             <el-button v-if="scope.row.hasCustomImage" type="text" @click="removeImage(scope.row)" :disabled="saving">移除上传主图</el-button>
             <a class="el-button el-button--text" :href="'/admin/commerce-lab/catalog/'+scope.row.id+'/preview'" target="_blank" rel="noopener noreferrer">预览</a>
+            <a v-if="scope.row.status==='PUBLISHED'" class="el-button el-button--text" :href="'https://www.alsvidbike.com/zh/shop-preview/products/'+scope.row.id" target="_blank" rel="noopener noreferrer">官网详情</a>
             <el-button type="text" @click="publish(scope.row)" :disabled="saving">{{scope.row.status==='PUBLISHED'?'下架':'发布'}}</el-button>
           </template></el-table-column>
         </el-table></div>
@@ -176,10 +217,37 @@
             <el-option label="不使用参考图" value=""></el-option><el-option label="FC1 参考图" value="FC1"></el-option>
             <el-option label="FC2 参考图" value="FC2"></el-option></el-select></el-form-item>
             <el-form-item label="方案价 EUR（可留空）"><el-input v-model="form.price" placeholder="例如 2599.00"></el-input></el-form-item></div>
+          <section class="specification-editor" data-specification-editor>
+            <h3>商品参数</h3>
+            <p>最多20项，按下方顺序展示。勾选的最多4项显示在商品卡片，全部参数显示在详情页。</p>
+            <div class="specification-toolbar">
+              <el-select v-model="presetChoice" placeholder="选择常用参数或自定义" aria-label="常用参数模板">
+                <el-option label="自定义参数" value=""></el-option>
+                <el-option v-for="preset in specificationPresets" :key="preset.id" :label="preset.name" :value="preset.id"></el-option>
+              </el-select>
+              <el-button @click="addSpecification()" :disabled="saving||form.specifications.length>=20">添加参数</el-button>
+            </div>
+            <p v-if="!form.specifications.length">尚未添加参数，官网将自动隐藏参数区。</p>
+            <div v-for="(spec,index) in form.specifications" :key="index" class="specification-row" :data-spec-index="index">
+              <div class="specification-row-header"><strong>参数 {{index+1}}</strong>
+                <el-button type="text" @click="moveSpecification(index,-1)" :disabled="index===0||saving" :aria-label="'上移参数 '+(index+1)">上移</el-button>
+                <el-button type="text" @click="moveSpecification(index,1)" :disabled="index===form.specifications.length-1||saving" :aria-label="'下移参数 '+(index+1)">下移</el-button>
+                <el-button type="text" @click="form.specifications.splice(index,1)" :disabled="saving" :aria-label="'删除参数 '+(index+1)">删除</el-button>
+              </div>
+              <div v-for="lang in locales" :key="lang.id" class="specification-locale" :data-locale="lang.id">
+                <el-form-item :label="lang.name+'参数名'"><el-input v-model="spec.label[lang.id]" maxlength="60"></el-input></el-form-item>
+                <el-form-item :label="lang.name+'参数值'"><el-input v-model="spec.value[lang.id]" maxlength="160"></el-input></el-form-item>
+              </div>
+              <div class="specification-row-footer">
+                <el-checkbox v-model="spec.featured" :disabled="!spec.featured&&featuredCount()>=4">显示在商品卡片</el-checkbox>
+                <el-button type="text" @click="copySpecificationValue(index)">复制相同数值到德/英空白栏</el-button>
+              </div>
+            </div>
+          </section>
           <el-form-item v-if="editId" label="发布状态"><el-select v-model="form.status">
             <el-option label="草稿" value="DRAFT"></el-option><el-option label="发布到独立产品页" value="PUBLISHED"></el-option>
             <el-option label="归档" value="ARCHIVED"></el-option></el-select></el-form-item>
-          <p v-else>新建商品先保存为草稿，之后可在列表上传主图、预览，再决定发布。</p>
+          <p v-else>填写并保存为草稿 → 上传主图 → 预览 → 发布。系统自动生成官网详情地址，后续修改保存后刷新官网即可看到最新内容。</p>
           <p v-if="editId">上传主图会优先显示；在列表移除上传主图后，才使用这里选择的参考图。</p>
         </el-form>
         <div slot="footer"><el-button @click="dialogVisible=false" :disabled="saving">取消</el-button>

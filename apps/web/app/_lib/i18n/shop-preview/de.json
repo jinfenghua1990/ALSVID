@@ -57,5 +57,9 @@
   "comparison.inspect": "Details ansehen",
   "comparison.proposedPrice": "Planpreis {amount}",
   "comparison.refresh": "Lade diese Seite nach Änderungen neu. Die Vorschautasche enthält unverbindliche Auswahlen nur für diesen Tab.",
-  "comparison.unavailableSelection": "Ausgewähltes Produkt derzeit nicht verfügbar. Bitte aktualisieren."
+  "comparison.unavailableSelection": "Ausgewähltes Produkt derzeit nicht verfügbar. Bitte aktualisieren.",
+  "comparison.specifications": "Technische Daten",
+  "comparison.highlights": "Wichtige Daten",
+  "comparison.backToCatalog": "Zur Produktübersicht",
+  "comparison.productUnavailable": "Das Produkt kann derzeit nicht geladen werden. Bitte versuche es später erneut."
 }

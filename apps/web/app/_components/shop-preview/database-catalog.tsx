@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useState} from 'react';
 import {translator,type Locale} from '../../_lib/i18n';
 import type {LabCatalogSnapshot,LabPublishedProduct} from '../../_experiments/commerce-lab/catalog-contract';
 import {MedusaProductPreview} from './medusa-product-preview';
@@ -9,8 +9,7 @@ const bagKey='alsvid-comparison-catalog-bag-v1';
 export function DatabaseCatalog({locale,snapshot}:{locale:Locale;snapshot:LabCatalogSnapshot}){
   const t=translator(locale),[query,setQuery]=useState(''),[bag,setBag]=useState<BagLine[]>([]);
   const [ready,setReady]=useState(false),[bagOpen,setBagOpen]=useState(false);
-  const [selected,setSelected]=useState<LabPublishedProduct|null>(null),[notice,setNotice]=useState('');
-  const dialog=useRef<HTMLDialogElement>(null);
+  const [notice,setNotice]=useState('');
   useEffect(()=>{
     try{
       const value:unknown=JSON.parse(sessionStorage.getItem(bagKey)??'[]');
@@ -26,7 +25,6 @@ export function DatabaseCatalog({locale,snapshot}:{locale:Locale;snapshot:LabCat
     setReady(true);
   },[]);
   useEffect(()=>{if(ready)try{sessionStorage.setItem(bagKey,JSON.stringify(bag));}catch{/* retain in-memory selection */}},[bag,ready]);
-  useEffect(()=>{if(selected&&!dialog.current?.open)dialog.current?.showModal();if(!selected&&dialog.current?.open)dialog.current?.close();},[selected]);
   const visible=snapshot.products.filter(p=>(p.code+' '+p.title[locale]).toLowerCase().includes(query.toLowerCase()));
   const count=bag.reduce((sum,line)=>sum+line.quantity,0);
   function add(product:LabPublishedProduct){
@@ -48,7 +46,7 @@ export function DatabaseCatalog({locale,snapshot}:{locale:Locale;snapshot:LabCat
     {snapshot.state==='unavailable'?<section className={styles.empty} role="status">{t('comparison.unavailable')}</section>:
       !snapshot.products.length?<section className={styles.empty}>{t('comparison.empty')}</section>:
       <div className={styles.grid}>{visible.map(product=><MedusaProductPreview key={product.id} product={product} locale={locale}
-        onInspect={()=>setSelected(product)} onAdd={()=>add(product)}/>)}</div>}
+        detailHref={'/'+locale+'/shop-preview/products/'+product.id} onAdd={()=>add(product)}/>)}</div>}
     {snapshot.state==='connected'&&snapshot.products.length>0&&!visible.length&&<p className={styles.empty}>{t('shopPreview.empty')}</p>}
     <p role="status" className={styles.status}>{notice}</p>
     <section id="database-comparison-bag" className={styles.bag} hidden={!bagOpen}>
@@ -63,11 +61,6 @@ export function DatabaseCatalog({locale,snapshot}:{locale:Locale;snapshot:LabCat
       }):<p>{t('shopPreview.bagEmpty')}</p>}
       <p>{t('shopPreview.noTotal')}</p><button type="button" disabled>{t('shopPreview.noCheckout')}</button>
     </section>
-    <dialog ref={dialog} className={styles.dialog} onClose={()=>setSelected(null)} onClick={event=>{if(event.target===event.currentTarget)setSelected(null);}}>
-      {selected&&<><button type="button" onClick={()=>setSelected(null)}>{t('shopPreview.close')}</button>
-        <h2>{selected.title[locale]}</h2><p>{selected.description[locale]}</p><p>{t('comparison.notice')}</p>
-        <button type="button" onClick={()=>add(selected)}>{t('shopPreview.add')}</button></>}
-    </dialog>
     <p className={styles.footnote}>{t('comparison.refresh')}</p>
   </main>;
 }

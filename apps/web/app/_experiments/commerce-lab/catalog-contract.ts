@@ -1,7 +1,8 @@
 export type LabLocaleText={zh:string;de:string;en:string};
+export type LabSpecification={label:LabLocaleText;value:LabLocaleText;featured:boolean};
 export type LabProductStatus='DRAFT'|'PUBLISHED'|'ARCHIVED';
 export type LabComparisonProduct={id:string;code:string;title:LabLocaleText;description:LabLocaleText;
-  referenceImage:'FC1'|'FC2'|null;proposedPriceMinor:number|null;currency:'EUR';status:LabProductStatus;version:number;updatedAt:string;hasCustomImage:boolean};
+  specifications:LabSpecification[];referenceImage:'FC1'|'FC2'|null;proposedPriceMinor:number|null;currency:'EUR';status:LabProductStatus;version:number;updatedAt:string;hasCustomImage:boolean};
 export type LabPublishedProduct=LabComparisonProduct&{status:'PUBLISHED'};
 export type LabCatalogSnapshot={state:'connected'|'unavailable';products:LabPublishedProduct[];total:number;checkedAt:string};
 function localized(value:unknown,max:number,required:boolean):LabLocaleText{
@@ -13,6 +14,16 @@ function localized(value:unknown,max:number,required:boolean):LabLocaleText{
     output[lang]=text;
   }return output;
 }
+function specifications(value:unknown):LabSpecification[]{
+  if(value===undefined)return[];
+  if(!Array.isArray(value)||value.length>20)throw new Error('Invalid specifications');
+  const result=value.map(item=>{
+    if(!item||typeof item!=='object'||Array.isArray(item)||typeof item.featured!=='boolean')throw new Error('Invalid specification');
+    return{label:localized(item.label,60,true),value:localized(item.value,160,true),featured:item.featured as boolean};
+  });
+  if(result.filter(row=>row.featured).length>4)throw new Error('Invalid featured specifications');
+  return result;
+}
 function product(value:unknown,allowed:readonly LabProductStatus[]):LabComparisonProduct{
   const row=value as Record<string,unknown>|null;
   if(!row||Array.isArray(row)||typeof row.id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.id)||
@@ -23,7 +34,7 @@ function product(value:unknown,allowed:readonly LabProductStatus[]):LabCompariso
     ![null,'FC1','FC2'].includes(row.referenceImage as string|null)||
     (row.proposedPriceMinor!==null&&(!Number.isSafeInteger(row.proposedPriceMinor)||(row.proposedPriceMinor as number)<0||
       (row.proposedPriceMinor as number)>100000000)))throw new Error('Invalid comparison product');
-  return{id:row.id,code:row.code,title:localized(row.title,120,true),description:localized(row.description,2000,false),
+  return{id:row.id,code:row.code,specifications:specifications(row.specifications),title:localized(row.title,120,true),description:localized(row.description,2000,false),
     referenceImage:row.referenceImage as LabComparisonProduct['referenceImage'],proposedPriceMinor:row.proposedPriceMinor as number|null,
     currency:'EUR',status:row.status as LabProductStatus,version:row.version as number,updatedAt:row.updatedAt,hasCustomImage:row.hasCustomImage as boolean};
 }
@@ -42,4 +53,9 @@ export function parseLabProducts(value:unknown):{products:LabPublishedProduct[];
 /** Call only after server-side Admin authentication; public parsing remains published-only. */
 export function parseAdminLabProduct(value:unknown):LabComparisonProduct{
   return product((value as {data?:unknown}|null)?.data,['DRAFT','PUBLISHED','ARCHIVED']);
+}
+
+/** Public detail uses the same publication allowlist as the public catalog. */
+export function parsePublishedLabProduct(value:unknown):LabPublishedProduct{
+  return product((value as {data?:unknown}|null)?.data,['PUBLISHED']) as LabPublishedProduct;
 }

@@ -57,5 +57,9 @@
   "comparison.inspect": "查看详情",
   "comparison.proposedPrice": "方案价 {amount}",
   "comparison.refresh": "后台发布或修改后，刷新本页读取最新资料。预览袋仅用于当前标签页的非约束性选择。",
-  "comparison.unavailableSelection": "所选商品当前不可用，请刷新核对"
+  "comparison.unavailableSelection": "所选商品当前不可用，请刷新核对",
+  "comparison.specifications": "详细参数",
+  "comparison.highlights": "核心参数",
+  "comparison.backToCatalog": "返回商品列表",
+  "comparison.productUnavailable": "暂时无法读取商品，请稍后重试。"
 }
