@@ -1,0 +1,51 @@
+name: Commerce existing resource inventory
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+permissions:
+  contents: read
+concurrency:
+  group: commerce-existing-resource-inventory
+  cancel-in-progress: false
+jobs:
+  inventory:
+    if: >-
+      github.repository == 'jinfenghua1990/ALSVID' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.event != 'pull_request'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Authenticate for operational read-only inventory
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Inspect existing Cloud Run and MySQL metadata
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+        run: node scripts/commerce-lab/existing-resource-inventory.mjs
+      - uses: actions/upload-artifact@v7
+        with:
+          name: commerce-existing-resource-inventory
+          path: .tmp/commerce-existing-resource-inventory.json
+          retention-days: 14
+          if-no-files-found: error
