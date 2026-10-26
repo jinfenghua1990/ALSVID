@@ -1,12 +1,28 @@
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
+import {createServer as createSecureServer} from 'node:https';
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
 import {createRequire} from 'node:module';
-import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 const require=createRequire(path.join(process.env.FC1_PLAYWRIGHT_ROOT,'package.json'));
 const {chromium}=require('playwright');
 const base='http://127.0.0.1:3000',output=process.env.FC1_REVIEW_OUTPUT||'.tmp/fc1-v4-review';
+assert.equal(process.env.GITHUB_ACTIONS,'true','Browser fixtures run only on disposable CI');
 const token='isolated-commerce-lab-browser-session';
+const imageBytes=await readFile('apps/web/public/home/original/fc1-product.webp');
+const mediaUrl='https://127.0.0.1:4443/fc1.webp';
+const mediaDirectory=await mkdtemp(path.join(tmpdir(),'alsvid-media-'));
+const certificate=path.join(mediaDirectory,'certificate.pem'),privateKey=path.join(mediaDirectory,'key.pem');
+execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',privateKey,'-out',certificate,
+  '-days','1','-subj','/CN=127.0.0.1','-addext','subjectAltName=IP:127.0.0.1'],{stdio:'ignore'});
+let mediaReads=0;
+const mediaServer=createSecureServer({key:await readFile(privateKey),cert:await readFile(certificate)},(req,res)=>{
+  if(req.url!=='/fc1.webp'){res.writeHead(404);res.end();return;}
+  mediaReads++;res.writeHead(200,{'content-type':'image/webp','cache-control':'no-store'});res.end(imageBytes);
+});
+await new Promise((resolve,reject)=>{mediaServer.once('error',reject);mediaServer.listen(4443,'127.0.0.1',resolve);});
 const records=new Map();let writes=0;
 const id='00000000-0000-4000-8000-000000000001';
 const server=createServer(async(req,res)=>{
@@ -20,7 +36,7 @@ const server=createServer(async(req,res)=>{
   }
   if(url.pathname==='/api/v1/commerce-lab/public/products/'+id+'/image'){
     const row=records.get(id);
-    return row&&row.status==='PUBLISHED'&&row.hasCustomImage?send(200,{data:{url:'https://comparison-images.example.test/fc1.webp'}}):send(404,{message:'not found'});
+    return row&&row.status==='PUBLISHED'&&row.hasCustomImage?send(200,{data:{url:mediaUrl}}):send(404,{message:'not found'});
   }
   if(url.pathname==='/api/v1/commerce-lab/public/products'){
     const items=[...records.values()].filter(row=>row.status==='PUBLISHED');
@@ -31,7 +47,7 @@ const server=createServer(async(req,res)=>{
     if(url.pathname.endsWith('/image')){
       const current=records.get(id);
       if(!current)return send(404,{message:'not found'});
-      if(req.method==='GET')return current.hasCustomImage?send(200,{data:{url:'https://comparison-images.example.test/fc1.webp'}}):send(404,{message:'not found'});
+      if(req.method==='GET')return current.hasCustomImage?send(200,{data:{url:mediaUrl}}):send(404,{message:'not found'});
       for await(const chunk of req){}
       if(Number(req.headers['x-product-version'])!==current.version)return send(409,{message:'stale version'});
       const row={...current,hasCustomImage:req.method==='POST',version:current.version+1,updatedAt:new Date().toISOString()};
@@ -69,25 +85,23 @@ const browser=await chromium.launch(),report={sha:process.env.FC1_REVIEW_SHA,
 function watchMedia(context){
   context.on('response',response=>{
     const url=new URL(response.url());
-    if(url.pathname.includes('/image')||url.pathname.startsWith('/shop-preview/media/')||url.hostname==='comparison-images.example.test')
+    if(url.pathname.includes('/image')||url.pathname.startsWith('/shop-preview/media/')||url.port==='4443')
       report.mediaResponses.push({url:response.url(),status:response.status()});
   });
   context.on('requestfailed',request=>{
     const url=new URL(request.url());
-    if(url.pathname.includes('/image')||url.pathname.startsWith('/shop-preview/media/')||url.hostname==='comparison-images.example.test')
+    if(url.pathname.includes('/image')||url.pathname.startsWith('/shop-preview/media/')||url.port==='4443')
       report.mediaFailures.push({url:request.url(),error:request.failure()?.errorText});
   });
 }
 async function expectLoadedImage(locator,label){
   await locator.waitFor();
-  try{await locator.evaluate(image=>image.decode());}
+  try{await Promise.race([locator.evaluate(image=>image.decode()),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Image decode timed out')),15000))]);}
   catch(error){throw new Error(label+' did not decode: '+JSON.stringify({source:await locator.getAttribute('src'),responses:report.mediaResponses,failures:report.mediaFailures}));}
   assert.ok(await locator.evaluate(image=>image.complete&&image.naturalWidth>0),label+' displays decoded image bytes');
 }
 try{
-  const buyer=await browser.newContext({viewport:{width:1440,height:1000}});watchMedia(buyer);
-  const imageBytes=await readFile('apps/web/public/home/original/fc1-product.webp');
-  await buyer.route('https://comparison-images.example.test/**',route=>route.fulfill({body:imageBytes,contentType:'image/webp'}));
+  const buyer=await browser.newContext({viewport:{width:1440,height:1000},ignoreHTTPSErrors:true});watchMedia(buyer);
   const shop=await buyer.newPage(),buyerWrites=[],errors=[];
   shop.on('pageerror',error=>errors.push(error.message));
   shop.on('request',request=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method()))buyerWrites.push(request.url());});
@@ -97,8 +111,7 @@ try{
   const anon=await buyer.request.post(base+'/admin/commerce-lab/api/products',{headers:{origin:base},data:{}});
   assert.equal(anon.status(),401);
 
-  const admin=await browser.newContext({viewport:{width:1440,height:1100}});watchMedia(admin);
-  await admin.route('https://comparison-images.example.test/**',route=>route.fulfill({body:imageBytes,contentType:'image/webp'}));
+  const admin=await browser.newContext({viewport:{width:1440,height:1100},ignoreHTTPSErrors:true});watchMedia(admin);
   await admin.addCookies([{name:'alsvid_session',value:token,domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   const page=await admin.newPage();page.on('pageerror',error=>errors.push(error.message));
   await page.goto(base+'/admin/commerce-lab');
@@ -195,15 +208,17 @@ try{
   assert.equal(privateImage.status(),307,'private media issues the controlled signed redirect: '+await privateImage.text());
   const publicImage=await buyer.request.get(base+'/shop-preview/media/'+id,{maxRedirects:0});
   assert.equal(publicImage.status(),307,'published media issues the controlled signed redirect: '+await publicImage.text());
+  assert.equal(privateImage.headers().location,mediaUrl);assert.equal(publicImage.headers().location,mediaUrl);
   await expectLoadedImage(frame.locator('.product-name img'),'native catalog custom cover');
   const customPreview=await admin.newPage();
   await customPreview.goto(base+'/admin/commerce-lab/catalog/'+id+'/preview');
   await expectLoadedImage(customPreview.locator('[data-comparison-product] img'),'private preview custom cover');
   await customPreview.screenshot({path:path.join(output,'postgres-commerce-custom-cover-preview-desktop.png'),fullPage:true});
   await customPreview.close();
+  assert.ok(mediaReads>0,'actual HTTPS fixture receives the redirected image reads');
   report.checks.push('private and public media return signed redirects; native and private-preview custom covers decode in the actual browser');
 
-  report.checks.push('native image upload UI saves the custom-image flag without changing publication; media redirects are isolated HTTPS fixtures');
+  report.checks.push('native image upload UI saves the custom-image flag without changing publication; media redirects follow a temporary local HTTPS fixture');
   for(const locale of ['zh','de','en']){
     const copy=JSON.parse(await readFile('apps/web/app/_lib/i18n/shop-preview/'+locale+'.json','utf8'));
     await shop.goto(base+'/'+locale+'/shop-preview');
@@ -247,5 +262,7 @@ try{
   await writeFile(path.join(output,'postgres-commerce-browser-report.json'),JSON.stringify(report,null,2));
   throw error;
 }finally{
-  await browser.close();await new Promise(resolve=>server.close(resolve));
+  await browser.close();
+  server.closeAllConnections();mediaServer.closeAllConnections();
+  await Promise.all([new Promise(resolve=>server.close(resolve)),new Promise(resolve=>mediaServer.close(resolve))]);
 }
