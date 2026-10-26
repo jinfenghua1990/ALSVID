@@ -57,7 +57,7 @@ try{
   const setCookie=login.headers.getSetCookie().find(value=>value.startsWith('alsvid_session='));
   assert.ok(setCookie&&/httponly/i.test(setCookie),'Web login sets an HTTP-only internal session');
   const cookie=setCookie.split(';')[0];
-  await expect(await request('/api/session/password','POST',{password:'EphemeralCatalogUpdated123!',portal:'admin'},cookie),200,'normal password setup');
+  await expect(await request('/api/session/password','POST',{password:'EphemeralCatalogUpdated123!',portal:'admin'},cookie),201,'normal password setup');
   const editor=await request('/admin/commerce-lab/catalog','GET',undefined,cookie);
   assert.equal(editor.status,200,'real signed-in Admin can load the catalog editor');
   assert.match(await editor.text(),/CRMEB 商品管理适配版/);
@@ -67,6 +67,8 @@ try{
   const fields={title:{zh:'真实链路 CI 商品',de:'Realer CI Vergleich',en:'Real CI comparison'},
     description:{zh:'仅临时验收数据',de:'Nur temporäre Testdaten',en:'Disposable acceptance data only'},
     referenceImage:'FC1',proposedPriceMinor:259900};
+  const wrongPort=await request('/admin/commerce-lab/api/products','POST',{code:'WRONG-PORT-CI',...fields},cookie,'http://127.0.0.1');
+  assert.equal(wrongPort.status,403,'origin without the gateway port is a different origin');
   const created=await expect(await request('/admin/commerce-lab/api/products','POST',{code,...fields},cookie),201,'create through real authenticated Web proxy');
   const id=created.data.id;
   assert.match(id,/^[a-f0-9-]{36}$/i);
