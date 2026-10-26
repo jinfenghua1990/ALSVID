@@ -6,10 +6,10 @@
 import {translator,type Locale} from '../../_lib/i18n';
 import type {LabComparisonProduct} from '../../_experiments/commerce-lab/catalog-contract';
 import styles from './database-catalog.module.css';
-export function MedusaProductPreview({product,locale,onInspect,onAdd}:{product:LabComparisonProduct;locale:Locale;
-  onInspect?:()=>void;onAdd?:()=>void}){
+export function MedusaProductPreview({product,locale,onInspect,onAdd,customImageSrc}:{product:LabComparisonProduct;locale:Locale;
+  onInspect?:()=>void;onAdd?:()=>void;customImageSrc?:string}){
   const t=translator(locale);
-  const image=product.referenceImage==='FC1'?'/home/original/fc1-product.webp':
+  const image=product.hasCustomImage?(customImageSrc??'/shop-preview/media/'+product.id+'?v='+product.version):product.referenceImage==='FC1'?'/home/original/fc1-product.webp':
     product.referenceImage==='FC2'?'/products/fc2/side-studio-1536.webp':null;
   const price=product.proposedPriceMinor===null?t('shopPreview.price'):
     t('comparison.proposedPrice',{amount:new Intl.NumberFormat(locale,{style:'currency',currency:'EUR'}).format(product.proposedPriceMinor/100)});

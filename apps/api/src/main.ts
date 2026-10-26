@@ -1,3 +1,4 @@
+import {comparisonImageLimit,comparisonImageTypes} from './comparison-media.js';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -8,6 +9,10 @@ async function bootstrap(): Promise<void> {
     AppModule,
     new FastifyAdapter({ logger: true }),
   );
+
+  app.getHttpAdapter().getInstance().addContentTypeParser([...comparisonImageTypes],
+    {parseAs:'buffer',bodyLimit:comparisonImageLimit},
+    (_request:unknown,body:Buffer,done:(error:Error|null,value:Buffer)=>void)=>done(null,body));
 
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();

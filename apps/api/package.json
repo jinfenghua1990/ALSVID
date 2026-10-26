@@ -8,7 +8,7 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test",
+    "test": "node --import tsx --test src/*.test.mjs test/*.test.ts",
     "bootstrap:admin": "tsx src/bootstrap-admin.ts"
   },
   "dependencies": {
@@ -26,9 +26,11 @@
     "@alsvid/logistics": "workspace:*",
     "@alsvid/observability": "workspace:*",
     "@alsvid/partners": "workspace:*",
+    "@alsvid/ports": "workspace:*",
     "@alsvid/procurement": "workspace:*",
     "@alsvid/product": "workspace:*",
     "@alsvid/production": "workspace:*",
+    "@alsvid/provider-adapters": "workspace:*",
     "@alsvid/service": "workspace:*",
     "@alsvid/vehicle": "workspace:*",
     "@alsvid/warehouse": "workspace:*",

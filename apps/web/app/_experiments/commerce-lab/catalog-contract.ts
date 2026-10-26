@@ -1,7 +1,7 @@
 export type LabLocaleText={zh:string;de:string;en:string};
 export type LabProductStatus='DRAFT'|'PUBLISHED'|'ARCHIVED';
 export type LabComparisonProduct={id:string;code:string;title:LabLocaleText;description:LabLocaleText;
-  referenceImage:'FC1'|'FC2'|null;proposedPriceMinor:number|null;currency:'EUR';status:LabProductStatus;version:number;updatedAt:string};
+  referenceImage:'FC1'|'FC2'|null;proposedPriceMinor:number|null;currency:'EUR';status:LabProductStatus;version:number;updatedAt:string;hasCustomImage:boolean};
 export type LabPublishedProduct=LabComparisonProduct&{status:'PUBLISHED'};
 export type LabCatalogSnapshot={state:'connected'|'unavailable';products:LabPublishedProduct[];total:number;checkedAt:string};
 function localized(value:unknown,max:number,required:boolean):LabLocaleText{
@@ -17,7 +17,7 @@ function product(value:unknown,allowed:readonly LabProductStatus[]):LabCompariso
   const row=value as Record<string,unknown>|null;
   if(!row||Array.isArray(row)||typeof row.id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(row.id)||
     typeof row.code!=='string'||!/^[A-Z0-9][A-Z0-9_-]{1,40}$/.test(row.code)||
-    !allowed.includes(row.status as LabProductStatus)||row.currency!=='EUR'||
+    !allowed.includes(row.status as LabProductStatus)||row.currency!=='EUR'||typeof row.hasCustomImage!=='boolean'||
     !Number.isSafeInteger(row.version)||(row.version as number)<1||
     typeof row.updatedAt!=='string'||!Number.isFinite(Date.parse(row.updatedAt))||
     ![null,'FC1','FC2'].includes(row.referenceImage as string|null)||
@@ -25,7 +25,7 @@ function product(value:unknown,allowed:readonly LabProductStatus[]):LabCompariso
       (row.proposedPriceMinor as number)>100000000)))throw new Error('Invalid comparison product');
   return{id:row.id,code:row.code,title:localized(row.title,120,true),description:localized(row.description,2000,false),
     referenceImage:row.referenceImage as LabComparisonProduct['referenceImage'],proposedPriceMinor:row.proposedPriceMinor as number|null,
-    currency:'EUR',status:row.status as LabProductStatus,version:row.version as number,updatedAt:row.updatedAt};
+    currency:'EUR',status:row.status as LabProductStatus,version:row.version as number,updatedAt:row.updatedAt,hasCustomImage:row.hasCustomImage as boolean};
 }
 export function parseLabProducts(value:unknown):{products:LabPublishedProduct[];total:number}{
   const data=(value as {data?:{items?:unknown;total?:unknown}}|null)?.data;

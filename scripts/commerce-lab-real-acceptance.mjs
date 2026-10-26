@@ -76,6 +76,17 @@ try{
   assert.equal(row.code,code);assert.equal(row.status,'DRAFT');assert.equal(row.version,1);
   assert.equal(row.created_by,user.userId);assert.equal(row.proposed_price_minor,259900);
   assert.equal((await publicPage()).total,0,'persisted drafts are not public');
+  const imagePath='/admin/commerce-lab/api/products/'+id+'/image';
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64');
+  const imageUpload=async(bytes,origin=base,session=cookie)=>fetch(base+imagePath,{method:'POST',redirect:'manual',
+    headers:{cookie:session,origin,'content-type':'image/png','x-product-version':'1','x-upload-filename':'CI.png'},
+    body:bytes,signal:AbortSignal.timeout(15000)});
+  assert.equal((await imageUpload(Buffer.concat([png,Buffer.alloc(2*1024*1024)]))).status,503,'real binary transport accepts >1MiB, but isolated CI has no R2 binding');
+  assert.equal((await imageUpload(Buffer.alloc(5*1024*1024+1))).status,413,'image body limit is enforced');
+  assert.equal((await imageUpload(png,'https://untrusted.invalid')).status,403);
+  assert.equal((await imageUpload(png,base,'')).status,401);
+  assert.equal((await request('/api/v1/commerce-lab/public/products/'+id+'/image')).status,404,'draft image is never public');
+  assert.equal(persisted(id).version,1,'unconfigured image upload does not modify the product');
   const privateRow=(await expect(await request('/admin/commerce-lab/api/products/'+id,'GET',undefined,cookie),200,'private product lookup')).data;
   assert.equal(privateRow.status,'DRAFT');assert.equal(privateRow.id,id);
   assert.equal((await request('/admin/commerce-lab/api/products/'+id)).status,401);

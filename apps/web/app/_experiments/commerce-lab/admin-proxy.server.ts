@@ -4,20 +4,25 @@ import { readPortalSession } from '../../_lib/portal-access';
 import { sessionCookieNameForPortal } from '../../_lib/session-cookie';
 const apiBase=process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
 const json=(body:unknown,status:number)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
-export async function comparisonAdminProxy(request:Request,method:'GET'|'POST'|'PATCH',id?:string):Promise<Response>{
+export async function comparisonAdminAuthorization(request:Request,write:boolean):Promise<{token:string}|{response:Response}>{
   const session=await readPortalSession('admin');
-  if(!session)return json({message:'请重新登录 Admin 后再操作'},401);
-  if(!session.roles.includes('system_admin')||!session.permissions.includes(method==='GET'?'commerce.read':'commerce.map'))
-    return json({message:'当前账号没有独立商城操作权限'},403);
-  if(id&&!/^[a-f0-9-]{36}$/i.test(id))return json({message:'商品 ID 无效'},400);
-  if(method!=='GET'){
+  if(!session)return{response:json({message:'请重新登录 Admin 后再操作'},401)};
+  if(!session.roles.includes('system_admin')||!session.permissions.includes(write?'commerce.map':'commerce.read'))
+    return{response:json({message:'当前账号没有独立商城操作权限'},403)};
+  if(write){
     const origin=request.headers.get('origin');
     try{if(!origin||new URL(origin).host!==(request.headers.get('host')??new URL(request.url).host))
-      return json({message:'请在当前 Admin 页面提交操作'},403);}
-    catch{return json({message:'请求来源无效'},403);}
+      return{response:json({message:'请在当前 Admin 页面提交操作'},403)};}
+    catch{return{response:json({message:'请求来源无效'},403)};}
   }
   const token=(await cookies()).get(sessionCookieNameForPortal('admin'))?.value;
-  if(!token)return json({message:'登录会话已失效'},401);
+  return token?{token}:{response:json({message:'登录会话已失效'},401)};
+}
+export async function comparisonAdminProxy(request:Request,method:'GET'|'POST'|'PATCH',id?:string):Promise<Response>{
+  const auth=await comparisonAdminAuthorization(request,method!=='GET');
+  if('response' in auth)return auth.response;
+  if(id&&!/^[a-f0-9-]{36}$/i.test(id))return json({message:'商品 ID 无效'},400);
+  const token=auth.token;
   const url=new URL(apiBase+'/v1/commerce-lab/products'+(id?'/'+id:''));
   if(method==='GET'){
     const search=new URL(request.url).searchParams;

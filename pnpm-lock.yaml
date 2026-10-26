@@ -56,6 +56,9 @@ importers:
       '@alsvid/partners':
         specifier: workspace:*
         version: link:../../domains/partners
+      '@alsvid/ports':
+        specifier: workspace:*
+        version: link:../../packages/ports
       '@alsvid/procurement':
         specifier: workspace:*
         version: link:../../domains/procurement
@@ -68,6 +71,9 @@ importers:
       '@alsvid/production':
         specifier: workspace:*
         version: link:../../domains/production
+      '@alsvid/provider-adapters':
+        specifier: workspace:*
+        version: link:../../packages/provider-adapters
       '@alsvid/vehicle':
         specifier: workspace:*
         version: link:../../domains/vehicle

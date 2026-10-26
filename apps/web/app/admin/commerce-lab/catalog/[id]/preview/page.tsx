@@ -28,7 +28,7 @@ export default async function Page({params,searchParams}:{params:Promise<{id:str
       <p className={styles.notice}>本页仅管理员可见。草稿与已归档商品不会出现在官网；请回商品管理确认后发布。</p>
       <nav className={styles.languages} aria-label="预览语言">{(['zh','de','en'] as const).map(language=>
         <a key={language} href={'?locale='+language} aria-current={language===locale?'page':undefined}>{labels[language]}</a>)}</nav>
-      <div className={styles.sample}><MedusaProductPreview product={snapshot.product} locale={locale}/></div>
+      <div className={styles.sample}><MedusaProductPreview product={snapshot.product} locale={locale} customImageSrc={'/admin/commerce-lab/api/products/'+id+'/image?v='+snapshot.product.version}/></div>
     </section>
   </AdminScreen>;
 }

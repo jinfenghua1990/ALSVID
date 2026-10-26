@@ -1,3 +1,4 @@
+import {CommerceLabMediaController} from './commerce-lab-media.controller.js';
 import { CommerceLabController } from './commerce-lab.controller.js';
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -56,6 +57,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
     DealerPartnershipController,
     CommerceController,
     CommerceLabController,
+    CommerceLabMediaController,
     CommerceOrderOperationsController,
     StorefrontOrdersController,
     ColourInterestController,

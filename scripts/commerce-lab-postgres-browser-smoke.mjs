@@ -18,12 +18,25 @@ const server=createServer(async(req,res)=>{
       roles:['system_admin'],permissions:['commerce.read','commerce.map'],passwordSetupRequired:false
     }}):send(401,{message:'unauthorized'});
   }
+  if(url.pathname==='/api/v1/commerce-lab/public/products/'+id+'/image'){
+    const row=records.get(id);
+    return row&&row.status==='PUBLISHED'&&row.hasCustomImage?send(200,{data:{url:'https://comparison-images.example.test/fc1.webp'}}):send(404,{message:'not found'});
+  }
   if(url.pathname==='/api/v1/commerce-lab/public/products'){
     const items=[...records.values()].filter(row=>row.status==='PUBLISHED');
     return send(200,{data:{items,total:items.length,page:1,limit:100}});
   }
   if(url.pathname.startsWith('/api/v1/commerce-lab/products')){
     if(req.headers.authorization!=='Bearer '+token)return send(401,{message:'unauthorized'});
+    if(url.pathname.endsWith('/image')){
+      const current=records.get(id);
+      if(!current)return send(404,{message:'not found'});
+      if(req.method==='GET')return current.hasCustomImage?send(200,{data:{url:'https://comparison-images.example.test/fc1.webp'}}):send(404,{message:'not found'});
+      for await(const chunk of req){}
+      if(Number(req.headers['x-product-version'])!==current.version)return send(409,{message:'stale version'});
+      const row={...current,hasCustomImage:req.method==='POST',version:current.version+1,updatedAt:new Date().toISOString()};
+      records.set(id,row);writes++;return send(req.method==='POST'?201:200,{data:row});
+    }
     if(req.method==='GET'&&url.pathname!=='/api/v1/commerce-lab/products'){
       const row=records.get(url.pathname.split('/').pop());
       return row?send(200,{data:row}):send(404,{message:'not found'});
@@ -36,7 +49,7 @@ const server=createServer(async(req,res)=>{
     let raw='';for await(const chunk of req)raw+=chunk;
     const body=JSON.parse(raw||'{}');
     if(req.method==='POST'){
-      const row={...body,id,status:'DRAFT',currency:'EUR',version:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+      const row={...body,id,status:'DRAFT',currency:'EUR',version:1,hasCustomImage:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
       records.set(id,row);writes++;return send(201,{data:row});
     }
     if(req.method==='PATCH'){
@@ -55,6 +68,8 @@ const browser=await chromium.launch(),report={sha:process.env.FC1_REVIEW_SHA,
   checks:[]};
 try{
   const buyer=await browser.newContext({viewport:{width:1440,height:1000}});
+  const imageBytes=await readFile('apps/web/public/home/original/fc1-product.webp');
+  await buyer.route('https://comparison-images.example.test/**',route=>route.fulfill({body:imageBytes,contentType:'image/webp'}));
   const shop=await buyer.newPage(),buyerWrites=[],errors=[];
   shop.on('pageerror',error=>errors.push(error.message));
   shop.on('request',request=>{if(['POST','PUT','PATCH','DELETE'].includes(request.method()))buyerWrites.push(request.url());});
@@ -65,6 +80,7 @@ try{
   assert.equal(anon.status(),401);
 
   const admin=await browser.newContext({viewport:{width:1440,height:1100}});
+  await admin.route('https://comparison-images.example.test/**',route=>route.fulfill({body:imageBytes,contentType:'image/webp'}));
   await admin.addCookies([{name:'alsvid_session',value:token,domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   const page=await admin.newPage();page.on('pageerror',error=>errors.push(error.message));
   await page.goto(base+'/admin/commerce-lab');
@@ -146,6 +162,14 @@ try{
   assert.equal(stale.status(),409);assert.equal(writes,prior);
   report.checks.push('native Vue/Element UI editor; authenticated proxy; create/draft/private/publication/edit/reload; integer money; CSRF and stale-write refusal');
 
+  const uploadResponse=page.waitForResponse(response=>response.url().includes('/image')&&response.request().method()==='POST');
+  const chooserPromise=page.waitForEvent('filechooser');
+  await frame.getByRole('button',{name:'上传主图',exact:true}).click();
+  await (await chooserPromise).setFiles({name:'CI-FC1.webp',mimeType:'image/webp',buffer:imageBytes});
+  assert.equal((await uploadResponse).status(),201);
+  await frame.getByRole('button',{name:'移除上传主图',exact:true}).waitFor();
+  assert.equal(records.get(id).hasCustomImage,true);assert.equal(records.get(id).status,'PUBLISHED');
+  report.checks.push('native image upload UI saves the custom-image flag without changing publication; media redirects are isolated HTTPS fixtures');
   for(const locale of ['zh','de','en']){
     const copy=JSON.parse(await readFile('apps/web/app/_lib/i18n/shop-preview/'+locale+'.json','utf8'));
     await shop.goto(base+'/'+locale+'/shop-preview');
@@ -170,6 +194,11 @@ try{
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-mobile.png'),fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Admin page fits mobile');
   assert.ok(await frame.locator('html').evaluate(element=>element.scrollWidth<=innerWidth+1),'native editor fits mobile');
+  const removal=page.waitForResponse(response=>response.url().includes('/image')&&response.request().method()==='DELETE');
+  await frame.getByRole('button',{name:'移除上传主图',exact:true}).click();
+  assert.equal((await removal).status(),200);
+  await frame.getByRole('button',{name:'移除上传主图',exact:true}).waitFor({state:'hidden'});
+  assert.equal(records.get(id).hasCustomImage,false);
   await expectWrite('下架','PATCH',200);
   await shop.reload();await shop.locator('[data-database-catalog]').waitFor();
   assert.equal(await shop.locator('[data-comparison-product]').count(),0,'withdrawal becomes visible after refresh');
