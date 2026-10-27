@@ -162,6 +162,12 @@ try {
       movements: [], reservations: [],
     } }),
   }));
+  // InventoryClient loads five sources concurrently. The vehicles source must also be
+  // intercepted or its mock-auth 401 can redirect away before the stock tables settle.
+  await page.route('**/api/control/v1/vehicles', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: [] }),
+  }));
   await page.goto(base + '/admin/inventory');
   const stock = page.locator('[data-area="inventory"]');
   await stock.waitFor();
@@ -171,6 +177,7 @@ try {
   await stock.locator('#balances tbody tr').first().waitFor({ state: 'visible' });
   assert.equal(await stock.locator('#balances tbody tr').count(), 1, 'one stock position occupies one row');
   assert.equal(await stock.locator('#inventory-advanced').evaluate(node => node.open), false, 'operational forms start collapsed');
+  assert.equal(new URL(page.url()).pathname, '/admin/inventory', 'the isolated inventory page must not redirect to login');
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
   report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
 
