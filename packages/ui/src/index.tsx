@@ -286,7 +286,7 @@ export function AdminSecondaryNavigation({
       });
       const samePage = exact ?? enabled
         .filter((item) => {
-          const targetPath = new URL(item.href!, window.location.origin).pathname.replace(/\\/$/, '');
+          const targetPath = new URL(item.href!, window.location.origin).pathname.replace(/\/$/, '');
           return current.pathname === targetPath || current.pathname.startsWith(targetPath + '/');
         })
         .sort((left, right) =>
