@@ -1490,3 +1490,8 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
   .av-rail--ecfx .av-railtitle { font-size: 9px; }
   .av-rail--ecfx .av-railitem { font-size: 12px; }
 }
+
+
+/* Keep the EC-FX sidebar and its workspace column aligned in product/e-commerce views. */
+.av-body--product { grid-template-columns: 232px minmax(0, 1fr); }
+.av-body--ecommerce { grid-template-columns: 232px minmax(0, 1fr); }
