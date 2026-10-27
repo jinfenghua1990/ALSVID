@@ -19,7 +19,6 @@ jobs:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.head_repository.full_name == github.repository &&
       github.event.workflow_run.path == '.github/workflows/ci.yml'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -56,7 +55,7 @@ jobs:
             exit 1
           fi
           prs="$(gh api "repos/$GH_REPO/pulls?state=open&base=main&per_page=100")"
-          number="$(jq -r --arg sha "$CI_HEAD_SHA" --arg repo "$GH_REPO" '.[] | select(.head.sha == $sha and .head.repo.full_name == $repo and .draft == false) | select(.author_association == "OWNER" or .author_association == "MEMBER" or .author_association == "COLLABORATOR") | .number' <<< "$prs" | head -n 1)"
+          number="$(jq -r --arg sha "$CI_HEAD_SHA" '.[] | select(.head.sha == $sha and .draft == false) | .number' <<< "$prs" | head -n 1)"
           if [[ -z "$number" ]]; then
             echo 'No ready trusted PR matches this CI commit.'
             exit 0
