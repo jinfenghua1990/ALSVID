@@ -579,6 +579,8 @@ jobs:
           WORKER_QUEUE: default
           WORKER_POLL_MS: "1000"
           WORKER_LEASE_MS: "300000"
+          WORKER_INSTANCES: ${{ vars.WORKER_INSTANCES || '1' }}
+          WORKER_IMAGE: ${{ steps.images.outputs.worker_image }}
         run: |
           set -euo pipefail
           # The worker is a long-running non-HTTP process that polls the Postgres job
@@ -600,7 +602,7 @@ jobs:
             --service-account "$RUNTIME_SERVICE_ACCOUNT" \
             --cpu 1 \
             --memory 512Mi \
-            --instances 1 \
+            --instances "${WORKER_INSTANCES}" \
             --set-env-vars "NODE_ENV=production,ALSVID_ENV=production,ALSVID_RELEASE_SHA=${RELEASE_SHA},OBJECT_STORAGE_PROVIDER=r2,OBJECT_STORAGE_ENDPOINT=${R2_ENDPOINT},OBJECT_STORAGE_BUCKET=${R2_BUCKET},WORKER_ID=${WORKER_ID},WORKER_QUEUE=${WORKER_QUEUE},WORKER_POLL_MS=${WORKER_POLL_MS},WORKER_LEASE_MS=${WORKER_LEASE_MS}" \
             --set-secrets "DATABASE_URL=alsvid-database-url:latest,OBJECT_STORAGE_ACCESS_KEY=alsvid-r2-access-key:latest,OBJECT_STORAGE_SECRET_KEY=alsvid-r2-secret-key:latest" \
             --quiet
@@ -608,7 +610,23 @@ jobs:
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
             --format='value(name)' >/dev/null
-          echo "Deployed worker pool $WORKER_POOL for release $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          # Confirm the pool actually serves this release image. This matters most during
+          # rollback: a successful deploy must switch the pool back to the older digest
+          # instead of silently keeping the current revision.
+          expected_digest="${WORKER_IMAGE##*@}"
+          deployed_image="$($worker_pools_cmd describe "$WORKER_POOL" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --format='value(spec.template.spec.containers[0].image)' 2>/dev/null || true)"
+          if [[ -z "$deployed_image" ]]; then
+            echo "::warning title=Worker image unverified::Could not read the worker pool image field; verify $WORKER_POOL manually before trusting this release."
+          elif [[ "$deployed_image" != *"$expected_digest"* ]]; then
+            echo "::error title=Worker image mismatch::worker pool image '$deployed_image' does not contain release digest '$expected_digest'" >&2
+            exit 1
+          else
+            echo "Verified worker pool serves release digest $expected_digest"
+          fi
+          echo "Deployed worker pool $WORKER_POOL for release $RELEASE_SHA (instances=$WORKER_INSTANCES)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify public website and admin, record deployed release
         env:
