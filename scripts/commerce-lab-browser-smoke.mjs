@@ -142,6 +142,36 @@ try {
   assert.equal(await page.locator('#product-info-panel').evaluate(node => node.open), true, 'deep link reveals platform details');
   report.checks.push('admin product archive is live, list-first, and deep links reveal collapsed maintenance sections');
 
+  // Inventory now opens as two real-source tables rather than an unstructured wall of forms.
+  await page.route('**/api/control/v1/warehouse', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: {
+      warehouses: [{ id: 'warehouse-ci', code: 'DE-CI', name: 'CI warehouse', country_code: 'DE', timezone: 'Europe/Berlin', partner_name: null, active: true }],
+      locations: [], stocktakes: [], counts: [],
+    } }),
+  }));
+  await page.route('**/api/control/v1/inventory', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: {
+      balances: [{
+        item_kind: 'SKU', part_id: null, sku_id: 'sku-ci', vehicle_id: null,
+        warehouse_code: 'DE-CI', warehouse_name: 'CI warehouse', location_code: 'A-01', location_name: 'A-01',
+        unit: 'EA', on_hand: '3', reserved: '1', available: '2',
+        part_number: null, part_name: null, sku: 'CI-SKU', sku_name: 'CI product', frame_number: null,
+      }],
+      movements: [], reservations: [],
+    } }),
+  }));
+  await page.goto(base + '/admin/inventory');
+  const stock = page.locator('[data-area="inventory"]');
+  await stock.waitFor();
+  await stock.getByRole('cell', { name: 'CI warehouse', exact: true }).first().waitFor();
+  assert.equal(await stock.locator('#warehouses tbody tr').count(), 1, 'one warehouse occupies one row');
+  assert.equal(await stock.locator('#balances tbody tr').count(), 1, 'one stock position occupies one row');
+  assert.equal(await stock.locator('#inventory-advanced').evaluate(node => node.open), false, 'operational forms start collapsed');
+  await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
+  report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
+
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
   await context.close();
