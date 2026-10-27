@@ -60,6 +60,17 @@ function displayStocktakeStatus(value: string) { return stocktakeStatusLabel[val
 
 export default function InventoryClient({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
+
+  useEffect(() => {
+    const revealInventoryActions = () => {
+      if (['#warehouse-setup', '#stocktake', '#movement-history'].includes(window.location.hash)) {
+        document.getElementById('inventory-advanced')?.setAttribute('open', '');
+      }
+    };
+    revealInventoryActions();
+    window.addEventListener('hashchange', revealInventoryActions);
+    return () => window.removeEventListener('hashchange', revealInventoryActions);
+  }, []);
   const [inventory, setInventory] = useState<InventorySummary>(emptyInventory);
   const [warehouse, setWarehouse] = useState<WarehouseSummary>(emptyWarehouse);
   const [parts, setParts] = useState<Part[]>([]);
@@ -197,8 +208,8 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
         <header className={styles.header}>
           <div>
             <div className={styles.eyebrow}>库存控制 / INVENTORY CONTROL</div>
-            <h1>库存是可追溯的历史，不是可随意改写的数字。</h1>
-            <p>收货、移库、出库、退回、调整与盘点修正全部追加记录。现存量与可用量始终由库存流水和有效预留共同推导。</p>
+            <h1>库存管理</h1>
+            <p>先查看仓库与库存记录，需要时再展开出入库、调拨与盘点操作。数量由真实库存流水计算。</p>
           </div>
         </header>
         {message ? <div className={styles.notice}>{message}</div> : null}
@@ -212,6 +223,38 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           <div><span>进行中盘点</span><b>{sourceStatus.warehouse !== 'ready' || sourceErrors.warehouse ? '—' : metrics.openStocktakes}</b></div>
         </div>
 
+        <section className={styles.panel} id="warehouses" aria-label="仓库列表">
+          <div className={styles.sectionHead}>
+            <h2>仓库列表</h2>
+            <a className={styles.listAction} href="#warehouse-setup" onClick={() => document.getElementById('inventory-advanced')?.setAttribute('open', '')}>＋ 新建仓库 / 库位</a>
+          </div>
+          <div className={styles.tableWrap}>
+            <table aria-label="真实仓库档案">
+              <thead><tr><th>仓库编码</th><th>仓库名称</th><th>国家</th><th>时区</th><th>状态</th></tr></thead>
+              <tbody>{warehouse.warehouses.map(row => <tr key={row.id}>
+                <td><b>{row.code}</b></td><td>{row.name}</td><td>{row.country_code}</td><td>{row.timezone}</td><td>{row.active ? '启用' : '停用'}</td>
+              </tr>)}</tbody>
+            </table>
+            {!warehouse.warehouses.length && <p className={styles.empty}>{sourceStatus.warehouse === 'loading' ? '正在读取仓库…' : sourceStatus.warehouse === 'error' || sourceErrors.warehouse ? '仓库数据不可用，无法确认仓库数量。' : '当前没有已登记仓库，可点击“新建仓库 / 库位”建立档案。'}</p>}
+          </div>
+        </section>
+
+        <section className={styles.panel} id="balances" aria-label="库存余额">
+          <div className={styles.sectionHead}><h2>库存余额</h2><span>按仓库与库位逐条查看真实台账</span></div>
+          <div className={styles.tableWrap}>
+            <table aria-label="真实库存余额">
+              <thead><tr><th>商品 / 零件</th><th>类型</th><th>仓库</th><th>库位</th><th>现存</th><th>预留</th><th>可用</th></tr></thead>
+              <tbody>{inventory.balances.map((row, index) => <tr key={`${row.item_kind}-${row.part_id ?? row.sku_id ?? row.vehicle_id}-${row.warehouse_code}-${row.location_code}-${index}`}>
+                <td><b>{balanceLabel(row)}</b></td><td>{itemKindLabel[row.item_kind]}</td><td>{row.warehouse_name ?? row.warehouse_code}</td><td>{row.location_code}</td>
+                <td>{row.on_hand} {row.unit}</td><td>{row.reserved}</td><td><b>{row.available}</b></td>
+              </tr>)}</tbody>
+            </table>
+            {!inventory.balances.length && <p className={styles.empty}>{sourceStatus.inventory === 'loading' ? '正在读取库存…' : sourceStatus.inventory === 'error' || sourceErrors.inventory ? '库存数据不可用，无法确认库存数量。' : '当前没有库存记录。'}</p>}
+          </div>
+        </section>
+
+        <details className={styles.advanced} id="inventory-advanced">
+          <summary>仓库操作与高级管理（出入库、调拨、盘点、接口状态）</summary>
         <section className={styles.panel} id="warehouse-provider" aria-labelledby="warehouse-provider-title">
           <div className={styles.sectionHead}>
             <span>THIRD-PARTY WAREHOUSE / WMS</span>
@@ -237,7 +280,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           </div>
         </section>
 
-        <section className={styles.topGrid} id="warehouses" aria-label="仓库、库位与调拨主数据">
+        <section className={styles.topGrid} id="warehouse-setup" aria-label="仓库、库位与调拨主数据">
           <form className={styles.card} onSubmit={(event) => void submit(event, '/v1/warehouse/warehouses', (form) => ({ code: form.get('code'), name: form.get('name'), countryCode: form.get('countryCode'), timezone: form.get('timezone') }))}>
             <span>仓库主数据</span><h2>创建仓库</h2>
             <div className={styles.inline}><input name="code" placeholder="例如：DE-BERLIN" required /><input name="name" placeholder="例如：德国仓" required /></div>
@@ -333,7 +376,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           </div>
         </section>
 
-        <section className={styles.stocktakePanel}>
+        <section className={styles.stocktakePanel} id="stocktake">
           <div className={styles.sectionHead}>
             <span>库存盘点</span><h2>盘点证据 → 修正流水</h2>
             <p>盘点数量不会直接覆盖库存。关闭盘点时，系统比较最新实盘数量与库存流水，并仅生成必要的补偿流水。</p>
@@ -375,7 +418,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
           {stocktakeCounts.length ? <div className={styles.counts}>{stocktakeCounts.map((row) => <div key={row.id}><b>{row.part_number ?? row.sku ?? row.frame_number}</b><span>{row.location_code} · {row.counted_quantity} {row.unit}</span><small>{new Date(row.counted_at).toLocaleString()}</small></div>)}</div> : null}
         </section>
 
-        <section className={styles.panel}>
+        <section className={styles.panel} id="movement-history">
           <div className={styles.sectionHead}><span>库存流水历史</span><h2>不可变库存时间线</h2></div>
           <div className={styles.tableWrap}>
             <table><thead><tr><th>流水号</th><th>库存对象</th><th>类型</th><th>路径</th><th>数量</th><th>时间</th></tr></thead>
@@ -384,6 +427,7 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
             {!inventory.movements.length ? <p className={styles.empty}>{sourceStatus.inventory === 'loading' ? '正在读取库存流水…' : sourceStatus.inventory === 'error' || sourceErrors.inventory ? '库存数据不可用，无法确认当前库存流水。' : '暂无库存流水。'}</p> : null}
           </div>
         </section>
+        </details>
       </section>
     </OperationsFrame>
   );
