@@ -1897,9 +1897,19 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av.av-ambient .workspaceTabs { position: relative; top: auto; }
 .av.av-ambient .av-rail { position: relative; top: auto; }
 @media (max-width: 720px) {
-  .av.av-ambient .av-topbar { grid-template-columns: minmax(0,1fr) auto; min-height: 0; }
+  .av.av-ambient .av-topbar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "brand" "tools" "modules";
+    min-height: 0;
+  }
+  .av.av-ambient .av-toputils {
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
   .av.av-ambient .av-primarynav .av-navitem { min-height: 30px; padding: 0 7px; font-size: 11px; }
-  .av.av-ambient .av-toputils { gap: 4px; }
 }
 
 
