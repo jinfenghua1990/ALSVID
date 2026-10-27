@@ -234,6 +234,10 @@ try {
         assert.equal(await discovery.locator('[data-bikes-compare] thead img').count(),2,'Comparison includes model photographs');
         await tray.locator('a[href="#bikes-compare"]').click();
         await bicycles.waitForFunction(()=>location.hash==='#bikes-compare' && document.activeElement?.id==='bikes-compare');
+        await bicycles.waitForFunction(()=>{
+          const top=document.getElementById('bikes-compare')?.getBoundingClientRect().top;
+          return top!==undefined && top>=130 && top<=170;
+        });
         const trayBox=await tray.boundingBox();
         assert.ok(trayBox && trayBox.x>=0 && trayBox.x+trayBox.width<=viewport.width+1 && trayBox.y>=0 && trayBox.y+trayBox.height<=viewport.height+1,'Comparison tray fits the viewport');
         await bicycles.screenshot({path:output+'/bikes-compare-'+locale+'-'+device+'.png'});
