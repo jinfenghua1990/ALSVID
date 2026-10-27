@@ -19,3 +19,7 @@
 /* Dedicated Admin subroutes can show pricing or orders without an empty second column. */
 .firstPartyCard[data-mode='pricing'] .firstPartyGrid,
 .firstPartyCard[data-mode='orders'] .firstPartyGrid{grid-template-columns:minmax(0,1fr)}
+
+.firstPartyActions a.secondaryAction{align-self:center;border:1px solid var(--alsvid-line);border-radius:8px;padding:8px 10px;background:var(--alsvid-bg-soft);color:var(--alsvid-text-2);font-size:10px;font-weight:700;white-space:nowrap;text-decoration:none}
+.firstPartyActions a.secondaryAction:hover{border-color:var(--alsvid-accent)}
+.firstPartyRow[data-deep-link]{border-color:var(--alsvid-accent);box-shadow:inset 0 0 0 1px var(--alsvid-accent)}

@@ -5,8 +5,12 @@ import { HomepageProductBindingPanel } from '../product/homepage-product-binding
 import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
 import { StorefrontOrderDraftPanel } from '../commerce/storefront-orders-panel';
 import { EcommerceInventoryPanel } from './ecommerce-inventory-panel';
+import { computeEcommerceOverview, type EcommerceOverviewMetric } from './ecommerce-overview-metrics';
 
 type Model = { id: string; code: string; name: string; status: string; product_type_code: string };
+type SummarySnapshot = {
+  skus?: unknown; prices?: unknown; orderTotal?: unknown; orderStatusCounts?: unknown;
+};
 type EcommerceView = 'overview' | 'publications' | 'homepage' | 'inventory' | 'pricing' | 'orders';
 
 const shortcuts = [
@@ -38,9 +42,47 @@ function viewForRoute(route: string): EcommerceView {
 export function EcommerceAdminWorkspace({ route = '/admin/ecommerce' }: { route?: string }) {
   const view = viewForRoute(route);
   const needsModels = view === 'homepage' || view === 'publications';
+  const needsSummary = view === 'overview';
   const [models, setModels] = useState<Model[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState('');
+  const [metrics, setMetrics] = useState<EcommerceOverviewMetric[] | null>(null);
+  const [metricState, setMetricState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [metricError, setMetricError] = useState('');
+
+  useEffect(() => {
+    if (!needsSummary) return;
+    let active = true;
+    async function loadSummary() {
+      setMetricState('loading');
+      setMetricError('');
+      try {
+        const response = await fetch('/api/control/v1/commerce/storefront/summary', { cache: 'no-store' });
+        const payload = await response.json().catch(() => null) as { data?: SummarySnapshot; message?: string } | null;
+        if (!response.ok) throw new Error(
+          response.status === 401 ? '登录已失效，请重新登录'
+            : response.status === 403 ? '当前账户无权查看电商运营数据'
+              : payload?.message ?? '电商运营数据读取失败');
+        const data = payload?.data;
+        if (!data || !Array.isArray(data.skus) || !Array.isArray(data.prices)) throw new Error('电商运营接口返回格式异常');
+        if (!active) return;
+        setMetrics(computeEcommerceOverview({
+          skus: data.skus as { id: string }[],
+          prices: data.prices as { skuId: string; status: string }[],
+          orderStatusCounts: (data.orderStatusCounts ?? {}) as Record<string, number>,
+          orderTotal: Number(data.orderTotal ?? 0),
+        }));
+        setMetricState('ready');
+      } catch (reason) {
+        if (!active) return;
+        setMetrics(null);
+        setMetricError(reason instanceof Error ? reason.message : '电商运营数据读取失败');
+        setMetricState('error');
+      }
+    }
+    void loadSummary();
+    return () => { active = false; };
+  }, [needsSummary]);
 
   useEffect(() => {
     if (!needsModels) {
@@ -81,6 +123,27 @@ export function EcommerceAdminWorkspace({ route = '/admin/ecommerce' }: { route?
           <p>商品发布、首页展示、库存查询、DE / AT 售价与第一方 B2C 订单各自独立管理。商品主数据、库存账本、价格版本和订单记录仍由各自领域负责。</p>
         </div>
         <span className="av-commerce-market-chip">德国 DE · 奥地利 AT · EUR</span>
+      </section>
+      <section className="av-card av-commerce-metrics" aria-label="电商运营实时指标" aria-live="polite">
+        <div className="av-cardhead">
+          <div>
+            <p className="av-eyebrow">LIVE COUNTS</p>
+            <h2 className="av-cardtitle">当前运营数字</h2>
+            <p className="av-cardhint">以下数字全部来自第一方订单与价格版本的真实数据；不包含外部渠道订单，也不代表营业额或销量。</p>
+          </div>
+          <a className="av-btn" href="/admin/ecommerce/orders">进入订单管理 →</a>
+        </div>
+        {metricState === 'loading' ? <p role="status">正在读取订单与价格版本…</p> : null}
+        {metricState === 'error' ? <div role="alert">
+          <strong>运营数字暂不可用</strong>
+          <p>{metricError}。读取失败不代表订单或商品数量为零；如需核对请直接进入订单管理或价格管理页面。</p>
+        </div> : null}
+        {metricState === 'ready' && metrics ? <dl className="av-commerce-metric-grid">
+          {metrics.map(item => <div className="av-commerce-metric" data-tone={item.tone} key={item.key}>
+            <dt>{item.label}</dt>
+            <dd>{item.value.toLocaleString('zh-CN')}<small>{item.hint}</small></dd>
+          </div>)}
+        </dl> : null}
       </section>
       <section className="av-commerce-shortcut-grid" aria-label="电商功能入口">
         {shortcuts.map(item => <a className="av-commerce-shortcut" href={item.href} key={item.href}>
