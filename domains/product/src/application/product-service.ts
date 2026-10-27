@@ -3,7 +3,7 @@ import { postgresErrorCode } from '@alsvid/database';
 import { ProductConflictError, ProductNotFoundError, ProductValidationError } from '../core/errors.js';
 import { ProductCapability, type HomepageBinding, type HomepageBindingMode, type HomepageSlotCode, type ProductCatalog, type ProductEntityKind, type ProductStatus, type ProductTypeCode } from '../core/model.js';
 import { normalizeProductCode, normalizeProductCountry } from '../core/normalization.js';
-import {assertPublicationTransition,curatedCatalogImage,toPublicCatalogItem,validatePublicationDraft,type PublicationAction,type PublicationDraft} from '../core/publication.js';
+import {approvedCatalogAssets,mergeCatalogAssets,assertPublicationTransition,curatedCatalogImage,toPublicCatalogItem,validatePublicationDraft,type PublicationAction,type PublicationDraft} from '../core/publication.js';
 import type { ProductActor, ProductAuditPort, ProductRepository } from './ports.js';
 
 export class ProductService {
@@ -54,13 +54,32 @@ export class ProductService {
     return this.repository.publications();
   }
 
+  /** Read-only view of the effective catalogue artwork allowlist (floor merged with overrides). */
+  async catalogPublishAssets(actor:ProductActor) {
+    requireCapability(actor,ProductCapability.Read);
+    const assets=await this.effectiveCatalogAssets();
+    return Object.entries(assets)
+      .map(([modelCode,imagePath])=>({modelCode,imagePath}))
+      .sort((left,right)=>left.modelCode.localeCompare(right.modelCode));
+  }
+
   /** No authentication is necessary: repository and projection expose ONLY approved public fields. */
   async publishedCatalog() {
-    const [rows,suppressedCodes]=await Promise.all([
+    const [rows,suppressedCodes,assets]=await Promise.all([
       this.repository.publishedPublications(),this.repository.suppressedPublishedCodes(),
+      this.effectiveCatalogAssets(),
     ]);
-    return {items:rows.map(toPublicCatalogItem).filter((item):item is NonNullable<typeof item>=>item!==null),
+    return {items:rows.map(row=>toPublicCatalogItem(row,assets)).filter((item):item is NonNullable<typeof item>=>item!==null),
       suppressedCodes};
+  }
+
+  /**
+   * Reviewed artwork overrides merged over the built-in floor. A failure to read the
+   * override table must never empty the public catalogue, so the built-in floor wins.
+   */
+  private async effectiveCatalogAssets():Promise<Readonly<Record<string,string>>> {
+    try{return mergeCatalogAssets(await this.repository.catalogPublishAssets());}
+    catch{return approvedCatalogAssets;}
   }
 
   async startPublication(actor:ProductActor,modelId:string) {
@@ -68,7 +87,7 @@ export class ProductService {
     const created=await this.repository.createPublication(modelId,actor.userId);
     if(!created){
       if(await this.repository.publication(modelId))throw new ProductConflictError('Publication already exists; reload');
-      throw new ProductValidationError('Only ACTIVE FC1 and FC2 bike models can be prepared for publication');
+      throw new ProductValidationError('Only ACTIVE bike models with reviewed catalogue artwork can be prepared for publication');
     }
     await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_created',
       targetType:'product.model',targetId:modelId});
@@ -84,7 +103,8 @@ export class ProductService {
     if(!['DRAFT','WITHDRAWN'].includes(existing.status))
       throw new ProductValidationError('Published or under-review content must first be withdrawn/rejected');
     const body=validatePublicationDraft(input);
-    const imagePath=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code);
+    const assets=await this.effectiveCatalogAssets();
+    const imagePath=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code,assets);
     const saved=await this.repository.savePublication(modelId,input.expectedVersion,body,imagePath,actor.userId);
     if(!saved)throw new ProductConflictError('Publication draft was updated; reload before saving');
     await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_updated',
@@ -103,12 +123,13 @@ export class ProductService {
     if(!existing)throw new ProductNotFoundError('Publication draft not found');
     const next=assertPublicationTransition(existing.status,input.action);
     if(input.action!=='WITHDRAW') {
-      curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code);
+      const assets=await this.effectiveCatalogAssets();
+      const expectedImage=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code,assets);
       validatePublicationDraft({
         titleZh:existing.title_zh,titleDe:existing.title_de,
         titleEn:existing.title_en,evidenceNote:existing.evidence_note,
       });
-      if(existing.image_path!==curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code))
+      if(existing.image_path!==expectedImage)
         throw new ProductValidationError('Catalogue image does not match reviewed model artwork');
     }
     const updated=await this.repository.transitionPublication(modelId,input.expectedVersion,existing.status,next,actor.userId);

@@ -27,13 +27,19 @@ const statuses:Record<Publication['status'],string>={
 
 export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
   const [rows,setRows]=useState<Publication[]>([]);
+  const [allowed,setAllowed]=useState<string[]>([]);
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState('');
   const [error,setError]=useState('');
   const [message,setMessage]=useState('');
   async function refresh(){setRows(await publicationApi<Publication[]>('publications'));}
-  useEffect(()=>{let live=true;void publicationApi<Publication[]>('publications').then(items=>{
-    if(live)setRows(items);
+  useEffect(()=>{let live=true;void Promise.all([
+    publicationApi<Publication[]>('publications'),
+    publicationApi<{modelCode:string;imagePath:string}[]>('catalog-publish-assets'),
+  ]).then(([items,assets])=>{
+    if(!live)return;
+    setRows(items);
+    setAllowed(assets.map(asset=>asset.modelCode));
   }).catch(e=>{if(live)setError(e instanceof Error?e.message:'发布列表无法读取');})
     .finally(()=>{if(live)setLoading(false);});
     return ()=>{live=false};
@@ -51,8 +57,9 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
   }
   const activeModels=models.filter(model=>model.status==='ACTIVE');
   const bikeModels=models.filter(model=>model.product_type_code==='BIKE');
+  // Eligibility comes from the reviewed artwork allowlist, not a hardcoded model list.
   const eligible=models.filter(model=>model.status==='ACTIVE'&&model.product_type_code==='BIKE'&&
-    (model.code==='FC1'||model.code==='FC2'));
+    allowed.includes(model.code));
   return <section id="catalog-publications" className={styles.section} aria-label="商品发布和审核">
     <header>
       <div><span>OFFICIAL PRODUCT CATALOGUE</span><h2>官网商品发布与审核</h2></div>
@@ -87,11 +94,11 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
     </div>
     {!loading&&!eligible.length?<div className={styles.emptyState}>
       <div><strong>暂无符合条件的发布候选</strong>
-        <p>当前真实产品目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车。只有型号为 FC1/FC2、状态为 ACTIVE 且类型为 BIKE 的记录，才会进入首批发布审核。这里不会自动生成虚构商品。</p>
+        <p>当前真实产品目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车；已核对素材的商品型号 {allowed.length} 个{allowed.length?'（'+allowed.join('、')+'）':''}。只有状态为 ACTIVE、类型为整车、且已录入官网素材白名单的型号才会进入发布审核。这里不会自动生成虚构商品。</p>
       </div>
       <a href="/admin/product#model-register" className={styles.emptyAction}>检查产品型号与类型 →</a>
     </div>:null}
-    <p className={styles.note}>首批只支持已有真实详情页与已登记车图的 FC1/FC2。其他整车、配件、图片和适配规则需要独立验证，不会因为类型是 ACTIVE 就自动上架。</p>
+    <p className={styles.note}>首批只支持已有真实详情页与已登记车图、并已录入素材白名单的型号。其他整车、配件、图片和适配规则需要独立验证，不会因为类型是 ACTIVE 就自动上架。</p>
   </section>;
 }
 

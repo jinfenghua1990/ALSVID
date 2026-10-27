@@ -1,5 +1,5 @@
 import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
-import type { PublicationRow,PublicationStatus,PublicationDraft } from '../core/publication.js';
+import type { CatalogPublishAssetRow,PublicationRow,PublicationStatus,PublicationDraft } from '../core/publication.js';
 
 export interface ProductActor {
   userId: string;
@@ -66,6 +66,8 @@ export interface ProductRepository {
   publications(): Promise<PublicationRow[]>;
   publishedPublications(): Promise<PublicationRow[]>;
   suppressedPublishedCodes():Promise<string[]>;
+  /** Reviewed catalogue artwork overrides; the domain merges them over its built-in floor. */
+  catalogPublishAssets(): Promise<CatalogPublishAssetRow[]>;
   publication(modelId:string): Promise<PublicationRow | null>;
   createPublication(modelId:string,actorUserId:string): Promise<PublicationRow | null>;
   savePublication(modelId:string,expectedVersion:number,body:PublicationDraft,imagePath:string,actorUserId:string): Promise<PublicationRow | null>;

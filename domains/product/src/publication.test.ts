@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ProductValidationError } from './core/errors.js';
 import {
- approvedCatalogAssets,assertPublicationTransition,curatedCatalogImage,
+ approvedCatalogAssets,assertPublicationTransition,curatedCatalogImage,mergeCatalogAssets,
  toPublicCatalogItem,validatePublicationDraft,type PublicationRow,
 } from './core/publication.js';
 
@@ -52,4 +52,43 @@ test('public projection has only reviewed safe fields, never internal evidence/v
  assert.equal(toPublicCatalogItem({...row,status:'WITHDRAWN'}),null);
  assert.equal(toPublicCatalogItem({...row,model_status:'RETIRED'}),null);
  assert.equal(toPublicCatalogItem({...row,image_path:'/incorrect-bike.webp'}),null);
+});
+
+test('the reviewed artwork allowlist is data, with the built-in list as a floor',()=>{
+ // No overrides yet: the floor keeps today's behaviour exactly.
+ assert.deepEqual(mergeCatalogAssets([]),approvedCatalogAssets);
+ // A new model becomes publishable without touching code.
+ const withFc3=mergeCatalogAssets([{model_code:'FC3',image_path:'/products/fc3/side.webp',enabled:true}]);
+ assert.equal(withFc3.FC3,'/products/fc3/side.webp');
+ assert.equal(withFc3.FC1,approvedCatalogAssets.FC1);
+ assert.equal(curatedCatalogImage('FC3','ACTIVE','BIKE',withFc3),'/products/fc3/side.webp');
+ // Replacing artwork for an existing model overrides the floor rather than appending.
+ const replaced=mergeCatalogAssets([{model_code:'FC1',image_path:'/products/fc1/v2.webp',enabled:true}]);
+ assert.equal(replaced.FC1,'/products/fc1/v2.webp');
+});
+
+test('disabling a model withdraws it even though the floor still lists it',()=>{
+ const withdrawn=mergeCatalogAssets([{model_code:'FC1',image_path:approvedCatalogAssets.FC1!,enabled:false}]);
+ assert.equal('FC1' in withdrawn,false);
+ assert.throws(()=>curatedCatalogImage('FC1','ACTIVE','BIKE',withdrawn),ProductValidationError);
+ assert.equal(toPublicCatalogItem(row,withdrawn),null);
+ assert.equal(withdrawn.FC2,approvedCatalogAssets.FC2);
+});
+
+test('the allowlist merge never mutates its inputs and ignores unknown rows',()=>{
+ const rows=[{model_code:'FC3',image_path:'/products/fc3/side.webp',enabled:true}];
+ const snapshot=JSON.stringify({rows,floor:approvedCatalogAssets});
+ const merged=mergeCatalogAssets(rows.concat([{model_code:'',image_path:'/x.webp',enabled:true} as never]));
+ assert.equal(JSON.stringify({rows,floor:approvedCatalogAssets}),snapshot);
+ assert.equal(merged.FC3,'/products/fc3/side.webp');
+ assert.equal('FC3' in approvedCatalogAssets,false);
+});
+
+test('the public projection follows the allowlist, not the hardcoded pair',()=>{
+ const fc3=mergeCatalogAssets([{model_code:'FC3',image_path:'/products/fc3/side.webp',enabled:true}]);
+ const projection=toPublicCatalogItem({...row,model_code:'FC3',image_path:'/products/fc3/side.webp'},fc3);
+ assert.deepEqual(projection,{modelId:'valid-model-id',code:'FC3',type:'BIKE',
+  image:'/products/fc3/side.webp',title:{zh:'FC1 整车',de:'FC1 Fahrrad',en:'FC1 Bicycle'}});
+ // An allowlisted model still cannot publish artwork that was not reviewed for it.
+ assert.equal(toPublicCatalogItem({...row,model_code:'FC3',image_path:'/products/fc2/side.webp'},fc3),null);
 });
