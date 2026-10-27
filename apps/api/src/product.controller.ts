@@ -48,6 +48,12 @@ export class ProductController {
     catch(error) { return throwHttpDomainError(error); }
   }
 
+  @Get('catalog-publish-assets')
+  async catalogPublishAssets(@Req() request:AuthenticatedRequest) {
+    try { return {data:await productService.catalogPublishAssets(requireAuth(request))}; }
+    catch(error) { return throwHttpDomainError(error); }
+  }
+
   @Post('publications/:modelId/start')
   async startPublication(@Req() request:AuthenticatedRequest,@Param('modelId') modelId:string) {
     try { return {data:await productService.startPublication(requireAuth(request),modelId)}; }

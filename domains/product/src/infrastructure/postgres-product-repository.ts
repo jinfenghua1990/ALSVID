@@ -1,6 +1,6 @@
 import type { DatabasePort } from '@alsvid/database';
 import type { HomepageBinding, ProductCatalog, ProductEntityKind } from '../core/model.js';
-import type { PublicationRow, PublicationDraft, PublicationStatus } from '../core/publication.js';
+import type { CatalogPublishAssetRow,PublicationRow, PublicationDraft, PublicationStatus } from '../core/publication.js';
 import type { CreateModelRecord, CreateSkuRecord, CreateVariantRecord, ProductRepository, UpdateProductRecord } from '../application/ports.js';
 
 export class PostgresProductRepository implements ProductRepository {
@@ -93,12 +93,19 @@ export class PostgresProductRepository implements ProductRepository {
     return result.rows[0]??null;
   }
 
+  async catalogPublishAssets():Promise<CatalogPublishAssetRow[]>{
+    const result=await this.database.query<CatalogPublishAssetRow>(
+      'SELECT model_code,image_path,enabled FROM product.catalog_publish_assets ORDER BY model_code');
+    return result.rows;
+  }
+
   async createPublication(modelId:string,actorUserId:string):Promise<PublicationRow|null> {
     const result=await this.database.query(`
       INSERT INTO product.catalog_publications(model_id,created_by,updated_by)
       SELECT m.id,$2,$2 FROM product.models m
       WHERE m.id=$1 AND m.status='ACTIVE' AND m.product_type_code='BIKE'
-        AND m.code IN ('FC1','FC2')
+        AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
+          WHERE a.model_code=m.code AND a.enabled)
       ON CONFLICT (model_id) DO NOTHING RETURNING model_id`,
       [modelId,actorUserId]);
     if(!result.rows.length)return null;
@@ -114,8 +121,8 @@ export class PostgresProductRepository implements ProductRepository {
       WHERE p.model_id=$1 AND p.version=$2 AND p.status IN ('DRAFT','WITHDRAWN')
         AND EXISTS(SELECT 1 FROM product.models m WHERE m.id=p.model_id
         AND m.status='ACTIVE' AND m.product_type_code='BIKE'
-        AND (($6='/home/original/fc1-product.webp' AND m.code='FC1')
-          OR ($6='/products/fc2/side-studio-1536.webp' AND m.code='FC2')))
+        AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
+          WHERE a.model_code=m.code AND a.enabled AND a.image_path=$6))
       RETURNING model_id`,
       [modelId,expectedVersion,body.titleZh,body.titleDe,body.titleEn,imagePath,body.evidenceNote,actorUserId]);
     if(!result.rows.length)return null;
@@ -135,8 +142,8 @@ export class PostgresProductRepository implements ProductRepository {
         AND ($4='WITHDRAWN' OR EXISTS(
           SELECT 1 FROM product.models m WHERE m.id=p.model_id AND m.status='ACTIVE'
           AND m.product_type_code='BIKE'
-          AND (($4='PUBLISHED' AND ((m.code='FC1' AND p.image_path='/home/original/fc1-product.webp')
-          OR (m.code='FC2' AND p.image_path='/products/fc2/side-studio-1536.webp')))
+          AND (($4='PUBLISHED' AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
+            WHERE a.model_code=m.code AND a.enabled AND a.image_path=p.image_path))
           OR $4='IN_REVIEW')))
       RETURNING model_id`,
       [modelId,expectedVersion,fromStatus,toStatus,actorUserId]);
