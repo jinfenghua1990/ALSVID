@@ -166,6 +166,16 @@ try {
         assert.ok(await bicycles.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth + 1),
           'Model shortcut strip fits the viewport');
 
+        const help=bicycles.locator('[data-bikes-help]');
+        assert.equal(await help.locator('details').count(),3,'Collection answers purchase, colour and reference-spec questions');
+        for (const question of await help.locator('details').all()) {
+          await question.locator('summary').click();
+          assert.equal(await question.getAttribute('open'),'','Native FAQ disclosure opens with localized copy');
+          assert.ok((await question.locator('p').innerText()).trim());
+          await question.locator('summary').click();
+        }
+        assert.equal(await help.locator('a[href="/'+locale+'/dealers"]').count(),1);
+        assert.equal(await help.locator('a[href="/'+locale+'/service-locations"]').count(),1);
         const discovery = bicycles.locator('[data-bikes-discovery]');
         assert.equal(await discovery.count(), 1, 'Model discovery component renders for FC platform');
         const firstBikeSrc = await discovery.locator('#model-fc1 img').getAttribute('src');

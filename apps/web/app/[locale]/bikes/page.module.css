@@ -329,3 +329,13 @@
 .compareTray :is(button,a):focus-visible{outline:2px solid #52764f;outline-offset:3px}
 .compareTray>.discoveryLimit{font-size:12px;max-width:180px;margin:0;color:#80531b}
 @media(max-width:380px){.compareTrayModel{padding:0 2px;gap:2px}.compareTrayModel img{width:24px}.compareTrayModel strong{font-size:12px}.compareTrayModel button{min-width:26px}}
+
+.collectionHelp{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,5vw,70px);padding:60px clamp(22px,6vw,110px);background:#fff;color:#20382a}
+.collectionHelp h2{font-size:clamp(28px,3vw,44px);line-height:1.15;letter-spacing:-.035em;margin:12px 0 24px}
+.collectionHelp nav{display:flex;flex-wrap:wrap;gap:16px}
+.collectionHelp a{color:#315f40;font-size:14px;text-underline-offset:4px}
+.collectionQuestions details{border-bottom:1px solid #dce6dc;padding:17px 0}
+.collectionQuestions summary{cursor:pointer;font-size:15px;font-weight:650;line-height:1.6}
+.collectionQuestions p{font-size:14px;color:#607064;line-height:1.8;margin:14px 0 4px}
+.collectionHelp :is(summary,a):focus-visible{outline:2px solid #52764f;outline-offset:4px}
+@media(max-width:760px){.collectionHelp{grid-template-columns:1fr;padding:40px 22px;gap:10px}}

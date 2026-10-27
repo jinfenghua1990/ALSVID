@@ -159,6 +159,22 @@ export default async function BikesPage({ params, searchParams }: Props) {
           {models.map(model => <a role="row" key={model.id} href={prefix + "/explore/" + model.id}><strong role="cell">{model.name}</strong><span role="cell">FC</span><span role="cell">{model.status}</span></a>)}
         </div>
       </section>
+      <section className={styles.collectionHelp} aria-labelledby="bikes-help-title" data-bikes-help>
+        <div>
+          <p className={styles.kicker}>{t("catalog.discovery.help.kicker")}</p>
+          <h2 id="bikes-help-title">{t("catalog.discovery.help.title")}</h2>
+          <nav aria-label={t("catalog.discovery.help.links")}>
+            <a href={prefix + "/dealers"}>{t("catalog.discovery.help.dealers")} →</a>
+            <a href={prefix + "/service-locations"}>{t("catalog.discovery.help.service")} →</a>
+          </nav>
+        </div>
+        <div className={styles.collectionQuestions}>
+          {(["purchase", "colours", "facts"] as const).map(topic => <details key={topic}>
+            <summary>{t(`catalog.discovery.help.${topic}.question` as TranslationKey)}</summary>
+            <p>{t(`catalog.discovery.help.${topic}.answer` as TranslationKey)}</p>
+          </details>)}
+        </div>
+      </section>
       <AccessoriesCatalogSection locale={locale} selectedCategory={query.category} />
       <aside className={styles.shopPreviewEntry} data-shop-preview-entry>
         <div><strong>{t('shopPreview.linkLabel')}</strong><p>{t('shopPreview.linkBody')}</p></div>

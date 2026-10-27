@@ -135,5 +135,16 @@
   "catalog.discovery.quickView.unavailable": "Interest selections are not available for this model yet. See the details.",
   "catalog.discovery.compare.view": "View comparison",
   "catalog.discovery.compare.clear": "Clear selection",
-  "catalog.discovery.compare.removeModel": "Remove {model} from comparison"
+  "catalog.discovery.compare.removeModel": "Remove {model} from comparison",
+  "catalog.discovery.help.kicker": "CHOOSING YOUR BICYCLE",
+  "catalog.discovery.help.title": "Questions about your selection?",
+  "catalog.discovery.help.links": "More information",
+  "catalog.discovery.help.dealers": "Explore dealers",
+  "catalog.discovery.help.service": "View service locations",
+  "catalog.discovery.help.purchase.question": "Can I buy these models online yet?",
+  "catalog.discovery.help.purchase.answer": "Online orders and payments are not available yet. The cart saves a non-binding interest selection only; it does not create an order or reserve stock.",
+  "catalog.discovery.help.colours.question": "Do the colour swatches show available finishes?",
+  "catalog.discovery.help.colours.answer": "The FC1 swatches represent a green reference sample and unconfirmed colour proposals. The photograph remains the genuine reference bicycle. Saleable colours and variants still require approval.",
+  "catalog.discovery.help.facts.question": "How final are the comparison details?",
+  "catalog.discovery.help.facts.answer": "The comparison uses existing public reference information only. Final production specifications, prices and availability are not confirmed. Visit each model page for its existing information."
 }

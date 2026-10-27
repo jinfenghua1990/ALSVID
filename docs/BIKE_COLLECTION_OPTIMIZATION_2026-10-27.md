@@ -14,6 +14,7 @@ This is an incremental improvement to the existing catalogue, not a separate sho
 | Comparison | Visitor selects up to three models; persistent thumbnail tray supports removal, clearing and keyboard-accessible jump; table includes photos and existing reference wheel/frame facts | Browser checks for limits, filtering, clear and viewport fit |
 | Quick view | Existing dialog and non-binding interest selection retained; adds the same reference wheel/frame facts as model cards | Dialog, quantity, cart persistence and Escape/focus regression |
 | Filter recovery | Reset is available for active search/status filters even when results are non-empty | Non-empty and empty-state regression |
+| Selection help | Localized purchase/colour/reference-data FAQ and existing dealer/service-directory links | Disclosure, language and link regression |
 | Price, promotion, stock | No approved live values; continue to state that price is pending | Requires authoritative commercial release, not invented values |
 | Ratings and customer reviews | No verified review feed in this catalogue | Requires genuine review source and approved publication |
 | Saleable colours / variants | Reference photograph and proposed colours remain clearly distinguished | Requires approved variant assets and SKU bindings |
