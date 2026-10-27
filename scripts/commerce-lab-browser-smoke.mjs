@@ -166,6 +166,7 @@ try {
   const stock = page.locator('[data-area="inventory"]');
   await stock.waitFor();
   await stock.getByRole('cell', { name: 'CI warehouse', exact: true }).first().waitFor();
+  await stock.locator('#warehouses tbody tr').first().waitFor({ state: 'visible' });
   assert.equal(await stock.locator('#warehouses tbody tr').count(), 1, 'one warehouse occupies one row');
   await stock.locator('#balances tbody tr').first().waitFor({ state: 'visible' });
   assert.equal(await stock.locator('#balances tbody tr').count(), 1, 'one stock position occupies one row');
