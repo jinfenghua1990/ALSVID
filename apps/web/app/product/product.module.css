@@ -302,3 +302,54 @@
   .sectionHead { display: block; }
   .sectionHead p { margin-top: 5px; }
 }
+
+
+/* Product archive: a dense, list-first operational surface instead of dashboard cards. */
+.header { min-height: 0; padding: 18px 22px; gap: 12px; align-items: center; border-radius: 10px; background: var(--alsvid-panel); color: var(--alsvid-text); box-shadow: none; }
+.header h1 { max-width: none; font-size: 23px; color: var(--alsvid-text); line-height: 1.3; letter-spacing: -.025em; }
+.header p { margin-top: 4px; max-width: none; font-size: 11px; color: var(--alsvid-muted); line-height: 1.5; }
+.header .eyebrow { margin-bottom: 4px; color: var(--alsvid-muted); }
+.releaseBadge { padding: 6px 10px; border-color: var(--alsvid-line); border-radius: 6px; background: var(--alsvid-panel-2); color: var(--alsvid-text-2); backdrop-filter: none; }
+.metrics { display: flex; flex-wrap: wrap; margin: 10px 0 12px; border-radius: 9px; }
+.metrics > div, .metrics > div:nth-child(3), .metrics > div:nth-child(2n) { flex: 1 1 120px; min-height: 44px; padding: 9px 13px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 9px; border-right: 1px solid var(--alsvid-line); border-bottom: 0; }
+.metrics span { font-size: 10px; }
+.metrics strong { font-size: 18px; }
+.section { margin-top: 10px; padding-top: 0; border-top: 0; }
+.sectionHead { margin-bottom: 12px; align-items: center; }
+.sectionHead h2 { font-size: 19px; margin-top: 3px; }
+.sectionHead p { max-width: 480px; }
+.modelToolbar { gap: 8px; }
+.modelToolbar input, .modelToolbar select { padding: 8px 10px; border-radius: 6px; font-size: 12px; }
+.modelTableWrap { border-radius: 8px; }
+.modelTable th, .modelTable td { padding: 9px 11px; }
+.modelTable th { font-size: 11px; }
+.modelTable td { font-size: 12px; line-height: 1.4; }
+.modelTable td strong { font-size: 12px; }
+.modelTable tbody tr:hover { background: var(--alsvid-panel-2); }
+.modelTable tbody tr:nth-child(even) { background: color-mix(in srgb, var(--alsvid-panel-2) 42%, var(--alsvid-panel)); }
+.modelTable tbody tr:nth-child(even):hover { background: var(--alsvid-panel-2); }
+.modelName { display: block; margin-top: 2px; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--alsvid-muted); font-size: 10px; }
+.tableAction { padding: 6px 10px; border-radius: 6px; font-size: 11px; }
+.statusBadge, .stageBadge { border-radius: 5px; padding: 3px 7px; font-size: 10px; }
+.collapsiblePanel { margin-top: 12px; border: 1px solid var(--alsvid-line); border-radius: 9px; background: var(--alsvid-panel); }
+.collapsiblePanel > summary { cursor: pointer; padding: 14px 16px; display: flex; justify-content: space-between; gap: 12px; align-items: center; color: var(--alsvid-text); font-size: 13px; font-weight: 700; }
+.collapsiblePanel > summary span { color: var(--alsvid-muted); font-size: 11px; font-weight: 400; }
+.collapsiblePanel[open] > summary { border-bottom: 1px solid var(--alsvid-line); }
+.collapsiblePanel > section, .collapsiblePanel > .formsGrid, .collapsiblePanel > .notice { width: auto; margin-left: 16px; margin-right: 16px; }
+.collapsiblePanel > .formsGrid { margin-bottom: 18px; }
+.definitionHelp { margin-top: 9px; color: var(--alsvid-muted); font-size: 11px; }
+.definitionHelp > summary { cursor: pointer; }
+.quickLinks { position: relative; font-size: 11px; }
+.quickLinks > summary { cursor: pointer; padding: 8px 10px; border: 1px solid var(--alsvid-line); border-radius: 6px; color: var(--alsvid-text-2); }
+.quickLinks > div { position: absolute; right: 0; top: 100%; z-index: 2; min-width: 180px; padding: 6px; display: grid; gap: 2px; border: 1px solid var(--alsvid-line); border-radius: 7px; background: var(--alsvid-panel); box-shadow: var(--alsvid-shadow); }
+.quickLinks a { padding: 8px 10px; color: var(--alsvid-text-2); text-decoration: none; white-space: nowrap; }
+.quickLinks a:hover { background: var(--alsvid-panel-2); }
+.createLink { display: inline-flex; align-items: center; padding: 9px 12px; border-radius: 6px; background: var(--alsvid-accent); color: #fff; font-weight: 700; font-size: 11px; text-decoration: none; white-space: nowrap; }
+@media (max-width: 800px) {
+  .header { padding: 14px 16px; }
+  .header h1 { font-size: 21px; }
+  .header p { max-width: 100%; }
+  .metrics > div, .metrics > div:nth-child(3), .metrics > div:nth-child(2n) { flex-basis: 46%; }
+  .collapsiblePanel > summary { padding: 12px; }
+  .collapsiblePanel > section, .collapsiblePanel > .formsGrid, .collapsiblePanel > .notice { margin-left: 12px; margin-right: 12px; }
+}
