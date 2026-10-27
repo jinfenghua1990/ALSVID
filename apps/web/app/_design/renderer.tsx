@@ -625,9 +625,9 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         return {
           key: [screen.area, group.group, item].join('::'),
           label: item,
-          href,
+          ...(href ? { href } : {}),
           icon: secondaryMenuIcon(item),
-          status: href ? undefined : '待开发',
+          ...(!href ? { status: '待开发' } : {}),
           disabled: !href,
         };
       }),
