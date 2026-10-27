@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { acceptedChecks, acceptedJobs, acceptedRollback, successfulRuns, mainReleaseRuns, mainProductionRuns, releaseCandidates, failedRequiredJobs } from './release-gate.mjs';
 
 const passed = (head_sha, conclusion = 'success') => ({
@@ -101,5 +102,71 @@ test('official FC1 reservation inbox fallback is consistently included in releas
     const workflow = readFileSync(new URL('../.github/workflows/' + filename, import.meta.url), 'utf8');
     assert.equal(workflow.split(expected).length - 1, occurrences, filename + ' must use the approved inbox for validation and Web build');
     assert.match(workflow, /FC1 reservation email is not configured/, filename + ' must continue checking email format');
+  }
+});
+
+const deploymentSteps = [
+  ['production-deploy.yml', 'Check HTTPS connectivity before changing Production', 'Verify public website and admin, record deployed release'],
+  ['www-deploy.yml', 'Check HTTPS connectivity before changing the Web service', 'Confirm WWW is serving the expected release'],
+];
+
+function deploymentStepScript(filename, stepName) {
+  const workflow = readFileSync(new URL('../.github/workflows/' + filename, import.meta.url), 'utf8');
+  const step = workflow.split('      - name: ' + stepName + '\n')[1]?.split('\n      - name:')[0];
+  assert.ok(step, filename + ' is missing ' + stepName);
+  const script = step.split('        run: |\n')[1];
+  assert.ok(script, 'step must contain an executable shell script');
+  return script.split('\n').map(line => line.replace(/^ {10}/, '')).join('\n');
+}
+
+function runDomainCheck(script, httpStatus, transportExit = 0) {
+  // Execute the actual workflow shell with curl's HTTP/transport exit behavior.
+  // No requests or production credentials are used by these tests.
+  return spawnSync('bash', ['-c', `
+    curl() {
+      if [[ "$MOCK_TRANSPORT_EXIT" != "0" ]]; then return "$MOCK_TRANSPORT_EXIT"; fi
+      if [[ "$MOCK_HTTP_STATUS" =~ ^[45] && " $* " == *" --fail "* ]]; then return 22; fi
+      printf '%s' "$MOCK_HTTP_STATUS"
+    }
+    ${script}
+  `], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      MOCK_HTTP_STATUS: String(httpStatus), MOCK_TRANSPORT_EXIT: String(transportExit),
+      PUBLIC_SITE_URL: 'https://www.example.test/fc1',
+      ADMIN_LOGIN_URL: 'https://admin.example.test/login',
+      AUTH_BASE_URL: 'https://admin.example.test', RELEASE_SHA: 'test-release',
+    },
+  });
+}
+
+test('a broken currently serving page cannot block a repair rollout', () => {
+  for (const [filename, preflight] of deploymentSteps) {
+    for (const status of [200, 404, 503]) {
+      const result = runDomainCheck(deploymentStepScript(filename, preflight), status);
+      assert.equal(result.status, 0, filename + ': ' + result.stderr);
+      assert.match(result.stdout, new RegExp('Pre-deploy HTTP ' + status));
+      if (status >= 400) assert.match(result.stdout, /::warning title=Current production page unhealthy/);
+    }
+  }
+});
+
+test('pre-deployment DNS, TLS and timeout errors still stop the rollout', () => {
+  for (const [filename, preflight] of deploymentSteps) {
+    for (const exit of [6, 28, 35, 60]) {
+      const result = runDomainCheck(deploymentStepScript(filename, preflight), '000', exit);
+      assert.notEqual(result.status, 0, filename + ' must reject curl transport error ' + exit);
+      assert.match(result.stderr, /Production domain unreachable/);
+    }
+  }
+});
+
+test('post-deployment verification still rejects missing or failing public pages', () => {
+  for (const [filename, , verification] of deploymentSteps) {
+    for (const status of [404, 503]) {
+      const result = runDomainCheck(deploymentStepScript(filename, verification), status);
+      assert.equal(result.status, 22, filename + ' must reject HTTP ' + status + ' after rollout');
+    }
   }
 });

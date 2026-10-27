@@ -193,14 +193,25 @@ jobs:
             echo "rollback=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Preflight canonical domains before changing Production
+      - name: Check HTTPS connectivity before changing Production
         env:
           PUBLIC_SITE_URL: https://www.alsvidbike.com/zh/explore/fc1
           ADMIN_LOGIN_URL: https://admin.alsvidbike.com/login?portal=admin
         run: |
           set -euo pipefail
-          curl --location --fail --silent --show-error --retry 2 --retry-delay 3 "$PUBLIC_SITE_URL" >/dev/null
-          curl --location --fail --silent --show-error --retry 2 --retry-delay 3 "$ADMIN_LOGIN_URL" >/dev/null
+          # The currently serving page may be broken; a repair release must still be deployable.
+          # DNS, TLS and transport errors remain fatal. Page health is enforced after rollout.
+          for url in "$PUBLIC_SITE_URL" "$ADMIN_LOGIN_URL"; do
+            echo "Checking HTTPS connectivity: $url"
+            if ! http_code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 3 --output /dev/null --write-out '%{http_code}' "$url")"; then
+              echo "::error title=Production domain unreachable::HTTPS connection failed for $url. Check DNS, TLS and network access." >&2
+              exit 1
+            fi
+            echo "Pre-deploy HTTP $http_code: $url"
+            if [[ "$http_code" =~ ^[45][0-9]{2}$ ]]; then
+              echo "::warning title=Current production page unhealthy::HTTP $http_code from $url. Continuing with the repair release; post-deployment checks remain mandatory."
+            fi
+          done
 
       - name: Authenticate to Google Cloud with Workload Identity Federation
         uses: google-github-actions/auth@v3

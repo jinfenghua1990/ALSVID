@@ -25,6 +25,12 @@ The [successful full production release #40169393607](https://github.com/jinfeng
 
 The separately created **`alsvid-prod`** is the intended new-project migration target, **not a verified active deployment**. The GitHub Production Environment's `GCP_PROJECT_ID` and related Workload Identity / secrets / registry variables control the actual target. Do not simply change those variables to `alsvid-prod`, point it at live Neon/R2 or switch DNS without checking new-project provisioning, secret isolation, database migration strategy, service identity, full smoke tests, rollback and domain cutover. Track this in [Issue #34](https://github.com/jinfenghua1990/ALSVID/issues/34).
 
+## Domain checks before and after rollout
+
+Before either full-platform or WWW-only rollout, check HTTPS connectivity to the canonical domain(s). DNS, TLS and transport errors stop the release. HTTP 4xx/5xx from the currently serving page are logged with the URL and status as warnings so an unhealthy old page does not block the repair deployment.
+
+After rollout, the existing strict checks remain mandatory: public pages must succeed, Web release SHA must match, catalog markers and Admin login modes must be present, and full-platform API readiness must pass. A WWW-only post-deploy failure still triggers its existing previous-revision recovery. A failed full-platform release requires the existing reviewed recovery procedure; this connectivity change does not roll back data or alter release authorization.
+
 ## Release acceptance boundaries
 
 1. The selected full 40-character source SHA exists on `main`, is current for an ordinary release, and has successful exact-SHA `verify` and `containers` jobs.
