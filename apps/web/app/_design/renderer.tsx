@@ -17,6 +17,7 @@ import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
 import ProductClient from '../product/product-client';
+import { BusinessAnalyticsOverview } from './business-analytics-overview';
 
 const AREAS = ADMIN_MODULES;
 // Keep all business modules directly accessible; no hidden More dropdown.
@@ -741,13 +742,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
               <IntegratedOperations area={screen.area} route={screen.route} />
             </>
           ) : screen.area === '数据' ? (
-            <>
-              <section className="av-card av-analytics-empty" aria-live="polite">
-                <h2 className="av-cardtitle">{screen.title} · 数据源状态</h2>
-                <p>此分析页的版式已按 Ardot 保留；对应经营统计接口尚未接入，因此暂不展示设计稿中的演示数值或图表。</p>
-                {screen.route === '/admin/analytics' ? <a className="av-btn" href="/admin/analytics/color-interest">查看已接入的 FC1 颜色偏好统计 →</a> : <a className="av-btn" href="/admin/analytics">返回数据总览 →</a>}
-              </section>
-            </>
+            <BusinessAnalyticsOverview />
           ) : (
             <>
               {screen.sourceNode && screen.route.split('/').length === 3
