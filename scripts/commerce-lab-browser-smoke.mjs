@@ -167,6 +167,7 @@ try {
   await stock.waitFor();
   await stock.getByRole('cell', { name: 'CI warehouse', exact: true }).first().waitFor();
   assert.equal(await stock.locator('#warehouses tbody tr').count(), 1, 'one warehouse occupies one row');
+  await stock.locator('#balances tbody tr').first().waitFor({ state: 'visible' });
   assert.equal(await stock.locator('#balances tbody tr').count(), 1, 'one stock position occupies one row');
   assert.equal(await stock.locator('#inventory-advanced').evaluate(node => node.open), false, 'operational forms start collapsed');
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
