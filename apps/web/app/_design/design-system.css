@@ -1860,3 +1860,44 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
   }
   .av-moremodules-button { font-size: 12px; min-height: 34px; padding: 0 8px; }
 }
+
+
+/* Every business module remains visible: a wrapped second navigation row is preferable to hidden menus. */
+.av.av-ambient .av-topbar,
+.av.av-ambient[data-theme='deepblue'] .av-topbar {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  grid-template-areas: "brand tools" "modules modules";
+  height: auto;
+  min-height: 98px;
+  align-content: center;
+  column-gap: 10px;
+  row-gap: 5px;
+  padding: 7px 14px 8px;
+}
+.av.av-ambient .av-brand { grid-area: brand; justify-self: start; }
+.av.av-ambient .av-toputils { grid-area: tools; justify-self: end; }
+.av.av-ambient .av-primarynav {
+  grid-area: modules;
+  order: initial;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+  gap: 3px 5px;
+  overflow: visible;
+}
+.av.av-ambient .av-primarynav .av-navitem {
+  min-height: 31px;
+  padding: 0 9px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+/* The primary bar can wrap; fixed sticky offsets would cover the work area. */
+.av.av-ambient .workspaceTabs { position: relative; top: auto; }
+.av.av-ambient .av-rail { position: relative; top: auto; }
+@media (max-width: 720px) {
+  .av.av-ambient .av-topbar { grid-template-columns: minmax(0,1fr) auto; min-height: 0; }
+  .av.av-ambient .av-primarynav .av-navitem { min-height: 30px; padding: 0 7px; font-size: 11px; }
+  .av.av-ambient .av-toputils { gap: 4px; }
+}
