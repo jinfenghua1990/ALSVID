@@ -145,3 +145,84 @@
 .typeCard strong{font-size:15px;color:var(--alsvid-text)}.typeCard small{font-size:10px;color:var(--alsvid-muted)}
 .typeCard span{font-size:11px;color:var(--alsvid-text-2);line-height:1.6}.typeCard b{font-size:10px;color:var(--alsvid-text)}
 @media(max-width:780px){.typeGrid{grid-template-columns:1fr}}
+
+
+/* Phase 1: use the compact, card-based workspace rhythm from EC-FX. */
+.header {
+  min-height: 0;
+  padding: 6px 0 16px;
+  align-items: flex-end;
+  gap: 24px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--alsvid-text);
+  box-shadow: none;
+}
+.header > div:first-child { max-width: 960px; }
+.header h1 {
+  max-width: 900px;
+  color: var(--alsvid-text);
+  font-size: clamp(28px, 2.3vw, 34px);
+  line-height: 1.16;
+  letter-spacing: -.04em;
+}
+.header p {
+  max-width: 900px;
+  margin-top: 8px;
+  color: var(--alsvid-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.header .eyebrow {
+  margin-bottom: 8px;
+  color: var(--alsvid-muted);
+  font-size: 10px;
+}
+.releaseBadge {
+  border-color: var(--alsvid-line);
+  border-radius: 10px;
+  padding: 8px 11px;
+  background: var(--alsvid-panel);
+  color: var(--alsvid-text-2);
+  font-size: 11px;
+  backdrop-filter: none;
+}
+.metrics {
+  margin: 12px 0 22px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border-radius: 12px;
+}
+.metrics > div { min-height: 76px; padding: 14px 16px; }
+.metrics span { font-size: 10px; }
+.metrics strong { font-size: 25px; }
+.typeGrid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+.typeCard {
+  min-height: 150px;
+  align-content: start;
+  padding: 18px;
+  border-radius: 13px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025);
+}
+.sectionHead { gap: 24px; }
+.sectionHead p { max-width: 620px; font-size: 12px; }
+.modelToolbar input, .modelToolbar select { font-size: 12px; }
+@media (max-width: 1180px) {
+  .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .metrics > div:nth-child(3) { border-right: 0; }
+  .metrics > div:nth-child(-n+3) { border-bottom: 1px solid var(--alsvid-line); }
+}
+@media (max-width: 800px) {
+  .header { display: block; padding: 0 0 14px; }
+  .header h1 { font-size: 28px; }
+  .releaseBadge { display: inline-flex; margin-top: 14px; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metrics > div, .metrics > div:nth-child(3) { border-right: 1px solid var(--alsvid-line); border-bottom: 1px solid var(--alsvid-line); }
+  .metrics > div:nth-child(2n) { border-right: 0; }
+  .metrics > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .sectionHead { display: block; }
+  .sectionHead p { margin-top: 8px; }
+}
