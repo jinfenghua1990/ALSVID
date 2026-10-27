@@ -77,7 +77,7 @@ test('design-rendered admin entries never promise an anchor', () => {
 // Finance used to expose both /admin/finance (Admin shell + FinanceClient) and a parallel
 // /finance OperationsFrame entry. Keep one canonical Admin route; /finance redirects there.
 test('finance entries consolidate on the Admin finance workspace', () => {
-  const finance = appNavigation.filter((item) => item.area === '财务结算' && !item.disabled);
+  const finance = appNavigation.filter((item) => item.area === '财务管理' && !item.disabled);
   assert.ok(finance.length >= 2, 'finance must keep enabled entries');
   for (const item of finance) {
     assert.equal(item.href, '/admin/finance', `${item.label} must point at /admin/finance`);
