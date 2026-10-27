@@ -121,7 +121,7 @@ try{
   await page.goto(base+'/admin/commerce-lab');
   await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).waitFor();
   await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).click();
-  await page.waitForURL(base+'/admin/commerce-lab/catalog');
+  await page.waitForURL(url=>url.pathname==='/admin/commerce-lab/catalog'&&url.searchParams.get('alsvidMenuLabel')==='独立商品管理');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
   await frame.getByRole('heading',{name:'独立商城商品管理',exact:true}).waitFor();
   assert.equal(await page.locator('.av-pagehead').count(),0,'embedded editor owns its page heading');
