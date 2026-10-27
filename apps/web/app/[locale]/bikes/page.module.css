@@ -327,4 +327,5 @@
 }
 
 .compareTray :is(button,a):focus-visible{outline:2px solid #52764f;outline-offset:3px}
-.compareTray>.discoveryLimit{font-size:12px;max-width:180px;margin:0}
+.compareTray>.discoveryLimit{font-size:12px;max-width:180px;margin:0;color:#80531b}
+@media(max-width:380px){.compareTrayModel{padding:0 2px;gap:2px}.compareTrayModel img{width:24px}.compareTrayModel strong{font-size:12px}.compareTrayModel button{min-width:26px}}

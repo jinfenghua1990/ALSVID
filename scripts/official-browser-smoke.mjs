@@ -215,6 +215,7 @@ try {
         }
         await tray.waitFor({state:'visible'});
         assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),3,'Tray retains three chosen models');
+        assert.ok(await bicycles.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Three selected comparison models do not overflow the page');
         await discovery.locator('[data-bikes-compare-toggle="L8"]').click();
         assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),3,'Fourth model does not exceed comparison limit');
         assert.ok((await tray.locator('[role="status"]').allTextContents()).some(text=>text.trim()),'Comparison feedback is visible near the selected models');
