@@ -132,5 +132,8 @@
   "catalog.discovery.quickView.close": "Schnellansicht schließen",
   "catalog.discovery.quickView.previewNotice": "Nur eine Konfigurationsvorschau. Kein freigegebener Preis, Lagerbestand oder kaufbarer SKU.",
   "catalog.discovery.quickView.save": "Unverbindliche Auswahl merken",
-  "catalog.discovery.quickView.unavailable": "Dieses Modell kann noch nicht vorgemerkt werden. Bitte die Details ansehen."
+  "catalog.discovery.quickView.unavailable": "Dieses Modell kann noch nicht vorgemerkt werden. Bitte die Details ansehen.",
+  "catalog.discovery.compare.view": "Vergleich ansehen",
+  "catalog.discovery.compare.clear": "Auswahl leeren",
+  "catalog.discovery.compare.removeModel": "{model} aus Vergleich entfernen"
 }

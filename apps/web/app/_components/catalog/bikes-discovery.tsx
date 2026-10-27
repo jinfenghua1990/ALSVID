@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { translator, type Locale, type TranslationKey } from "../../_lib/i18n";
 import styles from "../../[locale]/bikes/page.module.css";
 import { addCartLine, type CartModel } from "../../_lib/commerce/storefront-cart";
@@ -33,9 +34,11 @@ const FC1_COLOURS: { id: Colour; hex: string }[] = [
  */
 export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; models: DiscoveryBike[]; sortMode: "featured" | "name" }) {
   const t = translator(locale);
+  const [trayHost, setTrayHost] = useState<HTMLElement | null>(null);
+  useEffect(() => { setTrayHost(document.body); }, []);
   const [query, setQuery] = useState("");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
-  const [compare, setCompare] = useState<string[]>(["fc1", "fc2"]);
+  const [compare, setCompare] = useState<string[]>([]);
   const [colour, setColour] = useState<Colour>("sample");
   const [compareNotice, setCompareNotice] = useState("");
   const quickDialog = useRef<HTMLDialogElement>(null);
@@ -100,7 +103,7 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
     value === "blue" ? t("catalog.discovery.colour.blue") :
     t("catalog.discovery.colour.silver");
 
-  return <div className={styles.discovery} data-bikes-discovery>
+  return <div className={styles.discovery} data-bikes-discovery data-comparing={selected.length > 0 || undefined}>
     <div className={styles.discoveryTools}>
       <div className={styles.discoverySearchWrap}>
         <label className={styles.discoveryLabel} htmlFor="bikes-search">{t("catalog.discovery.search.label")}</label>
@@ -123,7 +126,10 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
         </div>
       </div>
     </div>
-    <p className={styles.discoveryResults} role="status">{t("catalog.discovery.results", { count: matching.length })}</p>
+    <div className={styles.discoveryResultsRow}>
+      <p className={styles.discoveryResults} role="status">{t("catalog.discovery.results", { count: matching.length })}</p>
+      {(query || reviewFilter !== "all") && <button type="button" data-bikes-reset onClick={() => { setQuery(""); setReviewFilter("all"); }}>{t("catalog.discovery.reset")}</button>}
+    </div>
     {matching.length ? <div className={styles.modelGrid} data-bikes-results>
       {matching.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id}
         data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed ? true : undefined}
@@ -190,7 +196,7 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
       </button>
     </div>}
 
-    <section className={styles.discoveryCompare} data-bikes-compare aria-labelledby="bikes-compare-heading">
+    <section id="bikes-compare" tabIndex={-1} className={styles.discoveryCompare} data-bikes-compare aria-labelledby="bikes-compare-heading">
       <div className={styles.discoveryCompareTop}>
         <div>
           <span className={styles.kicker}>{t("catalog.discovery.compare.kicker")}</span>
@@ -199,18 +205,26 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
         <span>{t("catalog.discovery.compare.selected", { count: selected.length })}</span>
       </div>
       <p className={styles.discoveryCompareNote}>{t("catalog.discovery.compare.notice")}</p>
-      {compareNotice && <p role="status" className={styles.discoveryLimit}>{compareNotice}</p>}
       {selected.length ? <div className={styles.discoveryCompareScroll}>
         <table>
           <thead><tr>
             <th scope="col">{t("catalog.bikes.compare.model")}</th>
-            {selected.map(model => <th scope="col" key={model.id}>{model.name}</th>)}
+            {selected.map(model => <th scope="col" key={model.id}>
+              <img className={styles.comparePhoto} src={model.image} alt="" width={180} height={120} loading="lazy" />
+              {model.name}
+            </th>)}
           </tr></thead>
           <tbody>
             <tr><th scope="row">{t("catalog.bikes.compare.state")}</th>
               {selected.map(model => <td key={model.id}>{model.status}</td>)}</tr>
             <tr><th scope="row">{t("catalog.discovery.compare.platform")}</th>
               {selected.map(model => <td key={model.id}>{model.platform.toUpperCase()}</td>)}</tr>
+            <tr><th scope="row">{t("catalog.bikes.facts.wheels")}</th>
+              {selected.map(model => <td key={model.id}>{model.id === "fc1" || model.id === "fc2" ? "20″" : t("catalog.bikes.facts.pending")}</td>)}</tr>
+            <tr><th scope="row">{t("catalog.bikes.facts.frame")}</th>
+              {selected.map(model => <td key={model.id}>{model.id === "fc1" || model.id === "fc2" ? t("catalog.bikes.facts.carbon") : t("catalog.bikes.facts.pending")}</td>)}</tr>
+            <tr><th scope="row">{t("catalog.bikes.facts.price")}</th>
+              {selected.map(model => <td key={model.id}>{t("catalog.cart.pricePending")}</td>)}</tr>
             <tr><th scope="row">{t("catalog.discovery.compare.spec")}</th>
               {selected.map(model => <td key={model.id}>{model.id === "fc1"
                 ? t("catalog.discovery.compare.fc1") : t("catalog.discovery.compare.unknown")}</td>)}</tr>
@@ -225,6 +239,23 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
         </table>
       </div> : <p role="status">{t("catalog.discovery.compare.empty")}</p>}
     </section>
+    {trayHost && selected.length > 0 && createPortal(<aside className={styles.compareTray} data-bikes-compare-tray aria-label={t("catalog.discovery.compare.title")}>
+      <div className={styles.compareTrayModels}>
+        {selected.map(model => <div className={styles.compareTrayModel} key={model.id}>
+          <img src={model.image} alt="" width={60} height={40} />
+          <strong>{model.code}</strong>
+          <button type="button" data-bikes-compare-remove={model.code}
+            aria-label={t("catalog.discovery.compare.removeModel", { model: model.code })}
+            onClick={() => toggleCompare(model.id)}>×</button>
+        </div>)}
+      </div>
+      {compareNotice && <p role="status" className={styles.discoveryLimit}>{compareNotice}</p>}
+      <div className={styles.compareTrayActions}>
+        <span role="status">{t("catalog.discovery.compare.selected", { count: selected.length })}</span>
+        <button type="button" data-bikes-compare-clear onClick={() => { setCompare([]); setCompareNotice(""); }}>{t("catalog.discovery.compare.clear")}</button>
+        <a href="#bikes-compare" onClick={() => document.getElementById("bikes-compare")?.focus({ preventScroll: true })}>{t("catalog.discovery.compare.view")}</a>
+      </div>
+    </aside>, trayHost)}
     <dialog ref={quickDialog} className={styles.bikeQuickDialog} data-bikes-quick-dialog
       aria-label={t("catalog.discovery.quickView.open")} onClose={() => setQuickId(null)}
       onClick={event => { if (event.target === event.currentTarget) closeQuick(); }}>
@@ -245,6 +276,10 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
             ? t("catalog.discovery.fc1.note") : t("catalog.discovery.other.note")}</p>
           {(quickBike.id === "fc1" || quickBike.id === "fc2") ? <>
             <p className={styles.bikeQuickWarning}>{t("catalog.discovery.quickView.previewNotice")}</p>
+            <dl className={styles.bikeFacts} data-bikes-quick-facts>
+              <div><dt>{t("catalog.bikes.facts.wheels")}</dt><dd>20″</dd></div>
+              <div><dt>{t("catalog.bikes.facts.frame")}</dt><dd>{t("catalog.bikes.facts.carbon")}</dd></div>
+            </dl>
             {quickBike.id === "fc1" ? <>
               <label className={styles.bikeQuickLabel}>
                 {t("catalog.bikes.facts.versions")}

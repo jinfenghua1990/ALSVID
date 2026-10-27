@@ -183,6 +183,7 @@ try {
         await quick.waitFor({state:'visible'});
         assert.equal(await quick.locator('button[data-bikes-quick-save]').count(),1,
           'FC1 quick view allows a preview selection, not checkout');
+        assert.equal(await quick.locator('[data-bikes-quick-facts] dd').count(),2,'Quick view shows the same reference wheel and frame facts as the card');
         assert.equal(await quick.locator('select').count(),3,'FC1 quick view exposes variant, finish and quantity');
         await quick.locator('select').nth(0).selectOption('pro');
         await quick.locator('select').nth(1).selectOption('blue');
@@ -207,22 +208,37 @@ try {
         // Isolate existing FC1/cart smoke: its new page begins with an empty store.
         await bicycles.evaluate(()=>localStorage.removeItem('alsvid_storefront_cart_preview_v1'));
 
-        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 3,
-          'Initial comparison includes a label column and two selected model columns');
-        await discovery.locator('[data-bikes-compare-toggle="FC2"]').click();
-        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 2,
-          'Removing a model updates the comparison');
-        await discovery.locator('[data-bikes-compare-toggle="FC2"]').click();
-        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(), 3,
-          'Adding the model back updates the comparison');
+        const tray = bicycles.locator('[data-bikes-compare-tray]');
+        assert.equal(await tray.count(), 0, 'Comparison starts with the visitor choosing models');
+        for (const code of ['FC1', 'FC2', 'L7']) {
+          await discovery.locator('[data-bikes-compare-toggle="' + code + '"]').click();
+        }
+        await tray.waitFor({state:'visible'});
+        assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),3,'Tray retains three chosen models');
+        await discovery.locator('[data-bikes-compare-toggle="L8"]').click();
+        assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),3,'Fourth model does not exceed comparison limit');
+        assert.ok((await tray.locator('[role="status"]').allTextContents()).some(text=>text.trim()),'Comparison feedback is visible near the selected models');
+        await tray.locator('[data-bikes-compare-remove="L7"]').click();
+        assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(),3,'Removing from tray updates table');
+        assert.equal(await discovery.locator('[data-bikes-compare] thead img').count(),2,'Comparison includes model photographs');
+        await tray.locator('a[href="#bikes-compare"]').click();
+        await bicycles.waitForFunction(()=>location.hash==='#bikes-compare' && document.activeElement?.id==='bikes-compare');
+        const trayBox=await tray.boundingBox();
+        assert.ok(trayBox && trayBox.x>=0 && trayBox.x+trayBox.width<=viewport.width+1 && trayBox.y>=0 && trayBox.y+trayBox.height<=viewport.height+1,'Comparison tray fits the viewport');
+        await bicycles.screenshot({path:output+'/bikes-compare-'+locale+'-'+device+'.png'});
         const bikeSearch = discovery.locator('input[data-bikes-search]');
         await bikeSearch.fill('FC2');
-        assert.equal(await bicycles.locator('#models article').count(), 1,
-          'Searching model names filters the visible catalogue');
-        assert.equal(await bicycles.locator('#model-fc2').count(), 1);
-        await bikeSearch.fill('');
-        assert.equal(await bicycles.locator('#models article').count(), 4,
-          'Clearing search restores all available model previews');
+        assert.equal(await bicycles.locator('#models article').count(),1,'Search filters visible models');
+        assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),2,'Search does not silently remove selected models');
+        await discovery.locator('[data-bikes-reset]').click();
+        assert.equal(await bicycles.locator('#models article').count(),4,'Reset restores all models even when search had results');
+        await bikeSearch.fill('no-such-alsvid-model');
+        assert.equal(await bicycles.locator('#models article').count(),0,'Unmatched search shows the empty state');
+        await discovery.locator('[data-bikes-reset]').click();
+        assert.equal(await bicycles.locator('#models article').count(),4,'Reset recovers from empty search');
+        await tray.locator('[data-bikes-compare-clear]').click();
+        assert.equal(await tray.count(),0,'Clear selection removes floating tray');
+        assert.equal(await discovery.locator('[data-bikes-compare] table').count(),0,'Clear selection also clears comparison table');
         report.checks.push(locale + ' ' + device + ': model search, swatches, compare selection');
         const modelNavigator = bicycles.locator('nav[data-bikes-model-nav]');
         await modelNavigator.waitFor({ state: 'visible', timeout: 8000 });

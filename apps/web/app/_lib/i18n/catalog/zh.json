@@ -132,5 +132,8 @@
   "catalog.discovery.quickView.close": "关闭快速浏览",
   "catalog.discovery.quickView.previewNotice": "此车型仅用于配置预览，未有核准售价、库存或正式可售 SKU。",
   "catalog.discovery.quickView.save": "加入选购意向",
-  "catalog.discovery.quickView.unavailable": "该车型尚未开放选购意向。请先查看详情。"
+  "catalog.discovery.quickView.unavailable": "该车型尚未开放选购意向。请先查看详情。",
+  "catalog.discovery.compare.view": "查看对比",
+  "catalog.discovery.compare.clear": "清空选择",
+  "catalog.discovery.compare.removeModel": "将 {model} 移出对比"
 }
