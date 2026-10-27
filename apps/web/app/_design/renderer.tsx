@@ -17,6 +17,7 @@ import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
 import { AdminMoreModules } from './admin-more-modules';
+import ProductClient from '../product/product-client';
 
 const AREAS = ADMIN_MODULES;
 const PRIMARY_AREAS = AREAS.filter(area => ['工作台', '产品研发', '订单管理', '电商', '生产制造', '仓储物流', '售后服务'].includes(area.label));
@@ -699,7 +700,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         <main className="av-workspace">
           <WorkspaceTabs />
           {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{screen.area === '数据' ? '分析布局预览 · 除已接入的 FC1 颜色偏好外，经营指标与报表数据源尚未接入。' : '流程布局预览 · 本页内容为设计示例；可保存操作请使用对应模块的真实业务工作台。'}</p>}
-          {!hidePageHeading && !isEcommerceWorkspace && !isIntegratedOverview && <div className="av-pagehead">
+          {!hidePageHeading && !isEcommerceWorkspace && !isIntegratedOverview && !isLiveProductRoot && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
@@ -746,6 +747,8 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
                 <Blocks blocks={screen.blocks} stacked />
               </details>
             </>
+          ) : isLiveProductRoot ? (
+            <ProductClient embedded />
           ) : isIntegratedOverview ? (
             <>
               {screen.area === '订单' ? (

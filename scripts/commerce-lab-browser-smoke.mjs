@@ -115,6 +115,41 @@ try {
   await page.screenshot({ path: path.join(output, 'commerce-lab-admin-mobile.png'), fullPage: true });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile page fits viewport');
   report.checks.push('reload clears demo data; desktop/mobile views render');
+  // Deterministic read-only fixtures prove that a real product renders as one table row.
+  await page.route('**/api/control/v1/product/catalog', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: {
+      productTypes: [{ code: 'BIKE', name: '整车', description: '', status: 'ACTIVE' }],
+      platforms: [{ id: 'platform-ci', code: 'FC', name: 'Folding Carbon', description: '', status: 'ACTIVE', version: 1 }],
+      models: [{ id: 'model-ci', platform_id: 'platform-ci', product_type_code: 'BIKE', code: 'FC1', name: 'CI 商品档案测试', description: '', status: 'ACTIVE', version: 1 }],
+      variants: [], skus: [],
+    } }),
+  }));
+  await page.route('**/api/control/v1/engineering', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: { parts: [], boms: [], buildSpecs: [] } }),
+  }));
+  // Canonical admin product route must show the live, compact archive rather than design fixtures.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(base + '/admin/product');
+  const archive = page.locator('[data-area="product"]');
+  await archive.waitFor();
+  await archive.getByRole('heading', { name: '商品档案', exact: true }).waitFor();
+  assert.equal(await archive.locator('#model-register').count(), 1, 'commodity archive is the main listing');
+  await archive.getByRole('row', { name: /FC1/ }).waitFor();
+  assert.equal(await archive.locator('#model-register tbody tr').count(), 1, 'one product occupies one data row');
+  const maintenancePanel = archive.locator('#product-maintenance-panel');
+  assert.equal(await maintenancePanel.evaluate(node => node.open), false, 'creation forms are collapsed by default');
+  const infoPanel = archive.locator('#product-info-panel');
+  assert.equal(await infoPanel.evaluate(node => node.open), false, 'large platform cards are collapsed by default');
+  await page.screenshot({ path: path.join(output, 'admin-product-archive-desktop.png'), fullPage: true });
+  await archive.getByRole('link', { name: '＋ 新增商品' }).click();
+  assert.equal(await maintenancePanel.evaluate(node => node.open), true, 'new product action reveals original forms');
+  await page.goto(base + '/admin/product#series');
+  await page.locator('#series').waitFor();
+  assert.equal(await page.locator('#product-info-panel').evaluate(node => node.open), true, 'deep link reveals platform details');
+  report.checks.push('admin product archive is live, list-first, and deep links reveal collapsed maintenance sections');
+
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
   await context.close();
