@@ -1492,6 +1492,8 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 }
 
 
-/* Keep the EC-FX sidebar and its workspace column aligned in product/e-commerce views. */
-.av-body--product { grid-template-columns: 232px minmax(0, 1fr); }
-.av-body--ecommerce { grid-template-columns: 232px minmax(0, 1fr); }
+/* Keep the EC-FX sidebar and its workspace column aligned on desktop. */
+@media (min-width: 1181px) {
+  .av-body--product { grid-template-columns: 232px minmax(0, 1fr); }
+  .av-body--ecommerce { grid-template-columns: 232px minmax(0, 1fr); }
+}
