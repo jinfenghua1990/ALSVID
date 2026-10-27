@@ -69,10 +69,22 @@ jobs:
             exit 1
           fi
 
-      - name: Verify public hostname before changing the Web service
+      - name: Check HTTPS connectivity before changing the Web service
         run: |
           set -euo pipefail
-          curl --location --fail --silent --show-error --retry 3 --retry-delay 3 "$PUBLIC_SITE_URL" >/dev/null
+          # The currently serving page may be broken; a repair release must still be deployable.
+          # DNS, TLS and transport errors remain fatal. Page health is enforced after rollout.
+          for url in "$PUBLIC_SITE_URL"; do
+            echo "Checking HTTPS connectivity: $url"
+            if ! http_code="$(curl --location --silent --show-error --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 3 --output /dev/null --write-out '%{http_code}' "$url")"; then
+              echo "::error title=Production domain unreachable::HTTPS connection failed for $url. Check DNS, TLS and network access." >&2
+              exit 1
+            fi
+            echo "Pre-deploy HTTP $http_code: $url"
+            if [[ "$http_code" =~ ^[45][0-9]{2}$ ]]; then
+              echo "::warning title=Current production page unhealthy::HTTP $http_code from $url. Continuing with the repair release; post-deployment checks remain mandatory."
+            fi
+          done
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
