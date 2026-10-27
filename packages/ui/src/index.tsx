@@ -284,7 +284,15 @@ export function AdminSecondaryNavigation({
         const target = new URL(item.href!, window.location.origin);
         return target.pathname + target.hash === currentPath;
       });
-      const samePage = exact ?? enabled.find((item) => new URL(item.href!, window.location.origin).pathname === current.pathname);
+      const samePage = exact ?? enabled
+        .filter((item) => {
+          const targetPath = new URL(item.href!, window.location.origin).pathname.replace(/\\/$/, '');
+          return current.pathname === targetPath || current.pathname.startsWith(targetPath + '/');
+        })
+        .sort((left, right) =>
+          new URL(right.href!, window.location.origin).pathname.length -
+          new URL(left.href!, window.location.origin).pathname.length
+        )[0];
       setActiveKey(samePage?.key ?? '');
     };
 
