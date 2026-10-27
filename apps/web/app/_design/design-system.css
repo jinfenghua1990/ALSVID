@@ -1304,3 +1304,7 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 @media (max-width: 720px) {
   .av .workspaceTabs { top: 56px; margin: -20px -14px 20px; }
 }
+
+.av .av-navicon { display: inline-block; margin-right: 7px; font-size: 14px; line-height: 1; }
+.av .workspaceTabsToggle { border: 0; background: transparent; color: #59677d; }
+.av .workspaceTabsToggle:hover { background: #e1e8f2; color: #1f2937; }
