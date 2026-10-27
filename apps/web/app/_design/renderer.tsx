@@ -639,7 +639,8 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
     <div className="av av-ambient" data-admin-theme data-theme={theme ?? 'day'}>
       <header className="av-topbar">
         <a className="av-brand" href="/admin">
-          ALSVID <span>OPERATIONS</span>
+          <span className="av-brandmark" aria-hidden="true">A</span>
+          <span className="av-brandcopy">ALSVID <small>OPERATIONS</small></span>
         </a>
         <nav className="av-primarynav" aria-label="一级导航">
           {PRIMARY_AREAS.map((area) => (
