@@ -300,7 +300,7 @@ export function AdminSecondaryNavigation({
   }, [groups]);
 
   return (
-    <aside className="av-rail av-rail--ecfx" aria-label={moduleLabel + '模块菜单'}>
+    <aside className="av-rail av-rail--ecfx" aria-label="二级导航">
       <div className="av-railbrand">
         <strong>{moduleLabel}</strong>
         <span>模块导航</span>
