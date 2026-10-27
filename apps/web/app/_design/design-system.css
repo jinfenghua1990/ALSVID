@@ -1308,3 +1308,185 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av .av-navicon { display: inline-block; margin-right: 7px; font-size: 14px; line-height: 1; }
 .av .workspaceTabsToggle { border: 0; background: transparent; color: #59677d; }
 .av .workspaceTabsToggle:hover { background: #e1e8f2; color: #1f2937; }
+
+
+/* EC-FX-style secondary navigation: module title, icon links, active state and planned badges. */
+.av-body .av-rail--ecfx {
+  position: sticky;
+  top: 56px;
+  display: flex;
+  flex-direction: column;
+  width: 232px;
+  min-width: 0;
+  height: calc(100vh - 56px);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+  padding: 0;
+  background: #fff;
+  border-right: 1px solid #e6ebf3;
+  box-shadow: none;
+}
+.av-railbrand {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 18px 18px 12px;
+  flex: 0 0 auto;
+}
+.av-railbrand strong {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .015em;
+}
+.av-railbrand span {
+  color: #a0aabd;
+  font-size: 10px;
+  font-weight: 600;
+}
+.av-railnav {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 10px 18px;
+}
+.av-rail--ecfx .av-railgroup {
+  padding: 0 0 10px;
+  border: 0;
+}
+.av-rail--ecfx .av-railgroup + .av-railgroup {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #e8ecf3;
+}
+.av-rail--ecfx .av-railtitle {
+  padding: 0 10px 7px;
+  color: #8491a5;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .055em;
+}
+.av-rail--ecfx .av-railitem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  margin: 2px 0;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #42516a;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+  transition: background .13s ease, color .13s ease;
+}
+.av-rail--ecfx .av-railitem:hover,
+.av-rail--ecfx .av-railitem:focus-visible {
+  background: #f2f5fb;
+  color: #1f2937;
+}
+.av-rail--ecfx .av-railitem[data-active='true'] {
+  background: #eaf0fe;
+  color: #3f5ff0;
+  font-weight: 700;
+}
+.av-rail--ecfx .av-railitem[data-active='true']::after {
+  content: '';
+  position: absolute;
+  right: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4563ef;
+}
+.av-railicon {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  flex: 0 0 18px;
+  font-size: 15px;
+  line-height: 1;
+}
+.av-raillabel {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.av-railbadge {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: #eef2ff;
+  color: #5866bf;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.av-railbadge--planned {
+  background: #fffaeb;
+  color: #b54708;
+}
+.av-rail--ecfx .av-railitem--disabled {
+  color: #69778b;
+  cursor: not-allowed;
+}
+.av-rail--ecfx .av-railitem--disabled:hover {
+  background: transparent;
+  color: #69778b;
+}
+.av-rail--ecfx .av-railitem--disabled::after { display: none; }
+
+@media (max-width: 1180px) {
+  .av-body .av-rail--ecfx {
+    position: relative;
+    top: 0;
+    width: 100%;
+    height: auto;
+    max-height: 260px;
+    border-right: 0;
+    border-bottom: 1px solid #e6ebf3;
+  }
+  .av-railbrand { padding: 12px 16px 8px; }
+  .av-railnav {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 12px 12px;
+  }
+  .av-rail--ecfx .av-railgroup {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    padding: 0;
+    white-space: nowrap;
+  }
+  .av-rail--ecfx .av-railgroup + .av-railgroup {
+    margin: 0;
+    padding: 0 0 0 12px;
+    border-top: 0;
+    border-left: 1px solid #e8ecf3;
+  }
+  .av-rail--ecfx .av-railtitle { padding: 0 5px; white-space: nowrap; }
+  .av-rail--ecfx .av-railitem { width: auto; min-height: 34px; padding: 7px 10px; white-space: nowrap; }
+  .av-rail--ecfx .av-railitem[data-active='true']::after { display: none; }
+}
+
+@media (max-width: 720px) {
+  .av-body:not(.av-body--wide) { grid-template-columns: minmax(0, 1fr); }
+  .av-body .av-rail--ecfx { max-height: 220px; }
+  .av-railbrand { padding: 10px 14px 6px; }
+  .av-railnav { padding: 2px 10px 10px; }
+  .av-rail--ecfx .av-railtitle { font-size: 9px; }
+  .av-rail--ecfx .av-railitem { font-size: 12px; }
+}
