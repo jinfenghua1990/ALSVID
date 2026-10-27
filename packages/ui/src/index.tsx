@@ -301,6 +301,7 @@ export function AppShell({
           </aside>
         ) : null}
         <div className="adminBody">
+          <WorkspaceTabs />
           <section className={`workspace ${classNames.workspace ?? ''}`.trim()} id={workspaceId} data-alsvid-workspace="true">{children}</section>
         </div>
       </div>
