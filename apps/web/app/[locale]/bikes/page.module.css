@@ -86,11 +86,11 @@
 
 
 /* Collection layout inspired by modern German e-bike storefronts; ALSVID content and assets remain original. */
-.hero{min-height:330px;grid-template-columns:1fr minmax(280px,.82fr)}
-.heroCopy{padding:48px 0 54px clamp(22px,6vw,100px)}
-.hero h1{font-size:clamp(38px,4.2vw,66px);max-width:700px;margin:14px 0}
+.hero{min-height:240px;grid-template-columns:1fr minmax(240px,.7fr)}
+.heroCopy{padding:28px 0 32px clamp(22px,6vw,100px)}
+.hero h1{font-size:clamp(32px,3.4vw,52px);max-width:700px;margin:12px 0}
 .heroCopy>p{max-width:560px;font-size:15px;line-height:1.75}
-.heroImage{max-height:330px;object-fit:contain}
+.heroImage{max-height:240px;object-fit:contain}
 .heroWatermark{font-size:clamp(90px,12vw,200px);bottom:-58px;left:40%}
 .modelSection{padding-top:58px}
 .modelLayout{display:block}
@@ -291,3 +291,51 @@
 .bikeQuickDetail{display:flex;justify-content:space-between;align-items:center;text-decoration:none;border-top:1px solid #e0e8df;padding:16px 0 0;margin-top:18px;color:#213d2a;font-size:13px;font-weight:750}
 .bikeQuickDetail:hover{text-decoration:underline}
 @media(max-width:700px){.bikeQuickContent{grid-template-columns:1fr}.bikeQuickPhoto{padding:14px}.bikeQuickPhoto img{max-height:210px}.bikeQuickDetails{padding:20px}.bikeQuickEyebrow{margin-top:12px}.bikeQuickDialog{max-height:calc(100vh - 24px);width:calc(100vw - 20px)}.discovery .discoveryActions .quickViewTrigger{font-size:11px;padding:8px 9px;min-height:40px}}
+
+/* Keep collection browsing and the selected comparison within reach. */
+.discoveryResultsRow{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.discoveryResultsRow .discoveryResults{margin:0}
+.discoveryResultsRow>button{border:0;background:transparent;color:#28553a;text-decoration:underline;font:inherit;font-size:13px;min-height:44px;cursor:pointer}
+.discoveryCompare{scroll-margin-top:150px}
+.comparePhoto{display:block;width:150px;max-width:100%;height:100px;object-fit:contain;margin:0 auto 10px}
+.discovery[data-comparing]{padding-bottom:100px}
+.compareTray{position:fixed;z-index:25;bottom:16px;left:50%;transform:translateX(-50%);width:min(1000px,calc(100% - 32px));box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 16px;border:1px solid #cad8c8;border-radius:12px;background:#fff;box-shadow:0 6px 32px #142b2026;color:#263d2e}
+.compareTrayModels{display:flex;gap:10px;min-width:0}
+.compareTrayModel{display:flex;align-items:center;gap:6px;min-width:0;padding:3px 6px;background:#f2f6ef;border-radius:6px}
+.compareTrayModel img{width:54px;height:38px;object-fit:contain}
+.compareTrayModel strong{font-size:13px}
+.compareTrayModel button{border:0;background:transparent;color:#334d3b;font-size:24px;cursor:pointer;min-width:36px;min-height:44px}
+.compareTrayActions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.compareTrayActions span{font-size:12px}
+.compareTrayActions button{border:0;background:transparent;color:#45634b;text-decoration:underline;font:inherit;font-size:12px;cursor:pointer;min-height:44px}
+.compareTrayActions a{padding:12px 18px;background:#213c2a;color:#fff;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none}
+@media(max-width:760px){
+ .heroCopy{padding:26px 22px 12px}
+ .hero h1{font-size:34px}
+ .heroCopy>p{margin-bottom:0}
+ .heroButton{margin-top:14px}
+ .heroImage{max-height:180px}
+ .compareTray{flex-direction:column;align-items:stretch;gap:6px;padding:8px 12px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100% - 16px)}
+ .compareTrayModels{justify-content:center;gap:6px}
+ .compareTrayModel{padding:0 4px;gap:3px}
+ .compareTrayModel img{width:36px;height:30px}
+ .compareTrayModel button{min-width:30px}
+ .compareTrayActions{justify-content:space-between;gap:6px}
+ .compareTrayActions a{padding:11px 12px}
+ .discovery[data-comparing]{padding-bottom:160px}
+ .comparePhoto{width:110px;height:80px}
+}
+
+.compareTray :is(button,a):focus-visible{outline:2px solid #52764f;outline-offset:3px}
+.compareTray>.discoveryLimit{font-size:12px;max-width:180px;margin:0;color:#80531b}
+@media(max-width:380px){.compareTrayModel{padding:0 2px;gap:2px}.compareTrayModel img{width:24px}.compareTrayModel strong{font-size:12px}.compareTrayModel button{min-width:26px}}
+
+.collectionHelp{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,5vw,70px);padding:60px clamp(22px,6vw,110px);background:#fff;color:#20382a}
+.collectionHelp h2{font-size:clamp(28px,3vw,44px);line-height:1.15;letter-spacing:-.035em;margin:12px 0 24px}
+.collectionHelp nav{display:flex;flex-wrap:wrap;gap:16px}
+.collectionHelp a{color:#315f40;font-size:14px;text-underline-offset:4px}
+.collectionQuestions details{border-bottom:1px solid #dce6dc;padding:17px 0}
+.collectionQuestions summary{cursor:pointer;font-size:15px;font-weight:650;line-height:1.6}
+.collectionQuestions p{font-size:14px;color:#607064;line-height:1.8;margin:14px 0 4px}
+.collectionHelp :is(summary,a):focus-visible{outline:2px solid #52764f;outline-offset:4px}
+@media(max-width:760px){.collectionHelp{grid-template-columns:1fr;padding:40px 22px;gap:10px}}

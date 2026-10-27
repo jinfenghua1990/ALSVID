@@ -132,5 +132,19 @@
   "catalog.discovery.quickView.close": "Schnellansicht schließen",
   "catalog.discovery.quickView.previewNotice": "Nur eine Konfigurationsvorschau. Kein freigegebener Preis, Lagerbestand oder kaufbarer SKU.",
   "catalog.discovery.quickView.save": "Unverbindliche Auswahl merken",
-  "catalog.discovery.quickView.unavailable": "Dieses Modell kann noch nicht vorgemerkt werden. Bitte die Details ansehen."
+  "catalog.discovery.quickView.unavailable": "Dieses Modell kann noch nicht vorgemerkt werden. Bitte die Details ansehen.",
+  "catalog.discovery.compare.view": "Vergleich ansehen",
+  "catalog.discovery.compare.clear": "Auswahl leeren",
+  "catalog.discovery.compare.removeModel": "{model} aus Vergleich entfernen",
+  "catalog.discovery.help.kicker": "AUSWAHL & BERATUNG",
+  "catalog.discovery.help.title": "Noch Fragen zu deiner Auswahl?",
+  "catalog.discovery.help.links": "Weitere Informationen",
+  "catalog.discovery.help.dealers": "Händler entdecken",
+  "catalog.discovery.help.service": "Servicestandorte ansehen",
+  "catalog.discovery.help.purchase.question": "Kann ich die Modelle bereits online kaufen?",
+  "catalog.discovery.help.purchase.answer": "Online-Bestellungen und Zahlungen sind noch nicht freigegeben. Der Warenkorb speichert nur eine unverbindliche Auswahl; er erstellt keine Bestellung und reserviert keinen Bestand.",
+  "catalog.discovery.help.colours.question": "Zeigen die Farbfelder lieferbare Farben?",
+  "catalog.discovery.help.colours.answer": "Die FC1-Farbfelder zeigen ein grünes Referenzmuster und unbestätigte Farbvorschläge. Das Foto bleibt das echte Referenzrad. Lieferbare Farben und Varianten müssen noch freigegeben werden.",
+  "catalog.discovery.help.facts.question": "Wie verbindlich sind die Vergleichsangaben?",
+  "catalog.discovery.help.facts.answer": "Der Vergleich verwendet nur die vorhandenen öffentlichen Referenzangaben. Endgültige Serienspezifikationen, Preise und Verfügbarkeit sind noch nicht bestätigt. Weitere Informationen findest du auf der jeweiligen Modellseite."
 }
