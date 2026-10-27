@@ -597,7 +597,6 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
     href: isLocal ? link.localHref : portalUrlFor(requestHost, link.portal),
   }));
   const actions = screen.actions ?? [];
-  const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
   const isLiveProductRoot = screen.id === 'product' && screen.route === '/admin/product';
   const isCustomLiveModule = Boolean(screen.sourceNode?.startsWith('module:'));
   const secondaryNavigation = isLiveProductRoot
@@ -632,17 +631,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         };
       }),
     })),
-    ...(!isIntegratedOverview && !isLiveProductRoot && moduleScreens.length > 0 ? [{
-      label: '设计页面 / 流程预览 · ' + moduleScreens.length,
-      items: moduleScreens.map(item => ({
-        key: 'preview::' + item.route,
-        label: item.title,
-        href: item.route,
-        icon: '📄',
-        status: undefined,
-        disabled: false,
-      })),
-    }] : []),
+
   ];
 
   return (
