@@ -40,6 +40,27 @@ try {
   assert.equal(await entry.getAttribute('aria-current'), 'page');
   assert.equal(await primary.locator('details a[href="/admin/commerce-lab"]').count(), 0, 'entry is not hidden under More');
   assert.equal(await primary.getByRole('link', { name: '电商', exact: true }).getAttribute('href'), '/admin/ecommerce');
+  const moreButton = primary.getByRole('button', { name: '更多模块', exact: true });
+  await moreButton.click();
+  const morePanel = page.getByRole('dialog', { name: '更多业务模块', exact: true });
+  await morePanel.waitFor({ state: 'visible' });
+  assert.equal(await moreButton.getAttribute('aria-expanded'), 'true');
+  assert.equal(await morePanel.getByRole('link').count(), 6, 'all six non-primary modules must be reachable');
+  assert.equal(await morePanel.evaluate(panel => panel.parentElement === document.body), true, 'dropdown must escape the scrolling topbar');
+  for (const href of ['/admin/dealers', '/admin/supply', '/admin/customers', '/admin/finance', '/admin/analytics', '/admin/settings']) {
+    assert.equal(await morePanel.locator('a[href="' + href + '"]').count(), 1, 'More module route: ' + href);
+  }
+  await page.keyboard.press('Escape');
+  await morePanel.waitFor({ state: 'hidden' });
+  assert.equal(await moreButton.getAttribute('aria-expanded'), 'false');
+  await moreButton.click();
+  await morePanel.locator('a[href="/admin/finance"]').click();
+  await page.waitForURL(base + '/admin/finance');
+  assert.equal(await page.getByRole('navigation', { name: '一级导航', exact: true }).getByRole('button', { name: '更多模块', exact: true }).getAttribute('data-active'), 'true');
+  await page.goto(base + '/admin/commerce-lab');
+  await page.locator('[data-commerce-lab-overview]').waitFor();
+  report.checks.push('More Modules popup opens over scroll nav, closes with Escape and routes to finance');
+
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
   const catalogLink = secondary.getByRole('link', { name: '独立商品管理', exact: true });
   const catalogHref = new URL(await catalogLink.getAttribute('href'), base);

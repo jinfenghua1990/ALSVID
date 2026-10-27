@@ -16,6 +16,7 @@ import { P0OperationsCenter } from './p0-operations-center';
 import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
+import { AdminMoreModules } from './admin-more-modules';
 
 const AREAS = ADMIN_MODULES;
 const PRIMARY_AREAS = AREAS.filter(area => ['工作台', '产品研发', '订单管理', '电商', '生产制造', '仓储物流', '售后服务'].includes(area.label));
@@ -653,16 +654,15 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
           <a className="av-navitem" href="/admin/commerce-lab" title="独立商城方案、商品管理与页面比较"
             data-active={screen.area === '商城方案对比'}
             aria-current={screen.area === '商城方案对比' ? 'page' : undefined}><span className="av-navicon" aria-hidden="true">{PRIMARY_AREA_ICONS['商城方案对比']}</span>商城方案对比</a>
-          <details className="av-moremenu">
-            <summary className="av-navitem" data-active={MORE_AREAS.some(area => isAreaActive(screen.area, area.label))}>更多模块</summary>
-            <div className="av-moremenu-panel">
-              {MORE_AREAS.map(area => (
-                <a className="av-moremenu-link" key={area.label} href={area.href} title={area.description}
-                  data-active={isAreaActive(screen.area, area.label)}
-                  aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>{area.label}</a>
-              ))}
-            </div>
-          </details>
+          <AdminMoreModules
+            modules={MORE_AREAS.map(area => ({
+              label: area.label,
+              href: area.href,
+              description: area.description,
+              icon: PRIMARY_AREA_ICONS[area.label] ?? '▦',
+              active: isAreaActive(screen.area, area.label),
+            }))}
+          />
         </nav>
         <div className="av-toputils">
           <div className="av-quicklinks">

@@ -149,14 +149,21 @@ test('product sidebar links to live sections without permanently highlighting mo
 
 test('primary Admin navigation keeps all 13 canonical modules reachable through primary and more groups', () => {
   const ui = read('./renderer.tsx');
+  const popup = read('./admin-more-modules.tsx');
   const styles = read('./design-system.css');
   assert.match(ui, /const PRIMARY_AREAS = AREAS\.filter/);
   assert.match(ui, /const MORE_AREAS = AREAS\.filter/);
   assert.match(ui, /PRIMARY_AREAS\.map/);
   assert.match(ui, /MORE_AREAS\.map/);
+  assert.match(ui, /<AdminMoreModules/);
+  assert.match(ui, /modules=\{MORE_AREAS\.map/);
   assert.match(ui, /aria-label="一级导航"/);
-  assert.match(styles, /\.av-moremenu-panel/);
-  assert.match(ui, /MORE_AREAS\.some\(area => isAreaActive/);
+  assert.match(popup, /createPortal\(/, 'popup is not clipped by the horizontally scrolling primary nav');
+  assert.match(popup, /aria-expanded=\{open\}/);
+  assert.match(popup, /event\.key === 'Escape'/);
+  assert.match(popup, /window\.addEventListener\('resize', measure\)/);
+  assert.match(styles, /\.av-moremodules-panel/);
+  assert.match(styles, /z-index: 1200/);
 });
 
 
