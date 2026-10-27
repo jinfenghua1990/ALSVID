@@ -73,6 +73,149 @@ function NavigationItems({ navigation, activeClassName }: { navigation: readonly
   );
 }
 
+
+type WorkspaceTab = { path: string; label: string; icon: string };
+
+const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string }[] = [
+  { path: '/admin/production/vin', label: 'VIN / 车辆查询', icon: '🔎' },
+  { path: '/admin/ecommerce/pricing', label: '商城价格管理', icon: '💶' },
+  { path: '/admin/ecommerce/orders', label: 'B2C 订单管理', icon: '🧾' },
+  { path: '/admin/commerce-lab/catalog', label: '独立商品管理', icon: '🛍️' },
+  { path: '/admin/commerce-lab', label: '商城方案对比', icon: '📊' },
+  { path: '/admin/orders/detail', label: '订单详情', icon: '🧾' },
+  { path: '/admin/dealers/detail', label: '经销商档案', icon: '🏢' },
+  { path: '/admin/product', label: '产品中心', icon: '📦' },
+  { path: '/admin/orders', label: '订单管理', icon: '🧾' },
+  { path: '/admin/ecommerce', label: '电商工作台', icon: '🛒' },
+  { path: '/admin/production', label: '生产制造', icon: '🏭' },
+  { path: '/admin/inventory', label: '仓储物流', icon: '🚚' },
+  { path: '/admin/dealers', label: '经销商管理', icon: '🏢' },
+  { path: '/admin/customers', label: '客户车主', icon: '👤' },
+  { path: '/admin/after-sales', label: '售后服务', icon: '🛠️' },
+  { path: '/admin/supply', label: '供应链采购', icon: '📦' },
+  { path: '/admin/finance', label: '财务结算', icon: '💳' },
+  { path: '/admin/analytics', label: '数据分析', icon: '📈' },
+  { path: '/admin/settings', label: '系统设置', icon: '⚙️' },
+  { path: '/admin', label: '工作台', icon: '🏠' },
+  { path: '/product', label: '产品中心', icon: '📦' },
+  { path: '/production', label: '生产制造', icon: '🏭' },
+  { path: '/inventory', label: '仓储物流', icon: '🚚' },
+  { path: '/dealers', label: '经销商管理', icon: '🏢' },
+  { path: '/customers', label: '客户车主', icon: '👤' },
+  { path: '/after-sales', label: '售后服务', icon: '🛠️' },
+  { path: '/supply', label: '供应链采购', icon: '📦' },
+  { path: '/finance', label: '财务结算', icon: '💳' },
+  { path: '/logistics', label: '仓储物流', icon: '🚚' },
+  { path: '/commerce', label: '电商工作台', icon: '🛒' },
+  { path: '/portal-launcher', label: '工作入口', icon: '🧭' },
+];
+
+const WORKSPACE_TAB_STORAGE_KEY = 'alsvid_workspace_tabs_v1';
+const WORKSPACE_TAB_LIMIT = 8;
+
+function isAllowedWorkspacePath(path: unknown): path is string {
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//') || path.includes('\\')) return false;
+  if (path.startsWith('/api/') || path.startsWith('/_next/')) return false;
+  return ['/admin', '/product', '/production', '/inventory', '/dealers', '/customers', '/after-sales', '/supply', '/finance', '/logistics', '/commerce', '/portal-launcher']
+    .some((root) => path === root || path.startsWith(root + '/'));
+}
+
+function workspaceTabFor(path: string): WorkspaceTab {
+  const route = [...WORKSPACE_TAB_ROUTES]
+    .sort((a, b) => b.path.length - a.path.length)
+    .find((item) => path === item.path || path.startsWith(item.path + '/'));
+  if (route) return { path, label: route.label, icon: route.icon };
+  const tail = path.split('/').filter(Boolean).pop() ?? '工作区';
+  return { path, label: tail.replace(/[-_]/g, ' '), icon: '📄' };
+}
+
+function readWorkspaceTabs(): WorkspaceTab[] {
+  try {
+    const parsed: unknown = JSON.parse(window.sessionStorage.getItem(WORKSPACE_TAB_STORAGE_KEY) ?? '[]');
+    if (!Array.isArray(parsed)) return [];
+    const unique = new Map<string, WorkspaceTab>();
+    for (const item of parsed) {
+      if (item && typeof item === 'object' && 'path' in item && isAllowedWorkspacePath(item.path)) {
+        unique.set(item.path, workspaceTabFor(item.path));
+      }
+    }
+    return Array.from(unique.values()).slice(-WORKSPACE_TAB_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+export function WorkspaceTabs() {
+  const [tabs, setTabs] = useState<WorkspaceTab[]>([]);
+  const [activePath, setActivePath] = useState('');
+
+  useEffect(() => {
+    const syncCurrentTab = () => {
+      const path = window.location.pathname;
+      if (!isAllowedWorkspacePath(path)) return;
+      const next = readWorkspaceTabs();
+      const current = workspaceTabFor(path);
+      const existing = next.findIndex((tab) => tab.path === path);
+      if (existing >= 0) next[existing] = current;
+      else next.push(current);
+      const limited = next.slice(-WORKSPACE_TAB_LIMIT);
+      setTabs(limited);
+      setActivePath(path);
+      try {
+        window.sessionStorage.setItem(WORKSPACE_TAB_STORAGE_KEY, JSON.stringify(limited));
+      } catch {
+        // The shell remains usable if session storage is unavailable.
+      }
+    };
+    syncCurrentTab();
+    window.addEventListener('pageshow', syncCurrentTab);
+    window.addEventListener('popstate', syncCurrentTab);
+    window.addEventListener('hashchange', syncCurrentTab);
+    return () => {
+      window.removeEventListener('pageshow', syncCurrentTab);
+      window.removeEventListener('popstate', syncCurrentTab);
+      window.removeEventListener('hashchange', syncCurrentTab);
+    };
+  }, []);
+
+  function toggleRail() {
+    document.querySelector('.shellFrame')?.classList.toggle('shellFrameRailCollapsed');
+    document.querySelector('.av-body')?.classList.toggle('av-body--rail-collapsed');
+  }
+
+  function closeTab(path: string) {
+    const index = tabs.findIndex((tab) => tab.path === path);
+    const remaining = tabs.filter((tab) => tab.path !== path);
+    setTabs(remaining);
+    try {
+      window.sessionStorage.setItem(WORKSPACE_TAB_STORAGE_KEY, JSON.stringify(remaining));
+    } catch {
+      // The tab bar still works for this page if storage is unavailable.
+    }
+    if (path === activePath) {
+      const fallback = tabs[index - 1] ?? tabs[index + 1];
+      window.location.assign(fallback?.path ?? '/admin');
+    }
+  }
+
+  return (
+    <nav className="workspaceTabs" aria-label="工作区标签页">
+      <button className="workspaceTabsToggle" type="button" aria-label="折叠或展开左侧菜单" title="折叠或展开左侧菜单" onClick={toggleRail}>☰</button>
+      <div className="workspaceTabsList">
+        {tabs.map((tab) => (
+          <div className="workspaceTab" key={tab.path} data-active={activePath === tab.path}>
+            <a className="workspaceTabLink" href={tab.path} aria-current={activePath === tab.path ? 'page' : undefined}>
+              <span className="workspaceTabIcon" aria-hidden="true">{tab.icon}</span>
+              <span className="workspaceTabLabel">{tab.label}</span>
+            </a>
+            <button className="workspaceTabClose" type="button" aria-label={'关闭' + tab.label} title={'关闭' + tab.label} onClick={() => closeTab(tab.path)}>×</button>
+          </div>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 export function AppShell({
   children,
   navigation,
