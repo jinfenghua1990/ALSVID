@@ -34,32 +34,24 @@ try {
   assert.equal(await page.locator('[data-commerce-lab]').count(), 0, 'overview does not mount the in-memory demo');
   assert.equal(await page.getByText('设计页面 / 流程预览 · 0', { exact: true }).count(), 0, 'empty design groups stay hidden');
   const primary = page.getByRole('navigation', { name: '一级导航', exact: true });
-  const entry = primary.getByRole('link', { name: '商城方案对比', exact: true });
-  assert.equal(await entry.count(), 1, 'independent catalog has one primary menu entry');
-  await entry.waitFor({ state: 'visible' });
-  assert.equal(await entry.getAttribute('aria-current'), 'page');
-  assert.equal(await primary.locator('details a[href="/admin/commerce-lab"]').count(), 0, 'entry is not hidden under More');
-  assert.equal(await primary.getByRole('link', { name: '电商', exact: true }).getAttribute('href'), '/admin/ecommerce');
-  const moreButton = primary.getByRole('button', { name: '更多模块', exact: true });
-  await moreButton.click();
-  const morePanel = page.getByRole('dialog', { name: '更多业务模块', exact: true });
-  await morePanel.waitFor({ state: 'visible' });
-  assert.equal(await moreButton.getAttribute('aria-expanded'), 'true');
-  assert.equal(await morePanel.getByRole('link').count(), 6, 'all six non-primary modules must be reachable');
-  assert.equal(await morePanel.evaluate(panel => panel.parentElement === document.body), true, 'dropdown must escape the scrolling topbar');
-  for (const href of ['/admin/dealers', '/admin/supply', '/admin/customers', '/admin/finance', '/admin/analytics', '/admin/settings']) {
-    assert.equal(await morePanel.locator('a[href="' + href + '"]').count(), 1, 'More module route: ' + href);
+  const expectedModules = [
+    '/admin', '/admin/product', '/admin/ecommerce', '/admin/dealers', '/admin/production',
+    '/admin/inventory', '/admin/logistics', '/admin/supply', '/admin/customers',
+    '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings',
+  ];
+  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 13 modules appear in top navigation');
+  for (const href of expectedModules) {
+    const link = primary.locator('a[href="' + href + '"]');
+    assert.equal(await link.count(), 1, 'direct visible module: ' + href);
+    assert.equal(await link.isVisible(), true, 'link is not hidden: ' + href);
   }
-  await page.keyboard.press('Escape');
-  await morePanel.waitFor({ state: 'hidden' });
-  assert.equal(await moreButton.getAttribute('aria-expanded'), 'false');
-  await moreButton.click();
-  await morePanel.locator('a[href="/admin/finance"]').click();
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0, 'unused commerce comparison removed from navigation');
+  assert.equal(await primary.getByRole('button', { name: '更多模块' }).count(), 0, 'no hidden More drawer');
+  await primary.locator('a[href="/admin/finance"]').click();
   await page.waitForURL(base + '/admin/finance');
-  assert.equal(await page.getByRole('navigation', { name: '一级导航', exact: true }).getByRole('button', { name: '更多模块', exact: true }).getAttribute('data-active'), 'true');
   await page.goto(base + '/admin/commerce-lab');
   await page.locator('[data-commerce-lab-overview]').waitFor();
-  report.checks.push('More Modules popup opens over scroll nav, closes with Escape and routes to finance');
+  report.checks.push('all 13 modules directly visible, legacy comparison has no primary entry');
 
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
   const catalogLink = secondary.getByRole('link', { name: '独立商品管理', exact: true });
@@ -67,13 +59,13 @@ try {
   assert.equal(catalogHref.pathname, '/admin/commerce-lab/catalog');
   assert.equal(catalogHref.searchParams.get('alsvidMenuLabel'), '独立商品管理');
   assert.ok(catalogHref.searchParams.get('alsvidMenu'), 'secondary menu identity is preserved for a distinct workspace tab');
-  report.checks.push('comparison is a direct primary menu with its own secondary layout; original ecommerce entry preserved');
+  report.checks.push('legacy comparison deep links remain compatible, but navigation is no longer promoted');
   await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
   await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
   await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference' && url.searchParams.get('alsvidMenuLabel') === '旧版交互样机');
   const lab = page.locator('[data-commerce-lab]');
   await lab.waitFor();
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比', exact: true }).getAttribute('aria-current'), 'page');
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0);
   report.checks.push('legacy demo remains reachable under its own protected reference route');
   const mutations = [];
   page.on('request', request => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) mutations.push(request.url()); });
