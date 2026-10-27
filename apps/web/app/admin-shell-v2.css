@@ -515,3 +515,20 @@ body[data-alsvid-environment="development"] .shellV2 .workspaceTabs { top: 102px
   .workspaceTabs { gap: 7px; }
   .workspaceTabLabel { max-width: 128px; }
 }
+
+
+.shellV2 .primaryBrand::after {
+  content: "OPERATIONS";
+  margin-left: 8px;
+  color: #a7b5ca;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+.primaryNavIcon {
+  display: inline-block;
+  margin-right: 7px;
+  font-size: 14px;
+  line-height: 1;
+}
+.mobilePrimaryItem .primaryNavIcon { margin-right: 6px; }
