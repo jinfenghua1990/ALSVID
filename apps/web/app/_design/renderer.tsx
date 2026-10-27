@@ -66,7 +66,7 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '仓库操作', items: ['仓库与库位维护', '库存流水', '库存盘点'] },
   ],
   '经销商': [
-    { group: '经销商业务', items: ['经销商列表', 'B2B订单', '区域授权'] },
+    { group: '经销商业务', items: ['经销商列表', 'B2B订单（待接入）', '区域授权（待接入）'] },
   ],
   '生产': [
     { group: '生产计划', items: ['生产计划', '排产管理'] },
@@ -79,7 +79,7 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '供应商', items: ['供应商列表', '供应商档案'] },
   ],
   '客户': [
-    { group: '客户与车主', items: ['客户列表', 'VIN绑定', '购买记录'] },
+    { group: '客户与车主', items: ['客户列表', '车辆绑定（待接入）', '购买记录（待接入）'] },
   ],
   '售后': [
     { group: '售后业务', items: ['售后工单', 'VIN查询'] },
