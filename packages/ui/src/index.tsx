@@ -26,6 +26,12 @@ export interface AppShellClassNames {
   workspace?: string;
 }
 
+const areaIcons: Record<string, string> = {
+  工作台: '🏠', 产品: '🧩', 订单: '🧾', 电商: '🛒', 生产: '🏭',
+  库存: '🚚', 经销商: '🏢', 客户: '👤', 售后: '🛠️', 供应链: '📦',
+  数据: '📈', 设置: '⚙️',
+};
+
 const areaDescriptions: Record<string, string> = {
   工作台: '今日运营概览、待办、异常与关键指标',
   产品: '产品平台、型号、SKU、BOM、零件与工程资料',
@@ -253,9 +259,9 @@ export function AppShell({
         <a className={`primaryBrand ${classNames.brand ?? ''}`.trim()} href={brandHref}>{brand}</a>
         <nav className="primaryNavigation" aria-label="一级导航">
           {areas.map((area) => area.disabled ? (
-            <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true" title={area.description}>{area.label}</span>
+            <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true" title={area.description}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></span>
           ) : (
-            <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined} title={area.description}>{area.label}</a>
+            <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined} title={area.description}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></a>
           ))}
         </nav>
         <div className="primaryUtilities" aria-label="快捷工具">
@@ -274,9 +280,9 @@ export function AppShell({
         <summary><strong>{brand}</strong><span>{activeArea} · 菜单</span></summary>
         <div className="mobilePrimaryNavigation" aria-label="一级导航">
           {areas.map((area) => area.disabled ? (
-            <span className="mobilePrimaryItem mobilePrimaryItemDisabled" key={area.label}>{area.label}</span>
+            <span className="mobilePrimaryItem mobilePrimaryItemDisabled" key={area.label}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></span>
           ) : (
-            <a className={`mobilePrimaryItem${area.active ? ' mobilePrimaryItemActive' : ''}`} href={area.href} key={area.label} title={area.description}>{area.label}</a>
+            <a className={`mobilePrimaryItem${area.active ? ' mobilePrimaryItemActive' : ''}`} href={area.href} key={area.label} title={area.description}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></a>
           ))}
         </div>
         {contextualNavigation.length > 0 ? (
