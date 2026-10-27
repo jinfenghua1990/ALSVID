@@ -1125,6 +1125,17 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-commerce-load-state p{margin:0;color:var(--av-text-soft);font-size:12px;line-height:1.7}
 .av-commerce-load-state .av-btn{width:max-content;margin-top:4px}
 .av-commerce-workspace section[id]{scroll-margin-top:80px}
+.av-commerce-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin:0;padding:0}
+.av-commerce-metric{min-width:0;padding:13px 14px;border:1px solid var(--av-line);border-radius:11px;background:var(--av-panel-soft)}
+.av-commerce-metric dt{color:var(--av-text-soft);font-size:11px;font-weight:600;line-height:1.5}
+.av-commerce-metric dd{margin:6px 0 0;color:var(--av-text);font-size:24px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.av-commerce-metric small{display:block;margin-top:6px;color:var(--av-muted);font-size:10px;line-height:1.6}
+.av-commerce-metric[data-tone="attention"]{border-color:#e6c9a0;background:#fff8eb}
+.av-commerce-metric[data-tone="attention"] dd{color:#8b6429}
+.av-commerce-metric[data-tone="blocked"]{border-color:#e8bfbf;background:#fdf1f1}
+.av-commerce-metric[data-tone="blocked"] dd{color:#a13b3b}
+.av-commerce-metrics .av-cardhead p[role="status"],.av-commerce-metrics [role="alert"] p{margin:0;color:var(--av-text-soft);font-size:12px;line-height:1.7}
+@media(max-width:720px){.av-commerce-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.av-commerce-metric dd{font-size:20px}}
 
 /* Ecommerce navigation uses the same quiet visual language as Product Admin. */
 .av-body--ecommerce{grid-template-columns:214px minmax(0,1fr);background:transparent}

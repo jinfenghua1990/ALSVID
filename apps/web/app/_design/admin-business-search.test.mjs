@@ -6,7 +6,9 @@ const catalog = {
   models: [{id: 'm1', code: 'FC1', name: 'Folding Carbon'}],
   skus: [{id: 'sku1', sku: 'FC1-PRO-GRAY', name: 'FC1 Pro Graphite'}],
 };
+const orderId = '423e4567-e89b-42d3-a456-426614174000';
 const orders = [{
+  id: orderId,
   orderNumber: 'AL-2026-0001',
   customerEmail: 'buyer@example.com',
   lines: [{skuCode: 'FC1-PRO-GRAY', skuName: 'FC1 Pro Graphite'}],
@@ -69,7 +71,19 @@ test('search real accessible model and SKU; return working prefiltered Admin lin
   assert.deepEqual(items.map(i => i.type), ['model', 'sku', 'order']);
   assert.equal(items[0].href, '/admin/product?search=FC1#model-register');
   assert.equal(items[1].href, '/admin/product?search=FC1-PRO-GRAY#model-register');
-  assert.equal(items[2].href, '/admin/orders?orderSearch=AL-2026-0001#b2c');
+  assert.equal(items[2].href, '/admin/ecommerce/orders?orderId=' + orderId);
+});
+
+test('first-party orders deep link into the self-built storefront workspace, never the external one', () => {
+  for (const search of ['fc1', 'al-2026-0001', 'buyer@example.com']) {
+    const order = searchAuthorizedBusinessRecords(catalog, orders, search).find(i => i.type === 'order');
+    assert.ok(order, search);
+    assert.match(order.href, /^\/admin\/ecommerce\/orders\?/);
+    assert.doesNotMatch(order.href, /^\/admin\/orders/);
+  }
+  const withoutId = searchAuthorizedBusinessRecords(catalog,
+    [{ orderNumber: 'AL-2026-0002', customerEmail: 'buyer@example.com', lines: [] }], 'al-2026-0002');
+  assert.equal(withoutId[0].href, '/admin/ecommerce/orders?orderSearch=AL-2026-0002');
 });
 
 test('search case-insensitive order number and permitted customer email', () => {

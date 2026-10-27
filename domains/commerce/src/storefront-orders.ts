@@ -105,11 +105,62 @@ export function calculateStorefrontLineTotals(unitPriceGross:string,quantity:num
  if(!Number.isInteger(taxRateBasisPoints)||taxRateBasisPoints<0||taxRateBasisPoints>10000)throw new CommerceValidationError('Tax rate basis points must be between 0 and 10000');
  return calculateLine(unitPriceGross,quantity,taxRateBasisPoints);
 }
+/** Every status the database actually permits; the filter rejects anything else instead of returning an empty list. */
+export const storefrontOrderStatuses=[
+ 'DRAFT','SUBMITTED','AWAITING_PAYMENT','PAYMENT_PENDING','PAYMENT_VERIFIED',
+ 'FULFILLMENT_PENDING','IN_PRODUCTION','FULFILLED','CLOSED','CANCELLED'] as const;
+export type StorefrontOrderStatus=typeof storefrontOrderStatuses[number];
+export interface StorefrontOrderQuery {
+ query?:string;status?:string;marketCountry?:string;limit?:number|string;
+}
+export const STOREFRONT_ORDER_PAGE_LIMIT=100;
+export const STOREFRONT_ORDER_MAX_LIMIT=200;
+const escapeLike=(value:string)=>value.replace(/[\\%_]/g,'\\$&');
+/**
+ * Server-side filter for the first-party order list. Returns a fully parameterised
+ * WHERE fragment so callers never interpolate operator input into SQL.
+ * `query` matches order number, buyer email and purchased SKU snapshots.
+ */
+export function buildStorefrontOrderFilter(filters:StorefrontOrderQuery={}):{where:string;params:unknown[]}{
+ if(!filters||typeof filters!=='object'||Array.isArray(filters))
+  throw new CommerceValidationError('Order filter must be an object');
+ const clauses:string[]=[];const params:unknown[]=[];
+ const status=typeof filters.status==='string'?filters.status.trim().toUpperCase():'';
+ if(status&&status!=='ALL'){
+  if(!(storefrontOrderStatuses as readonly string[]).includes(status))
+   throw new CommerceValidationError('Unsupported storefront order status filter');
+  params.push(status);clauses.push(`o.status=$${params.length}`);
+ }
+ const market=typeof filters.marketCountry==='string'?filters.marketCountry.trim().toUpperCase():'';
+ if(market&&market!=='ALL'){
+  if(!(allowedMarkets as readonly string[]).includes(market))
+   throw new CommerceValidationError('Order market filter must be DE or AT');
+  params.push(market);clauses.push(`o.market_country=$${params.length}`);
+ }
+ const term=typeof filters.query==='string'?filters.query.trim().slice(0,100):'';
+ if(term){
+  params.push('%'+escapeLike(term)+'%');
+  const i=params.length;
+  clauses.push(`(o.order_number ILIKE $${i} OR o.customer_email ILIKE $${i} OR EXISTS(
+    SELECT 1 FROM commerce.storefront_order_lines f WHERE f.order_id=o.id
+     AND (f.sku_code_snapshot ILIKE $${i} OR f.sku_name_snapshot ILIKE $${i})))`);
+ }
+ return {where:clauses.length?'WHERE '+clauses.join(' AND '):'',params};
+}
+/** Page size is clamped, never trusted: an absurd limit must not become an unbounded read. */
+export function resolveStorefrontOrderLimit(limit:unknown):number{
+ if(limit===undefined||limit===null||limit==='')return STOREFRONT_ORDER_PAGE_LIMIT;
+ const parsed=typeof limit==='number'?limit:Number(String(limit).trim());
+ if(!Number.isInteger(parsed)||parsed<1)throw new CommerceValidationError('Order limit must be a positive integer');
+ return Math.min(parsed,STOREFRONT_ORDER_MAX_LIMIT);
+}
 export class StorefrontOrderService{
  constructor(private readonly db:DatabasePort,private readonly audit:CommerceAuditPort){}
- async summary(actor:StorefrontActor){
+ async summary(actor:StorefrontActor,filters:StorefrontOrderQuery={}){
   requirePermission(actor,'commerce.storefront.read');
-  const [skus,prices,orders,factories]=await Promise.all([
+  const {where,params}=buildStorefrontOrderFilter(filters);
+  const limit=resolveStorefrontOrderLimit(filters?.limit);
+  const [skus,prices,orders,orderTotal,statusCounts,factories]=await Promise.all([
    this.db.query<any>(`SELECT s.id,s.sku,s.name,s.color_code,s.market_code,m.code AS model_code,v.code AS variant_code
     FROM product.skus s JOIN product.variants v ON v.id=s.variant_id
     JOIN product.models m ON m.id=v.model_id WHERE s.status='ACTIVE' ORDER BY m.code,v.code,s.sku LIMIT 500`),
@@ -122,16 +173,25 @@ export class StorefrontOrderService{
     'lineTaxAmount',l.line_tax_amount::text,'lineGrossAmount',l.line_gross_amount::text)
     ORDER BY l.created_at,l.id) FILTER(WHERE l.id IS NOT NULL),'[]'::json) AS lines
     FROM commerce.storefront_orders o LEFT JOIN commerce.storefront_order_lines l ON l.order_id=o.id
-    GROUP BY o.id ORDER BY o.created_at DESC,o.id DESC LIMIT 100`),
+    ${where} GROUP BY o.id ORDER BY o.created_at DESC,o.id DESC LIMIT ${limit}`,params),
+   // Reported total is the count of ALL rows matching the filter, so a truncated
+   // page can never be mistaken for "there are only this many orders".
+   this.db.query<{total:string}>(`SELECT count(*)::text AS total FROM commerce.storefront_orders o ${where}`,params),
+   // Whole-book status distribution (never filtered) so the overview describes the real book.
+   this.db.query<{status:string;total:string}>(`SELECT status,count(*)::text AS total
+    FROM commerce.storefront_orders GROUP BY status`),
    this.db.query<any>(`SELECT p.id,p.partner_code,p.display_name FROM partners.partners p
     JOIN partners.roles r ON r.partner_id=p.id WHERE r.role='FACTORY'
     ORDER BY p.display_name,p.partner_code LIMIT 100`)
   ]);
   const mappedOrders=orders.rows.map(mapOrder).map(order=>actor.permissions.includes('commerce.storefront.write')
    ?order:{...order,customerEmail:'已隐藏'});
+  const orderStatusCounts:Record<string,number>={};
+  for(const row of statusCounts.rows)orderStatusCounts[row.status]=Number(row.total);
   return {checkoutEnabled:false,skus:skus.rows.map(r=>({id:r.id,sku:r.sku,name:r.name,colorCode:r.color_code,
     marketCode:r.market_code,modelCode:r.model_code,variantCode:r.variant_code})),
    prices:prices.rows.map(mapPrice),orders:mappedOrders,
+   orderTotal:Number(orderTotal.rows[0]?.total??0),orderLimit:limit,orderStatusCounts,
    factories:factories.rows.map(r=>({id:r.id,code:r.partner_code,name:r.display_name}))};
  }
  async createPrice(actor:StorefrontActor,input:CreateStorefrontPriceInput):Promise<StorefrontPrice>{

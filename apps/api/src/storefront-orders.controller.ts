@@ -1,5 +1,5 @@
-import {Body,Controller,Get,Param,Post,Req} from '@nestjs/common';
-import type {CreateStorefrontOrderInput,CreateStorefrontPriceInput} from '@alsvid/commerce';
+import {Body,Controller,Get,Param,Post,Query,Req} from '@nestjs/common';
+import type {CreateStorefrontOrderInput,CreateStorefrontPriceInput,StorefrontOrderQuery} from '@alsvid/commerce';
 import type {AuthenticatedRequest} from './auth.guard.js';
 import {requireAuth} from './auth.guard.js';
 import {throwHttpDomainError} from './domain-errors.js';
@@ -12,8 +12,8 @@ interface CancelDraftBody extends ExpectedVersionBody{reason:string}
 @Controller('v1/commerce/storefront')
 export class StorefrontOrdersController{
  @Get('summary')
- async summary(@Req() request:AuthenticatedRequest){
-  try{return{data:await storefrontOrderService.summary(requireAuth(request))};}
+ async summary(@Req() request:AuthenticatedRequest,@Query() query:StorefrontOrderQuery){
+  try{return{data:await storefrontOrderService.summary(requireAuth(request),query??{})};}
   catch(error){return throwHttpDomainError(error);}
  }
  @Post('prices')

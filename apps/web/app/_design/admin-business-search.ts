@@ -129,6 +129,18 @@ function recordHref(domain: 'vehicle' | 'service' | 'order' | 'customer', id: st
   return path + '?' + key + '=' + encodeURIComponent(id);
 }
 
+/**
+ * First-party (self-built storefront) orders live under /admin/ecommerce/orders and use
+ * their own ID space. /admin/orders only resolves imported external-channel orders, so
+ * pointing a storefront order there produced a false "order not in authorized data" state.
+ * Mirrors `app/commerce/storefront-order-target.ts`; keep both in sync.
+ */
+function storefrontOrderHref(order: AdminSearchOrder): string {
+  return isRecordId(order.id)
+    ? '/admin/ecommerce/orders?orderId=' + encodeURIComponent(order.id!)
+    : '/admin/ecommerce/orders?orderSearch=' + encodeURIComponent(order.orderNumber);
+}
+
 const contains = (query: string, ...fields: readonly (string | null | undefined)[]) =>
   fields.some(field => typeof field === 'string' && field.toLocaleLowerCase().includes(query));
 const cap = <T>(rows: readonly T[]) => rows.slice(0, 8);
@@ -167,8 +179,7 @@ export function searchAuthorizedBusinessRecords(
       ...(Array.isArray(item.lines) ? item.lines.flatMap(line => [line.skuCode, line.skuName]) : []))))) {
       results.push({ type: 'order', key: 'order:' + order.orderNumber, title: order.orderNumber,
         subtitle: 'ALSVID 自建商城订单 · ' + order.customerEmail,
-        href: isRecordId(order.id) ? recordHref('order', order.id!) :
-          '/admin/orders?orderSearch=' + encodeURIComponent(order.orderNumber) + '#b2c' });
+        href: storefrontOrderHref(order) });
     }
   }
 

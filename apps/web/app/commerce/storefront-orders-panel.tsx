@@ -1,7 +1,8 @@
 'use client';
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import styles from './commerce.module.css';
-import { filterStorefrontOrders } from './storefront-order-filter';
+import {filterStorefrontOrders} from './storefront-order-filter';
+import {resolveStorefrontOrderTarget,storefrontOrderHref,storefrontOrderIdParam,type StorefrontOrderTarget} from './storefront-order-target';
 import { resolveAdminPricingTarget, type PricingTargetStatus } from '../_lib/admin-sku-pricing-navigation';
 
 type Sku={id:string;sku:string;name:string;colorCode:string|null;marketCode:string|null;modelCode:string;variantCode:string};
@@ -24,8 +25,21 @@ const orderStatusLabel=(status:string):string=>({
  IN_PRODUCTION:'生产中',FULFILLED:'已交付',CLOSED:'已关闭',CANCELLED:'已取消',
 } as Record<string,string>)[status]??status;
 type Factory={id:string;code:string;name:string};
-type Summary={checkoutEnabled:false;skus:Sku[];prices:Price[];orders:Order[];factories:Factory[]};
+type Summary={checkoutEnabled:false;skus:Sku[];prices:Price[];orders:Order[];factories:Factory[];
+ orderTotal:number;orderLimit:number;orderStatusCounts:Record<string,number>};
 type ItemInput={skuId:string;quantity:string};
+type OrderFilters={query:string;status:string;market:string};
+const emptySummary:Summary={checkoutEnabled:false,skus:[],prices:[],orders:[],factories:[],
+ orderTotal:0,orderLimit:100,orderStatusCounts:{}};
+/** Server-side filter parameters; never sent for the pricing-only view. */
+function summaryPath(filters:OrderFilters):string{
+ const params=new URLSearchParams();
+ if(filters.query.trim())params.set('query',filters.query.trim().slice(0,100));
+ if(filters.status!=='ALL')params.set('status',filters.status);
+ if(filters.market!=='ALL')params.set('marketCountry',filters.market);
+ const qs=params.toString();
+ return 'summary'+(qs?'?'+qs:'');
+}
 async function call<T>(path:string,body?:unknown):Promise<T>{
  const response=await fetch('/api/control/v1/commerce/storefront/'+path,{
   cache:'no-store',method:body===undefined?'GET':'POST',
@@ -45,8 +59,9 @@ async function callProduction<T>(orderId:string,body:unknown):Promise<T>{
 }
 const newItem=(skuId=''):ItemInput=>({skuId,quantity:'1'});
 export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|'orders'} = {}){
- const [summary,setSummary]=useState<Summary>({checkoutEnabled:false,skus:[],prices:[],orders:[],factories:[]});
+ const [summary,setSummary]=useState<Summary>(emptySummary);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
+ const [refreshing,setRefreshing]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  const [priceSku,setPriceSku]=useState(''),[priceMarket,setPriceMarket]=useState<'DE'|'AT'>('DE');
  const [pricingTargetStatus,setPricingTargetStatus]=useState<PricingTargetStatus>('default');
@@ -59,23 +74,72 @@ export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|
  const [orderStatus,setOrderStatus]=useState('ALL');
  const [orderMarket,setOrderMarket]=useState('ALL');
  const [detail,setDetail]=useState<OrderDetail|null>(null);
+ const [deepLink,setDeepLink]=useState<StorefrontOrderTarget|null>(null);
+ const [linkedOrderId,setLinkedOrderId]=useState('');
  const requestKey=useRef<{fingerprint:string;id:string}|null>(null);
- const refresh=useCallback(async()=>{const data=await call<Summary>('summary');setSummary(data);
+ const filtersRef=useRef<OrderFilters>({query:'',status:'ALL',market:'ALL'});
+ const initialisedRef=useRef(false);
+ /** Defaults are only seeded on the first load so a filter change cannot wipe a half-built draft. */
+ const applySummary=useCallback((data:Summary,seedDefaults:boolean)=>{
+  setSummary(data);
+  if(!seedDefaults)return;
   setPriceSku(current=>data.skus.some(s=>s.id===current)?current:(data.skus[0]?.id??''));
   setItems(current=>current.map(line=>({skuId:line.skuId||data.skus[0]?.id||'',quantity:line.quantity})));
   setFactoryId(current=>data.factories.some(f=>f.id===current)?current:(data.factories[0]?.id??''));
  },[]);
- useEffect(()=>{let live=true;void call<Summary>('summary').then(data=>{
-  if(live){
+ const refresh=useCallback(async()=>{applySummary(await call<Summary>(summaryPath(filtersRef.current)),false);},[applySummary]);
+ useEffect(()=>{let live=true;void (async()=>{
+  try{
    const params=new URLSearchParams(window.location.search);
-   const target=resolveAdminPricingTarget(data.skus,window.location.search);
-   setSummary(data);setPriceSku(target.skuId);setPriceMarket(target.market);setPricingTargetStatus(target.status);
-   const requestedOrder=params.get('orderSearch');
-   if(requestedOrder)setOrderSearch(requestedOrder.slice(0,100));
-   setItems([newItem(data.skus[0]?.id??'')]);setFactoryId(data.factories[0]?.id??'');
-  }
- }).catch(e=>{if(live)setError(e instanceof Error?e.message:'无法读取第一方订单数据');})
-  .finally(()=>{if(live)setLoading(false);});return()=>{live=false};},[]);
+   const requestedSearch=(params.get('orderSearch')??'').slice(0,100);
+   const initialFilters:OrderFilters={query:requestedSearch,status:'ALL',market:'ALL'};
+   filtersRef.current=initialFilters;
+   if(requestedSearch)setOrderSearch(requestedSearch);
+   const data=await call<Summary>(summaryPath(initialFilters));
+   if(!live)return;
+   const pricing=resolveAdminPricingTarget(data.skus,window.location.search);
+   setPriceSku(pricing.skuId);setPriceMarket(pricing.market);setPricingTargetStatus(pricing.status);
+   applySummary(data,true);
+   // A linked order id only selects from the returned authorized snapshot; if it is
+   // not on the current page we re-read it by id instead of jumping to a different
+   // order, and only report a problem when the API genuinely cannot return it.
+   const linked=resolveStorefrontOrderTarget(data.orders,window.location.search);
+   if(linked.status==='missing'){
+    const requestedId=storefrontOrderIdParam(params.get('orderId'));
+    const loaded=requestedId?await findOrderById(requestedId):null;
+    if(loaded){setLinkedOrderId(loaded.id);setDetail(loaded);}
+    else setDeepLink(linked);
+   }else if(linked.status==='selected'&&linked.orderId){
+    const found=data.orders.find(row=>row.id.toLowerCase()===linked.orderId);
+    if(found){setLinkedOrderId(found.id);void openLinkedDetail(found);}
+   }
+  }catch(e){if(live)setError(e instanceof Error?e.message:'无法读取第一方订单数据');}
+  finally{if(live){setLoading(false);initialisedRef.current=true;}}
+ })();
+  return()=>{live=false};},[]);
+ async function openLinkedDetail(order:Order){
+  try{setDetail(await call<OrderDetail>('orders/'+order.id));}
+  catch(e){setError(e instanceof Error?e.message:'无法读取链接指定的订单详情');}
+ }
+ /** The list is paged; a linked order older than the current page is still readable by id. */
+ async function findOrderById(orderId:string):Promise<OrderDetail|null>{
+  try{return await call<OrderDetail>('orders/'+orderId);}
+  catch{return null;}
+ }
+ // Server-side filtering: the list, the totals and the counts all come from the API,
+ // so a filtered view can never be mistaken for the complete order book.
+ useEffect(()=>{
+  if(!initialisedRef.current)return;
+  const next:OrderFilters={query:orderSearch,status:orderStatus,market:orderMarket};
+  const timer=setTimeout(()=>{
+   filtersRef.current=next;
+   setRefreshing(true);
+   void call<Summary>(summaryPath(next)).then(data=>applySummary(data,false))
+    .catch(e=>setError(e instanceof Error?e.message:'订单筛选失败'))
+    .finally(()=>setRefreshing(false));
+  },350);
+  return ()=>clearTimeout(timer);
+ },[orderSearch,orderStatus,orderMarket,applySummary]);
  const activePrices=summary.prices.filter(p=>p.status==='ACTIVE');
  const availableSkus=summary.skus.filter(s=>activePrices.some(p=>p.skuId===s.id&&p.marketCountry===market));
  const canAddLine=availableSkus.some(s=>!items.some(line=>line.skuId===s.id));
@@ -194,19 +258,21 @@ export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|
      </div>
     </form>
     {!availableSkus.length?<p className={styles.firstPartyEmpty}>该市场没有已启用价格的 SKU。先配置并启用对应市场价格，才可建立草稿。</p>:null}
-    <div className={styles.firstPartyListHead}>已加载第一方订单（{summary.orders.length}）</div>
+    <div className={styles.firstPartyListHead}>第一方订单（共 {summary.orderTotal} 条）</div>
      <div className={styles.firstPartyFilters} role="group" aria-label="筛选第一方订单">
       <label>订单号 / 客户邮箱 / SKU
-       <input type="search" value={orderSearch} onChange={event=>setOrderSearch(event.target.value)} placeholder="查找已加载的订单" />
+       <input type="search" value={orderSearch} onChange={event=>setOrderSearch(event.target.value)} placeholder="在全部第一方订单中搜索" />
       </label>
       <label>订单状态
        <select value={orderStatus} onChange={event=>setOrderStatus(event.target.value)}>
         <option value="ALL">全部状态</option>
         <option value="DRAFT">内部草稿</option>
-        <option value="CANCELLED">已取消</option>
+        <option value="SUBMITTED">已提交（待支付通道）</option>
         <option value="PAYMENT_VERIFIED">已核验付款</option>
         <option value="FULFILLMENT_PENDING">待履约</option>
         <option value="IN_PRODUCTION">生产中</option>
+        <option value="FULFILLED">已交付</option>
+        <option value="CANCELLED">已取消</option>
        </select>
       </label>
       <label>销售市场
@@ -215,7 +281,14 @@ export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|
        </select>
       </label>
      </div>
-     <p className={styles.firstPartyEmpty} role="status" aria-live="polite">符合条件 {filteredOrders.length} 条，显示前 {Math.min(filteredOrders.length,30)} 条。仅筛选当前 API 已加载的订单。</p>
+     <p className={styles.firstPartyEmpty} role="status" aria-live="polite">
+      服务端匹配 {summary.orderTotal} 条，本次加载 {summary.orders.length} 条（单次上限 {summary.orderLimit} 条）。
+      {summary.orderTotal>summary.orders.length?' 还有 '+(summary.orderTotal-summary.orders.length)+' 条未加载，请缩小搜索或状态条件后查看，不要据此判断订单总量。':' 当前已展示全部匹配订单。'}
+      {refreshing?' 正在按新条件查询…':''}
+     </p>
+     {deepLink?.status==='missing'?<p className={styles.notice} role="alert">
+      链接指定的订单不在本次可访问的订单结果中（可能已被删除，或不在当前账号权限 / 当前筛选范围内）。未自动改为显示其他订单；请核对订单 ID，或清空链接参数后重新筛选。
+     </p>:null}
     <label className={styles.cancelReasonField}>生产工厂（仅已核验订单可生成生产需求）
      <select value={factoryId} onChange={e=>setFactoryId(e.target.value)} disabled={busy||!summary.factories.length}>
       {summary.factories.map(f=><option key={f.id} value={f.id}>{f.code} · {f.name}</option>)}
@@ -224,7 +297,8 @@ export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|
     <label className={styles.cancelReasonField}>取消原因（至少 10 个字符）
      <input value={cancelReason} onChange={e=>setCancelReason(e.target.value)} minLength={10} maxLength={500} placeholder="例如：客户信息录入错误，重新建立订单" disabled={busy}/>
     </label>
-    {filteredOrders.slice(0,30).map(o=><article className={styles.firstPartyRow} key={o.id}>
+    {filteredOrders.map(o=><article className={styles.firstPartyRow} key={o.id}
+      data-deep-link={linkedOrderId===o.id?'linked':undefined}>
      <div><strong>{o.orderNumber} · {o.totalGrossAmount} {o.currency}</strong>
       <span>{o.customerEmail} · {o.marketCountry} · {o.lines.map(l=>l.skuCode+' × '+l.quantity).join('，')}</span>
       <small>{orderStatusLabel(o.status)} · 支付：{o.paymentStatus==='NOT_CONFIGURED'?'未配置':o.paymentStatus}</small>
@@ -236,10 +310,11 @@ export function StorefrontOrderDraftPanel({mode='all'}: {mode?: 'all'|'pricing'|
       {o.status==='DRAFT'?<button type="button" disabled={busy} onClick={()=>void submitOrder(o)}>提交订单</button>:null}
       {o.status==='DRAFT'?<button type="button" className={styles.secondaryAction} disabled={busy||cancelReason.trim().length<10} onClick={()=>void cancelOrder(o)}>取消草稿</button>:null}
       <button type="button" className={styles.secondaryAction} disabled={busy} onClick={()=>void openDetail(o)}>详情</button>
+      <a className={styles.secondaryAction} href={storefrontOrderHref(o)} title="打开此订单的专属链接（可复制给同事）">专属链接</a>
      </div>
     </article>)}
-    {!loading&&!summary.orders.length&&!error?<p className={styles.firstPartyEmpty}>尚无第一方订单记录。</p>:null}
-     {summary.orders.length>0&&!filteredOrders.length?<p className={styles.firstPartyEmpty}>没有符合当前筛选条件的订单，可调整搜索或筛选项。</p>:null}
+    {!loading&&!summary.orderTotal&&!error?<p className={styles.firstPartyEmpty}>尚无第一方订单记录。</p>:null}
+     {summary.orderTotal>0&&!filteredOrders.length?<p className={styles.firstPartyEmpty}>没有符合当前筛选条件的订单，可调整搜索或筛选项。</p>:null}
      {detail?<section className={styles.firstPartyRow} aria-label="订单详情">
       <div>
        <strong>{detail.orderNumber} · {detail.totalGrossAmount} {detail.currency}</strong>
