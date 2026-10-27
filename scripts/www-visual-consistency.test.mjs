@@ -70,7 +70,7 @@ test('homepage first KV restores the archived owner-selected poster and journey 
 
 test('homepage KV uses responsive optimized image delivery',async()=>{
  const hero=await readFile(join(appRoot,'_components/home/home-interactions.tsx'),'utf8');
- assert.match(hero,/import Image from "next\/image"/);
+ assert.match(hero,/import Image(?:, \{ getImageProps \})? from "next\/image"/);
  assert.match(hero,/<Image[^>]+fill[^>]+sizes="100vw"[^>]+preload=\{active === 0\}/,
    'Hero image should use responsive dimensions and preload only the initial slide');
  assert.doesNotMatch(hero,/<img key=\{slide\.image\}/,'Hero carousel must not send the original PNG at intrinsic size');

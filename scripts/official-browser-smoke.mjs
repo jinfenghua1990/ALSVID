@@ -35,6 +35,55 @@ try {
     report.checks.push('Root entry: DE/AT/CN/US/IPv6 country routing, unknown IP German fallback, explicit DE/EN/ZH override');
   } finally { await entryContext.close(); }
 
+  // Hold the next optimized image to reproduce a slow first visit without hiding
+  // the problem behind image.decode() immediately before the screenshot.
+  const carouselContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  let releaseCity;
+  const cityBlocked = new Promise(resolve => { releaseCity = resolve; });
+  try {
+    await carouselContext.route('**/_next/image?*', async route => {
+      if (new URL(route.request().url()).searchParams.get('url') === '/home/original/scene-city.webp') {
+        await cityBlocked;
+      }
+      await route.continue();
+    });
+    const page = await carouselContext.newPage();
+    const cityRequest = page.waitForRequest(request =>
+      new URL(request.url()).searchParams.get('url') === '/home/original/scene-city.webp', { timeout: 15000 });
+    await page.goto(base + '/en/', { waitUntil: 'domcontentloaded' });
+    const hero = page.locator('[data-home-carousel]');
+    const tabs = hero.locator('[role="group"] button[aria-pressed]');
+    await hero.locator('img').first().evaluate(image => image.decode());
+    await cityRequest;
+    await tabs.nth(1).click();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'true', 'Keep the current KV selected while its successor loads');
+    const stillVisible = await hero.locator('img').first().evaluate(image => ({
+      source: image.currentSrc || image.src, ready: image.complete && image.naturalWidth > 0,
+    }));
+    assert.ok(stillVisible.ready && stillVisible.source.includes('fc1-poster-clean.png'),
+      'A delayed next image must never replace the loaded KV with an empty background');
+    await page.screenshot({ path: output + '/homepage-carousel-loading-next.png' });
+    releaseCity();
+    await page.waitForFunction(() =>
+      document.querySelector('[data-home-carousel] [role="group"] button:nth-child(2)')?.getAttribute('aria-pressed') === 'true');
+    // Routed browser tests disable the HTTP cache, so the displayed img may make
+    // another request even after the detached preloader decoded the same URL.
+    await page.waitForFunction(() => {
+      const image = document.querySelector('[data-home-carousel] img');
+      return image?.complete && image.naturalWidth > 0 && image.currentSrc.includes('scene-city.webp');
+    });
+    const nextImage = await hero.locator('img').first().evaluate(image => ({
+      source: image.currentSrc || image.src, ready: image.complete && image.naturalWidth > 0,
+    }));
+    assert.ok(nextImage.ready && nextImage.source.includes('scene-city.webp'), 'Switch to the next KV only after it is decoded');
+    await page.screenshot({ path: output + '/homepage-carousel-delayed-image.png' });
+    report.checks.push('Homepage KV: delayed image retains the loaded poster, then switches after decode');
+  } finally {
+    releaseCity();
+    await carouselContext.close();
+  }
+
   for (const locale of ['de', 'en', 'zh']) {
     for (const [device, viewport] of [
       ['desktop', { width: 1440, height: 900 }],
@@ -346,10 +395,11 @@ try {
         await page.screenshot({ path: output + '/official-homepage-initial-' + locale + '-' + device + '.png' });
         report.checks.push(locale + ' ' + device + ': restored original KV + journey headline');
         await tabs.nth(1).click();
+        await page.waitForFunction(() =>
+          document.querySelector('[data-home-carousel] [role="group"] button:nth-child(2)')?.getAttribute('aria-pressed') === 'true');
         assert.equal(await tabs.nth(1).getAttribute('aria-pressed'), 'true', 'Manual platform selection works');
         assert.equal(await tabs.nth(0).getAttribute('aria-pressed'), 'false', 'Previous scene is deselected');
-        // The scene image is replaced on tab selection. Decode it before taking
-        // the visual snapshot so a fast screenshot cannot hide a missing/late image.
+        // Selection now commits only after decode; keep the image assertion before visual review.
         const activeHeroImage = hero.locator('img').first();
         const loadedHeroImage = await activeHeroImage.evaluate(async image => {
           await image.decode();
