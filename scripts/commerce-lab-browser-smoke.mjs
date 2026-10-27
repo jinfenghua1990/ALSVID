@@ -41,11 +41,15 @@ try {
   assert.equal(await primary.locator('details a[href="/admin/commerce-lab"]').count(), 0, 'entry is not hidden under More');
   assert.equal(await primary.getByRole('link', { name: '电商', exact: true }).getAttribute('href'), '/admin/ecommerce');
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
-  assert.equal(await secondary.getByRole('link', { name: '独立商品管理', exact: true }).getAttribute('href'), '/admin/commerce-lab/catalog');
+  const catalogLink = secondary.getByRole('link', { name: '独立商品管理', exact: true });
+  const catalogHref = new URL(await catalogLink.getAttribute('href'), base);
+  assert.equal(catalogHref.pathname, '/admin/commerce-lab/catalog');
+  assert.equal(catalogHref.searchParams.get('alsvidMenuLabel'), '独立商品管理');
+  assert.ok(catalogHref.searchParams.get('alsvidMenu'), 'secondary menu identity is preserved for a distinct workspace tab');
   report.checks.push('comparison is a direct primary menu with its own secondary layout; original ecommerce entry preserved');
   await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
   await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
-  await page.waitForURL(base + '/admin/commerce-lab/reference');
+  await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference' && url.searchParams.get('alsvidMenuLabel') === '旧版交互样机');
   const lab = page.locator('[data-commerce-lab]');
   await lab.waitFor();
   assert.equal(await primary.getByRole('link', { name: '商城方案对比', exact: true }).getAttribute('aria-current'), 'page');

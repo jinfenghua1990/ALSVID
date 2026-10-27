@@ -121,7 +121,7 @@ try{
   await page.goto(base+'/admin/commerce-lab');
   await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).waitFor();
   await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).click();
-  await page.waitForURL(base+'/admin/commerce-lab/catalog');
+  await page.waitForURL(url=>url.pathname==='/admin/commerce-lab/catalog'&&url.searchParams.get('alsvidMenuLabel')==='独立商品管理');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
   await frame.getByRole('heading',{name:'独立商城商品管理',exact:true}).waitFor();
   assert.equal(await page.locator('.av-pagehead').count(),0,'embedded editor owns its page heading');
@@ -188,7 +188,9 @@ try{
   const preview=await popupPromise;preview.on('pageerror',error=>errors.push(error.message));
   await preview.locator('[data-private-product-preview][data-status="DRAFT"]').waitFor();
   assert.match(await preview.locator('meta[name="robots"]').getAttribute('content'),/noindex/);
-  assert.equal(await preview.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
+  const previewCatalogNav=preview.getByRole('complementary',{name:'二级导航',exact:true})
+    .getByRole('link',{name:'独立商品管理',exact:true});
+  await previewCatalogNav.locator('xpath=self::*[@aria-current="page"]').waitFor({timeout:10000});
   for(const [language,locale] of [['中文','zh'],['德语','de'],['英语','en']]){
     await preview.getByRole('navigation',{name:'预览语言',exact:true}).getByRole('link',{name:language,exact:true}).click();
     await preview.getByTestId('product-title').filter({hasText:records.get(id).title[locale]}).waitFor();

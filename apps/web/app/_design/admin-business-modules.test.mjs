@@ -83,7 +83,9 @@ test('framework directory has a single source of 13 Admin modules and does not p
   assert.match(directory, /ADMIN_MODULES\.map\(/);
   assert.match(directory, /部分功能接入/);
   assert.match(ui, /<AdminModuleDirectory \/>/);
-  assert.match(ui, /!isIntegratedOverview && !isLiveProductRoot && moduleScreens\.length > 0 \? <div className="av-railgroup">/);
+  assert.match(ui, /<AdminSecondaryNavigation moduleLabel=\{moduleLabel\} groups=\{secondaryNavGroups\} \/>/);
+  assert.match(ui, /const secondaryNavGroups = \[/);
+  assert.match(ui, /'工作台': \[/);
   assert.doesNotMatch(directory, /api\/control|const exampleKpi/);
 });
 

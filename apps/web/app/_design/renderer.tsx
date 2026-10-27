@@ -15,7 +15,7 @@ import { AdminModuleDirectory } from './admin-module-directory';
 import { P0OperationsCenter } from './p0-operations-center';
 import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
-import { WorkspaceTabs } from '@alsvid/ui';
+import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
 
 const AREAS = ADMIN_MODULES;
 const PRIMARY_AREAS = AREAS.filter(area => ['工作台', '产品研发', '订单管理', '电商', '生产制造', '仓储物流', '售后服务'].includes(area.label));
@@ -39,6 +39,9 @@ function isAreaActive(area: string, label: string): boolean {
 }
 
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
+  '工作台': [
+    { group: '工作台', items: ['经营总览', '待办任务', '异常预警', '最近访问'] },
+  ],
   '商城方案对比': [
     { group: '独立商城', items: ['方案总览与布局比较', '独立商品管理', '旧版交互样机'] },
   ],
@@ -109,6 +112,27 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
   ],
 };
 
+
+const SECONDARY_MENU_ICONS: readonly [RegExp, string][] = [
+  [/工作台|总览|概览|最近访问/, '🏠'],
+  [/产品类型|产品平台|技术平台|型号|配置|SKU|BOM|零件库|工程文件|版本控制|开发中|量产|停产|归档/, '📦'],
+  [/订单|履约|发货|交付/, '🧾'],
+  [/商城|商品|首页|发布|促销|支付/, '🛒'],
+  [/生产|排产|工单|装配|质检|出厂|VIN/, '🏭'],
+  [/库存|仓库|库位|调拨|周转|呆滞|物流/, '🚚'],
+  [/经销商|渠道|区域授权|合作协议/, '🏢'],
+  [/客户|车主|车辆|购买记录/, '👤'],
+  [/售后|保修|维修|配件|故障|服务质量/, '🛠️'],
+  [/供应商|采购|到货|来料|缺料|供应关系/, '📦'],
+  [/财务|应收|应付|资金|成本|汇率|对账|发票|付款/, '💳'],
+  [/数据|分析|报表|销售/, '📈'],
+  [/员工|用户|角色|权限|安全|审计|日志|系统|环境|集成|通信|邮件/, '⚙️'],
+];
+
+function secondaryMenuIcon(label: string): string {
+  return SECONDARY_MENU_ICONS.find(([pattern]) => pattern.test(label))?.[1] ?? '📄';
+}
+
 function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '商城方案对比') {
     if (label === '方案总览与布局比较') return '/admin/commerce-lab';
@@ -120,6 +144,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '供应链' && label === '合作状态') return '/admin/supply';
   if (screen.area === '客户' && label === '联系信息') return '/admin/customers';
   const operational: Record<string, string> = {
+    '经营总览': '/admin',
     '电商工作台': '/admin/ecommerce',
     '官网商品发布': '/admin/ecommerce/publications',
     '官网商品发布与审核': '/admin/ecommerce/publications',
@@ -583,10 +608,6 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
       ]
     : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
-  const menuActive = (item: string) => {
-    const href=menuRouteFor(item);
-    return href===screen.route||(href==='/admin/commerce-lab/catalog'&&screen.route.startsWith(href+'/'));
-  };
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
   const isIntegratedOverview = Boolean(screen.sourceNode && hasIntegratedOperations(screen.area) && (
     (screen.route.split('/').length === 3 && screen.area !== '订单') ||
@@ -595,12 +616,31 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
   ));
   const isEcommerceWorkspace = screen.area === '电商' && isIntegratedOverview;
   const isVehicleDetail = screen.route === '/admin/production/vin-detail' || screen.route === '/admin/production/vin';
+  const moduleLabel = AREAS.find(area => area.legacyAreas.includes(screen.area))?.label ?? screen.area;
+  const secondaryNavGroups = [
+    ...secondaryNavigation.map(group => ({
+      label: group.group,
+      items: group.items.map(item => {
+        const href = menuRouteFor(item);
+        return {
+          key: [screen.area, group.group, item].join('::'),
+          label: item,
+          ...(href ? { href } : {}),
+          icon: secondaryMenuIcon(item),
+          ...(!href ? { status: '待开发' } : {}),
+          disabled: !href,
+        };
+      }),
+    })),
+
+  ];
 
   return (
     <div className="av av-ambient" data-admin-theme data-theme={theme ?? 'day'}>
       <header className="av-topbar">
         <a className="av-brand" href="/admin">
-          ALSVID <span>OPERATIONS</span>
+          <span className="av-brandmark" aria-hidden="true">A</span>
+          <span className="av-brandcopy">ALSVID <small>OPERATIONS</small></span>
         </a>
         <nav className="av-primarynav" aria-label="一级导航">
           {PRIMARY_AREAS.map((area) => (
@@ -653,30 +693,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
 
       <div className={`av-body${hasSecondaryNavigation ? '' : ' av-body--wide'}${isLiveProductRoot ? ' av-body--product' : ''}${isEcommerceWorkspace ? ' av-body--ecommerce' : ''}`}>
         {hasSecondaryNavigation ? (
-          <aside className="av-rail" aria-label="二级导航">
-            {secondaryNavigation.map((group) => (
-              <div className="av-railgroup" key={group.group}>
-                <div className="av-railtitle">{group.group}</div>
-                {group.items.map((item) => (
-                  <span key={item} style={{ display: 'contents' }}>
-                    {menuRouteFor(item) ? <a
-                      className="av-railitem"
-                      href={menuRouteFor(item)}
-                      data-active={menuActive(item)}
-                      aria-current={menuActive(item) ? 'page' : undefined}
-                    >
-                      {item}
-                    </a> : <span className="av-railitem" aria-disabled="true" title="该业务入口尚未单独实现">{item}</span>}
-                  </span>
-                ))}
-                <div className="av-railspacer" />
-              </div>
-            ))}
-            {!isIntegratedOverview && !isLiveProductRoot && moduleScreens.length > 0 ? <div className="av-railgroup">
-              <div className="av-railtitle">设计页面 / 流程预览 · {moduleScreens.length}</div>
-              {moduleScreens.map(item => <a className="av-railitem" key={item.route} href={item.route} data-active={item.route === screen.route} aria-current={item.route === screen.route ? 'page' : undefined}>{item.title}</a>)}
-            </div> : null}
-          </aside>
+          <AdminSecondaryNavigation moduleLabel={moduleLabel} groups={secondaryNavGroups} />
         ) : null}
 
         <main className="av-workspace">
