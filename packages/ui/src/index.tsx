@@ -121,20 +121,33 @@ const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string
 const WORKSPACE_TAB_STORAGE_KEY = 'alsvid_workspace_tabs_v1';
 const WORKSPACE_TAB_LIMIT = 8;
 
+function workspaceUrl(path: string): URL {
+  return new URL(path, 'https://alsvid.invalid');
+}
+
 function isAllowedWorkspacePath(path: unknown): path is string {
   if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//') || path.includes('\\')) return false;
-  if (path.startsWith('/api/') || path.startsWith('/_next/')) return false;
-  return ['/admin', '/product', '/production', '/inventory', '/dealers', '/customers', '/after-sales', '/supply', '/finance', '/logistics', '/commerce', '/portal-launcher']
-    .some((root) => path === root || path.startsWith(root + '/'));
+  try {
+    const pathname = workspaceUrl(path).pathname;
+    if (pathname.startsWith('/api/') || pathname.startsWith('/_next/')) return false;
+    return ['/admin', '/product', '/production', '/inventory', '/dealers', '/customers', '/after-sales', '/supply', '/finance', '/logistics', '/commerce', '/portal-launcher']
+      .some((root) => pathname === root || pathname.startsWith(root + '/'));
+  } catch {
+    return false;
+  }
 }
 
 function workspaceTabFor(path: string): WorkspaceTab {
+  const url = workspaceUrl(path);
+  const selectedLabel = url.searchParams.get('alsvidMenuLabel')?.slice(0, 80);
   const route = [...WORKSPACE_TAB_ROUTES]
     .sort((a, b) => b.path.length - a.path.length)
-    .find((item) => path === item.path || path.startsWith(item.path + '/'));
-  if (route) return { path, label: route.label, icon: route.icon };
-  const tail = path.split('/').filter(Boolean).pop() ?? '工作区';
-  return { path, label: tail.replace(/[-_]/g, ' '), icon: '📄' };
+    .find((item) => url.pathname === item.path || url.pathname.startsWith(item.path + '/'));
+  const tabPath = url.pathname + url.search + url.hash;
+  if (selectedLabel) return { path: tabPath, label: selectedLabel, icon: route?.icon ?? '📄' };
+  if (route) return { path: tabPath, label: route.label, icon: route.icon };
+  const tail = url.pathname.split('/').filter(Boolean).pop() ?? '工作区';
+  return { path: tabPath, label: tail.replace(/[-_]/g, ' '), icon: '📄' };
 }
 
 function readWorkspaceTabs(): WorkspaceTab[] {
@@ -159,7 +172,7 @@ export function WorkspaceTabs() {
 
   useEffect(() => {
     const syncCurrentTab = () => {
-      const path = window.location.pathname;
+      const path = window.location.pathname + window.location.search + window.location.hash;
       if (!isAllowedWorkspacePath(path)) return;
       const next = readWorkspaceTabs();
       const current = workspaceTabFor(path);
@@ -221,6 +234,112 @@ export function WorkspaceTabs() {
         ))}
       </div>
     </nav>
+  );
+}
+
+export type AdminSecondaryNavigationItem = {
+  key: string;
+  label: string;
+  href?: string;
+  icon: string;
+  status?: string;
+  disabled?: boolean;
+};
+
+export type AdminSecondaryNavigationGroup = {
+  label: string;
+  items: readonly AdminSecondaryNavigationItem[];
+};
+
+function secondaryNavigationHref(href: string, key: string, label: string): string {
+  const url = workspaceUrl(href);
+  url.searchParams.set('alsvidMenu', key);
+  url.searchParams.set('alsvidMenuLabel', label);
+  return url.pathname + url.search + url.hash;
+}
+
+/** EC-FX-style module sidebar: module title, grouped links, active item and planned badges. */
+export function AdminSecondaryNavigation({
+  moduleLabel,
+  groups,
+}: {
+  moduleLabel: string;
+  groups: readonly AdminSecondaryNavigationGroup[];
+}) {
+  const [activeKey, setActiveKey] = useState('');
+
+  useEffect(() => {
+    const syncActiveItem = () => {
+      const current = new URL(window.location.href);
+      const items = groups.flatMap((group) => group.items);
+      const requestedKey = current.searchParams.get('alsvidMenu');
+      const requested = requestedKey ? items.find((item) => item.key === requestedKey) : undefined;
+      if (requested) {
+        setActiveKey(requested.key);
+        return;
+      }
+      const enabled = items.filter((item) => item.href && !item.disabled);
+      const currentPath = current.pathname + current.hash;
+      const exact = enabled.find((item) => {
+        const target = new URL(item.href!, window.location.origin);
+        return target.pathname + target.hash === currentPath;
+      });
+      const samePage = exact ?? enabled.find((item) => new URL(item.href!, window.location.origin).pathname === current.pathname);
+      setActiveKey(samePage?.key ?? '');
+    };
+
+    syncActiveItem();
+    window.addEventListener('pageshow', syncActiveItem);
+    window.addEventListener('popstate', syncActiveItem);
+    window.addEventListener('hashchange', syncActiveItem);
+    return () => {
+      window.removeEventListener('pageshow', syncActiveItem);
+      window.removeEventListener('popstate', syncActiveItem);
+      window.removeEventListener('hashchange', syncActiveItem);
+    };
+  }, [groups]);
+
+  return (
+    <aside className="av-rail av-rail--ecfx" aria-label={moduleLabel + '模块菜单'}>
+      <div className="av-railbrand">
+        <strong>{moduleLabel}</strong>
+        <span>模块导航</span>
+      </div>
+      <nav className="av-railnav" aria-label={moduleLabel + '二级导航'}>
+        {groups.map((group) => (
+          <div className="av-railgroup" key={group.label}>
+            <div className="av-railtitle">{group.label}</div>
+            {group.items.map((item) => {
+              const active = activeKey === item.key;
+              const unavailable = item.disabled || !item.href;
+              const content = (
+                <>
+                  <span className="av-railicon" aria-hidden="true">{item.icon}</span>
+                  <span className="av-raillabel">{item.label}</span>
+                  {item.status ? <span className={'av-railbadge' + (unavailable ? ' av-railbadge--planned' : '')}>{item.status}</span> : null}
+                </>
+              );
+              return unavailable ? (
+                <span className="av-railitem av-railitem--disabled" key={item.key} aria-disabled="true" title={item.status ?? '该功能尚未开放'}>
+                  {content}
+                </span>
+              ) : (
+                <a
+                  className="av-railitem"
+                  key={item.key}
+                  href={secondaryNavigationHref(item.href!, item.key, item.label)}
+                  data-active={active}
+                  aria-current={active ? 'page' : undefined}
+                  title={item.label}
+                >
+                  {content}
+                </a>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+    </aside>
   );
 }
 
