@@ -68,6 +68,18 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   const [newModelType, setNewModelType] = useState('BIKE');
   const [edit, setEdit] = useState<EditTarget | null>(null);
 
+  useEffect(() => {
+    const revealLinkedPanel = () => {
+      const id = window.location.hash.slice(1);
+      const target = id ? document.getElementById(id) : null;
+      const panel = target?.closest('details');
+      if (panel) panel.open = true;
+    };
+    revealLinkedPanel();
+    window.addEventListener('hashchange', revealLinkedPanel);
+    return () => window.removeEventListener('hashchange', revealLinkedPanel);
+  }, []);
+
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
     headers.set('content-type', 'application/json');
@@ -191,15 +203,18 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
     <OperationsFrame embedded={embedded} area="product" footer="产品 / 工程 / 资产">
       <header className={styles.header}>
         <div>
-          <div className={styles.eyebrow}>ALSVID PRODUCT CENTER</div>
-          <h1>ALSVID 产品中心</h1>
-          <p>统一维护技术平台、商品 ID、商业版本与 SKU。一个商品 ID 对应一个商品详情页，颜色/版本切换只改变 SKU，不新建商品。</p>
+          <div className={styles.eyebrow}>ALSVID PRODUCT ARCHIVE</div>
+          <h1>商品档案</h1>
+          <p>一条商品一行，集中查询、筛选与编辑；更多规格和工程操作按需展开。</p>
         </div>
-        <div className={styles.releaseBadge}>产品主数据 · 工程控制</div>
+        <div className={styles.releaseBadge}>商品主数据</div>
       </header>
 
       {message ? <div className={styles.notice} role="status">{message}</div> : null}
-      <div className={styles.notice} role="note">商品 ID = 同一个 Model 主记录；Variant 是 Standard / Pro 等版本选项；SKU 是最终可销售组合。切换颜色时商品 ID 保持不变，SKU 编码随所选规格变化。价格、库存与公开发布状态以各自正式数据源为准。</div>
+      <details className={styles.definitionHelp}>
+        <summary>商品 ID / Variant / SKU 说明</summary>
+        <div className={styles.notice} role="note">商品 ID = 同一个 Model 主记录；Variant 是 Standard / Pro 等版本选项；SKU 是最终可销售组合。切换颜色时商品 ID 保持不变，SKU 编码随所选规格变化。价格、库存与公开发布状态以各自正式数据源为准。</div>
+      </details>
       {catalogError || engineeringError ? (
         <div className={`${styles.notice} ${styles.errorNotice}`} role="alert">
           {[catalogError ? `产品主数据加载失败：${catalogError}` : '', engineeringError ? `工程数据加载失败：${engineeringError}` : ''].filter(Boolean).join('；')}
@@ -216,6 +231,87 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
       </div>
 
+      <section className={styles.section} id="model-register">
+        <div className={styles.sectionHead}>
+          <div><span>MODEL REGISTER</span><h2>商品列表</h2></div>
+          <p>按商品逐行管理；商品类型、平台与工程资料保持独立数据关联。</p>
+        </div>
+        <div className={styles.modelToolbar}>
+          <input
+            aria-label="搜索产品型号"
+            value={modelSearch}
+            onChange={(event) => setModelSearch(event.target.value)}
+            placeholder="搜索型号、平台、版本、SKU、BOM（VIN 请到车辆查询）"
+          />
+          <select aria-label="按产品类型筛选" value={typeFilter} onChange={event=>setTypeFilter(event.target.value)}>
+            <option value="ALL">全部商品类型</option>
+            {catalog.productTypes.filter(t=>t.status==='ACTIVE').map(t=><option key={t.code} value={t.code}>{t.name}</option>)}
+          </select>
+          <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            <option value="ALL">全部状态</option>
+            <option value="DRAFT">草稿</option>
+            <option value="ACTIVE">启用</option>
+            <option value="RETIRED">已退役</option>
+          </select>
+          <details className={styles.quickLinks}>
+            <summary>相关业务</summary>
+            <div>
+              <a href="/admin/ecommerce/publications">官网发布</a>
+              <a href="/admin/ecommerce/homepage">首页商品绑定</a>
+              <a href="#engineering" onClick={() => document.getElementById('engineering-panel')?.setAttribute('open', '')}>BOM / 工程版本</a>
+              <a href="/admin/production/vin">VIN / 车辆查询</a>
+            </div>
+          </details>
+          <a className={styles.createLink} href="#configuration" onClick={() => document.getElementById('product-maintenance-panel')?.setAttribute('open', '')}>＋ 新增商品</a>
+          <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
+        </div>
+        {loading && catalog.models.length === 0 ? (
+          <div className={styles.emptyState}>正在读取产品主数据…</div>
+        ) : filteredModels.length ? (
+          <div className={styles.modelTableWrap}>
+            <table className={styles.modelTable}>
+              <thead>
+                <tr>
+                  <th>型号</th>
+                  <th>商品类型</th>
+                  <th>技术平台</th>
+                  <th>配置版本</th>
+                  <th>状态</th>
+                  <th>当前工程阶段</th>
+                  <th>关联 BOM</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredModels.map(({ model, platform, variants }) => (
+                  <tr key={model.id}>
+                    <td title={`商品 ID：${model.id}`}><strong>{model.code}</strong><span className={styles.modelName}>{model.name}</span></td>
+                    <td>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')}</td>
+                    <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
+                    <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
+                    <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
+                    <td><span className={styles.stageBadge}>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelEngineeringStage(model.id, catalog, engineering)}</span></td>
+                    <td>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelBomSummary(model.id, engineering)}</td>
+                    <td><button type="button" className={styles.tableAction} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            {catalogError
+              ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
+              : modelSearch || statusFilter !== 'ALL' || typeFilter !== 'ALL'
+                ? '没有符合当前筛选条件的型号。'
+                : '当前没有已登记的真实型号。请在下方创建车型；系统不会自动填充示例记录。'}
+          </div>
+        )}
+      </section>
+
+
+      <details className={styles.collapsiblePanel} id="product-info-panel">
+        <summary>产品分类与技术平台 <span>按需展开查看</span></summary>
       <section className={styles.section} id="product-types" aria-label="产品类型">
         <div className={styles.sectionHead}>
           <div><span>COMMERCIAL PRODUCT TYPES</span><h2>产品类型</h2></div>
@@ -249,78 +345,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         </div>
       </section>
 
-      <section className={styles.section} id="model-register">
-        <div className={styles.sectionHead}>
-          <div><span>MODEL REGISTER</span><h2>产品型号总表</h2></div>
-          <p>商品类型与技术平台分开管理：整车可选择 FC/CT/FT/GT；配件和维修零件不强行挂到自行车技术平台。</p>
-        </div>
-        <div className={styles.modelToolbar}>
-          <input
-            aria-label="搜索产品型号"
-            value={modelSearch}
-            onChange={(event) => setModelSearch(event.target.value)}
-            placeholder="搜索型号、平台、版本、SKU、BOM（VIN 请到车辆查询）"
-          />
-          <select aria-label="按产品类型筛选" value={typeFilter} onChange={event=>setTypeFilter(event.target.value)}>
-            <option value="ALL">全部商品类型</option>
-            {catalog.productTypes.filter(t=>t.status==='ACTIVE').map(t=><option key={t.code} value={t.code}>{t.name}</option>)}
-          </select>
-          <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="ALL">全部状态</option>
-            <option value="DRAFT">草稿</option>
-            <option value="ACTIVE">启用</option>
-            <option value="RETIRED">已退役</option>
-          </select>
-          <a href="/admin/ecommerce/publications">官网商品发布与审核 →</a>
-          <a href="/admin/ecommerce/homepage">首页商品绑定 →</a>
-          <a href="#engineering">BOM / 工程版本 ↓</a>
-          <a href="/admin/production/vin">VIN / 车辆查询 →</a>
-          <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
-        </div>
-        {loading && catalog.models.length === 0 ? (
-          <div className={styles.emptyState}>正在读取产品主数据…</div>
-        ) : filteredModels.length ? (
-          <div className={styles.modelTableWrap}>
-            <table className={styles.modelTable}>
-              <thead>
-                <tr>
-                  <th>型号</th>
-                  <th>商品类型</th>
-                  <th>技术平台</th>
-                  <th>配置版本</th>
-                  <th>状态</th>
-                  <th>当前工程阶段</th>
-                  <th>关联 BOM</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredModels.map(({ model, platform, variants }) => (
-                  <tr key={model.id}>
-                    <td><strong>{model.code}</strong><small>{model.name}</small><small>商品 ID：{model.id}</small></td>
-                    <td>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')}</td>
-                    <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
-                    <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
-                    <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
-                    <td><span className={styles.stageBadge}>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelEngineeringStage(model.id, catalog, engineering)}</span></td>
-                    <td>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelBomSummary(model.id, engineering)}</td>
-                    <td><button type="button" className={styles.tableAction} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            {catalogError
-              ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
-              : modelSearch || statusFilter !== 'ALL' || typeFilter !== 'ALL'
-                ? '没有符合当前筛选条件的型号。'
-                : '当前没有已登记的真实型号。请在下方创建车型；系统不会自动填充示例记录。'}
-          </div>
-        )}
-      </section>
+      </details>
 
+      <details className={styles.collapsiblePanel} id="product-maintenance-panel">
+        <summary>商品版本、SKU 与创建维护 <span>按需展开操作</span></summary>
       <section className={styles.section} id="models">
         <div className={styles.sectionHead}>
           <div><span>PRODUCT STRUCTURE</span><h2>产品结构明细：车型 → Variant → SKU</h2></div>
@@ -395,6 +423,10 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         </form>
       </section>
 
+      </details>
+
+      <details className={styles.collapsiblePanel} id="engineering-panel">
+        <summary>BOM、零部件与工程版本 <span>按需展开操作</span></summary>
       <div className={styles.notice} role="note">官网首页商品绑定、商品展示审核和上架发布已归入 <a href="/admin/ecommerce">电商运营</a>。本页面继续管理唯一的产品型号、Variant、SKU 与工程资料。</div>
       <section className={styles.section} id="engineering">
         <div className={styles.sectionHead}>
@@ -466,6 +498,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           <button>创建生产规格</button>
         </form>
       </section>
+
+      </details>
 
       {edit ? (
         <div className={styles.modal} onMouseDown={() => setEdit(null)}>
