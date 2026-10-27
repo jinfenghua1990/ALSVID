@@ -7,8 +7,8 @@ const client = readFileSync(new URL('./product-client.tsx', import.meta.url), 'u
 const css = readFileSync(new URL('./product.module.css', import.meta.url), 'utf8');
 
 test('canonical admin product module embeds the live single-source product archive', () => {
-  assert.match(renderer, /isLiveProductRoot\\s*\\?\\s*\\(\\s*<ProductClient embedded \\/>/);
-  assert.match(renderer, /import ProductClient from '\\.\\.\\/product\\/product-client'/);
+  assert.match(renderer, /isLiveProductRoot\s*\?\s*\(\s*<ProductClient embedded \/>/);
+  assert.match(renderer, /import ProductClient from '\.\.\/product\/product-client'/);
 });
 
 test('product archive is list-first with advanced sections collapsed', () => {
@@ -17,5 +17,5 @@ test('product archive is list-first with advanced sections collapsed', () => {
   assert.match(client, /id="product-maintenance-panel"/);
   assert.match(client, /id="engineering-panel"/);
   assert.match(client, /revealLinkedPanel/);
-  assert.match(css, /\\.modelTable tbody tr:nth-child\\(even\\)/);
+  assert.match(css, /\.modelTable tbody tr:nth-child\(even\)/);
 });
