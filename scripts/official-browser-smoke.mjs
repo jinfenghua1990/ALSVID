@@ -63,9 +63,16 @@ try {
     }));
     assert.ok(stillVisible.ready && stillVisible.source.includes('fc1-poster-clean.png'),
       'A delayed next image must never replace the loaded KV with an empty background');
+    await page.screenshot({ path: output + '/homepage-carousel-loading-next.png' });
     releaseCity();
     await page.waitForFunction(() =>
       document.querySelector('[data-home-carousel] [role="group"] button:nth-child(2)')?.getAttribute('aria-pressed') === 'true');
+    // Routed browser tests disable the HTTP cache, so the displayed img may make
+    // another request even after the detached preloader decoded the same URL.
+    await page.waitForFunction(() => {
+      const image = document.querySelector('[data-home-carousel] img');
+      return image?.complete && image.naturalWidth > 0 && image.currentSrc.includes('scene-city.webp');
+    });
     const nextImage = await hero.locator('img').first().evaluate(image => ({
       source: image.currentSrc || image.src, ready: image.complete && image.naturalWidth > 0,
     }));
