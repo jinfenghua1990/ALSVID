@@ -356,3 +356,162 @@ body[data-alsvid-environment="development"] .contextRail {
   body[data-alsvid-environment="production"] .shellV2 .mobileNav { top: 58px; }
   .shellV2 .workspace { padding: 14px 12px 36px; }
 }
+
+
+/* EC-FX-inspired operations shell: dark primary navigation + workspace tabs. */
+.primaryHeader {
+  background: #1f2937;
+  border-bottom-color: #2b374a;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, .12);
+  color: #f8fafc;
+}
+.primaryBrand { color: #f8fafc; }
+.primaryNavigation { gap: 5px; }
+.primaryNavItem {
+  min-height: 46px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #cbd5e1;
+}
+.primaryNavItem:hover {
+  color: #fff;
+  background: #303d51;
+}
+.primaryNavItemActive {
+  color: #fff;
+  background: #425ff0;
+  font-weight: 760;
+}
+.primaryNavItemActive::after { display: none; }
+.primaryNavItemDisabled { color: #8290a6; }
+.primaryNavItemDisabled:hover { color: #8290a6; background: transparent; }
+.primaryUtilities .utilityButton { color: #d7e0ef; }
+.primaryUtilities .utilityButton:hover:not(:disabled) { background: #303d51; color: #fff; }
+.primaryProfile { color: #e2e8f0; }
+.profileAvatar { background: linear-gradient(145deg, #5269f4, #3048c9); }
+.profileCopy strong { color: #f8fafc; }
+.profileCopy small { color: #a7b5ca; }
+.shellV2 .workspace {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+}
+.shellFrameWithRail .workspace { max-width: none; }
+.shellFrame, .shellFrameWithRail, .adminBody { min-width: 0; }
+.contextRail { background: #fff; }
+.shellV2 .mobileNav {
+  background: #1f2937;
+  border-color: #2b374a;
+  color: #f8fafc;
+}
+.mobilePrimaryItem {
+  background: #303d51;
+  color: #dbe4f2;
+}
+.mobilePrimaryItemActive { background: #425ff0; color: #fff; }
+
+/* Tabs are real local navigation entries; business data stays owned by each page. */
+.workspaceTabs {
+  position: relative;
+  z-index: 30;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-bottom: 1px solid #e0e6f0;
+  background: #eef2f8;
+  overflow: hidden;
+}
+.shellV2 .workspaceTabs {
+  position: sticky;
+  top: 68px;
+}
+body[data-alsvid-environment="development"] .shellV2 .workspaceTabs { top: 102px; }
+.workspaceTabsToggle {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #59677d;
+  font-size: 18px;
+  cursor: pointer;
+}
+.workspaceTabsToggle:hover { background: #e1e8f2; color: #1f2937; }
+.workspaceTabsList {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.workspaceTab {
+  min-width: 0;
+  min-height: 38px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 5px 0 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  white-space: nowrap;
+}
+.workspaceTab[data-active="true"] {
+  border-color: #e1e7f1;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(31, 41, 55, .06);
+}
+.workspaceTabLink {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 2px;
+  color: #64748b;
+  font-size: 13px;
+  text-decoration: none;
+}
+.workspaceTab[data-active="true"] .workspaceTabLink { color: #1f2937; font-weight: 750; }
+.workspaceTabIcon { font-size: 14px; }
+.workspaceTabLabel { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.workspaceTabClose {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.workspaceTabClose:hover { background: #e9eef6; color: #334155; }
+.shellFrameRailCollapsed { grid-template-columns: minmax(0, 1fr) !important; }
+.shellFrameRailCollapsed .contextRail { display: none; }
+
+@media (max-width: 1180px) {
+  .primaryHeader { background: #1f2937; }
+  .primaryNavItem { min-height: 42px; }
+}
+@media (max-width: 850px) {
+  .shellV2 .workspaceTabs {
+    top: 58px;
+    min-height: 52px;
+    padding: 7px 10px;
+  }
+  body[data-alsvid-environment="development"] .shellV2 .workspaceTabs { top: 92px; }
+  .workspaceTabs { gap: 7px; }
+  .workspaceTabLabel { max-width: 128px; }
+}
