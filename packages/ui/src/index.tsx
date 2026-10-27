@@ -82,7 +82,7 @@ function NavigationItems({ navigation, activeClassName }: { navigation: readonly
 }
 
 
-type WorkspaceTab = { path: string; label: string; icon: string };
+type WorkspaceTab = { key: string; path: string; label: string; icon: string };
 
 const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string }[] = [
   { path: '/admin/production/vin', label: 'VIN / 车辆查询', icon: '🔎' },
@@ -137,17 +137,36 @@ function isAllowedWorkspacePath(path: unknown): path is string {
   }
 }
 
+const WORKSPACE_TAB_VOLATILE_QUERY = new Set([
+  'locale', 'page', 'sort', 'q', 'search', 'filter', 'status', 'alsvidMenuLabel',
+]);
+
+function workspaceTabKeyFor(path: string): string {
+  const url = workspaceUrl(path);
+  const menuKey = url.searchParams.get('alsvidMenu');
+  if (menuKey) return 'menu:' + menuKey.slice(0, 256);
+
+  const stableQuery = new URLSearchParams();
+  Array.from(url.searchParams.entries())
+    .filter(([key]) => !WORKSPACE_TAB_VOLATILE_QUERY.has(key))
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) =>
+      leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue)
+    )
+    .forEach(([key, value]) => stableQuery.append(key, value));
+
+  const query = stableQuery.toString();
+  return url.pathname + (query ? '?' + query : '');
+}
+
 function workspaceTabFor(path: string): WorkspaceTab {
   const url = workspaceUrl(path);
-  const selectedLabel = url.searchParams.get('alsvidMenuLabel')?.slice(0, 80);
+  const selectedLabel = url.searchParams.get('alsvidMenuLabel')?.trim().slice(0, 80);
   const route = [...WORKSPACE_TAB_ROUTES]
     .sort((a, b) => b.path.length - a.path.length)
     .find((item) => url.pathname === item.path || url.pathname.startsWith(item.path + '/'));
   const tabPath = url.pathname + url.search + url.hash;
-  if (selectedLabel) return { path: tabPath, label: selectedLabel, icon: route?.icon ?? '📄' };
-  if (route) return { path: tabPath, label: route.label, icon: route.icon };
-  const tail = url.pathname.split('/').filter(Boolean).pop() ?? '工作区';
-  return { path: tabPath, label: tail.replace(/[-_]/g, ' '), icon: '📄' };
+  const label = selectedLabel || route?.label || (url.pathname.split('/').filter(Boolean).pop() ?? '工作区').replace(/[-_]/g, ' ');
+  return { key: workspaceTabKeyFor(tabPath), path: tabPath, label, icon: route?.icon ?? '📄' };
 }
 
 function readWorkspaceTabs(): WorkspaceTab[] {
@@ -157,7 +176,8 @@ function readWorkspaceTabs(): WorkspaceTab[] {
     const unique = new Map<string, WorkspaceTab>();
     for (const item of parsed) {
       if (item && typeof item === 'object' && 'path' in item && isAllowedWorkspacePath(item.path)) {
-        unique.set(item.path, workspaceTabFor(item.path));
+        const tab = workspaceTabFor(item.path);
+        unique.set(tab.key, tab);
       }
     }
     return Array.from(unique.values()).slice(-WORKSPACE_TAB_LIMIT);
@@ -168,7 +188,7 @@ function readWorkspaceTabs(): WorkspaceTab[] {
 
 export function WorkspaceTabs() {
   const [tabs, setTabs] = useState<WorkspaceTab[]>([]);
-  const [activePath, setActivePath] = useState('');
+  const [activeKey, setActiveKey] = useState('');
 
   useEffect(() => {
     const syncCurrentTab = () => {
@@ -176,12 +196,12 @@ export function WorkspaceTabs() {
       if (!isAllowedWorkspacePath(path)) return;
       const next = readWorkspaceTabs();
       const current = workspaceTabFor(path);
-      const existing = next.findIndex((tab) => tab.path === path);
+      const existing = next.findIndex((tab) => tab.key === current.key);
       if (existing >= 0) next[existing] = current;
       else next.push(current);
       const limited = next.slice(-WORKSPACE_TAB_LIMIT);
       setTabs(limited);
-      setActivePath(path);
+      setActiveKey(current.key);
       try {
         window.sessionStorage.setItem(WORKSPACE_TAB_STORAGE_KEY, JSON.stringify(limited));
       } catch {
@@ -204,16 +224,17 @@ export function WorkspaceTabs() {
     document.querySelector('.av-body')?.classList.toggle('av-body--rail-collapsed');
   }
 
-  function closeTab(path: string) {
-    const index = tabs.findIndex((tab) => tab.path === path);
-    const remaining = tabs.filter((tab) => tab.path !== path);
+  function closeTab(key: string) {
+    const index = tabs.findIndex((tab) => tab.key === key);
+    if (index < 0) return;
+    const remaining = tabs.filter((tab) => tab.key !== key);
     setTabs(remaining);
     try {
       window.sessionStorage.setItem(WORKSPACE_TAB_STORAGE_KEY, JSON.stringify(remaining));
     } catch {
       // The tab bar still works for this page if storage is unavailable.
     }
-    if (path === activePath) {
+    if (key === activeKey) {
       const fallback = tabs[index - 1] ?? tabs[index + 1];
       window.location.assign(fallback?.path ?? '/admin');
     }
@@ -224,12 +245,12 @@ export function WorkspaceTabs() {
       <button className="workspaceTabsToggle" type="button" aria-label="折叠或展开左侧菜单" title="折叠或展开左侧菜单" onClick={toggleRail}>☰</button>
       <div className="workspaceTabsList">
         {tabs.map((tab) => (
-          <div className="workspaceTab" key={tab.path} data-active={activePath === tab.path}>
-            <a className="workspaceTabLink" href={tab.path} aria-current={activePath === tab.path ? 'page' : undefined}>
+          <div className="workspaceTab" key={tab.key} data-active={activeKey === tab.key}>
+            <a className="workspaceTabLink" href={tab.path} aria-current={activeKey === tab.key ? 'page' : undefined}>
               <span className="workspaceTabIcon" aria-hidden="true">{tab.icon}</span>
               <span className="workspaceTabLabel">{tab.label}</span>
             </a>
-            <button className="workspaceTabClose" type="button" aria-label={'关闭' + tab.label} title={'关闭' + tab.label} onClick={() => closeTab(tab.path)}>×</button>
+            <button className="workspaceTabClose" type="button" aria-label={'关闭' + tab.label} title={'关闭' + tab.label} onClick={() => closeTab(tab.key)}>×</button>
           </div>
         ))}
       </div>
@@ -258,6 +279,42 @@ function secondaryNavigationHref(href: string, key: string, label: string): stri
   return url.pathname + url.search + url.hash;
 }
 
+function activeSecondaryNavigationKey(
+  current: URL,
+  groups: readonly AdminSecondaryNavigationGroup[],
+): string {
+  const items = groups.flatMap((group) => group.items);
+  const enabled = items.filter((item) => item.href && !item.disabled);
+  const requestedKey = current.searchParams.get('alsvidMenu');
+  const requested = requestedKey ? enabled.find((item) => item.key === requestedKey) : undefined;
+  if (requested) return requested.key;
+
+  const requestedLabel = current.searchParams.get('alsvidMenuLabel')?.trim();
+  if (requestedLabel) {
+    const labelled = enabled.find((item) => item.label === requestedLabel);
+    if (labelled) return labelled.key;
+  }
+
+  const currentPath = current.pathname.replace(/\/$/, '') || '/';
+  const currentPathAndHash = current.pathname + current.hash;
+  const exact = enabled.find((item) => {
+    const target = new URL(item.href!, current.origin);
+    return target.pathname + target.hash === currentPathAndHash;
+  });
+  if (exact) return exact.key;
+
+  return enabled
+    .map((item) => {
+      const targetPath = new URL(item.href!, current.origin).pathname.replace(/\/$/, '') || '/';
+      const matches = targetPath === '/'
+        ? currentPath === '/'
+        : currentPath === targetPath || currentPath.startsWith(targetPath + '/');
+      return { item, targetPath, matches };
+    })
+    .filter((candidate) => candidate.matches)
+    .sort((left, right) => right.targetPath.length - left.targetPath.length)[0]?.item.key ?? '';
+}
+
 /** EC-FX-style module sidebar: module title, grouped links, active item and planned badges. */
 export function AdminSecondaryNavigation({
   moduleLabel,
@@ -270,30 +327,7 @@ export function AdminSecondaryNavigation({
 
   useEffect(() => {
     const syncActiveItem = () => {
-      const current = new URL(window.location.href);
-      const items = groups.flatMap((group) => group.items);
-      const requestedKey = current.searchParams.get('alsvidMenu');
-      const requested = requestedKey ? items.find((item) => item.key === requestedKey) : undefined;
-      if (requested) {
-        setActiveKey(requested.key);
-        return;
-      }
-      const enabled = items.filter((item) => item.href && !item.disabled);
-      const currentPath = current.pathname + current.hash;
-      const exact = enabled.find((item) => {
-        const target = new URL(item.href!, window.location.origin);
-        return target.pathname + target.hash === currentPath;
-      });
-      const samePage = exact ?? enabled
-        .filter((item) => {
-          const targetPath = new URL(item.href!, window.location.origin).pathname.replace(/\/$/, '');
-          return current.pathname === targetPath || current.pathname.startsWith(targetPath + '/');
-        })
-        .sort((left, right) =>
-          new URL(right.href!, window.location.origin).pathname.length -
-          new URL(left.href!, window.location.origin).pathname.length
-        )[0];
-      setActiveKey(samePage?.key ?? '');
+      setActiveKey(activeSecondaryNavigationKey(new URL(window.location.href), groups));
     };
 
     syncActiveItem();
