@@ -15,10 +15,18 @@ import { AdminModuleDirectory } from './admin-module-directory';
 import { P0OperationsCenter } from './p0-operations-center';
 import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
+import { WorkspaceTabs } from '@alsvid/ui';
 
 const AREAS = ADMIN_MODULES;
 const PRIMARY_AREAS = AREAS.filter(area => ['工作台', '产品研发', '订单管理', '电商', '生产制造', '仓储物流', '售后服务'].includes(area.label));
 const MORE_AREAS = AREAS.filter(area => !PRIMARY_AREAS.includes(area));
+const PRIMARY_AREA_ICONS: Record<string, string> = {
+  '工作台': '🏠', '产品研发': '🧩', '订单管理': '🧾', '电商': '🛒',
+  '生产制造': '🏭', '仓储物流': '🚚', '售后服务': '🛠️', '商城方案对比': '📊',
+  '经销商/B2B': '🏢', '供应链采购': '📦', '客户车主': '👤', '财务结算': '💳',
+  '数据分析': '📈', '设置': '⚙️',
+};
+
 
 const QUICK_LINKS: readonly { label: string; portal: 'www' | 'dealer' | 'my'; localHref: string }[] = [
   { label: '官方首页', portal: 'www', localHref: '/home' },
@@ -599,12 +607,12 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
             <a className="av-navitem" key={area.label} href={area.href} title={area.description}
               data-active={isAreaActive(screen.area, area.label)}
               aria-current={isAreaActive(screen.area, area.label) ? 'page' : undefined}>
-              {area.label}
+              <span className="av-navicon" aria-hidden="true">{PRIMARY_AREA_ICONS[area.label] ?? '▦'}</span>{area.label}
             </a>
           ))}
           <a className="av-navitem" href="/admin/commerce-lab" title="独立商城方案、商品管理与页面比较"
             data-active={screen.area === '商城方案对比'}
-            aria-current={screen.area === '商城方案对比' ? 'page' : undefined}>商城方案对比</a>
+            aria-current={screen.area === '商城方案对比' ? 'page' : undefined}><span className="av-navicon" aria-hidden="true">{PRIMARY_AREA_ICONS['商城方案对比']}</span>商城方案对比</a>
           <details className="av-moremenu">
             <summary className="av-navitem" data-active={MORE_AREAS.some(area => isAreaActive(screen.area, area.label))}>更多模块</summary>
             <div className="av-moremenu-panel">
@@ -672,6 +680,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         ) : null}
 
         <main className="av-workspace">
+          <WorkspaceTabs />
           {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{screen.area === '数据' ? '分析布局预览 · 除已接入的 FC1 颜色偏好外，经营指标与报表数据源尚未接入。' : '流程布局预览 · 本页内容为设计示例；可保存操作请使用对应模块的真实业务工作台。'}</p>}
           {!hidePageHeading && !isEcommerceWorkspace && !isIntegratedOverview && <div className="av-pagehead">
             <div>

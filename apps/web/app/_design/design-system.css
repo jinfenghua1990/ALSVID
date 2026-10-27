@@ -1266,3 +1266,45 @@ html[data-theme="dark"] .av :is(input, select, textarea) { background: var(--av-
 .av-moremenu-link:hover, .av-moremenu-link[data-active='true'] { background: var(--av-brand-soft); color: var(--av-brand); }
 @media(max-width:1180px) { .av-primarynav { overflow-x: auto; } .av-moremenu-panel { position: fixed; top: 110px; right: 14px; max-height: 65vh; overflow-y: auto; } }
 @media(max-width:720px) { .av-moremenu-panel { top: 105px; } }
+
+
+/* EC-FX-inspired admin chrome: dark primary bar, tab strip and full-width workspace. */
+.av .av-topbar {
+  background: rgba(31, 41, 55, .97);
+  border-bottom-color: #2b374a;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, .12);
+  color: #f8fafc;
+}
+.av .av-brand { color: #f8fafc; }
+.av .av-brand span { color: #a7b5ca; }
+.av .av-navitem { color: #cbd5e1; }
+.av .av-navitem:hover { background: #303d51; color: #fff; }
+.av .av-navitem[data-active='true'] { background: #425ff0; color: #fff; }
+.av .av-quicklinks { color: #cbd5e1; }
+.av .av-quicklinks a { color: #cbd5e1; }
+.av .av-quicklinks a:hover { color: #fff; }
+.av .av-quicklinks i { background: #526075; }
+.av .av-iconbtn { border-color: #475569; background: #303d51; color: #e2e8f0; }
+.av .av-user { color: #e2e8f0; }
+.av .av-username { color: #e2e8f0; }
+.av .av-username small { color: #a7b5ca; }
+.av .av-topbar .av-theme-picker > summary { border-color: #475569; background: #303d51; color: #e2e8f0; }
+.av .av-topbar .av-theme-picker > summary:hover { border-color: #8298ff; color: #fff; }
+.av .av-topbar .av-btn:not([data-variant='primary']) { border-color: #475569; background: #303d51; color: #e2e8f0; }
+
+.av .workspaceTabs {
+  position: sticky;
+  top: 56px;
+  margin: -24px -28px 24px;
+}
+.av-body--rail-collapsed { grid-template-columns: minmax(0, 1fr) !important; }
+.av-body--rail-collapsed .av-rail { display: none; }
+.av-body--rail-collapsed > .av-workspace { width: 100%; max-width: 100%; }
+
+@media (max-width: 720px) {
+  .av .workspaceTabs { top: 56px; margin: -20px -14px 20px; }
+}
+
+.av .av-navicon { display: inline-block; margin-right: 7px; font-size: 14px; line-height: 1; }
+.av .workspaceTabsToggle { border: 0; background: transparent; color: #59677d; }
+.av .workspaceTabsToggle:hover { background: #e1e8f2; color: #1f2937; }

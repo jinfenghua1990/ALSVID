@@ -26,6 +26,14 @@ export interface AppShellClassNames {
   workspace?: string;
 }
 
+const areaIcons: Record<string, string> = {
+  工作台: '🏠', 产品: '🧩', 产品研发: '🧩', 订单: '🧾', 订单管理: '🧾',
+  电商: '🛒', 生产: '🏭', 生产制造: '🏭', 库存: '🚚', 仓储物流: '🚚',
+  经销商: '🏢', '经销商/B2B': '🏢', 客户: '👤', 客户车主: '👤',
+  售后: '🛠️', 售后服务: '🛠️', 供应链: '📦', 供应链采购: '📦',
+  数据: '📈', 数据分析: '📈', 设置: '⚙️', 财务结算: '💳', 商城方案对比: '📊',
+};
+
 const areaDescriptions: Record<string, string> = {
   工作台: '今日运营概览、待办、异常与关键指标',
   产品: '产品平台、型号、SKU、BOM、零件与工程资料',
@@ -73,6 +81,149 @@ function NavigationItems({ navigation, activeClassName }: { navigation: readonly
   );
 }
 
+
+type WorkspaceTab = { path: string; label: string; icon: string };
+
+const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string }[] = [
+  { path: '/admin/production/vin', label: 'VIN / 车辆查询', icon: '🔎' },
+  { path: '/admin/ecommerce/pricing', label: '商城价格管理', icon: '💶' },
+  { path: '/admin/ecommerce/orders', label: 'B2C 订单管理', icon: '🧾' },
+  { path: '/admin/commerce-lab/catalog', label: '独立商品管理', icon: '🛍️' },
+  { path: '/admin/commerce-lab', label: '商城方案对比', icon: '📊' },
+  { path: '/admin/orders/detail', label: '订单详情', icon: '🧾' },
+  { path: '/admin/dealers/detail', label: '经销商档案', icon: '🏢' },
+  { path: '/admin/product', label: '产品中心', icon: '📦' },
+  { path: '/admin/orders', label: '订单管理', icon: '🧾' },
+  { path: '/admin/ecommerce', label: '电商工作台', icon: '🛒' },
+  { path: '/admin/production', label: '生产制造', icon: '🏭' },
+  { path: '/admin/inventory', label: '仓储物流', icon: '🚚' },
+  { path: '/admin/dealers', label: '经销商管理', icon: '🏢' },
+  { path: '/admin/customers', label: '客户车主', icon: '👤' },
+  { path: '/admin/after-sales', label: '售后服务', icon: '🛠️' },
+  { path: '/admin/supply', label: '供应链采购', icon: '📦' },
+  { path: '/admin/finance', label: '财务结算', icon: '💳' },
+  { path: '/admin/analytics', label: '数据分析', icon: '📈' },
+  { path: '/admin/settings', label: '系统设置', icon: '⚙️' },
+  { path: '/admin', label: '工作台', icon: '🏠' },
+  { path: '/product', label: '产品中心', icon: '📦' },
+  { path: '/production', label: '生产制造', icon: '🏭' },
+  { path: '/inventory', label: '仓储物流', icon: '🚚' },
+  { path: '/dealers', label: '经销商管理', icon: '🏢' },
+  { path: '/customers', label: '客户车主', icon: '👤' },
+  { path: '/after-sales', label: '售后服务', icon: '🛠️' },
+  { path: '/supply', label: '供应链采购', icon: '📦' },
+  { path: '/finance', label: '财务结算', icon: '💳' },
+  { path: '/logistics', label: '仓储物流', icon: '🚚' },
+  { path: '/commerce', label: '电商工作台', icon: '🛒' },
+  { path: '/portal-launcher', label: '工作入口', icon: '🧭' },
+];
+
+const WORKSPACE_TAB_STORAGE_KEY = 'alsvid_workspace_tabs_v1';
+const WORKSPACE_TAB_LIMIT = 8;
+
+function isAllowedWorkspacePath(path: unknown): path is string {
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//') || path.includes('\\')) return false;
+  if (path.startsWith('/api/') || path.startsWith('/_next/')) return false;
+  return ['/admin', '/product', '/production', '/inventory', '/dealers', '/customers', '/after-sales', '/supply', '/finance', '/logistics', '/commerce', '/portal-launcher']
+    .some((root) => path === root || path.startsWith(root + '/'));
+}
+
+function workspaceTabFor(path: string): WorkspaceTab {
+  const route = [...WORKSPACE_TAB_ROUTES]
+    .sort((a, b) => b.path.length - a.path.length)
+    .find((item) => path === item.path || path.startsWith(item.path + '/'));
+  if (route) return { path, label: route.label, icon: route.icon };
+  const tail = path.split('/').filter(Boolean).pop() ?? '工作区';
+  return { path, label: tail.replace(/[-_]/g, ' '), icon: '📄' };
+}
+
+function readWorkspaceTabs(): WorkspaceTab[] {
+  try {
+    const parsed: unknown = JSON.parse(window.sessionStorage.getItem(WORKSPACE_TAB_STORAGE_KEY) ?? '[]');
+    if (!Array.isArray(parsed)) return [];
+    const unique = new Map<string, WorkspaceTab>();
+    for (const item of parsed) {
+      if (item && typeof item === 'object' && 'path' in item && isAllowedWorkspacePath(item.path)) {
+        unique.set(item.path, workspaceTabFor(item.path));
+      }
+    }
+    return Array.from(unique.values()).slice(-WORKSPACE_TAB_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+export function WorkspaceTabs() {
+  const [tabs, setTabs] = useState<WorkspaceTab[]>([]);
+  const [activePath, setActivePath] = useState('');
+
+  useEffect(() => {
+    const syncCurrentTab = () => {
+      const path = window.location.pathname;
+      if (!isAllowedWorkspacePath(path)) return;
+      const next = readWorkspaceTabs();
+      const current = workspaceTabFor(path);
+      const existing = next.findIndex((tab) => tab.path === path);
+      if (existing >= 0) next[existing] = current;
+      else next.push(current);
+      const limited = next.slice(-WORKSPACE_TAB_LIMIT);
+      setTabs(limited);
+      setActivePath(path);
+      try {
+        window.sessionStorage.setItem(WORKSPACE_TAB_STORAGE_KEY, JSON.stringify(limited));
+      } catch {
+        // The shell remains usable if session storage is unavailable.
+      }
+    };
+    syncCurrentTab();
+    window.addEventListener('pageshow', syncCurrentTab);
+    window.addEventListener('popstate', syncCurrentTab);
+    window.addEventListener('hashchange', syncCurrentTab);
+    return () => {
+      window.removeEventListener('pageshow', syncCurrentTab);
+      window.removeEventListener('popstate', syncCurrentTab);
+      window.removeEventListener('hashchange', syncCurrentTab);
+    };
+  }, []);
+
+  function toggleRail() {
+    document.querySelector('.shellFrame')?.classList.toggle('shellFrameRailCollapsed');
+    document.querySelector('.av-body')?.classList.toggle('av-body--rail-collapsed');
+  }
+
+  function closeTab(path: string) {
+    const index = tabs.findIndex((tab) => tab.path === path);
+    const remaining = tabs.filter((tab) => tab.path !== path);
+    setTabs(remaining);
+    try {
+      window.sessionStorage.setItem(WORKSPACE_TAB_STORAGE_KEY, JSON.stringify(remaining));
+    } catch {
+      // The tab bar still works for this page if storage is unavailable.
+    }
+    if (path === activePath) {
+      const fallback = tabs[index - 1] ?? tabs[index + 1];
+      window.location.assign(fallback?.path ?? '/admin');
+    }
+  }
+
+  return (
+    <nav className="workspaceTabs" aria-label="工作区标签页">
+      <button className="workspaceTabsToggle" type="button" aria-label="折叠或展开左侧菜单" title="折叠或展开左侧菜单" onClick={toggleRail}>☰</button>
+      <div className="workspaceTabsList">
+        {tabs.map((tab) => (
+          <div className="workspaceTab" key={tab.path} data-active={activePath === tab.path}>
+            <a className="workspaceTabLink" href={tab.path} aria-current={activePath === tab.path ? 'page' : undefined}>
+              <span className="workspaceTabIcon" aria-hidden="true">{tab.icon}</span>
+              <span className="workspaceTabLabel">{tab.label}</span>
+            </a>
+            <button className="workspaceTabClose" type="button" aria-label={'关闭' + tab.label} title={'关闭' + tab.label} onClick={() => closeTab(tab.path)}>×</button>
+          </div>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 export function AppShell({
   children,
   navigation,
@@ -110,9 +261,9 @@ export function AppShell({
         <a className={`primaryBrand ${classNames.brand ?? ''}`.trim()} href={brandHref}>{brand}</a>
         <nav className="primaryNavigation" aria-label="一级导航">
           {areas.map((area) => area.disabled ? (
-            <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true" title={area.description}>{area.label}</span>
+            <span className="primaryNavItem primaryNavItemDisabled" key={area.label} aria-disabled="true" title={area.description}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></span>
           ) : (
-            <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined} title={area.description}>{area.label}</a>
+            <a className={`primaryNavItem${area.active ? ' primaryNavItemActive' : ''}`} href={area.href} key={area.label} aria-current={area.active ? 'page' : undefined} title={area.description}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></a>
           ))}
         </nav>
         <div className="primaryUtilities" aria-label="快捷工具">
@@ -131,9 +282,9 @@ export function AppShell({
         <summary><strong>{brand}</strong><span>{activeArea} · 菜单</span></summary>
         <div className="mobilePrimaryNavigation" aria-label="一级导航">
           {areas.map((area) => area.disabled ? (
-            <span className="mobilePrimaryItem mobilePrimaryItemDisabled" key={area.label}>{area.label}</span>
+            <span className="mobilePrimaryItem mobilePrimaryItemDisabled" key={area.label}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></span>
           ) : (
-            <a className={`mobilePrimaryItem${area.active ? ' mobilePrimaryItemActive' : ''}`} href={area.href} key={area.label} title={area.description}>{area.label}</a>
+            <a className={`mobilePrimaryItem${area.active ? ' mobilePrimaryItemActive' : ''}`} href={area.href} key={area.label} title={area.description}><span className="primaryNavIcon" aria-hidden="true">{areaIcons[area.label] ?? '▦'}</span><span>{area.label}</span></a>
           ))}
         </div>
         {contextualNavigation.length > 0 ? (
@@ -158,6 +309,7 @@ export function AppShell({
           </aside>
         ) : null}
         <div className="adminBody">
+          <WorkspaceTabs />
           <section className={`workspace ${classNames.workspace ?? ''}`.trim()} id={workspaceId} data-alsvid-workspace="true">{children}</section>
         </div>
       </div>
