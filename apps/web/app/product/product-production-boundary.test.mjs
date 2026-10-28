@@ -30,4 +30,10 @@ test('product platform labels are exclusively user-authored records', () => {
   assert.match(client, /platform\.description/);
   assert.match(client, /a\.code\.localeCompare\(b\.code\)/);
   assert.doesNotMatch(client, /<th>关联 BOM<\/th>/);
+  assert.match(client, /<table className=\{styles\.platformTable\} aria-label="技术平台档案"/);
+  assert.match(client, /\[\.\.\.catalog\.platforms\]\.sort/);
+  assert.match(client, /catalog\.models\.filter\(\(model\) => model\.platform_id === platform\.id\)/);
+  assert.doesNotMatch(client, /固定平台顺序/);
+  assert.doesNotMatch(client, /className=\{styles\.platforms\}/);
+  assert.match(client, /平台新增和编辑接口目前尚未开放/);
 });
