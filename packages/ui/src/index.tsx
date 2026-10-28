@@ -238,8 +238,13 @@ export function WorkspaceTabs() {
     workspace?.close(path);
     if (path === activePath) {
       const fallback = tabs[index - 1] ?? tabs[index + 1];
-      if (workspace) workspace.navigate(fallback?.path ?? '/admin');
-      else window.location.assign(fallback?.path ?? '/admin');
+      if (workspace) {
+        const destination = fallback?.path ?? '/admin';
+        // Closing the last /admin tab must remount the workbench, not leave
+        // an empty Activity when Next would navigate to the same URL.
+        if (destination === path) window.location.reload();
+        else workspace.navigate(destination);
+      } else window.location.assign(fallback?.path ?? '/admin');
     }
   }
 
