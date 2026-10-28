@@ -1,36 +1,22 @@
-import assert from 'node:assert/strict';
 import test from 'node:test';
-import {readFileSync} from 'node:fs';
-import {cachedRouteOrder,isSafeAdminRoute,MAX_LIVE_ADMIN_WORKSPACES} from './workspace-cache-policy.ts';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { isSafeAdminRoute } from './workspace-cache-policy.ts';
 
-test('admin keep-alive keys have a bounded least-recently-active order',()=>{
- assert.equal(MAX_LIVE_ADMIN_WORKSPACES,4);
- const routes=['/admin','/admin/product','/admin/ecommerce','/admin/supply'];
- assert.deepEqual(cachedRouteOrder(routes,'/admin/analytics'),[
-  '/admin/product','/admin/ecommerce','/admin/supply','/admin/analytics',
- ]);
- assert.deepEqual(cachedRouteOrder(routes,'/admin/product'),[
-  '/admin','/admin/ecommerce','/admin/supply','/admin/product',
- ]);
- assert.deepEqual(cachedRouteOrder([], '/admin/product?nav=test'),['/admin/product?nav=test']);
+test('admin tabs only use soft navigation for own safe routes',()=>{
+  assert.equal(isSafeAdminRoute('/admin'),true);
+  assert.equal(isSafeAdminRoute('/admin/product?nav=x'),true);
+  for(const path of ['/login','/administrator','/api/control','//malicious.test/admin',
+    'https://malicious.test/admin','javascript:alert(1)','/admin\\escape']){
+    assert.equal(isSafeAdminRoute(path),false,path);
+  }
 });
-
-test('reject cross-origin/protocol-relative/API and non-admin navigation from cache',()=>{
- for(const path of ['/admin','/admin/product','/admin/a?nav=x','#bad'].slice(0,3))
-  assert.equal(isSafeAdminRoute(path),true);
- for(const path of ['https://attacker.invalid/admin','//attacker.invalid/admin','/login',
-  '/api/control/v1/commerce','/administrator','/admin\\evil','javascript:alert(1)']){
-  assert.equal(isSafeAdminRoute(path),false,path);
- }
- assert.throws(()=>cachedRouteOrder([], '/login'),/Only Admin/);
-});
-
-test('workspace state preservation uses React Activity and Next router rather than sessionStorage snapshots',()=>{
- const view=readFileSync(new URL('./admin-workspace-keeper.tsx',import.meta.url),'utf8');
- const tabs=readFileSync(new URL('../../../../../packages/ui/src/index.tsx',import.meta.url),'utf8');
- assert.match(view,/<Activity key=\{page.path\} mode=\{page.path===path\?'visible':'hidden'\}>/);
- assert.match(view,/router\.push\(href\)/);
- assert.match(view,/setCache\(/);
- assert.match(tabs,/workspace\.navigate\(tab.path\)/);
- assert.match(tabs,/workspace\?\.close\(path\)/);
+test('Next Cache Components owns route Activity, not a homemade ReactNode cache',()=>{
+  const cfg=readFileSync(new URL('../../next.config.ts',import.meta.url),'utf8');
+  const client=readFileSync(new URL('./admin-workspace-keeper.tsx',import.meta.url),'utf8');
+  const tabs=readFileSync(new URL('../../../../../packages/ui/src/index.tsx',import.meta.url),'utf8');
+  assert.match(cfg,/cacheComponents:\s*true/);
+  assert.match(client,/router\.push\(href\)/);
+  assert.doesNotMatch(client,/ReactNode\[\]|cachedRouteOrder|new Map\(.*children/);
+  assert.match(tabs,/workspace\.navigate\(tab.path\)/);
 });

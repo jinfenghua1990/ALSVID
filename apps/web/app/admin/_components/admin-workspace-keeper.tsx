@@ -1,51 +1,33 @@
 'use client';
 
-import { Activity, useCallback, useState, type MouseEvent, type ReactNode } from 'react';
+import { useCallback, type MouseEvent, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { WorkspaceNavigationProvider } from '@alsvid/ui';
-import { cachedRouteOrder, isSafeAdminRoute } from './workspace-cache-policy';
-
-type CachedPage = { path:string; content:ReactNode };
-type CacheState = { active:string; pages:CachedPage[] };
+import { isSafeAdminRoute } from './workspace-cache-policy';
 
 /**
- * React Activity retains mounted component state while disabling hidden effects.
- * Next client navigation is essential: a full <a href> reload discards this cache.
- * Nothing is serialized to storage; a hard refresh, logout, or new session clears it.
+ * Next.js Cache Components owns the actual route-level React Activity cache.
+ * This component only converts native Admin anchor links into soft navigations,
+ * so the framework can preserve up to three previously visited route instances.
+ * Nothing is serialized to persistent storage; logout uses full page navigation.
  */
 export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
-  const path=usePathname();
+  const pathname=usePathname();
   const search=useSearchParams().toString();
-  const location=path+(search?'?'+search:'');
+  const location=pathname+(search?'?'+search:'');
   const router=useRouter();
-  // Cache by pathname, not query: transient App Router search updates must not
-  // mount a second copy of the same screen in a hidden Activity.
-  const [cache,setCache]=useState<CacheState>(()=>({
-    active:path,pages:[{path,content:children}],
-  }));
-
-  // A guarded same-component update keeps the old Activity keyed and mounted
-  // during an App Router transition, before its previous children can unmount.
-  if(cache.active!==path){
-    const keys=cachedRouteOrder(cache.pages.map(page=>page.path),path);
-    const current=new Map(cache.pages.map(page=>[page.path,page.content]));
-    setCache({active:path,pages:keys.map(key=>({
-      path:key,content:current.get(key)??children,
-    }))});
-  }
 
   const navigate=useCallback((url:string)=>{
     if(!isSafeAdminRoute(url)){
-      // Leaving Admin must be a full navigation: never cache authenticated DOM.
       window.location.assign(url);
       return;
     }
     router.push(url);
   },[router]);
 
-  const close=useCallback((url:string)=>{
-    const key=new URL(url,window.location.origin).pathname;
-    setCache(prev=>({...prev,pages:prev.pages.filter(page=>page.path!==key)}));
+  const close=useCallback((_url:string)=>{
+    // The bookmark is closed by WorkspaceTabs. Next's bounded route cache owns
+    // physical eviction; its private internals must not be modified here.
   },[]);
 
   const captureAdminLink=useCallback((event:MouseEvent<HTMLDivElement>)=>{
@@ -61,20 +43,9 @@ export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
     router.push(href);
   },[router]);
 
-  // Every Activity always retains its original child element even when active.
-  // Replacing the element with Next's new RSC `children` on tab return can
-  // remount its stateful subtree, losing unsaved edits.
-  const pages=cache.active===path?cache.pages:(()=>{
-    const keys=cachedRouteOrder(cache.pages.map(page=>page.path),path);
-    const saved=new Map(cache.pages.map(page=>[page.path,page.content]));
-    return keys.map(key=>({path:key,content:saved.get(key)??children}));
-  })();
-
   return <WorkspaceNavigationProvider location={location} navigate={navigate} close={close}>
-    <div data-alsvid-admin-workspace-cache="true" onClickCapture={captureAdminLink}>
-      {pages.map(page=><Activity key={page.path} mode={page.path===path?'visible':'hidden'}>
-        {page.content}
-      </Activity>)}
+    <div data-alsvid-admin-workspace-cache="framework" onClickCapture={captureAdminLink}>
+      {children}
     </div>
   </WorkspaceNavigationProvider>;
 }
