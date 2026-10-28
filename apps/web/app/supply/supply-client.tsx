@@ -244,8 +244,8 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
         <header className={styles.header}>
           <div className={styles.headerCopy}>
             <div className={styles.eyebrow}>SUPPLY CHAIN / PARTNERS</div>
-            <h1>供应商管理</h1>
-            <p>统一管理供货组织、供应商报价与采购履约。所有记录来自当前采购业务接口；未接入的档案指标不会用示例数据填充。</p>
+            <h1>采购管理</h1>
+            <p>在一个工作台查看供应商、采购报价、采购订单与收货记录。生产物料和可售商品沿用现有档案；赠品专用采购分类尚未接入，不会以示例记录冒充真实数据。</p>
           </div>
           <div className={styles.headerActions}>
             <button className={styles.buttonSecondary} type="button" onClick={() => { setShowQuoteForm((open) => !open); setShowPoForm(false); setActiveView('quotations'); }}>{showQuoteForm ? '收起报价表单' : '+ 新建报价'}</button>
