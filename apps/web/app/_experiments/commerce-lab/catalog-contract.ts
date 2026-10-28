@@ -4,7 +4,7 @@ export type LabProductStatus='DRAFT'|'PUBLISHED'|'ARCHIVED';
 export type LabComparisonProduct={id:string;code:string;title:LabLocaleText;description:LabLocaleText;
   specifications:LabSpecification[];referenceImage:'FC1'|'FC2'|null;proposedPriceMinor:number|null;currency:'EUR';status:LabProductStatus;version:number;updatedAt:string;hasCustomImage:boolean};
 export type LabPublishedProduct=LabComparisonProduct&{status:'PUBLISHED'};
-export type LabCatalogSnapshot={state:'connected'|'unavailable';products:LabPublishedProduct[];total:number;checkedAt:string};
+export type LabCatalogSnapshot={state:'connected'|'unavailable';products:LabPublishedProduct[];total:number;page:number;limit:number;query:string;checkedAt:string};
 function localized(value:unknown,max:number,required:boolean):LabLocaleText{
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid localized text');
   const source=value as Record<string,unknown>,output={} as LabLocaleText;

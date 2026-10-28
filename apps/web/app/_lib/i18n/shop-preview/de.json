@@ -61,5 +61,13 @@
   "comparison.specifications": "Technische Daten",
   "comparison.highlights": "Wichtige Daten",
   "comparison.backToCatalog": "Zur Produktübersicht",
-  "comparison.productUnavailable": "Das Produkt kann derzeit nicht geladen werden. Bitte versuche es später erneut."
+  "comparison.productUnavailable": "Das Produkt kann derzeit nicht geladen werden. Bitte versuche es später erneut.",
+  "comparison.searchAction": "Suchen",
+  "comparison.pagination": "Produktseiten",
+  "comparison.previous": "Zurück",
+  "comparison.next": "Weiter",
+  "comparison.page": "Seite {page} von {pages}",
+  "comparison.noPage": "Auf dieser Seite sind keine Produkte. Bitte gehe zurück.",
+  "comparison.selectionPending": "Ausgewähltes Produkt wird geprüft…",
+  "comparison.bagLimit": "Die Vorschautasche fasst höchstens 100 verschiedene Produkte."
 }
