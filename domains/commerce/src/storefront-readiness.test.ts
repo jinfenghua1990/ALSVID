@@ -13,7 +13,7 @@ const fact = {
   on_hand:'4.000000',reserved:'1.000000',available:'3.000000',
 };
 test('positive warehouse stock and active price NEVER enable checkout or auto reservation',()=>{
-  const row=evaluateStorefrontReadiness(fact);
+  const row=evaluateStorefrontReadiness(fact,'DE');
   assert.equal(row.ledgerAvailable,'3.000000');
   assert.equal(row.priceGross,'2999.00');
   assert.equal(row.checkoutEnabled,false);
@@ -25,7 +25,7 @@ test('positive warehouse stock and active price NEVER enable checkout or auto re
 test('missing data must not be falsified as zero stock; publish, price, market all block',()=>{
   const row=evaluateStorefrontReadiness({...fact,publication_status:'DRAFT',
     market_code:null,unit_price_gross:null,tax_rate_basis_points:null,
-    location_count:0,on_hand:'0',reserved:'0',available:'0'});
+    location_count:0,on_hand:'0',reserved:'0',available:'0'},'DE');
   assert.equal(row.locationCount,0);
   assert.equal(row.ledgerAvailable,null);
   assert.equal(row.onHand,null);
@@ -33,12 +33,12 @@ test('missing data must not be falsified as zero stock; publish, price, market a
   assert.ok(row.blockers.includes('NO_MARKET_STOCK_POSITION'));
 });
 test('zero available quantity blocks regardless of published model and active price',()=>{
-  const row=evaluateStorefrontReadiness({...fact,available:'0.000000',on_hand:'2',reserved:'2'});
+  const row=evaluateStorefrontReadiness({...fact,available:'0.000000',on_hand:'2',reserved:'2'},'DE');
   assert.ok(row.blockers.includes('NO_LEDGER_AVAILABILITY'));
 });
 test('invalid or untrusted inventory decimal is unknown, not sellable',()=>{
   for(const v of ['-1','NaN','Infinity','1e9','not-a-number']){
-    const row=evaluateStorefrontReadiness({...fact,available:v});
+    const row=evaluateStorefrontReadiness({...fact,available:v},'DE');
     assert.equal(row.ledgerAvailable,null);
     assert.ok(row.blockers.includes('NO_MARKET_STOCK_POSITION'));
   }
@@ -69,6 +69,8 @@ test('market-specific query uses parameters, caps rows and flags cross-market SK
   assert.match(statement,/commerce\.storefront_prices/);
   assert.match(statement,/product\.catalog_publications/);
   assert.match(statement,/w\.country_code = \$1/);
+  assert.match(statement,/upper\(a\.unit\) = 'EA'/);
+  assert.match(statement,/l\.location_type IN \('PICK','STORAGE'\)/);
   assert.equal(snapshot.checkoutEnabled,false);
   assert.equal(snapshot.market,'DE');
   assert.equal(snapshot.rows.length,2);
