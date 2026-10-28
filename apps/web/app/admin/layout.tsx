@@ -7,8 +7,8 @@ import { requirePortalSession } from '../_lib/portal-access';
  * 覆盖 /admin 及全部子路由（workbench v2/v3 与 11 个业务模块）。
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  await requirePortalSession('admin', '/admin');
+  const session = await requirePortalSession('admin', '/admin');
   return <Suspense fallback={children}>
-    <AdminWorkspaceKeeper>{children}</AdminWorkspaceKeeper>
+    <AdminWorkspaceKeeper userId={session.userId}>{children}</AdminWorkspaceKeeper>
   </Suspense>;
 }
