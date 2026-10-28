@@ -505,3 +505,18 @@
   .createActions { justify-content: stretch; }
   .createActions button { flex: 1; }
 }
+
+/* Match the existing edit action to the new, readable creation flow. */
+.editCard { width: min(540px, 100%); box-sizing: border-box; padding: 26px; gap: 16px; border-radius: 14px; box-shadow: 0 24px 72px rgba(0,0,0,.18); }
+.editCard > div > span { font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.editCard h2 { font-size: 22px; font-weight: 700; line-height: 1.35; }
+.editCard label { font-size: 13px; font-weight: 600; color: var(--alsvid-text); }
+.editCard label input, .editCard label select, .editCard label textarea {
+  width: 100%; box-sizing: border-box; min-height: 42px; padding: 11px 12px;
+  border: 1px solid var(--alsvid-line-strong); border-radius: 7px;
+  background: var(--alsvid-input); color: var(--alsvid-text);
+  font: inherit; font-size: 13px; font-weight: 400;
+}
+.editCard .actions { padding-top: 14px; border-top: 1px solid var(--alsvid-line); }
+.editCard .actions button { min-height: 40px; padding: 0 17px; font-size: 13px; border-radius: 8px; }
+@media(max-width: 540px) { .editCard { padding: 18px; } }
