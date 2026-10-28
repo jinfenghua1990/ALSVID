@@ -23,7 +23,7 @@ const roleLabels: Record<Role, string> = {
   LOGISTICS_PROVIDER: '物流服务商',
 };
 
-export default function PartnersClient() {
+export default function PartnersClient({ embedded = false }: { embedded?: boolean } = {}) {
   const router = useRouter();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selected, setSelected] = useState<PartnerDetail | null>(null);
@@ -113,12 +113,15 @@ export default function PartnersClient() {
     } catch (error) { setMessage(error instanceof Error ? error.message : '无法保存合作伙伴'); }
   }
 
-  return (
-    <AppShell navigation={navigationFor('/partners')} footer="ALSVID · 内部管理">
+  const content = (
+    <>
       <section className="partnerWorkspace">
         <header className="partnerHeader">
           <div><div className="eyebrow">合作伙伴 / PARTNER MASTER</div><h1 className="sectionTitle">一个主体，多种业务角色。</h1><p className="sectionLead">供应商、工厂、经销商、客户与服务伙伴共享同一个稳定的业务身份，避免重复建档。</p></div>
-          <button className="primaryButton" onClick={() => setCreateOpen(true)}>新建合作伙伴</button>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            {embedded ? <a href="/admin/dealers" style={{ fontSize: 13, fontWeight: 650 }}>返回经销商管理</a> : null}
+            <button className="primaryButton" onClick={() => setCreateOpen(true)}>新建合作伙伴</button>
+          </div>
         </header>
 
         <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{roleLabels[role]}</span><b>{count}</b></div>)}</div>
@@ -156,9 +159,14 @@ export default function PartnersClient() {
         <div className="split"><label>国家 / 地区代码<input name="countryCode" maxLength={2} placeholder="DE" /></label><label>主要邮箱<input name="primaryEmail" type="email" /></label></div>
         <div className="split"><label>标识类型<input name="identifierScheme" placeholder="VAT / EORI / REGISTRATION" /></label><label>标识值<input name="identifierValue" /></label></div>
         <fieldset><legend>注册地址</legend><div className="stack"><label>详细地址<input name="addressLine1" /></label><div className="split"><label>城市<input name="addressCity" /></label><label>邮编<input name="addressPostalCode" /></label></div><label>国家 / 地区代码<input name="addressCountry" maxLength={2} placeholder="DE" /></label></div></fieldset>
-        <fieldset><legend>业务角色</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{roleLabels[role]}</label>)}</div></fieldset>
+        <fieldset><legend>业务角色</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} defaultChecked={embedded && role === 'DEALER'} />{roleLabels[role]}</label>)}</div></fieldset>
         <button className="primaryButton">创建合作伙伴</button>
       </form></div> : null}
-    </AppShell>
+    </>
   );
+  // /partners preserves its original shell. The Admin counterpart nests only
+  // the existing business component in AdminScreen — not a second AppShell.
+  return embedded
+    ? <div className="av-live-operations" data-area="partners">{content}</div>
+    : <AppShell navigation={navigationFor('/partners')} footer="ALSVID · 内部管理">{content}</AppShell>;
 }
