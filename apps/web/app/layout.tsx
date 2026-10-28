@@ -9,6 +9,7 @@ import './admin-shell-v2.css';
 import './admin-refinements.css';
 import './theme.css';
 import './theme-legacy.css';
+import './admin-typography.css';
 
 function runtimeEnvironment() {
   return process.env.ALSVID_ENV === 'production' ? 'production' : 'development';
