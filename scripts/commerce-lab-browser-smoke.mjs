@@ -294,7 +294,19 @@ try {
     'Dealer-origin Partner creation preselects the DEALER role');
   assert.equal(await page.locator('[data-area="partners"] a[href="/admin/dealers"]').count(), 1,
     'guided onboarding returns to Dealer setup');
-  report.checks.push('Dealer onboarding: existing Partner master opens inside Admin and preselects DEALER role');
+  await page.unroute('**/api/partners*');
+  await page.route('**/api/partners*', route => route.fulfill({
+    status: 503, contentType: 'application/json',
+    body: JSON.stringify({ message: 'Partner API unavailable' }),
+  }));
+  await page.reload();
+  await page.locator('[data-area="partners"]').getByRole('alert', {
+    name: '',
+  }).filter({ hasText: 'Partner API unavailable' }).waitFor();
+  assert.deepEqual(await page.locator('[data-area="partners"] .metricRow .metric b').allTextContents(),
+    ['—', '—', '—', '—', '—', '—'],
+    'unavailable Partner API must not pretend there are zero companies');
+  report.checks.push('Dealer onboarding: existing Partner master opens inside Admin, preselects DEALER, and fails honestly when API is unavailable');
   // Real intake and test-ride modules must retain the same Admin shell when opened.
   await page.goto(base + '/admin/dealers/applications');
   await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
