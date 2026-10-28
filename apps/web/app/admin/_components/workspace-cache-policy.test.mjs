@@ -12,7 +12,7 @@ test('admin tabs only use soft navigation for own safe routes',()=>{
   }
 });
 test('Next Cache Components owns route Activity, not a homemade ReactNode cache',()=>{
-  const cfg=readFileSync(new URL('../../next.config.ts',import.meta.url),'utf8');
+  const cfg=readFileSync(new URL('../../../next.config.ts',import.meta.url),'utf8');
   const client=readFileSync(new URL('./admin-workspace-keeper.tsx',import.meta.url),'utf8');
   const tabs=readFileSync(new URL('../../../../../packages/ui/src/index.tsx',import.meta.url),'utf8');
   assert.match(cfg,/cacheComponents:\s*true/);
