@@ -294,7 +294,7 @@ export class ProductService {
       await this.audit.record({ actorUserId: actor.userId, action: 'product.sku_created', targetType: 'product.sku', targetId: row.id, metadata: { sku } });
       return row;
     } catch (error) {
-      mapCreateError(error, 'SKU already exists', 'Variant not found');
+      mapCreateError(error, 'SKU code or variant market/color/size combination already exists', 'Variant not found');
     }
   }
 
@@ -309,7 +309,8 @@ export class ProductService {
         target.product_type_code,input.customFields,target.custom_fields);
     }
     if (!Number.isInteger(input.expectedVersion) || input.expectedVersion < 1) throw new ProductValidationError('expectedVersion is required');
-    const row = await this.repository.update({
+    let row: any;
+    try { row = await this.repository.update({
       entity,
       id,
       expectedVersion: input.expectedVersion,
@@ -326,7 +327,11 @@ export class ProductService {
       customFieldsProvided: input.customFields!==undefined,
       customFields,
       actorUserId: actor.userId,
-    });
+    }); } catch(error) {
+      if (entity === 'sku' && postgresErrorCode(error) === '23505')
+        throw new ProductConflictError('Variant market/color/size combination is already in use by another active SKU');
+      throw error;
+    }
     if (!row) {
       if (!await this.repository.exists(entity, id)) throw new ProductNotFoundError(`${entity} not found`);
       throw new ProductConflictError(`${entity} changed since it was loaded`);

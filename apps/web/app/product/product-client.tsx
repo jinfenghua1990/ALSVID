@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
+import { findActiveSkuCombinationDuplicates } from './sku-combination-audit';
 import { matchesModelRegisterSearch } from './model-register';
 
 type CustomFieldDefinition = { id:string; product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART'; code:string;
@@ -184,6 +185,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
       variants: catalog.variants.filter((item) => item.model_id === model.id),
     })), [catalog]);
 
+  const duplicateSkuDimensions = useMemo(() => findActiveSkuCombinationDuplicates(catalog.skus), [catalog.skus]);
   const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) =>
     (statusFilter === 'ALL' || model.status === statusFilter)
     && (typeFilter === 'PARTS' ? model.product_type_code !== 'BIKE' : typeFilter === 'ALL' || model.product_type_code === typeFilter)
@@ -354,6 +356,17 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
         </header>
 
         {message ? <div className={styles.archiveFeedback} role="status">{message}</div> : null}
+        {!loading && !catalogError && duplicateSkuDimensions.length > 0 ? (
+          <div className={styles.archiveError} role="alert">
+            <strong>SKU 历史规格冲突：发现 {duplicateSkuDimensions.length} 组重复市场／颜色／尺寸组合。</strong>
+            <p>这些组合来自真实商品数据。请核对后逐项处理；系统不会自动合并 SKU、订单、价格或库存。</p>
+            <ul>{duplicateSkuDimensions.slice(0,10).map(item=><li key={JSON.stringify(item)}>
+              {item.market||'未设市场'} / {item.color||'未设颜色'} / {item.size||'未设尺寸'}：
+              {item.skus.join('、')}
+            </li>)}</ul>
+            {duplicateSkuDimensions.length>10?<p>仅展示前 10 组；应继续排查完整目录。</p>:null}
+          </div>
+        ) : null}
         {(workspace === 'parts' && partTab === 'manufacturing' ? engineeringError : catalogError) ? (
           <div className={styles.archiveError} role="alert">数据读取失败：{workspace === 'parts' && partTab === 'manufacturing' ? engineeringError : catalogError}。读取异常不代表记录为零。</div>
         ) : null}
