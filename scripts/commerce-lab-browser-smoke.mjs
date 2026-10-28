@@ -63,8 +63,11 @@ try {
   await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
   await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
   await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference' && url.searchParams.get('alsvidMenuLabel') === '旧版交互样机');
-  const lab = page.locator('[data-commerce-lab]');
+  // A hidden React Activity can retain another workspace's DOM; assert the
+  // visible reference editor is unique rather than counting hidden cache.
+  const lab = page.locator('[data-commerce-lab]:visible');
   await lab.waitFor();
+  assert.equal(await lab.count(), 1, 'only one commerce lab is visible');
   assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0);
   report.checks.push('legacy demo remains reachable under its own protected reference route');
   const mutations = [];
@@ -97,6 +100,19 @@ try {
   report.checks.push('admin name/price/publication changes update only lab storefront');
   assert.deepEqual(mutations, [], 'lab interactions must not issue backend writes');
   assert.equal(await page.evaluate(() => JSON.stringify({ ...localStorage })), before, 'original browser storage is unchanged');
+
+  // Real browser check for component-state keep-alive: navigate via the Admin
+  // menu to another route, then switch back through the workspace tab.
+  await primary.locator('a[href="/admin/finance"]').click();
+  await page.waitForURL(base + '/admin/finance');
+  const resume = page.locator('.workspaceTabs:visible a.workspaceTabLink[href*="/admin/commerce-lab/reference"]');
+  await resume.waitFor();
+  await resume.click();
+  await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference');
+  await lab.waitFor();
+  assert.equal(await lab.count(), 1, 'only the resumed commerce lab is visible');
+  assert.match(await lab.innerText(), /FC1 CI 示例/, 'tab switch must preserve in-memory edits');
+  report.checks.push('switching Admin tabs keeps a previously edited in-memory component alive');
 
   await page.reload(); await lab.waitFor();
   await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
