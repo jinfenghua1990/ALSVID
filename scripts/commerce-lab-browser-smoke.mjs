@@ -253,7 +253,8 @@ try {
   assert.equal(await dealerNav.getByRole('link', { name: /B2B订单/ }).count(), 0,
     'unimplemented B2B capability must not be an active link');
   const metricValues = dealerCenter.locator('[class*="metrics"] b');
-  await metricValues.first().getByText('2', { exact: true }).waitFor();
+  await page.waitForFunction(() =>
+    document.querySelector('[data-area="dealers"] [class*="metrics"] b')?.textContent === '2');
   assert.deepEqual(await metricValues.allTextContents(), ['2', '1', '1', '2']);
   await dealerCenter.getByRole('searchbox', { name: '搜索经销商' }).fill('奥地利');
   assert.equal(await dealerCenter.getByRole('button', { name: /CI 奥地利经销商/ }).count(), 1);
@@ -276,7 +277,16 @@ try {
   await dealerCenter.getByRole('alert').filter({ hasText: 'Dealer API unavailable' }).waitFor();
   assert.deepEqual(await metricValues.allTextContents(), ['—', '—', '—', '—'],
     'failed API reads must not be displayed as zero dealers');
-  report.checks.push('Admin dealer center: real fixture totals, filter, linked menu, existing Partner-only creation, API outage does not show 0');
+  // Real intake and test-ride modules must retain the same Admin shell when opened.
+  await page.goto(base + '/admin/dealers/applications');
+  await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
+  await page.getByRole('heading', { name: '经销商合作申请', exact: true }).waitFor();
+  assert.equal(await page.getByRole('complementary', { name: '二级导航', exact: true }).count(), 1);
+  await page.goto(base + '/admin/dealers/test-rides');
+  await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
+  await page.getByRole('heading', { name: '客户试骑申请', exact: true }).waitFor();
+  assert.equal(await page.getByRole('complementary', { name: '二级导航', exact: true }).count(), 1);
+  report.checks.push('Admin dealer center: real fixture totals, filter, linked menu, existing Partner-only creation, API outage does not show 0, same shell on subpages');
 
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
