@@ -7,8 +7,9 @@ import { requirePortalSession } from '../../../_lib/portal-access';
  * check on internal soft navigation. No private account data is returned.
  */
 export async function GET(): Promise<NextResponse> {
-  await requirePortalSession('admin', '/admin');
-  return NextResponse.json({ ok: true }, {
+  const session = await requirePortalSession('admin', '/admin');
+  // Minimal verified subject identifier; no token or privileged profile data.
+  return NextResponse.json({ ok: true, userId: session.userId }, {
     headers: { 'Cache-Control': 'private, no-store, max-age=0' },
   });
 }
