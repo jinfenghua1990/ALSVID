@@ -267,7 +267,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     const payload=creating?{
       productTypeCode:fieldScope,code:String(form.get('code')??''),label:form.get('label'),
       fieldType,required:form.get('required')==='on',
-      options:fieldType==='SELECT'?String(form.get('options')??'').split('\\n').map(x=>x.trim()).filter(Boolean):[],
+      options:fieldType==='SELECT'?String(form.get('options')??'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean):[],
     }:{
       expectedVersion:fieldDraft.version,label:form.get('label'),
       required:form.get('required')==='on',status:form.get('status'),
