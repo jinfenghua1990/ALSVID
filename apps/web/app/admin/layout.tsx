@@ -8,7 +8,7 @@ import { requirePortalSession } from '../_lib/portal-access';
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await requirePortalSession('admin', '/admin');
-  return <Suspense fallback={children}>
+  return <Suspense fallback={<div role="status" aria-live="polite">后台工作区加载中…</div>}>
     <AdminWorkspaceKeeper userId={session.userId}>{children}</AdminWorkspaceKeeper>
   </Suspense>;
 }
