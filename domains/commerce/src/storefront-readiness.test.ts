@@ -53,7 +53,7 @@ test('readiness requires BOTH commerce and inventory permissions before querying
     {code:'COMMERCE_FORBIDDEN'});
   assert.equal(queries,0);
   await assert.rejects(service.summary({permissions:['commerce.storefront.read','inventory.read']},'US'),
-    /INVALID_STOREFRONT_MARKET/);
+    {code:'COMMERCE_VALIDATION'});
   assert.equal(queries,0);
 });
 test('market-specific query uses parameters, caps rows and flags cross-market SKUs',async()=>{
@@ -64,11 +64,13 @@ test('market-specific query uses parameters, caps rows and flags cross-market SK
   }} as unknown as DatabasePort;
   const service=new StorefrontReadinessService(db);
   const snapshot=await service.summary({permissions:['commerce.storefront.read','inventory.read']},'DE');
-  assert.deepEqual(params,['DE']);
+  assert.deepEqual(params,['DE','']);
   assert.match(statement,/inventory\.v_availability/);
   assert.match(statement,/commerce\.storefront_prices/);
   assert.match(statement,/product\.catalog_publications/);
   assert.match(statement,/w\.country_code = \$1/);
+  assert.match(statement,/POSITION\(LOWER\(\$2\) IN LOWER\(s\.sku\)\)/);
+  assert.match(statement,/WHERE \(\$2 = ''/);
   assert.match(statement,/upper\(a\.unit\) = 'EA'/);
   assert.match(statement,/l\.location_type IN \('PICK','STORAGE'\)/);
   assert.equal(snapshot.checkoutEnabled,false);
@@ -76,4 +78,36 @@ test('market-specific query uses parameters, caps rows and flags cross-market SK
   assert.equal(snapshot.rows.length,2);
   assert.equal(snapshot.rows[0]?.blockers.includes('MARKET_SCOPE_UNVERIFIED'),false);
   assert.equal(snapshot.rows[1]?.blockers.includes('MARKET_SCOPE_UNVERIFIED'),true);
+});
+
+test('SKU search is performed in the database BEFORE the result limit and is literal, not LIKE',async()=>{
+  const values: Array<{sql:string;params:unknown[]}> = [];
+  const db={query:async(sql:string,params:unknown[])=>{
+    values.push({sql,params});
+    return {rows:[fact]};
+  }} as unknown as DatabasePort;
+  const service=new StorefrontReadinessService(db);
+  const actor={permissions:['commerce.storefront.read','inventory.read']};
+  const searched=await service.summary(actor,'DE','  FC1_%  ');
+  assert.deepEqual(values[0]?.params,['DE','FC1_%']);
+  assert.equal(searched.query,'FC1_%');
+  assert.equal(searched.rows.length,1);
+  assert.match(values[0]!.sql,/WHERE \(\$2 = ''[\s\S]*ORDER BY[\s\S]*LIMIT 501/);
+  assert.doesNotMatch(values[0]!.sql,/ILIKE/,'percent and underscore are not wildcard operators');
+  await assert.rejects(service.summary(actor,'DE','x'.repeat(101)),{code:'COMMERCE_VALIDATION'});
+  await assert.rejects(service.summary(actor,'DE',123),{code:'COMMERCE_VALIDATION'});
+  assert.equal(values.length,1,'invalid searches cannot perform a database query');
+});
+
+test('search limit reports a truncated list honestly rather than implying all SKUs were checked',async()=>{
+  const rows=Array.from({length:501},(_,i)=>({
+    ...fact,sku_id:String(i).padStart(36,'0'),sku:'FC1-'+String(i),
+  }));
+  const db={query:async()=>({rows})} as unknown as DatabasePort;
+  const result=await new StorefrontReadinessService(db).summary({
+    permissions:['commerce.storefront.read','inventory.read'],
+  },'DE','FC1');
+  assert.equal(result.rows.length,500);
+  assert.equal(result.truncated,true);
+  assert.equal(result.checkoutEnabled,false);
 });
