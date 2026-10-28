@@ -66,7 +66,7 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '仓库操作', items: ['仓库与库位维护', '库存流水', '库存盘点'] },
   ],
   '经销商': [
-    { group: '经销商运营', items: ['经销商列表', '合作申请', '客户试骑与合作网点'] },
+    { group: '经销商运营', items: ['经销商列表', '合作伙伴主体', '合作申请', '客户试骑与合作网点'] },
     { group: '计划接入', items: ['B2B订单（待接入）', '区域授权（待接入）', '经销商库存（待接入）'] },
   ],
   '生产': [
@@ -125,6 +125,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '经销商') {
     const dealerDestinations: Readonly<Record<string, string>> = {
       '经销商列表': '/admin/dealers',
+      '合作伙伴主体': '/admin/partners',
       '合作申请': '/admin/dealers/applications',
       '客户试骑与合作网点': '/admin/dealers/test-rides',
     };
