@@ -75,8 +75,9 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '车辆追溯', items: ['VIN 管理', '出厂记录', '车辆档案'] },
   ],
   '供应链': [
-    { group: '采购业务', items: ['采购申请', '采购订单', '到货管理', '入库记录'] },
-    { group: '供应商', items: ['供应商列表', '供应商档案'] },
+    { group: '采购业务', items: ['采购订单', '采购报价', '收货记录'] },
+    { group: '供应商', items: ['供应商目录'] },
+    { group: '后续能力', items: ['采购申请（待接入）', '赠品采购（待接入）'] },
   ],
   '客户': [
     { group: '客户与车主', items: ['客户列表', '车辆绑定（待接入）', '购买记录（待接入）'] },
@@ -181,7 +182,11 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '调拨入库完成': '/admin/inventory/transfers/completed',
     '供应商与采购订单': '/admin/supply',
     '供应商列表': '/admin/supply', '供应商档案': '/admin/supply/supplier-detail', '认证管理': '/admin/supply/supplier-detail',
-    '采购申请': '/admin/supply/purchase/request', '采购订单': '/admin/supply/purchase/approval',
+    '采购申请': '/admin/supply/purchase/request',
+    '采购订单': '/admin/supply#purchasing',
+    '采购报价': '/admin/supply#quotations',
+    '收货记录': '/admin/supply#receipts',
+    '供应商目录': '/admin/supply',
     '到货管理': '/admin/supply/purchase/inspection', '入库记录': '/admin/supply/purchase/received', '零件目录': '/admin/supply/parts',
     '供应关系': '/admin/supply/parts', '交付计划': '/admin/supply', '缺料预警': '/admin/supply/purchase/request', '综合评分': '/admin/supply/score',
     '供应商详情 · 供应商 A': '/admin/supply/supplier-detail', '供应商综合评分': '/admin/supply/score', '采购申请 · 缺料需求': '/admin/supply/purchase/request',
@@ -214,7 +219,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     const destinations: Record<string, string> = {
       'FC Platform': '/admin/product#series', 'CT Platform': '/admin/product#series', 'FT Platform': '/admin/product#series', 'GT Platform': '/admin/product#series',
       '整车产品': '/admin/product?type=BIKE',
-      '零配件': '/admin/product?type=PARTS',
+      '零配件': '/admin/product?type=PARTS#parts',
       '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product#model-register', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
       'BOM': '/admin/product#engineering', '零件库': '/admin/product#parts', '工程文件': '/admin/product#engineering', '版本控制': '/admin/product#engineering',
       '开发中': '/admin/product#model-register', '量产': '/admin/product#model-register', '停产': '/admin/product#model-register', '归档': '/admin/product#model-register',
