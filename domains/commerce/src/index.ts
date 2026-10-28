@@ -7,6 +7,9 @@ export {StorefrontOrderService,calculateStorefrontLineTotals,buildStorefrontOrde
 export type {StorefrontOrderQuery,StorefrontOrderStatus} from './storefront-orders.js';
 export type {StorefrontActor,CreateStorefrontPriceInput,CreateStorefrontOrderInput,StorefrontPrice,StorefrontOrder,StorefrontOrderLine,StorefrontOrderEvent,StorefrontOrderDetail} from './storefront-orders.js';
 
+export {StorefrontReadinessService,evaluateStorefrontReadiness} from './storefront-readiness.js';
+export type {StorefrontMarket,StorefrontReadinessBlocker,StorefrontReadinessRow,StorefrontReadinessSnapshot} from './storefront-readiness.js';
+
 export { createComparisonCatalogService } from './infrastructure/comparison-catalog.js';
 export type { ComparisonSpecification,ComparisonCatalogProduct,ComparisonProductPage,ComparisonCreateInput,ComparisonUpdateInput,ComparisonLocaleText } from './core/comparison-catalog.js';
 export { ComparisonCatalogService } from './application/comparison-catalog.js';
