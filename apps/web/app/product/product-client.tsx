@@ -52,10 +52,21 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [newModelType, setNewModelType] = useState('BIKE');
   const [edit, setEdit] = useState<EditTarget | null>(null);
+  const [workspace, setWorkspace] = useState<'bikes' | 'parts' | 'platforms'>('bikes');
+  const [partTab, setPartTab] = useState<'manufacturing' | 'retail'>('manufacturing');
+  const [createKind, setCreateKind] = useState<'bike' | 'part' | 'accessory' | null>(null);
 
   useEffect(() => {
     const revealLinkedPanel = () => {
       const id = window.location.hash.slice(1);
+      if (view === 'archive') {
+        const requestedType = new URLSearchParams(window.location.search).get('type');
+        const nextWorkspace = id === 'series' || id === 'product-types' ? 'platforms'
+          : id === 'parts' || requestedType === 'PARTS' ? 'parts' : 'bikes';
+        setWorkspace(nextWorkspace);
+        setTypeFilter(nextWorkspace === 'bikes' ? 'BIKE' : requestedType === 'PARTS' ? 'PARTS' : 'ALL');
+        if (id === 'configuration') setCreateKind('bike');
+      }
       // Preserve old bookmarks without offering a second BOM editor in product research.
       if (view === 'archive' && ['engineering', 'engineering-panel', 'production-bom'].includes(id)) {
         router.replace('/admin/production#production-bom');
@@ -115,6 +126,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     if (requestedSearch) setModelSearch(requestedSearch.slice(0,100));
     const requestedType = new URLSearchParams(window.location.search).get('type');
     if (requestedType === 'BIKE' || requestedType === 'PARTS') setTypeFilter(requestedType);
+    else setTypeFilter('BIKE');
     void reload();
   }, []);
 
@@ -143,13 +155,25 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     ),
   ), [hierarchyRows, catalog, engineering, modelSearch, statusFilter, typeFilter, engineeringError, loading]);
 
-  async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown) {
+  const filteredParts = useMemo(() => engineering.parts.filter(part =>
+    [part.part_number, part.name, part.category].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
+  ), [engineering.parts, modelSearch]);
+  const filteredAccessories = useMemo(() => hierarchyRows.filter(({ model }) =>
+    model.product_type_code !== 'BIKE'
+    && [model.code, model.name, model.description].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
+  ), [hierarchyRows, modelSearch]);
+  const filteredPlatforms = useMemo(() => catalog.platforms.filter(platform =>
+    [platform.code, platform.name, platform.description].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
+  ), [catalog.platforms, modelSearch]);
+
+  async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown, onSaved?: () => void) {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     try {
       await api(endpoint, { method: 'POST', body: JSON.stringify(body(form)) });
       formElement.reset();
+      onSaved?.();
       const verified = await reload();
       setMessage(verified ? '已保存，列表已重新核对。' : '写入请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
@@ -195,167 +219,132 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   return (
     <OperationsFrame embedded={embedded} area={view === "engineering" ? "production" : "product"} footer={view === "engineering" ? "生产制造 / BOM" : "产品研发 / 商品档案"}>
       {view === "archive" ? <>
-      <header className={styles.header}>
-        <div>
-          <div className={styles.eyebrow}>ALSVID PRODUCT ARCHIVE</div>
-          <h1>商品档案</h1>
-          <p>一条商品一行，维护商品、版本和零配件档案；生产用料清单统一由生产制造管理。</p>
-        </div>
-        <div className={styles.releaseBadge}>商品主数据</div>
-      </header>
+      <main className={styles.archiveWorkspace}>
+        <header className={styles.archiveHeading}>
+          <div className={styles.archiveHeadingCopy}>
+            <span className={styles.archiveKicker}>产品研发 / 商品档案</span>
+            <h1>{workspace === 'bikes' ? '整车产品' : workspace === 'parts' ? '零配件' : '技术平台'}</h1>
+            <p>{workspace === 'bikes' ? '建立和维护整车档案。每个商品只保留一条主记录，版本与 SKU 按需管理。' : workspace === 'parts' ? '零件与可售配件分开查看，档案只录入一次，不重复建立商城绑定。' : '按真实平台记录查看整车技术分类，不预设型号或平台。'}</p>
+          </div>
+          <div className={styles.archiveHeadingActions}>
+            <button type="button" className={styles.archiveSecondaryButton} onClick={() => void reload()} disabled={loading}>刷新</button>
+            {workspace === 'bikes' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建整车</button> : null}
+            {workspace === 'parts' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => { if (partTab === 'manufacturing') setCreateKind('part'); else {setNewModelType('ACCESSORY');setCreateKind('accessory');} }}>＋ {partTab === 'manufacturing' ? '新建零件' : '新建可售配件'}</button> : null}
+          </div>
+        </header>
 
-      {message ? <div className={styles.notice} role="status">{message}</div> : null}
-      <details className={styles.definitionHelp}>
-        <summary>商品 ID / Variant / SKU 说明</summary>
-        <div className={styles.notice} role="note">商品 ID = 同一个 Model 主记录；Variant 是 Standard / Pro 等版本选项；SKU 是最终可销售组合。切换颜色时商品 ID 保持不变，SKU 编码随所选规格变化。价格、库存与公开发布状态以各自正式数据源为准。</div>
-      </details>
-      {catalogError || engineeringError ? (
-        <div className={`${styles.notice} ${styles.errorNotice}`} role="alert">
-          {[catalogError ? `产品主数据加载失败：${catalogError}` : '', engineeringError ? `工程数据加载失败：${engineeringError}` : ''].filter(Boolean).join('；')}
-          。接口异常不代表数据库没有记录，未成功读取的数据不会按 0 处理。
-        </div>
-      ) : null}
+        {message ? <div className={styles.archiveFeedback} role="status">{message}</div> : null}
+        {(workspace === 'parts' && partTab === 'manufacturing' ? engineeringError : catalogError) ? (
+          <div className={styles.archiveError} role="alert">数据读取失败：{workspace === 'parts' && partTab === 'manufacturing' ? engineeringError : catalogError}。读取异常不代表记录为零。</div>
+        ) : null}
 
-      <div className={styles.metrics} aria-label="产品数据概览">
-        <div><span>技术平台</span><strong>{loading || catalogError ? '—' : catalog.platforms.length}</strong></div>
-        <div><span>商品主记录</span><strong>{loading || catalogError ? '—' : catalog.models.length}</strong></div>
-        <div><span>配置版本</span><strong>{loading || catalogError ? '—' : catalog.variants.length}</strong></div>
-        <div><span>SKU</span><strong>{loading || catalogError ? '—' : catalog.skus.length}</strong></div>
-        <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
-      </div>
-
-      <section className={styles.section} id="model-register">
-        <div className={styles.sectionHead}>
-          <div><span>MODEL REGISTER</span><h2>商品列表</h2></div>
-          <p>按商品逐行管理；商品类型、平台与工程资料保持独立数据关联。</p>
-        </div>
-        <div className={styles.modelToolbar}>
-          <input
-            aria-label="搜索产品型号"
-            value={modelSearch}
-            onChange={(event) => setModelSearch(event.target.value)}
-            placeholder="搜索商品编码、名称、平台、版本或 SKU"
-          />
-          <select aria-label="按产品类型筛选" value={typeFilter} onChange={event=>setTypeFilter(event.target.value)}>
-            <option value="ALL">全部商品类型</option>
-            <option value="PARTS">零配件</option>
-            {catalog.productTypes.filter(t=>t.status==='ACTIVE').map(t=><option key={t.code} value={t.code}>{t.name}</option>)}
-          </select>
-          <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="ALL">全部状态</option>
-            <option value="DRAFT">草稿</option>
-            <option value="ACTIVE">启用</option>
-            <option value="RETIRED">已退役</option>
-          </select>
-          <details className={styles.quickLinks}>
-            <summary>相关业务</summary>
-            <div>
-              <a href="/admin/ecommerce/publications">官网发布</a>
-              <a href="/admin/ecommerce/homepage">首页商品绑定</a>
-              <a href="/admin/production#production-bom">BOM / 生产用料清单</a>
-              <a href="/admin/production/vin">VIN / 车辆查询</a>
+        {workspace === 'bikes' ? (
+          <section className={styles.archivePanel} id="model-register" aria-label="整车产品列表">
+            <div className={styles.archivePanelTitle}>
+              <div><h2>整车列表</h2><p>商品主数据</p></div>
+              <span>{loading || catalogError ? '—' : catalog.models.filter(model => model.product_type_code === 'BIKE').length} 条记录</span>
             </div>
-          </details>
-          <a className={styles.createLink} href="#configuration" onClick={() => document.getElementById('product-maintenance-panel')?.setAttribute('open', '')}>＋ 新增商品</a>
-          <span>{loading ? '正在同步…' : catalogError ? '商品数据未确认' : `${filteredModels.length} / ${catalog.models.length} 条商品`}</span>
-        </div>
-        {loading && catalog.models.length === 0 ? (
-          <div className={styles.emptyState}>正在读取产品主数据…</div>
-        ) : filteredModels.length ? (
-          <div className={styles.modelTableWrap}>
-            <table className={styles.modelTable}>
-              <thead>
-                <tr>
-                  <th>商品编码 / 名称</th>
-                  <th>商品类型</th>
-                  <th>技术平台</th>
-                  <th>配置版本</th>
-                  <th>状态</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredModels.map(({ model, platform, variants }) => (
-                  <tr key={model.id}>
-                    <td title={`商品 ID：${model.id}`}><strong>{model.code}</strong><span className={styles.modelName}>{model.name}</span></td>
-                    <td>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')}</td>
-                    <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
-                    <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
-                    <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
-                    <td><button type="button" className={styles.tableAction} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            {catalogError
-              ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
-              : modelSearch || statusFilter !== 'ALL' || typeFilter !== 'ALL'
-                ? '没有符合当前筛选条件的型号。'
-                : '当前没有已登记的商品。请点击新增商品自行建档；系统不会生成示例记录。'}
-          </div>
-        )}
-      </section>
+            <div className={styles.archiveFilters}>
+              <label className={styles.archiveSearch}>
+                <span className={styles.srOnly}>搜索整车</span>
+                <input aria-label="搜索产品型号" value={modelSearch} onChange={event => setModelSearch(event.target.value)} placeholder="搜索整车名称、编码或 SKU" />
+              </label>
+              <select aria-label="按产品状态筛选" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+                <option value="ALL">全部状态</option><option value="DRAFT">草稿</option><option value="ACTIVE">启用</option><option value="RETIRED">已退役</option>
+              </select>
+            </div>
+            {loading ? <div className={styles.archiveLoading}>正在读取整车档案…</div> :
+              catalogError ? <div className={styles.archiveEmpty}><strong>暂时无法读取整车档案</strong><p>请检查数据接口，避免重复创建。</p></div> :
+              filteredModels.length ? (
+                <div className={styles.archiveTableWrap}>
+                  <table className={styles.archiveTable} aria-label="整车产品档案">
+                    <thead><tr><th>整车名称 / 商品编码</th><th>技术平台</th><th>配置版本</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>{filteredModels.map(({ model, platform, variants }) => (
+                      <tr key={model.id}>
+                        <td><strong>{model.name}</strong><span>{model.code}</span></td>
+                        <td>{platform ? platformName(platform) : '未关联'}<span>{platform?.code ?? ''}</span></td>
+                        <td>{variants.length ? variants.map(v => v.name || v.code).join(' / ') : '尚未配置'}</td>
+                        <td><span className={styles.archiveStatus} data-status={model.status}>{statusLabel(model.status)}</span></td>
+                        <td><button type="button" className={styles.archiveEdit} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.archiveEmpty}>
+                  <span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span>
+                  <strong>{modelSearch || statusFilter !== 'ALL' ? '没有符合条件的整车' : '还没有整车产品'}</strong>
+                  <p>{modelSearch || statusFilter !== 'ALL' ? '可以调整搜索词或筛选条件。' : '从第一款整车开始建立档案，不会自动生成示例型号。'}</p>
+                  {!(modelSearch || statusFilter !== 'ALL') ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建整车</button> : null}
+                </div>
+              )}
+          </section>
+        ) : null}
 
+        {workspace === 'parts' ? (
+          <section className={styles.archivePanel} id="parts-library-panel" aria-label="零配件管理">
+            <div className={styles.archivePanelTitle}>
+              <div><h2>零配件档案</h2><p>生产零件与可售配件使用各自既有数据源</p></div>
+              <span>{loading || (partTab === 'manufacturing' ? engineeringError : catalogError) ? '—' : (partTab === 'manufacturing' ? engineering.parts.length : catalog.models.filter(model => model.product_type_code !== 'BIKE').length)} 条记录</span>
+            </div>
+            <div className={styles.archiveSubtabs} role="group" aria-label="零配件类型">
+              <button type="button" aria-pressed={partTab === 'manufacturing'} onClick={() => {setPartTab('manufacturing');setModelSearch('');}}>生产零件</button>
+              <button type="button" aria-pressed={partTab === 'retail'} onClick={() => {setPartTab('retail');setModelSearch('');}}>可售配件</button>
+            </div>
+            <div className={styles.archiveFilters}>
+              <label className={styles.archiveSearch}><span className={styles.srOnly}>搜索零配件</span><input aria-label="搜索零配件" value={modelSearch} onChange={event => setModelSearch(event.target.value)} placeholder="搜索名称、编码或分类" /></label>
+            </div>
+            <div id="parts">
+            {loading ? <div className={styles.archiveLoading}>正在读取零配件档案…</div> :
+              partTab === 'manufacturing' ? (
+                engineeringError ? <div className={styles.archiveEmpty}>零件数据不可用，请先检查接口。</div> :
+                filteredParts.length ? (
+                  <div className={styles.archiveTableWrap}><table className={styles.archiveTable} aria-label="生产零件档案">
+                    <thead><tr><th>零件名称 / 编码</th><th>分类</th><th>单位</th><th>状态</th></tr></thead>
+                    <tbody>{filteredParts.map(part => <tr key={part.id}><td><strong>{part.name}</strong><span>{part.part_number}</span></td><td>{part.category || '未分类'}</td><td>{part.default_unit}</td><td>{statusLabel(part.status)}</td></tr>)}</tbody>
+                  </table></div>
+                ) : <div className={styles.archiveEmpty}><span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span><strong>{modelSearch ? '没有找到匹配零件' : '暂无生产零件'}</strong><p>{modelSearch ? '试试其他搜索条件。' : '零件会在这里按行展示，并供生产制造编制 BOM 时引用。'}</p>{!modelSearch ? <button className={styles.archivePrimaryButton} type="button" onClick={() => setCreateKind('part')}>＋ 新建零件</button> : null}</div>
+              ) : (
+                catalogError ? <div className={styles.archiveEmpty}>商品数据不可用，请先检查接口。</div> :
+                filteredAccessories.length ? (
+                  <div className={styles.archiveTableWrap}><table className={styles.archiveTable} aria-label="可售配件档案">
+                    <thead><tr><th>商品名称 / 编码</th><th>类型</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>{filteredAccessories.map(({ model }) => <tr key={model.id}><td><strong>{model.name}</strong><span>{model.code}</span></td><td>{catalog.productTypes.find(type => type.code === model.product_type_code)?.name ?? model.product_type_code}</td><td>{statusLabel(model.status)}</td><td><button className={styles.archiveEdit} type="button" onClick={() => setEdit({entity:'model',id:model.id,version:model.version,name:model.name,status:model.status,description:model.description})}>编辑</button></td></tr>)}</tbody>
+                  </table></div>
+                ) : <div className={styles.archiveEmpty}><span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span><strong>{modelSearch ? '没有找到匹配配件' : '暂无可售配件'}</strong><p>可售配件在这里建档，商城上架与定价仍在商城运营管理。</p>{!modelSearch ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('ACCESSORY');setCreateKind('accessory');}}>＋ 新建可售配件</button> : null}</div>
+              )}
+            </div>
+          </section>
+        ) : null}
 
-      <details className={styles.collapsiblePanel} id="product-info-panel">
-        <summary>产品分类与技术平台 <span>按需展开查看</span></summary>
-      <section className={styles.section} id="product-types" aria-label="产品类型">
+        {workspace === 'platforms' ? (
+          <section id="product-types" className={styles.archivePanel} aria-label="技术平台管理">
+            <div className={styles.archivePanelTitle} id="series"><div><h2>技术平台档案</h2><p>技术平台用于归类整车，不和销售 SKU 混用</p></div><span>{loading || catalogError ? '—' : catalog.platforms.length} 条记录</span></div>
+            <div className={styles.archiveFilters}><label className={styles.archiveSearch}><span className={styles.srOnly}>搜索技术平台</span><input value={modelSearch} onChange={event => setModelSearch(event.target.value)} placeholder="搜索平台名称、编码或说明" aria-label="搜索技术平台" /></label></div>
+            {loading ? <div className={styles.archiveLoading}>正在读取技术平台…</div> :
+              catalogError ? <div className={styles.archiveEmpty}>技术平台暂时无法读取，请检查接口。</div> :
+              filteredPlatforms.length ? (
+                <div className={styles.platformTableWrap}><table className={styles.platformTable} aria-label="技术平台档案">
+                  <thead><tr><th>平台编码</th><th>平台名称</th><th>说明</th><th>关联整车</th><th>状态</th></tr></thead>
+                  <tbody>{[...filteredPlatforms].sort((a,b)=>a.code.localeCompare(b.code)).map(platform => <tr key={platform.id}>
+                    <td><strong>{platform.code}</strong></td><td>{platformName(platform)}</td><td>{platformDescription(platform) || '—'}</td><td>{catalog.models.filter((model) => model.platform_id === platform.id).length}</td><td>{statusLabel(platform.status)}</td>
+                  </tr>)}</tbody>
+                </table></div>
+              ) : <div className={styles.archiveEmpty}><span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span><strong>{modelSearch ? '没有匹配的平台' : '目前没有技术平台记录'}</strong><p>平台信息来自真实数据库，不会自动生成默认型号。</p></div>}
+            <p className={styles.archiveFootnote}>当前仅支持查看技术平台。新增与编辑接口尚未开放，避免提供无法保存的操作。</p>
+          </section>
+        ) : null}
+
+        {workspace === 'bikes' ? (
+          <details className={styles.workspaceAdvanced} id="product-maintenance-panel">
+            <summary>配置版本与 SKU 管理 <span>需要维护规格时展开 <span aria-hidden="true">⌄</span></span></summary>
+                  <section className={styles.section} id="models">
         <div className={styles.sectionHead}>
-          <div><span>COMMERCIAL PRODUCT TYPES</span><h2>产品类型</h2></div>
-          <p>类型决定商品属于整车、配件还是维修零件；FC/CT/FT/GT 是整车技术平台，不与商品类型混用。</p>
-        </div>
-        <div className={styles.typeGrid}>
-          {catalog.productTypes.map(type=><article key={type.code} className={styles.typeCard}>
-            <small>{type.code}</small><strong>{type.name}</strong>
-            <span>{type.description}</span>
-            <b>{catalog.models.filter(model=>model.product_type_code===type.code).length} 个商品主记录</b>
-          </article>)}
-        </div>
-        {!catalog.productTypes.length?<p className={styles.emptyState}>产品类型尚不可用。请确认后台 API 与数据库迁移版本；原有产品操作继续保留。</p>:null}
-      </section>
-
-      <section className={styles.seriesSection} id="series">
-        <div className={styles.sectionHead}>
-          <div><span>TECHNOLOGY PLATFORMS</span><h2>技术平台</h2></div>
-          <p>技术平台用于关联整车。此处只展示数据库中的平台档案，不固定 FC、CT 等编码，也不会自动创建任何平台或型号。</p>
-        </div>
-        {catalog.platforms.length ? (
-          <div className={styles.platformTableWrap}>
-            <table className={styles.platformTable} aria-label="技术平台档案">
-              <thead><tr><th>平台编码</th><th>平台名称</th><th>说明</th><th>关联整车</th><th>状态</th></tr></thead>
-              <tbody>
-                {[...catalog.platforms].sort((a, b) => a.code.localeCompare(b.code)).map((platform) => (
-                  <tr key={platform.id}>
-                    <td><strong>{platform.code}</strong></td>
-                    <td>{platformName(platform)}</td>
-                    <td>{platformDescription(platform) || '—'}</td>
-                    <td>{catalog.models.filter((model) => model.platform_id === platform.id).length}</td>
-                    <td>{statusLabel(platform.status)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className={styles.emptySeries}>{loading ? '正在读取技术平台…' : catalogError ? '平台数据未能读取；请检查接口状态。' : '目前没有已登记的技术平台。'}</div>
-        )}
-        <p className={styles.platformHelp}>平台新增和编辑接口目前尚未开放；这里仅显示已保存的真实记录，避免误以为能够直接修改。</p>
-      </section>
-
-      </details>
-
-      <details className={styles.collapsiblePanel} id="product-maintenance-panel">
-        <summary>商品版本、SKU 与创建维护 <span>按需展开操作</span></summary>
-      <section className={styles.section} id="models">
-        <div className={styles.sectionHead}>
-          <div><span>PRODUCT STRUCTURE</span><h2>产品结构明细：车型 → Variant → SKU</h2></div>
-          <p>这里用于维护型号下的商业版本与可销售 SKU；总表负责筛选和查看，结构树负责编辑下级产品对象。</p>
+          <div><span>PRODUCT STRUCTURE</span><h2>配置版本与 SKU 明细</h2></div>
+          <p>仅在需要管理版本和规格时展开；整车主档案仍保持一条记录一行。</p>
         </div>
         <div className={styles.hierarchy}>
-          {hierarchyRows.map(({ model, platform, variants }) => (
+          {hierarchyRows.filter(({ model }) => model.product_type_code === 'BIKE').map(({ model, platform, variants }) => (
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
                 <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
@@ -388,25 +377,10 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           ))}
         </div>
       </section>
-
-      <section className={styles.formsGrid} id="configuration">
-        <form onSubmit={(e) => void submitForm(e, '/v1/product/models', (f) => ({ productTypeCode: f.get('productTypeCode'), platformId: newModelType==='BIKE' ? f.get('platformId') : null, code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
-          <span>新建商品</span><h3>创建商品主记录</h3>
-          <label>产品类型
-            <select name="productTypeCode" value={newModelType} onChange={event=>setNewModelType(event.target.value)} required>
-              {selectableProductTypes.map(type=><option key={type.code} value={type.code}>{type.name}</option>)}
-            </select>
-          </label>
-          {newModelType==='BIKE'?<select name="platformId" required defaultValue=""><option value="" disabled>选择技术平台（整车）</option>{catalog.platforms.map((p) => <option key={p.id} value={p.id}>{p.code} · {platformName(p)}</option>)}</select>:<p>非整车不关联 FC / CT / FT / GT 技术平台；仍使用同一套商品 ID → Variant → SKU。</p>}
-          <input name="code" placeholder={newModelType==='BIKE'?'例如：FC1':'例如：ACCESSORY-RACK'} required />
-          <input name="name" placeholder="车型名称" required />
-          <input name="description" placeholder="车型说明" />
-          <button>创建商品</button>
-        </form>
-
-        <form onSubmit={(e) => void submitForm(e, '/v1/product/variants', (f) => ({ modelId: f.get('modelId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
+            <section className={styles.formsGrid}>
+                      <form onSubmit={(e) => void submitForm(e, '/v1/product/variants', (f) => ({ modelId: f.get('modelId'), code: f.get('code'), name: f.get('name'), description: f.get('description') }))}>
           <span>商品 ID 不变</span><h3>添加商业版本</h3>
-          <select name="modelId" required defaultValue=""><option value="" disabled>选择车型</option>{catalog.models.map((m) => <option key={m.id} value={m.id}>{m.code}</option>)}</select>
+          <select name="modelId" required defaultValue=""><option value="" disabled>选择车型</option>{catalog.models.filter(m => m.product_type_code === 'BIKE').map((m) => <option key={m.id} value={m.id}>{m.code}</option>)}</select>
           <input name="code" placeholder="例如：PRO" required />
           <input name="name" placeholder="例如：Pro" required />
           <input name="description" placeholder="版本说明" />
@@ -421,30 +395,56 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           <div className={styles.inline}><input name="marketCode" maxLength={2} placeholder="市场 DE" /><input name="colorCode" placeholder="颜色 BLACK" /><input name="sizeCode" placeholder="尺寸 20" /></div>
           <button>创建 SKU</button>
         </form>
-      </section>
 
-      </details>
+            </section>
+          </details>
+        ) : null}
+      </main>
 
-      <details className={styles.collapsiblePanel} id="parts-library-panel">
-        <summary>零件主数据 <span>零件档案由你自己录入</span></summary>
-        <section className={styles.section} id="parts">
-          <div className={styles.sectionHead}><div><h2>零件库</h2></div><p>此处只维护零件资料；BOM 用料和版本在生产制造建立。</p></div>
-          {engineeringError ? <p className={styles.notice} role="alert">零件数据无法读取：{engineeringError}</p> : null}
-          <div className={styles.listCard}>
-            {engineering.parts.map(part => <div className={styles.listRow} key={part.id}><b>{part.part_number}</b><span>{part.name}</span><small>{part.category} · {part.default_unit} · {statusLabel(part.status)}</small></div>)}
-            {!engineering.parts.length && <small>{loading ? '正在读取零件…' : engineeringError ? '零件接口暂不可用' : '还没有零件，请在下方新建。'}</small>}
-          </div>
-          <section className={styles.formsGrid}>
-            <form onSubmit={e => void submitForm(e, '/v1/engineering/parts', f => ({ partNumber: f.get('partNumber'), name: f.get('name'), category: f.get('category'), defaultUnit: f.get('defaultUnit') }))}>
-              <span>零件建档</span><h3>新建零件</h3>
-              <input name="partNumber" placeholder="零件编码" required />
-              <input name="name" placeholder="零件名称" required />
-              <div className={styles.inline}><input name="category" placeholder="分类" /><input name="defaultUnit" placeholder="单位，例如 EA" required /></div>
-              <button>保存零件</button>
-            </form>
-          </section>
-        </section>
-      </details>
+      {createKind ? (
+        <div className={styles.modal} onMouseDown={() => setCreateKind(null)} role="presentation">
+          <form className={styles.createCard} id="configuration"
+            role="dialog" aria-modal="true" aria-label={createKind === 'bike' ? '新建整车' : createKind === 'part' ? '新建零件' : '新建可售配件'}
+            onMouseDown={event => event.stopPropagation()} onKeyDown={event => { if (event.key === 'Escape') setCreateKind(null); }}
+            onSubmit={event => void submitForm(event,
+              createKind === 'part' ? '/v1/engineering/parts' : '/v1/product/models',
+              form => createKind === 'part' ?
+                {partNumber: form.get('partNumber'), name: form.get('name'), category: form.get('category'), defaultUnit: form.get('defaultUnit')} :
+                {productTypeCode: createKind === 'bike' ? 'BIKE' : form.get('productTypeCode'), platformId: createKind === 'bike' ? form.get('platformId') : null, code: form.get('code'), name: form.get('name'), description: form.get('description')},
+              () => setCreateKind(null))}>
+            <div className={styles.createCardHeading}>
+              <div><span>商品档案</span><h2>{createKind === 'bike' ? '新建整车' : createKind === 'part' ? '新建生产零件' : '新建可售配件'}</h2><p>填写基础信息后保存；不会自动建立 SKU、BOM 或商城绑定。</p></div>
+              <button type="button" className={styles.createClose} aria-label="关闭" onClick={() => setCreateKind(null)}>×</button>
+            </div>
+            {createKind === 'part' ? (
+              <>
+                <label>零件编码 <input name="partNumber" autoFocus required maxLength={100} placeholder="输入唯一零件编码" /></label>
+                <label>零件名称 <input name="name" required maxLength={160} placeholder="输入零件名称" /></label>
+                <div className={styles.createGrid}><label>分类 <input name="category" placeholder="可选" /></label><label>计量单位 <input name="defaultUnit" required placeholder="如 EA" /></label></div>
+              </>
+            ) : (
+              <>
+                {createKind === 'accessory' ? (
+                  <label>商品类型 <select name="productTypeCode" value={newModelType} onChange={event => setNewModelType(event.target.value)} required>
+                    {selectableProductTypes.filter(type => type.code !== 'BIKE').map(type => <option key={type.code} value={type.code}>{type.name}</option>)}
+                  </select></label>
+                ) : (
+                  <label>技术平台 <select name="platformId" defaultValue="" required><option value="" disabled>选择已有技术平台</option>{catalog.platforms.map(platform => <option key={platform.id} value={platform.id}>{platform.name} · {platform.code}</option>)}</select></label>
+                )}
+                {createKind === 'bike' && !catalog.platforms.length ? <p className={styles.archiveError}>目前没有可选择的技术平台；现有创建 API 要求整车关联平台。请先完成平台建档能力。</p> : null}
+                {createKind === 'accessory' && !selectableProductTypes.some(type => type.code !== 'BIKE') ? <p className={styles.archiveError}>当前商品类型接口尚未提供可售配件类型，无法创建。</p> : null}
+                <label>商品编码 <input name="code" autoFocus required maxLength={80} placeholder="输入唯一商品编码" /></label>
+                <label>商品名称 <input name="name" required maxLength={160} placeholder="输入商品名称" /></label>
+                <label>说明（可选） <textarea name="description" rows={3} placeholder="简要描述商品" /></label>
+              </>
+            )}
+            <div className={styles.createActions}>
+              <button type="button" className={styles.archiveSecondaryButton} onClick={() => setCreateKind(null)}>取消</button>
+              <button type="submit" className={styles.archivePrimaryButton} disabled={(createKind === 'bike' && !catalog.platforms.length) || (createKind === 'accessory' && !selectableProductTypes.some(type => type.code !== 'BIKE'))}>保存档案</button>
+            </div>
+          </form>
+        </div>
+      ) : null}
       </> : null}
 
       {view === "engineering" ? <>

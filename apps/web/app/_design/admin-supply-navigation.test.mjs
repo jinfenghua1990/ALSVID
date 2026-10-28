@@ -41,5 +41,5 @@ test('parts menu opens the actual user-maintained parts registry', () => {
   assert.match(product, /id="parts"/);
   assert.match(product, /const panel = target\?\.closest\('details'\)/);
   assert.match(product, /if \(panel\) panel\.open = true/);
-  assert.match(product, /\{engineering\.parts\.map\(part =>/);
+  assert.match(product, /filteredParts\.map\(part =>/);
 });
