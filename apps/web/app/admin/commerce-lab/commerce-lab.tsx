@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useAdminWorkspaceState } from '../_components/admin-workspace-keeper';
 import styles from './commerce-lab.module.css';
 
 type View = 'overview' | 'storefront' | 'admin' | 'mapping';
@@ -25,16 +25,16 @@ const mapping = [
 ];
 
 export function CommerceLab() {
-  const [view, setView] = useState<View>('overview');
-  const [items, setItems] = useState<Item[]>(initialItems);
-  const [cart, setCart] = useState<Line[]>([]);
-  const [orders, setOrders] = useState<DemoOrder[]>([]);
-  const [adminTab, setAdminTab] = useState<'products' | 'orders'>('products');
-  const [query, setQuery] = useState('');
-  const [mobile, setMobile] = useState(false);
-  const [bagOpen, setBagOpen] = useState(false);
-  const [notice, setNotice] = useState('');
-  const [selected, setSelected] = useState<Item | null>(null);
+  const [view, setView] = useAdminWorkspaceState<View>('commerce-lab.view', 'overview');
+  const [items, setItems] = useAdminWorkspaceState<Item[]>('commerce-lab.items', initialItems);
+  const [cart, setCart] = useAdminWorkspaceState<Line[]>('commerce-lab.cart', []);
+  const [orders, setOrders] = useAdminWorkspaceState<DemoOrder[]>('commerce-lab.orders', []);
+  const [adminTab, setAdminTab] = useAdminWorkspaceState<'products' | 'orders'>('commerce-lab.admin-tab', 'products');
+  const [query, setQuery] = useAdminWorkspaceState('commerce-lab.query', '');
+  const [mobile, setMobile] = useAdminWorkspaceState('commerce-lab.mobile', false);
+  const [bagOpen, setBagOpen] = useAdminWorkspaceState('commerce-lab.bag-open', false);
+  const [notice, setNotice] = useAdminWorkspaceState('commerce-lab.notice', '');
+  const [selected, setSelected] = useAdminWorkspaceState<Item | null>('commerce-lab.selected', null);
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
