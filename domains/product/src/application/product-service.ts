@@ -140,6 +140,54 @@ export class ProductService {
     return updated;
   }
 
+  /** Technical platform identity is user-owned. Codes never change after creation. */
+  async createPlatform(actor: ProductActor, input: { code: string; name: string; description?: string }) {
+    requireCapability(actor, ProductCapability.Write);
+    if (!input || typeof input.code !== 'string') throw new ProductValidationError('Platform code is required');
+    const code = normalizeProductCode(input.code);
+    const name = requirePlatformName(input.name);
+    const description = normalizePlatformDescription(input.description);
+    try {
+      const row = await this.repository.createPlatform({ code, name, description, actorUserId: actor.userId });
+      await this.audit.record({ actorUserId: actor.userId, action: 'product.platform_created',
+        targetType: 'product.platform', targetId: row.id, metadata: { code } });
+      return row;
+    } catch (error) {
+      mapCreateError(error, 'Platform code already exists', 'Platform creator not found');
+    }
+  }
+
+  async updatePlatform(actor: ProductActor, id: string, input: {
+    expectedVersion: number; name?: string; description?: string; status?: ProductStatus;
+  }) {
+    requireCapability(actor, ProductCapability.Write);
+    if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id)) throw new ProductValidationError('Invalid platform ID');
+    if (!input || !Number.isInteger(input.expectedVersion) || input.expectedVersion < 1)
+      throw new ProductValidationError('expectedVersion is required');
+    if (input.status !== undefined && !['DRAFT', 'ACTIVE', 'RETIRED'].includes(input.status))
+      throw new ProductValidationError('Unsupported platform status');
+    if (input.name === undefined && input.description === undefined && input.status === undefined)
+      throw new ProductValidationError('No platform changes supplied');
+    const row = await this.repository.updatePlatform({
+      id, expectedVersion: input.expectedVersion,
+      name: input.name === undefined ? null : requirePlatformName(input.name),
+      status: input.status ?? null,
+      descriptionProvided: input.description !== undefined,
+      description: normalizePlatformDescription(input.description),
+      actorUserId: actor.userId,
+    });
+    if (!row) {
+      if (!await this.repository.platformExists(id)) throw new ProductNotFoundError('Platform not found');
+      if (input.status === 'RETIRED' && await this.repository.platformHasUnretiredModels(id))
+        throw new ProductValidationError('Retire or reassign linked bike models before archiving this platform');
+      throw new ProductConflictError('Platform changed since it was loaded; reload before saving');
+    }
+    await this.audit.record({ actorUserId: actor.userId, action: 'product.platform_updated',
+      targetType: 'product.platform', targetId: row.id,
+      metadata: { status: row.status, version: row.version } });
+    return row;
+  }
+
   async createModel(actor: ProductActor, input: { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
     const code = normalizeProductCode(input.code);
@@ -150,6 +198,7 @@ export class ProductService {
     if (!input.name?.trim()) throw new ProductValidationError('Model name is required');
     try {
       const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', actorUserId: actor.userId });
+      if (!row) throw new ProductValidationError('Selected technical platform is missing or not active');
       await this.audit.record({ actorUserId: actor.userId, action: 'product.model_created', targetType: 'product.model', targetId: row.id, metadata: { code } });
       return row;
     } catch (error) {
@@ -220,6 +269,19 @@ export class ProductService {
     await this.audit.record({ actorUserId: actor.userId, action: `product.${entity}_updated`, targetType: `product.${entity}`, targetId: id });
     return row;
   }
+}
+
+function requirePlatformName(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > 160)
+    throw new ProductValidationError('Platform name must be 1–160 characters');
+  return value.trim();
+}
+
+function normalizePlatformDescription(value: unknown): string {
+  if (value === undefined || value === null) return '';
+  if (typeof value !== 'string' || value.trim().length > 2000)
+    throw new ProductValidationError('Platform description must be at most 2000 characters');
+  return value.trim();
 }
 
 function requireCapability(actor: ProductActor, capability: string): void {

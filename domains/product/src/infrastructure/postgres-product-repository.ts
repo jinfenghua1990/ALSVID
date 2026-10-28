@@ -1,7 +1,7 @@
 import type { DatabasePort } from '@alsvid/database';
-import type { HomepageBinding, ProductCatalog, ProductEntityKind } from '../core/model.js';
+import type { HomepageBinding, PlatformRow, ProductCatalog, ProductEntityKind } from '../core/model.js';
 import type { CatalogPublishAssetRow,PublicationRow, PublicationDraft, PublicationStatus } from '../core/publication.js';
-import type { CreateModelRecord, CreateSkuRecord, CreateVariantRecord, ProductRepository, UpdateProductRecord } from '../application/ports.js';
+import type { CreateModelRecord, CreatePlatformRecord, CreateSkuRecord, CreateVariantRecord, ProductRepository, UpdatePlatformRecord, UpdateProductRecord } from '../application/ports.js';
 
 export class PostgresProductRepository implements ProductRepository {
   constructor(private readonly database: DatabasePort) {}
@@ -17,6 +17,41 @@ export class PostgresProductRepository implements ProductRepository {
     return { productTypes: productTypes.rows, platforms: platforms.rows, models: models.rows, variants: variants.rows, skus: skus.rows.map((row) => ({ ...row, market_code: row.market_code?.trim() ?? null })) };
   }
 
+
+  async createPlatform(input: CreatePlatformRecord): Promise<PlatformRow> {
+    const result = await this.database.query<PlatformRow>(
+      `INSERT INTO product.platforms(code,name,description,status,created_by,updated_by)
+       VALUES ($1,$2,$3,'DRAFT',$4,$4) RETURNING id,code,name,description,status,version,created_at,updated_at`,
+      [input.code,input.name,input.description,input.actorUserId],
+    );
+    return result.rows[0]!;
+  }
+
+  async updatePlatform(input: UpdatePlatformRecord): Promise<PlatformRow | null> {
+    const result = await this.database.query<PlatformRow>(
+      `UPDATE product.platforms p SET name=COALESCE($3,name),status=COALESCE($4,status),
+         description=CASE WHEN $5::boolean THEN $6 ELSE description END,
+         version=version+1,updated_by=$7,updated_at=now()
+       WHERE p.id=$1 AND p.version=$2
+         AND ($4::text IS DISTINCT FROM 'RETIRED'
+              OR NOT EXISTS (SELECT 1 FROM product.models m
+                  WHERE m.platform_id=p.id AND m.status <> 'RETIRED'))
+       RETURNING id,code,name,description,status,version,created_at,updated_at`,
+      [input.id,input.expectedVersion,input.name,input.status,input.descriptionProvided,input.description,input.actorUserId],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  async platformExists(id: string): Promise<boolean> {
+    const result = await this.database.query('SELECT 1 FROM product.platforms WHERE id=$1', [id]);
+    return result.rows.length > 0;
+  }
+
+  async platformHasUnretiredModels(id: string): Promise<boolean> {
+    const result = await this.database.query(
+      "SELECT 1 FROM product.models WHERE platform_id=$1 AND status <> 'RETIRED' LIMIT 1", [id]);
+    return result.rows.length > 0;
+  }
 
   async homepageBindings(): Promise<HomepageBinding[]> {
     const result = await this.database.query<any>(`
@@ -152,11 +187,16 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async createModel(input: CreateModelRecord): Promise<any> {
-    const result = await this.database.query<any>(
-      `INSERT INTO product.models(platform_id,product_type_code,code,name,description,created_by,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING *`,
-      [input.platformId, input.productTypeCode, input.code, input.name, input.description, input.actorUserId],
-    );
-    return result.rows[0];
+    // Lock the ACTIVE platform row while creating a bike to serialize archive/create.
+    const sql = input.productTypeCode === 'BIKE'
+      ? `INSERT INTO product.models(platform_id,product_type_code,code,name,description,created_by,updated_by)
+         SELECT p.id,$2,$3,$4,$5,$6,$6 FROM product.platforms p
+         WHERE p.id=$1 AND p.status='ACTIVE' FOR UPDATE OF p RETURNING *`
+      : `INSERT INTO product.models(platform_id,product_type_code,code,name,description,created_by,updated_by)
+         VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING *`;
+    const result = await this.database.query<any>(sql,
+      [input.platformId, input.productTypeCode, input.code, input.name, input.description, input.actorUserId]);
+    return result.rows[0] ?? null;
   }
 
   async createVariant(input: CreateVariantRecord): Promise<any> {

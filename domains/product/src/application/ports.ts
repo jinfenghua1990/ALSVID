@@ -1,4 +1,4 @@
-import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
+import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, PlatformRow, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
 import type { CatalogPublishAssetRow,PublicationRow,PublicationStatus,PublicationDraft } from '../core/publication.js';
 
 export interface ProductActor {
@@ -14,6 +14,23 @@ export interface ProductAuditPort {
     targetId: string;
     metadata?: Record<string, unknown>;
   }): Promise<void>;
+}
+
+export interface CreatePlatformRecord {
+  code: string;
+  name: string;
+  description: string;
+  actorUserId: string;
+}
+
+export interface UpdatePlatformRecord {
+  id: string;
+  expectedVersion: number;
+  name: string | null;
+  status: ProductStatus | null;
+  descriptionProvided: boolean;
+  description: string;
+  actorUserId: string;
 }
 
 export interface CreateModelRecord {
@@ -77,6 +94,10 @@ export interface ProductRepository {
   homepageBindingExists(slot: HomepageSlotCode): Promise<boolean>;
   modelForHomepageSlot(slot: HomepageSlotCode, modelId: string): Promise<boolean>;
   catalog(): Promise<ProductCatalog>;
+  createPlatform(input: CreatePlatformRecord): Promise<PlatformRow>;
+  updatePlatform(input: UpdatePlatformRecord): Promise<PlatformRow | null>;
+  platformExists(id: string): Promise<boolean>;
+  platformHasUnretiredModels(id: string): Promise<boolean>;
   createModel(input: CreateModelRecord): Promise<any>;
   createVariant(input: CreateVariantRecord): Promise<any>;
   createSku(input: CreateSkuRecord): Promise<any>;

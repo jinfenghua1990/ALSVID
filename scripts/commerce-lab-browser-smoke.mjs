@@ -157,6 +157,12 @@ try {
   await archive.locator('#series').waitFor();
   await archive.getByRole('table', { name: '技术平台档案' }).waitFor();
   assert.equal(await archive.getByRole('row', { name: /Folding Carbon/ }).count(), 1, 'only backed technical platforms are shown');
+  await archive.getByRole('button', { name: '新建技术平台' }).click();
+  await archive.getByRole('dialog', { name: '新建技术平台' }).waitFor();
+  await archive.getByRole('dialog', { name: '新建技术平台' }).getByRole('button', { name: '取消' }).click();
+  await archive.getByRole('row', { name: /Folding Carbon/ }).getByRole('button', { name: '编辑' }).click();
+  await archive.getByRole('dialog', { name: '编辑技术平台' }).waitFor();
+  await archive.getByRole('dialog', { name: '编辑技术平台' }).getByRole('button', { name: '取消' }).click();
   await page.screenshot({ path: path.join(output, 'admin-product-platforms-desktop.png'), fullPage: true });
   report.checks.push('product archive has focused bicycle, parts and platform views; create dialogs open without writes');
 
