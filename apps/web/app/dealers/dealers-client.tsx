@@ -235,7 +235,10 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
             <input id="dealer-note" name="note" placeholder="商业 / 运营备注" />
             {partnerLoad === 'error' ? <p className={styles.formHelp} role="alert">{partnerError}</p> : null}
             {partnerLoad === 'ready' && eligiblePartners.length === 0
-              ? <p className={styles.formHelp}>没有可选的合作伙伴。请先在合作伙伴管理建立具备 DEALER 角色的主体。</p> : null}
+              ? <p className={styles.formHelp}>没有可选的合作伙伴。请先
+                  <a href="/admin/partners">建立合作伙伴主体并选择「经销商」角色</a>，然后返回此处建档。</p> : null}
+            <p className={styles.formHelp}>尚未登记公司？<a href="/admin/partners">进入合作伙伴主体管理</a>。
+              登记公司和联系信息后，返回此处设置销售市场与服务能力。</p>
             <button type="submit" disabled={dealerLoad !== 'ready' || partnerLoad !== 'ready' || eligiblePartners.length === 0}>创建经销商档案</button>
           </form>
           <div className={styles.rule}>
