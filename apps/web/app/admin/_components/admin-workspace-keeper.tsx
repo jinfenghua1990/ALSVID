@@ -14,6 +14,24 @@ import {
 const DraftContext = createContext<AdminWorkspaceDraftStore | null>(null);
 
 /**
+ * Next App Router may remount its authenticated layout while navigating,
+ * even when a child navigation uses router.push. A ref inside that layout
+ * therefore is NOT enough to retain unsaved component drafts.
+ *
+ * Keep the store in this browser JavaScript realm (never in localStorage,
+ * sessionStorage or on the server). Full reload/logout creates a fresh realm.
+ * On SSR use an isolated throwaway instance, never a process-wide singleton.
+ */
+let browserDrafts: AdminWorkspaceDraftStore | null = null;
+function currentDraftStore(): AdminWorkspaceDraftStore {
+  if (typeof window === 'undefined') return createAdminWorkspaceDraftStore();
+  browserDrafts ??= createAdminWorkspaceDraftStore();
+  return browserDrafts;
+}
+
+let verifiedSessionUserId: string | null = null;
+
+/**
  * Opt-in ephemeral state for an Admin client screen, kept in the authenticated
  * Admin layout across Next App Router transitions. Not a general RSC/page cache.
  * Server facts and remote mutations must NOT be stored here.
@@ -53,9 +71,7 @@ export function AdminWorkspaceKeeper({ children }: { children: ReactNode }) {
   const query = useSearchParams().toString();
   const location = pathname + (query ? '?' + query : '');
   const router = useRouter();
-  const draftsRef = useRef<AdminWorkspaceDraftStore | null>(null);
-  if (!draftsRef.current) draftsRef.current = createAdminWorkspaceDraftStore();
-  const drafts = draftsRef.current;
+  const drafts = currentDraftStore();
 
   useEffect(() => { drafts.touch(pathname); }, [drafts, pathname]);
 
@@ -74,16 +90,34 @@ export function AdminWorkspaceKeeper({ children }: { children: ReactNode }) {
           cache: 'no-store', redirect: 'manual',
         });
         if (result.status !== 200 || result.type === 'opaqueredirect') {
+          drafts.clear();
           window.location.assign(url);
           return;
         }
+        const session: unknown = await result.json();
+        const userId = session && typeof session === 'object' &&
+          'userId' in session && typeof session.userId === 'string'
+          ? session.userId : null;
+        if (!userId) {
+          drafts.clear();
+          window.location.assign(url);
+          return;
+        }
+        if (verifiedSessionUserId && verifiedSessionUserId !== userId) {
+          // A cookie change to another account must never reuse old drafts.
+          drafts.clear();
+          verifiedSessionUserId = userId;
+          window.location.assign(url);
+          return;
+        }
+        verifiedSessionUserId = userId;
         router.push(url);
       } catch {
         // Fail closed: full navigation invokes the original AdminLayout guard.
         window.location.assign(url);
       }
     })();
-  }, [router]);
+  }, [router, drafts]);
 
   const close = useCallback((url: string) => {
     if (isSafeAdminRoute(url)) {
