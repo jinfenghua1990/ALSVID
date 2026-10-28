@@ -37,5 +37,11 @@ test('product archive is list-first with advanced sections collapsed', () => {
   assert.match(css, /\.archiveEmpty/);
   assert.match(css, /\.archiveHeading h1/);
   assert.match(css, /\.createCard/);
+  assert.match(client, /自定义字段管理/);
+  assert.match(client, /function ModelFieldInputs/);
+  assert.match(client, /readModelFields/);
+  assert.match(client, /\/v1\/product\/model-fields/);
+  assert.match(client, /aria-label="商品字段定义"/);
+  assert.match(css, /\.fieldManagerCard/);
 
 });

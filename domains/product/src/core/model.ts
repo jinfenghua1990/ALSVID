@@ -14,6 +14,19 @@ export type HomepageBinding = {
   resolved_model_code: string | null; version: number;
 };
 export type ProductEntityKind = 'model' | 'variant' | 'sku';
+export type CustomFieldType = 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'SELECT';
+export type CustomFieldValue = string | number | boolean;
+export interface ModelFieldDefinition {
+  id: string;
+  product_type_code: ProductTypeCode;
+  code: string;
+  label: string;
+  field_type: CustomFieldType;
+  options: string[];
+  required: boolean;
+  status: 'ACTIVE' | 'RETIRED';
+  version: number;
+}
 
 export interface ProductRowBase {
   id: string;
@@ -31,6 +44,7 @@ export interface ProductRowBase {
 export interface PlatformRow extends ProductRowBase {}
 
 export interface ModelRow extends ProductRowBase {
+  custom_fields: Record<string, CustomFieldValue>;
   platform_id: string | null;
   product_type_code: ProductTypeCode;
 }
@@ -52,6 +66,7 @@ export interface SkuRow extends ProductRowBase {
 export interface ProductCatalog {
   productTypes: { code: ProductTypeCode; name: string; description: string; status: ProductStatus }[];
   platforms: PlatformRow[];
+  modelFieldDefinitions: ModelFieldDefinition[];
   models: ModelRow[];
   variants: VariantRow[];
   skus: SkuRow[];

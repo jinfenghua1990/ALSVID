@@ -141,6 +141,13 @@ try {
   assert.equal(await createBicycle.getByRole('textbox', { name: '商品编码' }).count(), 1);
   await createBicycle.getByRole('button', { name: '取消' }).click();
   assert.equal(await archive.getByRole('dialog').count(), 0, 'cancelling new product does not write data');
+  await archive.getByRole('button', { name: '自定义字段管理' }).click();
+  await archive.getByRole('dialog', { name: '管理商品字段' }).waitFor();
+  await archive.getByRole('button', { name: '新建字段' }).click();
+  await archive.getByRole('dialog', { name: '新建商品字段' }).waitFor();
+  await archive.getByRole('dialog', { name: '新建商品字段' }).getByRole('button', { name: '取消' }).click();
+  await archive.getByRole('dialog', { name: '管理商品字段' }).getByRole('button', { name: '关闭' }).click();
+  report.checks.push('model custom field management and create dialogs render without fixture writes');
 
   await page.goto(base + '/admin/product?type=PARTS#parts');
   await archive.getByRole('heading', { name: '零配件', exact: true }).waitFor();
