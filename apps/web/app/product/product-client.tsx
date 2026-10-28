@@ -25,7 +25,6 @@ const emptyEngineering: Engineering = { parts: [], boms: [], buildSpecs: [] };
 // Platform labels come from actual user-maintained records, not hardcoded example platforms.
 function platformName(platform: Platform) { return platform.name; }
 function platformDescription(platform: Platform) { return platform.description; }
-function platformOrder(code: string) { return code; }
 
 function statusLabel(status: string | null | undefined) {
   if (!status) return '未设置';
@@ -319,7 +318,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           <p>固定平台顺序：FC、CT、FT、GT。平台定义产品技术方向；具体车型、配置和 SKU 在下方管理。</p>
         </div>
         <div className={styles.platforms}>
-          {[...catalog.platforms].sort((a, b) => platformOrder(a.code) - platformOrder(b.code)).map((platform) => (
+          {[...catalog.platforms].sort((a, b) => a.code.localeCompare(b.code)).map((platform) => (
             <article key={platform.id}>
               <span>{platform.code}</span>
               <h2>{platformName(platform)}</h2>
@@ -434,6 +433,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
       </> : null}
 
       {view === "engineering" ? <>
+      {message ? <div className={styles.notice} role="status">{message}</div> : null}
+      {catalogError || engineeringError ? <div className={styles.notice} role="alert">生产用料数据读取失败：{[catalogError, engineeringError].filter(Boolean).join('；')}。读取失败不等于没有记录。</div> : null}
       <details className={styles.collapsiblePanel} id="production-bom">
         <summary>BOM / 生产用料清单 <span>创建 BOM、零件用量与生产版本</span></summary>
       <div className={styles.notice} role="note">BOM 从产品研发建立的商品及零件档案引用数据，不重复创建商品或零件。发布后的受控版本不能静默修改。</div>
