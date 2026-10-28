@@ -1,7 +1,7 @@
 'use client';
 import { useEffect,useRef,useState } from 'react';
 import styles from '../admin/portal-page.module.css';
-type Line={id:string;lineNo:number;description:string;orderedQuantity:string;unit:string;requestedDate:string|null};
+type Line={id:string;lineNo:number;lineKind?:'PURCHASE'|'GIFT';description:string;orderedQuantity:string;unit:string;requestedDate:string|null};
 type PurchaseOrder={id:string;poNumber:string;version:number;status:string;currency:string;supplierName:string;issuedAt:string|null;lines:Line[]};
 async function api<T>(path:string,method='GET',body?:unknown):Promise<T>{
  const r=await fetch('/api/control/v1/supplier'+path,{method,cache:'no-store',...(body?{headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{})});
@@ -59,8 +59,8 @@ export function SupplierOrdersClient(){
     <h3>{chosen.poNumber} · {chosen.status}</h3>
     <p>币种 {chosen.currency} · 已发布版本 {chosen.version}。采购单价格与数量不可在此修改。</p>
     <div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}>
-     <thead><tr><th>行号</th><th>物品</th><th>数量</th><th>要求日期</th></tr></thead>
-     <tbody>{chosen.lines.map(l=><tr key={l.id}><td>{l.lineNo}</td><td>{l.description||'已登记物料'}</td><td>{l.orderedQuantity} {l.unit}</td><td>{l.requestedDate??'待定'}</td></tr>)}</tbody>
+     <thead><tr><th>行号</th><th>行性质</th><th>物品</th><th>数量</th><th>要求日期</th></tr></thead>
+     <tbody>{chosen.lines.map(l=><tr key={l.id}><td>{l.lineNo}</td><td>{l.lineKind==='GIFT'?'供应商赠品':'正常采购'}</td><td>{l.description||'已登记物料'}</td><td>{l.orderedQuantity} {l.unit}</td><td>{l.requestedDate??'待定'}</td></tr>)}</tbody>
     </table></div>
     {chosen.status==='ISSUED'?<div style={{display:'grid',gap:10,marginTop:16}}>
      <label>确认说明（必填，不修改采购条件）<textarea value={note} maxLength={1000} rows={3}

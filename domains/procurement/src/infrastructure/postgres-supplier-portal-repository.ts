@@ -2,7 +2,7 @@ import type { DatabasePort, QueryExecutor } from '@alsvid/database';
 import type { SupplierPortalOrder, SupplierPortalRepository, SupplierAcknowledgement } from '../application/supplier-portal-service.js';
 
 type Header={id:string;po_number:string;status:string;version:number;currency:string;issued_at:Date|null;supplier_name:string};
-type Line={id:string;line_no:number;description:string;ordered_quantity:string;unit:string;requested_date:string|null};
+type Line={id:string;line_no:number;line_kind:'PURCHASE'|'GIFT';description:string;ordered_quantity:string;unit:string;requested_date:string|null};
 const scopedWhere=`po.supplier_partner_id IN (
  SELECT m.partner_id FROM identity.supplier_memberships m
  JOIN identity.users u ON u.id=m.user_id AND u.status='ACTIVE'
@@ -13,13 +13,13 @@ const scopedWhere=`po.supplier_partner_id IN (
 const headerSelect=`SELECT po.id,po.po_number,po.status,po.version,po.currency,po.issued_at,p.display_name AS supplier_name
  FROM procurement.purchase_orders po JOIN partners.partners p ON p.id=po.supplier_partner_id
  WHERE ${scopedWhere} AND po.status <> 'DRAFT'`;
-const lineSelect=`SELECT id,line_no,description,ordered_quantity::text,unit,requested_date::text AS requested_date
+const lineSelect=`SELECT id,line_no,line_kind,description,ordered_quantity::text,unit,requested_date::text AS requested_date
  FROM procurement.purchase_order_lines WHERE purchase_order_id=$1 ORDER BY line_no`;
 function iso(value:Date|null){return value?value.toISOString():null}
 function mapOrder(h:Header,lines:Line[]):SupplierPortalOrder{
  return {id:h.id,poNumber:h.po_number,status:h.status,version:h.version,currency:h.currency,
   issuedAt:iso(h.issued_at),supplierName:h.supplier_name,
-  lines:lines.map(x=>({id:x.id,lineNo:x.line_no,description:x.description,
+  lines:lines.map(x=>({id:x.id,lineNo:x.line_no,lineKind:x.line_kind,description:x.description,
    orderedQuantity:x.ordered_quantity,unit:x.unit,requestedDate:x.requested_date}))};
 }
 export class PostgresSupplierPortalRepository implements SupplierPortalRepository {
@@ -30,7 +30,7 @@ export class PostgresSupplierPortalRepository implements SupplierPortalRepositor
   // Scoped query returns at most 100 POs; line detail is also scoped to these IDs.
   if(!r.rows.length)return [];
   const ids=r.rows.map(x=>x.id);
-  const l=await this.db.query<Line & {purchase_order_id:string}>(`SELECT purchase_order_id,id,line_no,description,ordered_quantity::text,unit,requested_date::text AS requested_date
+  const l=await this.db.query<Line & {purchase_order_id:string}>(`SELECT purchase_order_id,id,line_no,line_kind,description,ordered_quantity::text,unit,requested_date::text AS requested_date
    FROM procurement.purchase_order_lines WHERE purchase_order_id=ANY($1::uuid[]) ORDER BY purchase_order_id,line_no`,[ids]);
   return r.rows.map(h=>mapOrder(h,l.rows.filter(x=>x.purchase_order_id===h.id)));
  }
