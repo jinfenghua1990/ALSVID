@@ -26,7 +26,7 @@ test('one primary navigation maps old areas to new business destinations without
   for (const href of ['/admin/product', '/admin/ecommerce', '/admin/dealers', '/admin/production', '/admin/inventory', '/admin/supply', '/admin/customers', '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings']) {
     assert.ok(registry.includes("href: '" + href + "'"), href);
   }
-  assert.ok(registry.includes("href: '/admin/orders'"), 'Ardot order workspace remains a top-level navigation entry');
+  assert.ok(!registry.includes("label: '订单管理'"), 'mixed B2B/B2C order hub is not a primary module');
   assert.match(ui, /const AREAS = ADMIN_MODULES/);
   assert.match(ui, /legacyAreas\.includes\(area\)/);
   assert.match(ui, /商城促销与支付配置|营销活动（待接入）/);
@@ -142,30 +142,40 @@ test('product sidebar links to live sections without permanently highlighting mo
     assert.ok(product.includes('id="' + anchor + '"'), 'product section exists: ' + anchor);
   }
   assert.ok(ui.includes("'产品类型': '/admin/product#product-types'"));
-  assert.ok(ui.includes("'官网商品发布与审核', '首页商品绑定'"));
+  assert.ok(ui.includes("{ group: '商品档案', items: ['整车产品', '零配件', '技术平台'] }"));
+  assert.ok(!ui.includes("{ group: '商城联动'"));
   assert.ok(!styles.includes('.av-body--product .av-railitem[href="/admin/product#model-register"]'));
 });
 
 
-test('primary Admin navigation keeps all 13 canonical modules reachable through primary and more groups', () => {
+test('all 13 canonical business modules are directly visible without More or commerce comparison', () => {
   const ui = read('./renderer.tsx');
-  const popup = read('./admin-more-modules.tsx');
+  const registry = read('./business-module-registry.ts');
   const styles = read('./design-system.css');
-  assert.match(ui, /const PRIMARY_AREAS = AREAS\.filter/);
-  assert.match(ui, /const MORE_AREAS = AREAS\.filter/);
+  const labels = [...registry.matchAll(/\{ label: '([^']+)', href: '(\/admin[^']*)'/g)];
+  assert.equal(labels.length, 13);
+  for (const label of ['商城运营', '库存管理', '跨境物流', '经销商管理', '采购管理', '客户与车主', '财务管理', '经营分析']) {
+    assert.ok(labels.some(match => match[1] === label), label);
+  }
+  assert.match(ui, /const PRIMARY_AREAS = AREAS;/);
   assert.match(ui, /PRIMARY_AREAS\.map/);
-  assert.match(ui, /MORE_AREAS\.map/);
-  assert.match(ui, /<AdminMoreModules/);
-  assert.match(ui, /modules=\{MORE_AREAS\.map/);
-  assert.match(ui, /aria-label="一级导航"/);
-  assert.match(popup, /createPortal\(/, 'popup is not clipped by the horizontally scrolling primary nav');
-  assert.match(popup, /aria-expanded=\{open\}/);
-  assert.match(popup, /event\.key === 'Escape'/);
-  assert.match(popup, /window\.addEventListener\('resize', measure\)/);
-  assert.match(styles, /\.av-moremodules-panel/);
-  assert.match(styles, /z-index: 1200/);
+  assert.doesNotMatch(ui, /AdminMoreModules|MORE_AREAS|href="\/admin\/commerce-lab"/);
+  assert.match(styles, /\.av\.av-ambient \.av-primarynav \{/);
+  assert.match(styles, /flex-wrap: wrap/);
 });
 
+test('inventory prioritizes warehouse and stock tables; aftersales is concise', () => {
+  const ui = read('./renderer.tsx');
+  const inventory = read('../inventory/inventory-client.tsx');
+  assert.match(ui, /'售后': \[\s*\{ group: '售后业务', items: \['售后工单', 'VIN查询'\]/);
+  for (const anchor of ['warehouses', 'balances', 'warehouse-setup', 'stocktake', 'movement-history']) {
+    assert.ok(inventory.includes('id="' + anchor + '"'), anchor);
+  }
+  assert.ok(inventory.indexOf('id="warehouses"') < inventory.indexOf('id="inventory-advanced"'));
+  assert.ok(inventory.indexOf('id="balances"') < inventory.indexOf('id="inventory-advanced"'));
+  assert.match(inventory, /warehouse\.warehouses\.map/);
+  assert.match(inventory, /inventory\.balances\.map/);
+});
 
 test('integrated order hub links to real business workspaces without demo fixture records', () => {
  const ui = read('./renderer.tsx');

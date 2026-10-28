@@ -16,19 +16,17 @@ import { P0OperationsCenter } from './p0-operations-center';
 import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
-import { AdminMoreModules } from './admin-more-modules';
 import ProductClient from '../product/product-client';
+import { BusinessAnalyticsOverview } from './business-analytics-overview';
 
 const AREAS = ADMIN_MODULES;
-const PRIMARY_AREAS = AREAS.filter(area => ['工作台', '产品研发', '订单管理', '电商', '生产制造', '仓储物流', '售后服务'].includes(area.label));
-const MORE_AREAS = AREAS.filter(area => !PRIMARY_AREAS.includes(area));
+// Keep all business modules directly accessible; no hidden More dropdown.
+const PRIMARY_AREAS = AREAS;
 const PRIMARY_AREA_ICONS: Record<string, string> = {
-  '工作台': '🏠', '产品研发': '🧩', '订单管理': '🧾', '电商': '🛒',
-  '生产制造': '🏭', '仓储物流': '🚚', '售后服务': '🛠️', '商城方案对比': '📊',
-  '经销商/B2B': '🏢', '供应链采购': '📦', '客户车主': '👤', '财务结算': '💳',
-  '数据分析': '📈', '设置': '⚙️',
+  '工作台': '🏠', '产品研发': '🧩', '商城运营': '🛒', '经销商管理': '🏢',
+  '生产制造': '🏭', '库存管理': '📦', '跨境物流': '🚢', '采购管理': '📋',
+  '客户与车主': '👤', '售后服务': '🛠️', '财务管理': '💳', '经营分析': '📈', '设置': '⚙️',
 };
-
 
 const QUICK_LINKS: readonly { label: string; portal: 'www' | 'dealer' | 'my'; localHref: string }[] = [
   { label: '官方首页', portal: 'www', localHref: '/home' },
@@ -52,28 +50,23 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '已接入专题', items: ['FC1 颜色偏好'] },
   ],
   '电商': [
-    { group: '电商工作台', items: ['电商工作台'] },
-    { group: '商品管理', items: ['官网商品发布与审核', '首页商品绑定'] },
-    { group: '库存与交易', items: ['电商库存查询', '商城价格管理', 'B2C 订单管理'] },
+    { group: '订单管理', items: ['B2C 订单管理'] },
+    { group: '商城商品', items: ['官网商品发布与审核', '首页商品绑定', '商城价格管理'] },
+    { group: '运营工具', items: ['电商工作台', '电商库存查询'] },
     { group: '后续能力', items: ['营销活动（待接入）', '支付配置（待接入）'] },
   ],
   '财务': [
     { group: '财务工作区', items: ['应收 / 应付与资金', '到岸成本与汇率'] },
   ],
   '物流': [
-    { group: '仓储物流', items: ['库存台账', '出口物流与清关'] },
+    { group: '出口与跨境交付', items: ['出口物流与清关'] },
   ],
   '库存': [
-    { group: '整车库存', items: ['成品车辆', '待交付车辆', '经销商库存', '库存详情'] },
-    { group: '物料库存', items: ['零件库存', '半成品库存', '原材料库存'] },
-    { group: '仓储管理', items: ['仓库管理', '库位管理', '库存调拨'] },
-    { group: '库存分析', items: ['库存预警', '周转分析', '呆滞库存'] },
+    { group: '库存查询', items: ['库存总览', '仓库列表', '库存余额'] },
+    { group: '仓库操作', items: ['仓库与库位维护', '库存流水', '库存盘点'] },
   ],
   '经销商': [
-    { group: '经销商档案', items: ['经销商列表', '联系信息', '合作状态'] },
-    { group: '渠道管理', items: ['区域授权', '销售区域', '渠道等级', '合作协议'] },
-    { group: '采购管理', items: ['B2B订单', '采购历史', '采购预测'] },
-    { group: '经销商运营', items: ['经销商库存', '销售数据', '售后能力', '培训认证'] },
+    { group: '经销商业务', items: ['经销商列表', 'B2B订单（待接入）', '区域授权（待接入）'] },
   ],
   '生产': [
     { group: '生产计划', items: ['生产计划', '排产管理'] },
@@ -82,23 +75,14 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '车辆追溯', items: ['VIN 管理', '出厂记录', '车辆档案'] },
   ],
   '供应链': [
-    { group: '供应商体系', items: ['供应商列表', '供应商档案', '认证管理', '合作状态'] },
-    { group: '采购管理', items: ['采购申请', '采购订单', '到货管理', '入库记录'] },
-    { group: '零件供应', items: ['零件目录', '供应关系', '交付计划', '缺料预警'] },
-    { group: '供应商分析', items: ['质量分析', '交付分析', '成本分析', '综合评分'] },
+    { group: '采购业务', items: ['采购申请', '采购订单', '到货管理', '入库记录'] },
+    { group: '供应商', items: ['供应商列表', '供应商档案'] },
   ],
   '客户': [
-    { group: '客户档案', items: ['客户列表', '联系信息', '账户状态'] },
-    { group: '车辆资产', items: ['VIN绑定', '我的车辆', '车辆状态', '车辆历史'] },
-    { group: '购买记录', items: ['订单记录', '交付记录', '经销商来源'] },
-    { group: '服务生命周期', items: ['保修状态', '维修记录', '保养记录', '配件记录'] },
+    { group: '客户与车主', items: ['客户列表', '车辆绑定（待接入）', '购买记录（待接入）'] },
   ],
   '售后': [
-    { group: '车辆查询', items: ['VIN查询', '车辆档案', '出厂记录'] },
-    { group: '保修管理', items: ['保修申请', '保修审核', '保修状态'] },
-    { group: '维修管理', items: ['维修工单', '维修进度', '完成记录'] },
-    { group: '配件服务', items: ['配件申请', '配件库存', '配件更换记录'] },
-    { group: '服务分析', items: ['售后数据', '故障分析', '服务质量'] },
+    { group: '售后业务', items: ['售后工单', 'VIN查询'] },
   ],
   '订单': [
     { group: '销售订单', items: ['全部订单', 'B2C消费者订单', 'B2B经销商订单', '配件订单'] },
@@ -162,6 +146,12 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '质量分析': '/admin/supply/score', '交付分析': '/admin/supply/score', '成本分析': '/admin/supply/score',
     '应收 / 应付与资金': '/admin/finance',
     '到岸成本与汇率': '/admin/finance',
+    '库存总览': '/admin/inventory',
+    '仓库列表': '/admin/inventory#warehouses',
+    '库存余额': '/admin/inventory#balances',
+    '仓库与库位维护': '/admin/inventory#warehouse-setup',
+    '库存流水': '/admin/inventory#movement-history',
+    '库存盘点': '/admin/inventory#stocktake',
     '库存台账': '/admin/inventory',
     '库存详情': '/admin/inventory/detail', '库存预警': '/admin/inventory/warnings', '经销商库存': '/admin/inventory/dealer-stock',
     '成品车辆': '/admin/inventory', '待交付车辆': '/admin/inventory', '零件库存': '/admin/inventory',
@@ -222,6 +212,8 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '产品') {
     const destinations: Record<string, string> = {
       'FC Platform': '/admin/product#series', 'CT Platform': '/admin/product#series', 'FT Platform': '/admin/product#series', 'GT Platform': '/admin/product#series',
+      '整车产品': '/admin/product?type=BIKE',
+      '零配件': '/admin/product?type=PARTS',
       '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product#model-register', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
       'BOM': '/admin/product#engineering', '零件库': '/admin/product#parts', '工程文件': '/admin/product#engineering', '版本控制': '/admin/product#engineering',
       '开发中': '/admin/product#model-register', '量产': '/admin/product#model-register', '停产': '/admin/product#model-register', '归档': '/admin/product#model-register',
@@ -603,11 +595,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
   const isLiveProductRoot = screen.id === 'product' && screen.route === '/admin/product';
   const isCustomLiveModule = Boolean(screen.sourceNode?.startsWith('module:'));
   const secondaryNavigation = isLiveProductRoot
-    ? [
-        { group: '产品主数据', items: ['产品类型', '技术平台', '型号'] },
-        { group: '规格与工程', items: ['配置', 'SKU', 'BOM', '零件库'] },
-        { group: '商城联动', items: ['官网商品发布与审核', '首页商品绑定'] },
-      ]
+    ? [{ group: '商品档案', items: ['整车产品', '零配件', '技术平台'] }]
     : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
@@ -652,18 +640,6 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
               <span className="av-navicon" aria-hidden="true">{PRIMARY_AREA_ICONS[area.label] ?? '▦'}</span>{area.label}
             </a>
           ))}
-          <a className="av-navitem" href="/admin/commerce-lab" title="独立商城方案、商品管理与页面比较"
-            data-active={screen.area === '商城方案对比'}
-            aria-current={screen.area === '商城方案对比' ? 'page' : undefined}><span className="av-navicon" aria-hidden="true">{PRIMARY_AREA_ICONS['商城方案对比']}</span>商城方案对比</a>
-          <AdminMoreModules
-            modules={MORE_AREAS.map(area => ({
-              label: area.label,
-              href: area.href,
-              description: area.description,
-              icon: PRIMARY_AREA_ICONS[area.label] ?? '▦',
-              active: isAreaActive(screen.area, area.label),
-            }))}
-          />
         </nav>
         <div className="av-toputils">
           <div className="av-quicklinks">
@@ -766,13 +742,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
               <IntegratedOperations area={screen.area} route={screen.route} />
             </>
           ) : screen.area === '数据' ? (
-            <>
-              <section className="av-card av-analytics-empty" aria-live="polite">
-                <h2 className="av-cardtitle">{screen.title} · 数据源状态</h2>
-                <p>此分析页的版式已按 Ardot 保留；对应经营统计接口尚未接入，因此暂不展示设计稿中的演示数值或图表。</p>
-                {screen.route === '/admin/analytics' ? <a className="av-btn" href="/admin/analytics/color-interest">查看已接入的 FC1 颜色偏好统计 →</a> : <a className="av-btn" href="/admin/analytics">返回数据总览 →</a>}
-              </section>
-            </>
+            <BusinessAnalyticsOverview />
           ) : (
             <>
               {screen.sourceNode && screen.route.split('/').length === 3

@@ -122,6 +122,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   useEffect(() => {
     const requestedSearch = new URLSearchParams(window.location.search).get('search');
     if (requestedSearch) setModelSearch(requestedSearch.slice(0,100));
+    const requestedType = new URLSearchParams(window.location.search).get('type');
+    if (requestedType === 'BIKE' || requestedType === 'PARTS') setTypeFilter(requestedType);
     void reload();
   }, []);
 
@@ -139,7 +141,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
 
   const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) =>
     (statusFilter === 'ALL' || model.status === statusFilter)
-    && (typeFilter === 'ALL' || model.product_type_code === typeFilter)
+    && (typeFilter === 'PARTS' ? model.product_type_code !== 'BIKE' : typeFilter === 'ALL' || model.product_type_code === typeFilter)
     && matchesModelRegisterSearch(
       model,
       platform ? { code: platform.code, name: platformName(platform) } : undefined,
@@ -245,6 +247,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           />
           <select aria-label="按产品类型筛选" value={typeFilter} onChange={event=>setTypeFilter(event.target.value)}>
             <option value="ALL">全部商品类型</option>
+            <option value="PARTS">零配件</option>
             {catalog.productTypes.filter(t=>t.status==='ACTIVE').map(t=><option key={t.code} value={t.code}>{t.name}</option>)}
           </select>
           <select aria-label="按产品状态筛选" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
