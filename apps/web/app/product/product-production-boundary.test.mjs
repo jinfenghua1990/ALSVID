@@ -36,5 +36,5 @@ test('product platform labels are exclusively user-authored records', () => {
   assert.match(client, /catalog\.models\.filter\(\(model\) => model\.platform_id === platform\.id\)/);
   assert.doesNotMatch(client, /固定平台顺序/);
   assert.doesNotMatch(client, /className=\{styles\.platforms\}/);
-  assert.match(client, /平台新增和编辑接口目前尚未开放/);
+  assert.match(client, /新增与编辑接口尚未开放/);
 });
