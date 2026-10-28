@@ -1,7 +1,6 @@
 import { backendFetch } from '../../../api/_lib/backend';
 import { TestRideAdmin, type TestRideLead, type TestRidePartnerLocation } from '../../../_components/public-network/test-ride-admin';
 import AdminScreen from '../../../_design/renderer';
-import { screenById } from '../../../_design';
 import type { Screen } from '../../../_design';
 
 export const metadata={title:'试骑申请与网点 · ALSVID Admin'};
@@ -23,9 +22,9 @@ export default async function TestRideAdminPage() {
    if(Array.isArray(payload.data)){locations=payload.data as TestRidePartnerLocation[];locationsAvailable=true;}
   }
  }catch{/* Show unavailable, never fabricate partner locations. */}
- const screen: Screen = { ...screenById('dealers'), id: 'dealer-test-rides',
-  route: '/admin/dealers/test-rides', title: '试骑与合作网点', sourceNode: undefined,
-  blocks: [], actions: [] };
+ const screen: Screen = { id: 'dealer-test-rides', area: '经销商',
+  route: '/admin/dealers/test-rides', title: '试骑与合作网点',
+  subtitle: '试骑申请与授权合作网点', blocks: [], actions: [] };
  return <AdminScreen screen={screen} hidePageHeading>
   <TestRideAdmin initialRequests={requests} initialLocations={locations}
     requestsAvailable={requestsAvailable} locationsAvailable={locationsAvailable}/>
