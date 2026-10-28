@@ -1,4 +1,4 @@
-import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, PlatformRow, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
+import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, ModelFieldDefinition, CustomFieldType, CustomFieldValue, PlatformRow, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
 import type { CatalogPublishAssetRow,PublicationRow,PublicationStatus,PublicationDraft } from '../core/publication.js';
 
 export interface ProductActor {
@@ -34,6 +34,7 @@ export interface UpdatePlatformRecord {
 }
 
 export interface CreateModelRecord {
+  customFields: Record<string, CustomFieldValue>;
   platformId: string | null;
   productTypeCode: ProductTypeCode;
   code: string;
@@ -63,6 +64,8 @@ export interface CreateSkuRecord {
 }
 
 export interface UpdateProductRecord {
+  customFieldsProvided: boolean;
+  customFields: Record<string, CustomFieldValue>;
   entity: ProductEntityKind;
   id: string;
   expectedVersion: number;
@@ -94,6 +97,17 @@ export interface ProductRepository {
   homepageBindingExists(slot: HomepageSlotCode): Promise<boolean>;
   modelForHomepageSlot(slot: HomepageSlotCode, modelId: string): Promise<boolean>;
   catalog(): Promise<ProductCatalog>;
+  modelFieldDefinitions(): Promise<ModelFieldDefinition[]>;
+  createModelField(input: {
+    productTypeCode: ProductTypeCode; code: string; label: string;
+    fieldType: CustomFieldType; options: string[]; required: boolean; actorUserId: string;
+  }): Promise<ModelFieldDefinition>;
+  updateModelField(input: {
+    id: string; expectedVersion: number; label: string | null; status: 'ACTIVE' | 'RETIRED' | null;
+    required: boolean | null; actorUserId: string;
+  }): Promise<ModelFieldDefinition | null>;
+  modelFieldExists(id: string): Promise<boolean>;
+  modelFieldTarget(id: string): Promise<{ product_type_code: ProductTypeCode; custom_fields: Record<string, CustomFieldValue> } | null>;
   createPlatform(input: CreatePlatformRecord): Promise<PlatformRow>;
   updatePlatform(input: UpdatePlatformRecord): Promise<PlatformRow | null>;
   platformExists(id: string): Promise<boolean>;
