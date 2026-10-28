@@ -230,6 +230,14 @@ try {
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
   report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
 
+  // A soft Admin tab transition must not bypass session validation after the
+  // session cookie has disappeared while the authenticated layout is mounted.
+  await context.clearCookies();
+  await page.getByRole('navigation', { name: '一级导航', exact: true })
+    .locator('a[href="/admin/finance"]').click();
+  await page.waitForURL(/\/login\?/);
+  report.checks.push('Admin soft navigation refuses an expired session');
+
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
   await context.close();
