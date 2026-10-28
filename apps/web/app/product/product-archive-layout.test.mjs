@@ -26,6 +26,8 @@ test('product archive is list-first with advanced sections collapsed', () => {
   assert.match(client, /aria-label="生产零件档案"/);
   assert.match(client, /aria-label="可售配件档案"/);
   assert.match(client, /aria-label="技术平台档案"/);
+  assert.match(client, /aria-label="新建技术平台"/);
+  assert.match(client, /\/v1\/product\/platforms/);
   assert.match(client, /id="configuration"/);
   assert.match(client, /role="dialog"/);
   assert.match(client, /创建商品|新建整车/);

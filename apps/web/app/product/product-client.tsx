@@ -52,6 +52,9 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [newModelType, setNewModelType] = useState('BIKE');
   const [edit, setEdit] = useState<EditTarget | null>(null);
+  const [platformDraft, setPlatformDraft] = useState<Platform | 'new' | null>(null);
+  const [platformStatusFilter, setPlatformStatusFilter] = useState('ALL');
+  const [savingPlatform, setSavingPlatform] = useState(false);
   const [workspace, setWorkspace] = useState<'bikes' | 'parts' | 'platforms'>('bikes');
   const [partTab, setPartTab] = useState<'manufacturing' | 'retail'>('manufacturing');
   const [createKind, setCreateKind] = useState<'bike' | 'part' | 'accessory' | null>(null);
@@ -163,8 +166,9 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     && [model.code, model.name, model.description].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
   ), [hierarchyRows, modelSearch]);
   const filteredPlatforms = useMemo(() => catalog.platforms.filter(platform =>
-    [platform.code, platform.name, platform.description].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
-  ), [catalog.platforms, modelSearch]);
+    (platformStatusFilter === 'ALL' || platform.status === platformStatusFilter)
+    && [platform.code, platform.name, platform.description].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
+  ), [catalog.platforms, modelSearch, platformStatusFilter]);
 
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: string, body: (form: FormData) => unknown, onSaved?: () => void) {
     event.preventDefault();
@@ -178,6 +182,41 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
       setMessage(verified ? '已保存，列表已重新核对。' : '写入请求成功，但列表刷新失败；请先核对记录，不要重复提交。');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败');
+    }
+  }
+
+  async function savePlatform(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!platformDraft || savingPlatform) return;
+    const form = new FormData(event.currentTarget);
+    const creating = platformDraft === 'new';
+    const body = creating
+      ? { code: String(form.get('code') ?? ''), name: form.get('name'), description: form.get('description') }
+      : { expectedVersion: platformDraft.version, name: form.get('name'),
+          description: form.get('description'), status: form.get('status') };
+    let written = false;
+    setSavingPlatform(true);
+    try {
+      const saved = await api(creating ? '/v1/product/platforms' : `/v1/product/platforms/${platformDraft.id}`, {
+        method: creating ? 'POST' : 'PATCH', body: JSON.stringify(body),
+      }) as Platform;
+      written = true;
+      // Do not call a POST again just because a later catalogue read failed.
+      const verified = await api('/v1/product/catalog') as Catalog;
+      const returned = verified.platforms.find(platform => platform.id === saved.id);
+      if (!returned || returned.code !== saved.code || returned.version !== saved.version
+          || returned.name !== saved.name || returned.status !== saved.status) {
+        throw new Error('接口已返回写入成功，但数据回读与保存结果不一致；请核对后再操作。');
+      }
+      setCatalog({ ...emptyCatalog, ...verified });
+      setPlatformDraft(null);
+      setMessage('技术平台已保存，并从数据库重新读取核对。');
+    } catch (error) {
+      if (written) setPlatformDraft(null);
+      setMessage((written ? '写入接口已返回成功，但尚未完成回读核验：' : '技术平台保存失败：')
+        + (error instanceof Error ? error.message : '请求异常'));
+    } finally {
+      setSavingPlatform(false);
     }
   }
 
@@ -229,6 +268,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           <div className={styles.archiveHeadingActions}>
             <button type="button" className={styles.archiveSecondaryButton} onClick={() => void reload()} disabled={loading}>刷新</button>
             {workspace === 'bikes' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建整车</button> : null}
+            {workspace === 'platforms' ? <button type="button" className={styles.archivePrimaryButton} disabled={loading || !!catalogError} onClick={() => setPlatformDraft('new')}>＋ 新建技术平台</button> : null}
             {workspace === 'parts' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => { if (partTab === 'manufacturing') setCreateKind('part'); else {setNewModelType('ACCESSORY');setCreateKind('accessory');} }}>＋ {partTab === 'manufacturing' ? '新建零件' : '新建可售配件'}</button> : null}
           </div>
         </header>
@@ -320,18 +360,20 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
         {workspace === 'platforms' ? (
           <section id="product-types" className={styles.archivePanel} aria-label="技术平台管理">
             <div className={styles.archivePanelTitle} id="series"><div><h2>技术平台档案</h2><p>技术平台用于归类整车，不和销售 SKU 混用</p></div><span>{loading || catalogError ? '—' : catalog.platforms.length} 条记录</span></div>
-            <div className={styles.archiveFilters}><label className={styles.archiveSearch}><span className={styles.srOnly}>搜索技术平台</span><input value={modelSearch} onChange={event => setModelSearch(event.target.value)} placeholder="搜索平台名称、编码或说明" aria-label="搜索技术平台" /></label></div>
+            <div className={styles.archiveFilters}><label className={styles.archiveSearch}><span className={styles.srOnly}>搜索技术平台</span><input value={modelSearch} onChange={event => setModelSearch(event.target.value)} placeholder="搜索平台名称、编码或说明" aria-label="搜索技术平台" /></label>
+              <select aria-label="按技术平台状态筛选" value={platformStatusFilter} onChange={event => setPlatformStatusFilter(event.target.value)}><option value="ALL">全部状态</option><option value="DRAFT">草稿</option><option value="ACTIVE">启用</option><option value="RETIRED">已归档</option></select>
+            </div>
             {loading ? <div className={styles.archiveLoading}>正在读取技术平台…</div> :
               catalogError ? <div className={styles.archiveEmpty}>技术平台暂时无法读取，请检查接口。</div> :
               filteredPlatforms.length ? (
                 <div className={styles.platformTableWrap}><table className={styles.platformTable} aria-label="技术平台档案">
-                  <thead><tr><th>平台编码</th><th>平台名称</th><th>说明</th><th>关联整车</th><th>状态</th></tr></thead>
+                  <thead><tr><th>平台编码</th><th>平台名称</th><th>说明</th><th>关联整车</th><th>状态</th><th>操作</th></tr></thead>
                   <tbody>{[...filteredPlatforms].sort((a,b)=>a.code.localeCompare(b.code)).map(platform => <tr key={platform.id}>
-                    <td><strong>{platform.code}</strong></td><td>{platformName(platform)}</td><td>{platformDescription(platform) || '—'}</td><td>{catalog.models.filter((model) => model.platform_id === platform.id).length}</td><td>{statusLabel(platform.status)}</td>
+                    <td><strong>{platform.code}</strong></td><td>{platformName(platform)}</td><td>{platformDescription(platform) || '—'}</td><td>{catalog.models.filter((model) => model.platform_id === platform.id).length}</td><td><span className={styles.archiveStatus} data-status={platform.status}>{platform.status === 'RETIRED' ? '已归档' : statusLabel(platform.status)}</span></td><td><button type="button" className={styles.archiveEdit} onClick={() => setPlatformDraft(platform)}>编辑</button></td>
                   </tr>)}</tbody>
                 </table></div>
               ) : <div className={styles.archiveEmpty}><span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span><strong>{modelSearch ? '没有匹配的平台' : '目前没有技术平台记录'}</strong><p>平台信息来自真实数据库，不会自动生成默认型号。</p></div>}
-            <p className={styles.archiveFootnote}>当前仅支持查看技术平台。新增与编辑接口尚未开放，避免提供无法保存的操作。</p>
+            <p className={styles.archiveFootnote}>平台编码建档后固定不变。仅启用的平台可关联新整车；有关联未退役整车的平台不可归档，历史记录不做物理删除。</p>
           </section>
         ) : null}
 
@@ -429,9 +471,9 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                     {selectableProductTypes.filter(type => type.code !== 'BIKE').map(type => <option key={type.code} value={type.code}>{type.name}</option>)}
                   </select></label>
                 ) : (
-                  <label>技术平台 <select name="platformId" defaultValue="" required><option value="" disabled>选择已有技术平台</option>{catalog.platforms.map(platform => <option key={platform.id} value={platform.id}>{platform.name} · {platform.code}</option>)}</select></label>
+                  <label>技术平台 <select name="platformId" defaultValue="" required><option value="" disabled>选择已有技术平台</option>{catalog.platforms.filter(platform => platform.status === 'ACTIVE').map(platform => <option key={platform.id} value={platform.id}>{platform.name} · {platform.code}</option>)}</select></label>
                 )}
-                {createKind === 'bike' && !catalog.platforms.length ? <p className={styles.archiveError}>目前没有可选择的技术平台；现有创建 API 要求整车关联平台。请先完成平台建档能力。</p> : null}
+                {createKind === 'bike' && !catalog.platforms.some(platform => platform.status === 'ACTIVE') ? <p className={styles.archiveError}>目前没有已启用的技术平台。请先在技术平台中建档并启用。</p> : null}
                 {createKind === 'accessory' && !selectableProductTypes.some(type => type.code !== 'BIKE') ? <p className={styles.archiveError}>当前商品类型接口尚未提供可售配件类型，无法创建。</p> : null}
                 <label>商品编码 <input name="code" autoFocus required maxLength={80} placeholder="输入唯一商品编码" /></label>
                 <label>商品名称 <input name="name" required maxLength={160} placeholder="输入商品名称" /></label>
@@ -440,12 +482,45 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
             )}
             <div className={styles.createActions}>
               <button type="button" className={styles.archiveSecondaryButton} onClick={() => setCreateKind(null)}>取消</button>
-              <button type="submit" className={styles.archivePrimaryButton} disabled={(createKind === 'bike' && !catalog.platforms.length) || (createKind === 'accessory' && !selectableProductTypes.some(type => type.code !== 'BIKE'))}>保存档案</button>
+              <button type="submit" className={styles.archivePrimaryButton} disabled={(createKind === 'bike' && !catalog.platforms.some(platform => platform.status === 'ACTIVE')) || (createKind === 'accessory' && !selectableProductTypes.some(type => type.code !== 'BIKE'))}>保存档案</button>
             </div>
           </form>
         </div>
       ) : null}
       </> : null}
+
+      {view === "archive" && platformDraft ? (
+        <div className={styles.modal} role="presentation" onMouseDown={() => { if (!savingPlatform) setPlatformDraft(null); }}>
+          <form className={styles.createCard} role="dialog" aria-modal="true"
+            aria-label={platformDraft === 'new' ? '新建技术平台' : '编辑技术平台'}
+            onSubmit={event => void savePlatform(event)}
+            onMouseDown={event => event.stopPropagation()}
+            onKeyDown={event => { if (event.key === 'Escape' && !savingPlatform) setPlatformDraft(null); }}>
+            <div className={styles.createCardHeading}>
+              <div><span>产品研发 / 技术平台</span><h2>{platformDraft === 'new' ? '新建技术平台' : '编辑技术平台'}</h2>
+              <p>平台档案使用真实数据库。新平台初始为草稿，启用后才能创建关联整车。</p></div>
+              <button type="button" className={styles.createClose} aria-label="关闭" disabled={savingPlatform} onClick={() => setPlatformDraft(null)}>×</button>
+            </div>
+            <label>平台编码<input name="code" autoFocus={platformDraft === 'new'} maxLength={32}
+              defaultValue={platformDraft === 'new' ? '' : platformDraft.code}
+              readOnly={platformDraft !== 'new'} required pattern="[a-zA-Z0-9][a-zA-Z0-9_-]*"
+              placeholder="如 FC" /></label>
+            <label>平台名称<input name="name" autoFocus={platformDraft !== 'new'} required maxLength={160}
+              defaultValue={platformDraft === 'new' ? '' : platformDraft.name} placeholder="输入技术平台名称" /></label>
+            <label>平台说明<textarea name="description" rows={3} maxLength={2000}
+              defaultValue={platformDraft === 'new' ? '' : platformDraft.description} placeholder="技术路线与适用车型说明" /></label>
+            {platformDraft !== 'new' ? <label>状态<select name="status" defaultValue={platformDraft.status}>
+              <option value="DRAFT">草稿</option><option value="ACTIVE">启用</option><option value="RETIRED">归档 / 停用</option>
+            </select></label> : null}
+            {platformDraft !== 'new' && catalog.models.some(model => model.platform_id === platformDraft.id && model.status !== 'RETIRED')
+              ? <p className={styles.archiveFootnote}>此平台仍有关联的未退役整车，归档前需要先处理这些整车；可正常修改名称和说明。</p> : null}
+            <div className={styles.createActions}>
+              <button type="button" className={styles.archiveSecondaryButton} disabled={savingPlatform} onClick={() => setPlatformDraft(null)}>取消</button>
+              <button type="submit" className={styles.archivePrimaryButton} disabled={savingPlatform}>{savingPlatform ? '正在保存…' : '保存平台'}</button>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
       {view === "engineering" ? <>
       {message ? <div className={styles.notice} role="status">{message}</div> : null}

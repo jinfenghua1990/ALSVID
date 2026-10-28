@@ -6,6 +6,8 @@ import { requireAuth } from './auth.guard.js';
 import { throwHttpDomainError } from './domain-errors.js';
 import { productService } from './runtime.js';
 
+interface CreatePlatformBody { code: string; name: string; description?: string }
+interface UpdatePlatformBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus }
 interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string }
 interface UpdateHomepageBindingBody { slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
@@ -77,6 +79,18 @@ export class ProductController {
   @Get('catalog')
   async catalog(@Req() request: AuthenticatedRequest) {
     try { return { data: await productService.catalog(requireAuth(request)) }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Post('platforms')
+  async createPlatform(@Req() request: AuthenticatedRequest, @Body() input: CreatePlatformBody) {
+    try { return { data: await productService.createPlatform(requireAuth(request), input) }; }
+    catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Patch('platforms/:id')
+  async updatePlatform(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: UpdatePlatformBody) {
+    try { return { data: await productService.updatePlatform(requireAuth(request), id, input) }; }
     catch (error) { return throwHttpDomainError(error); }
   }
 
