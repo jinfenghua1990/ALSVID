@@ -126,21 +126,39 @@ try {
   await page.goto(base + '/admin/product');
   const archive = page.locator('[data-area="product"]');
   await archive.waitFor();
-  await archive.getByRole('heading', { name: '商品档案', exact: true }).waitFor();
-  assert.equal(await archive.locator('#model-register').count(), 1, 'commodity archive is the main listing');
+  await archive.getByRole('heading', { name: '整车产品', exact: true }).waitFor();
+  assert.equal(await archive.locator('#model-register').count(), 1, 'bicycle archive is the focused initial list');
   await archive.getByRole('row', { name: /FC1/ }).waitFor();
-  assert.equal(await archive.locator('#model-register tbody tr').count(), 1, 'one product occupies one data row');
+  assert.equal(await archive.locator('#model-register tbody tr').count(), 1, 'one bicycle occupies one data row');
+  assert.equal(await archive.locator('.unused-kpi-placeholder').count(), 0);
+  assert.equal(await archive.locator('#product-info-panel').count(), 0, 'no duplicated product-category accordion');
   const maintenancePanel = archive.locator('#product-maintenance-panel');
-  assert.equal(await maintenancePanel.evaluate(node => node.open), false, 'creation forms are collapsed by default');
-  const infoPanel = archive.locator('#product-info-panel');
-  assert.equal(await infoPanel.evaluate(node => node.open), false, 'large platform cards are collapsed by default');
+  assert.equal(await maintenancePanel.evaluate(node => node.open), false, 'variant and SKU forms start collapsed');
   await page.screenshot({ path: path.join(output, 'admin-product-archive-desktop.png'), fullPage: true });
-  await archive.getByRole('link', { name: '＋ 新增商品' }).click();
-  assert.equal(await maintenancePanel.evaluate(node => node.open), true, 'new product action reveals original forms');
+  await archive.getByRole('button', { name: '＋ 新建整车' }).first().click();
+  const createBicycle = archive.getByRole('dialog', { name: '新建整车' });
+  await createBicycle.waitFor();
+  assert.equal(await createBicycle.getByRole('textbox', { name: '商品编码' }).count(), 1);
+  await createBicycle.getByRole('button', { name: '取消' }).click();
+  assert.equal(await archive.getByRole('dialog').count(), 0, 'cancelling new product does not write data');
+
+  await page.goto(base + '/admin/product?type=PARTS#parts');
+  await archive.getByRole('heading', { name: '零配件', exact: true }).waitFor();
+  await archive.getByRole('button', { name: '生产零件' }).waitFor();
+  await archive.getByRole('button', { name: '＋ 新建零件' }).first().click();
+  await archive.getByRole('dialog', { name: '新建零件' }).waitFor();
+  await archive.getByRole('dialog').getByRole('button', { name: '取消' }).click();
+  await archive.getByRole('button', { name: '可售配件' }).click();
+  await archive.getByRole('heading', { name: '零配件', exact: true }).waitFor();
+  await page.screenshot({ path: path.join(output, 'admin-product-parts-desktop.png'), fullPage: true });
+
   await page.goto(base + '/admin/product#series');
-  await page.locator('#series').waitFor();
-  assert.equal(await page.locator('#product-info-panel').evaluate(node => node.open), true, 'deep link reveals platform details');
-  report.checks.push('admin product archive is live, list-first, and deep links reveal collapsed maintenance sections');
+  await archive.getByRole('heading', { name: '技术平台', exact: true }).waitFor();
+  await archive.locator('#series').waitFor();
+  await archive.getByRole('table', { name: '技术平台档案' }).waitFor();
+  assert.equal(await archive.getByRole('row', { name: /Folding Carbon/ }).count(), 1, 'only backed technical platforms are shown');
+  await page.screenshot({ path: path.join(output, 'admin-product-platforms-desktop.png'), fullPage: true });
+  report.checks.push('product archive has focused bicycle, parts and platform views; create dialogs open without writes');
 
   // Inventory now opens as two real-source tables rather than an unstructured wall of forms.
   await page.route('**/api/control/v1/warehouse', route => route.fulfill({
