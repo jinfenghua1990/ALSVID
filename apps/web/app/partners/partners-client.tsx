@@ -30,6 +30,7 @@ export default function PartnersClient({ embedded = false }: { embedded?: boolea
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -45,9 +46,15 @@ export default function PartnersClient({ embedded = false }: { embedded?: boolea
   }
 
   async function load(search = '') {
+    setLoadStatus('loading');
     try {
-      setPartners(await api(`/api/partners?q=${encodeURIComponent(search)}`));
+      const rows: unknown = await api(`/api/partners?q=${encodeURIComponent(search)}`);
+      if (!Array.isArray(rows)) throw new Error('合作伙伴数据格式不正确');
+      setPartners(rows as Partner[]);
+      setLoadStatus('ready');
+      setMessage('');
     } catch (error) {
+      setLoadStatus('error');
       setMessage(error instanceof Error ? error.message : '无法加载合作伙伴');
     }
   }
@@ -124,19 +131,22 @@ export default function PartnersClient({ embedded = false }: { embedded?: boolea
           </div>
         </header>
 
-        <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{roleLabels[role]}</span><b>{count}</b></div>)}</div>
+        <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{roleLabels[role]}</span><b>{loadStatus === 'ready' ? count : '—'}</b></div>)}</div>
         <div className="toolbar"><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void load(query); }} placeholder="搜索名称或合作伙伴编号" /><button onClick={() => void load(query)}>搜索</button></div>
-        {message ? <div className="notice">{message}</div> : null}
+        {message ? <div className="notice" role={loadStatus === 'error' ? 'alert' : 'status'}>{message}</div> : null}
 
         <div className="partnerGrid">
           <div className="tableCard">
             <div className="tableHead"><span>合作伙伴</span><span>业务角色</span><span>状态</span></div>
-            {partners.map((partner) => <button className="tableRow" key={partner.id} onClick={() => void openPartner(partner.id)}><span><b>{partner.displayName}</b><small>{partner.partnerCode} · {partner.countryCode ?? '—'}</small></span><span className="roleList">{partner.roles.length ? partner.roles.map((role) => <i key={role}>{roleLabels[role]}</i>) : <small>未分配角色</small>}</span><span>{partner.status === 'ACTIVE' ? '启用' : partner.status === 'INACTIVE' ? '停用' : partner.status}</span></button>)}
-            {!partners.length ? <div className="emptyState">暂无合作伙伴。录入后将在这里显示。</div> : null}
+            {(loadStatus === 'ready' ? partners : []).map((partner) => <button className="tableRow" key={partner.id} onClick={() => void openPartner(partner.id)}><span><b>{partner.displayName}</b><small>{partner.partnerCode} · {partner.countryCode ?? '—'}</small></span><span className="roleList">{partner.roles.length ? partner.roles.map((role) => <i key={role}>{roleLabels[role]}</i>) : <small>未分配角色</small>}</span><span>{partner.status === 'ACTIVE' ? '启用' : partner.status === 'INACTIVE' ? '停用' : partner.status}</span></button>)}
+            {loadStatus === 'loading' ? <div className="emptyState" role="status">正在读取合作伙伴…</div> : null}
+            {loadStatus === 'error' ? <div className="emptyState">无法读取合作伙伴列表。
+              <button type="button" onClick={() => { void load(query); }}>重新加载</button></div> : null}
+            {loadStatus === 'ready' && !partners.length ? <div className="emptyState">暂无合作伙伴。录入后将在这里显示。</div> : null}
           </div>
 
           <aside className="detailCard">
-            {selected ? <form className="stack" onSubmit={savePartner}>
+            {selected && loadStatus === 'ready' ? <form className="stack" onSubmit={savePartner}>
               <div><div className="eyebrow">{selected.partnerCode}</div><h2>{selected.displayName}</h2></div>
               <label>显示名称<input name="displayName" defaultValue={selected.displayName} required /></label>
               <label>法定名称<input name="legalName" defaultValue={selected.legalName ?? ''} /></label>
