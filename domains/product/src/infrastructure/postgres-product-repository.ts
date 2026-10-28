@@ -1,5 +1,5 @@
 import type { DatabasePort } from '@alsvid/database';
-import type { HomepageBinding, PlatformRow, ProductCatalog, ProductEntityKind } from '../core/model.js';
+import type { HomepageBinding, ModelFieldDefinition, CustomFieldValue, PlatformRow, ProductCatalog, ProductEntityKind } from '../core/model.js';
 import type { CatalogPublishAssetRow,PublicationRow, PublicationDraft, PublicationStatus } from '../core/publication.js';
 import type { CreateModelRecord, CreatePlatformRecord, CreateSkuRecord, CreateVariantRecord, ProductRepository, UpdatePlatformRecord, UpdateProductRecord } from '../application/ports.js';
 
@@ -7,16 +7,61 @@ export class PostgresProductRepository implements ProductRepository {
   constructor(private readonly database: DatabasePort) {}
 
   async catalog(): Promise<ProductCatalog> {
-    const [platforms, models, variants, skus, productTypes] = await Promise.all([
+    const [platforms, models, variants, skus, productTypes,modelFieldDefs] = await Promise.all([
       this.database.query<any>('SELECT id, code, name, description, status, version, created_at, updated_at FROM product.platforms ORDER BY code'),
-      this.database.query<any>('SELECT id, platform_id, product_type_code, code, name, description, status, version, created_at, updated_at FROM product.models ORDER BY code'),
+      this.database.query<any>('SELECT id, platform_id, product_type_code, code, name, description, custom_fields, status, version, created_at, updated_at FROM product.models ORDER BY code'),
       this.database.query<any>('SELECT id, model_id, code, name, description, attributes, status, version, created_at, updated_at FROM product.variants ORDER BY code'),
       this.database.query<any>('SELECT id, variant_id, sku, name, market_code, color_code, size_code, attributes, status, version, created_at, updated_at FROM product.skus ORDER BY sku'),
       this.database.query<any>('SELECT code,name,description,status FROM product.product_types ORDER BY code'),
+      this.modelFieldDefinitions(),
     ]);
-    return { productTypes: productTypes.rows, platforms: platforms.rows, models: models.rows, variants: variants.rows, skus: skus.rows.map((row) => ({ ...row, market_code: row.market_code?.trim() ?? null })) };
+    return { modelFieldDefinitions:modelFieldDefs,productTypes: productTypes.rows, platforms: platforms.rows, models: models.rows, variants: variants.rows, skus: skus.rows.map((row) => ({ ...row, market_code: row.market_code?.trim() ?? null })) };
   }
 
+
+  async modelFieldDefinitions():Promise<ModelFieldDefinition[]> {
+    const rows=await this.database.query<ModelFieldDefinition>(
+      'SELECT id,product_type_code,code,label,field_type,options,required,status,version FROM product.model_field_definitions ORDER BY product_type_code,code');
+    return rows.rows;
+  }
+
+  async createModelField(input:{
+    productTypeCode:'BIKE'|'ACCESSORY'|'SERVICE_PART';code:string;label:string;
+    fieldType:'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT';options:string[];required:boolean;actorUserId:string;
+  }):Promise<ModelFieldDefinition> {
+    const result=await this.database.query<ModelFieldDefinition>(
+      `INSERT INTO product.model_field_definitions
+       (product_type_code,code,label,field_type,options,required,created_by,updated_by)
+       VALUES($1,$2,$3,$4,$5::jsonb,$6,$7,$7)
+       RETURNING id,product_type_code,code,label,field_type,options,required,status,version`,
+      [input.productTypeCode,input.code,input.label,input.fieldType,JSON.stringify(input.options),input.required,input.actorUserId]);
+    return result.rows[0]!;
+  }
+
+  async updateModelField(input:{
+    id:string;expectedVersion:number;label:string|null;
+    status:'ACTIVE'|'RETIRED'|null;required:boolean|null;actorUserId:string;
+  }):Promise<ModelFieldDefinition|null> {
+    const result=await this.database.query<ModelFieldDefinition>(
+      `UPDATE product.model_field_definitions SET label=COALESCE($3,label),
+         status=COALESCE($4,status),required=COALESCE($5,required),
+         version=version+1,updated_by=$6,updated_at=now()
+       WHERE id=$1 AND version=$2
+       RETURNING id,product_type_code,code,label,field_type,options,required,status,version`,
+      [input.id,input.expectedVersion,input.label,input.status,input.required,input.actorUserId]);
+    return result.rows[0]??null;
+  }
+
+  async modelFieldExists(id:string):Promise<boolean> {
+    const result=await this.database.query('SELECT 1 FROM product.model_field_definitions WHERE id=$1',[id]);
+    return result.rows.length>0;
+  }
+
+  async modelFieldTarget(id:string):Promise<{product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART';custom_fields:Record<string,CustomFieldValue>}|null> {
+    const result=await this.database.query<{product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART';custom_fields:Record<string,CustomFieldValue>}>(
+      'SELECT product_type_code,custom_fields FROM product.models WHERE id=$1',[id]);
+    return result.rows[0]??null;
+  }
 
   async createPlatform(input: CreatePlatformRecord): Promise<PlatformRow> {
     const result = await this.database.query<PlatformRow>(
@@ -189,13 +234,13 @@ export class PostgresProductRepository implements ProductRepository {
   async createModel(input: CreateModelRecord): Promise<any> {
     // Lock the ACTIVE platform row while creating a bike to serialize archive/create.
     const sql = input.productTypeCode === 'BIKE'
-      ? `INSERT INTO product.models(platform_id,product_type_code,code,name,description,created_by,updated_by)
-         SELECT p.id,$2,$3,$4,$5,$6,$6 FROM product.platforms p
+      ? `INSERT INTO product.models(platform_id,product_type_code,code,name,description,custom_fields,created_by,updated_by)
+         SELECT p.id,$2,$3,$4,$5,$7::jsonb,$6,$6 FROM product.platforms p
          WHERE p.id=$1 AND p.status='ACTIVE' FOR UPDATE OF p RETURNING *`
-      : `INSERT INTO product.models(platform_id,product_type_code,code,name,description,created_by,updated_by)
-         VALUES ($1,$2,$3,$4,$5,$6,$6) RETURNING *`;
+      : `INSERT INTO product.models(platform_id,product_type_code,code,name,description,custom_fields,created_by,updated_by)
+         VALUES ($1,$2,$3,$4,$5,$7::jsonb,$6,$6) RETURNING *`;
     const result = await this.database.query<any>(sql,
-      [input.platformId, input.productTypeCode, input.code, input.name, input.description, input.actorUserId]);
+      [input.platformId,input.productTypeCode,input.code,input.name,input.description,input.actorUserId,JSON.stringify(input.customFields)]);
     return result.rows[0] ?? null;
   }
 
@@ -227,14 +272,26 @@ export class PostgresProductRepository implements ProductRepository {
       );
       return result.rows[0] ?? null;
     }
-    const table = input.entity === 'model' ? 'models' : 'variants';
-    const result = await this.database.query<any>(
-      `UPDATE product.${table} SET name=COALESCE($3,name),status=COALESCE($4,status),
+    if(input.entity==='model') {
+      const result=await this.database.query<any>(
+        `UPDATE product.models SET name=COALESCE($3,name),status=COALESCE($4,status),
+         description=CASE WHEN $5::boolean THEN $6 ELSE description END,
+         custom_fields=CASE WHEN $8::boolean THEN $9::jsonb ELSE custom_fields END,
+         version=version+1,updated_by=$7,updated_at=now()
+         WHERE id=$1 AND version=$2 RETURNING *`,
+        [input.id,input.expectedVersion,input.name,input.status,input.descriptionProvided,input.description,
+          input.actorUserId,input.customFieldsProvided,JSON.stringify(input.customFields)],
+      );
+      return result.rows[0]??null;
+    }
+    const result=await this.database.query<any>(
+      `UPDATE product.variants SET name=COALESCE($3,name),status=COALESCE($4,status),
        description=CASE WHEN $5::boolean THEN $6 ELSE description END,
-       version=version+1,updated_by=$7,updated_at=now() WHERE id=$1 AND version=$2 RETURNING *`,
+       version=version+1,updated_by=$7,updated_at=now()
+       WHERE id=$1 AND version=$2 RETURNING *`,
       [input.id,input.expectedVersion,input.name,input.status,input.descriptionProvided,input.description,input.actorUserId],
     );
-    return result.rows[0] ?? null;
+    return result.rows[0]??null;
   }
 
   async exists(entity: ProductEntityKind, id: string): Promise<boolean> {
