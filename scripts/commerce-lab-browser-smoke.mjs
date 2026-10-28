@@ -35,23 +35,31 @@ try {
   assert.equal(await page.getByText('设计页面 / 流程预览 · 0', { exact: true }).count(), 0, 'empty design groups stay hidden');
   const primary = page.getByRole('navigation', { name: '一级导航', exact: true });
   const expectedModules = [
-    '/admin', '/admin/product', '/admin/ecommerce', '/admin/dealers', '/admin/production',
+    '/admin', '/admin/product', '/admin/ecommerce', '/admin/commerce-lab', '/admin/dealers', '/admin/production',
     '/admin/inventory', '/admin/logistics', '/admin/supply', '/admin/customers',
     '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings',
   ];
-  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 13 modules appear in top navigation');
+  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all modules including comparison appear in top navigation');
   for (const href of expectedModules) {
     const link = primary.locator('a[href="' + href + '"]');
     assert.equal(await link.count(), 1, 'direct visible module: ' + href);
     assert.equal(await link.isVisible(), true, 'link is not hidden: ' + href);
   }
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0, 'unused commerce comparison removed from navigation');
+  const comparisonEntry=primary.getByRole('link', { name: '商城方案对比', exact:true });
+  assert.equal(await comparisonEntry.count(), 1, 'comparison is a dedicated primary entry');
+  assert.equal(await comparisonEntry.getAttribute('aria-current'), 'page', 'comparison entry is active on its own page');
   assert.equal(await primary.getByRole('button', { name: '更多模块' }).count(), 0, 'no hidden More drawer');
   await primary.locator('a[href="/admin/finance"]').click();
   await page.waitForURL(base + '/admin/finance');
-  await page.goto(base + '/admin/commerce-lab');
+  await primary.locator('a[href="/admin/ecommerce"]').click();
+  await page.waitForURL(base + '/admin/ecommerce');
+  assert.equal(await page.getByRole('complementary',{name:'二级导航',exact:true})
+    .getByRole('link',{name:'独立商品管理',exact:true}).count(),0,'comparison management is not placed under the original ecommerce module');
+  await primary.getByRole('link',{name:'商城方案对比',exact:true}).click();
+  await page.waitForURL(base + '/admin/commerce-lab');
   await page.locator('[data-commerce-lab-overview]').waitFor();
-  report.checks.push('all 13 modules directly visible, legacy comparison has no primary entry');
+  assert.equal(await primary.getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page');
+  report.checks.push('all original modules and a separate comparison primary entry remain visible and navigable');
 
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
   const catalogLink = secondary.getByRole('link', { name: '独立商品管理', exact: true });
@@ -59,13 +67,13 @@ try {
   assert.equal(catalogHref.pathname, '/admin/commerce-lab/catalog');
   assert.equal(catalogHref.searchParams.get('alsvidMenuLabel'), '独立商品管理');
   assert.ok(catalogHref.searchParams.get('alsvidMenu'), 'secondary menu identity is preserved for a distinct workspace tab');
-  report.checks.push('legacy comparison deep links remain compatible, but navigation is no longer promoted');
+  report.checks.push('independent comparison links retain their dedicated navigation identity');
   await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
   await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
   await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference' && url.searchParams.get('alsvidMenuLabel') === '旧版交互样机');
   const lab = page.locator('[data-commerce-lab]');
   await lab.waitFor();
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0);
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比', exact:true }).getAttribute('aria-current'), 'page');
   report.checks.push('legacy demo remains reachable under its own protected reference route');
   const mutations = [];
   page.on('request', request => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) mutations.push(request.url()); });

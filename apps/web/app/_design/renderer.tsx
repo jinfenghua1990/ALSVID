@@ -23,7 +23,7 @@ const AREAS = ADMIN_MODULES;
 // Keep all business modules directly accessible; no hidden More dropdown.
 const PRIMARY_AREAS = AREAS;
 const PRIMARY_AREA_ICONS: Record<string, string> = {
-  '工作台': '🏠', '产品研发': '🧩', '商城运营': '🛒', '经销商管理': '🏢',
+  '工作台': '🏠', '产品研发': '🧩', '商城运营': '🛒', '商城方案对比': '📊', '经销商管理': '🏢',
   '生产制造': '🏭', '库存管理': '📦', '跨境物流': '🚢', '采购管理': '📋',
   '客户与车主': '👤', '售后服务': '🛠️', '财务管理': '💳', '经营分析': '📈', '设置': '⚙️',
 };
