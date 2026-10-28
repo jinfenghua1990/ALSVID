@@ -3,6 +3,7 @@ import {comparisonStorageFromEnv} from './comparison-media-storage.js';
 import { createAssetService } from '@alsvid/assets';
 import { createAuditService } from '@alsvid/audit';
 import { createCommerceService,createComparisonCatalogService,type ComparisonCatalogService,CommerceOrderOperationsService,StorefrontOrderService } from '@alsvid/commerce';
+import {StorefrontReadinessService} from '@alsvid/commerce';
 import { Database } from '@alsvid/database';
 import { createDealerService } from '@alsvid/dealer';
 import { createEngineeringService } from '@alsvid/engineering';
@@ -47,6 +48,7 @@ export const dealerService = createDealerService(database, auditService);
 export const commerceService = createCommerceService(database, auditService);
 export const commerceOrderOperationsService = new CommerceOrderOperationsService(database, auditService);
 export const storefrontOrderService = new StorefrontOrderService(database, auditService);
+export const storefrontReadinessService = new StorefrontReadinessService(database);
 export const integrationService = createIntegrationService(database, auditService, commerceService);
 export const financeService = createFinanceService(database, auditService);
 
