@@ -61,8 +61,9 @@ export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
     router.push(href);
   },[router]);
 
-  // A newly arrived RSC child replaces the active entry; inactive entries
-  // retain their original mounted element and React local state.
+  // Every Activity always retains its original child element even when active.
+  // Replacing the element with Next's new RSC `children` on tab return can
+  // remount its stateful subtree, losing unsaved edits.
   const pages=cache.active===path?cache.pages:(()=>{
     const keys=cachedRouteOrder(cache.pages.map(page=>page.path),path);
     const saved=new Map(cache.pages.map(page=>[page.path,page.content]));
@@ -72,7 +73,7 @@ export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
   return <WorkspaceNavigationProvider location={location} navigate={navigate} close={close}>
     <div data-alsvid-admin-workspace-cache="true" onClickCapture={captureAdminLink}>
       {pages.map(page=><Activity key={page.path} mode={page.path===path?'visible':'hidden'}>
-        {page.path===path?children:page.content}
+        {page.content}
       </Activity>)}
     </div>
   </WorkspaceNavigationProvider>;
