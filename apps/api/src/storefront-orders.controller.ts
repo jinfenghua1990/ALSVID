@@ -12,10 +12,11 @@ interface CancelDraftBody extends ExpectedVersionBody{reason:string}
 @Controller('v1/commerce/storefront')
 export class StorefrontOrdersController{
  @Get('readiness')
- async readiness(@Req() request:AuthenticatedRequest,@Query('marketCountry') marketCountry?:string){
+ async readiness(@Req() request:AuthenticatedRequest,
+  @Query('marketCountry') marketCountry?:string,@Query('query') query?:string){
   if(marketCountry!=='DE'&&marketCountry!=='AT')
    throw new BadRequestException('marketCountry must be DE or AT');
-  try{return{data:await storefrontReadinessService.summary(requireAuth(request),marketCountry)};}
+  try{return{data:await storefrontReadinessService.summary(requireAuth(request),marketCountry,query??'')};}
   catch(error){return throwHttpDomainError(error);}
  }
  @Get('summary')
