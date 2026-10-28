@@ -514,7 +514,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           <select name="variantId" required defaultValue=""><option value="" disabled>选择 Variant</option>{catalog.variants.map((v) => <option key={v.id} value={v.id}>{catalog.models.find((m) => m.id === v.model_id)?.code} · {v.code}</option>)}</select>
           <input name="sku" placeholder="例如：ALS-FC1-STD-DE-BLK" required />
           <input name="name" placeholder="SKU 名称（如 FC1 Standard 石墨黑）" required />
-          <div className={styles.inline}><input name="marketCode" maxLength={2} placeholder="市场 DE" /><input name="colorCode" placeholder="颜色 BLACK" /><input name="sizeCode" placeholder="尺寸 20" /></div>
+          <div className={styles.inline}><input name="marketCode" maxLength={2} placeholder="市场 DE" /><input name="colorCode" maxLength={32} placeholder="颜色 BLACK" /><input name="sizeCode" maxLength={32} placeholder="尺寸 20" /></div>
           <button>创建 SKU</button>
         </form>
 
@@ -762,8 +762,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
             ) : (
               <>
                 <label>市场<input name="marketCode" maxLength={2} defaultValue={edit.marketCode ?? ''} /></label>
-                <label>颜色<input name="colorCode" defaultValue={edit.colorCode ?? ''} /></label>
-                <label>尺寸<input name="sizeCode" defaultValue={edit.sizeCode ?? ''} /></label>
+                <label>颜色<input name="colorCode" defaultValue={edit.colorCode ?? ''} maxLength={32} placeholder="如 GRAPHITE_BLACK" /></label>
+                <label>尺寸<input name="sizeCode" defaultValue={edit.sizeCode ?? ''} maxLength={32} placeholder="如 20" /></label>
               </>
             )}
             <div className={styles.actions}><button type="button" onClick={() => setEdit(null)}>取消</button><button>保存</button></div>

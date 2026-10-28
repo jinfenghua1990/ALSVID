@@ -2,7 +2,7 @@ import { ForbiddenError } from '@alsvid/kernel';
 import { postgresErrorCode } from '@alsvid/database';
 import { ProductConflictError, ProductNotFoundError, ProductValidationError } from '../core/errors.js';
 import { ProductCapability, type HomepageBinding, type HomepageBindingMode, type HomepageSlotCode, type ModelFieldDefinition, type CustomFieldType, type CustomFieldValue, type ProductCatalog, type ProductEntityKind, type ProductStatus, type ProductTypeCode } from '../core/model.js';
-import { normalizeProductCode, normalizeProductCountry } from '../core/normalization.js';
+import { normalizeProductCode, normalizeProductCountry, normalizeSkuDimension } from '../core/normalization.js';
 import {approvedCatalogAssets,mergeCatalogAssets,assertPublicationTransition,curatedCatalogImage,toPublicCatalogItem,validatePublicationDraft,type PublicationAction,type PublicationDraft} from '../core/publication.js';
 import type { ProductActor, ProductAuditPort, ProductRepository } from './ports.js';
 
@@ -286,8 +286,8 @@ export class ProductService {
         sku,
         name: input.name.trim(),
         marketCode: normalizeProductCountry(input.marketCode),
-        colorCode: input.colorCode?.trim() || null,
-        sizeCode: input.sizeCode?.trim() || null,
+        colorCode: normalizeSkuDimension(input.colorCode,'colorCode'),
+        sizeCode: normalizeSkuDimension(input.sizeCode,'sizeCode'),
         attributes: input.attributes ?? {},
         actorUserId: actor.userId,
       });
@@ -320,9 +320,9 @@ export class ProductService {
       marketCodeProvided: input.marketCode !== undefined,
       marketCode: normalizeProductCountry(input.marketCode),
       colorCodeProvided: input.colorCode !== undefined,
-      colorCode: input.colorCode?.trim() || null,
+      colorCode: normalizeSkuDimension(input.colorCode,'colorCode'),
       sizeCodeProvided: input.sizeCode !== undefined,
-      sizeCode: input.sizeCode?.trim() || null,
+      sizeCode: normalizeSkuDimension(input.sizeCode,'sizeCode'),
       customFieldsProvided: input.customFields!==undefined,
       customFields,
       actorUserId: actor.userId,
