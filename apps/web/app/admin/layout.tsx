@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
+import { AdminWorkspaceKeeper } from './_components/admin-workspace-keeper';
 import { requirePortalSession } from '../_lib/portal-access';
 
 /**
@@ -7,5 +8,7 @@ import { requirePortalSession } from '../_lib/portal-access';
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   await requirePortalSession('admin', '/admin');
-  return <>{children}</>;
+  return <Suspense fallback={children}>
+    <AdminWorkspaceKeeper>{children}</AdminWorkspaceKeeper>
+  </Suspense>;
 }
