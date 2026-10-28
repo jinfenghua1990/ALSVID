@@ -56,6 +56,11 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   useEffect(() => {
     const revealLinkedPanel = () => {
       const id = window.location.hash.slice(1);
+      // Preserve old bookmarks without offering a second BOM editor in product research.
+      if (view === 'archive' && ['engineering', 'engineering-panel', 'production-bom'].includes(id)) {
+        router.replace('/admin/production#production-bom');
+        return;
+      }
       const target = id ? document.getElementById(id) : null;
       const panel = target?.closest('details');
       if (target instanceof HTMLDetailsElement) target.open = true;
@@ -64,7 +69,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     revealLinkedPanel();
     window.addEventListener('hashchange', revealLinkedPanel);
     return () => window.removeEventListener('hashchange', revealLinkedPanel);
-  }, []);
+  }, [view, router]);
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
