@@ -6,6 +6,7 @@
   --alsvid-type-nav-primary: 14px;
   --alsvid-type-nav-secondary: 13px;
   --alsvid-type-page-title: 28px;
+  --alsvid-type-page-title-mobile: 26px;
   --alsvid-type-section-title: 18px;
   --alsvid-type-subsection-title: 16px;
   --alsvid-type-body: 12px;
@@ -135,7 +136,7 @@
   .shellV2 .workspace > header h1,
   .shellV2 .workspace > section > header:first-child h1,
   .shellV2 .workspace .pageHeader h1 {
-    font-size: 26px !important;
+    font-size: var(--alsvid-type-page-title-mobile) !important;
   }
 
   .shellV2 .primaryNavItem,
