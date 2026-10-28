@@ -23,9 +23,14 @@ const DraftContext = createContext<AdminWorkspaceDraftStore | null>(null);
  * On SSR use an isolated throwaway instance, never a process-wide singleton.
  */
 let browserDrafts: AdminWorkspaceDraftStore | null = null;
-function currentDraftStore(): AdminWorkspaceDraftStore {
+let browserDraftOwner: string | null = null;
+function currentDraftStore(userId: string): AdminWorkspaceDraftStore {
   if (typeof window === 'undefined') return createAdminWorkspaceDraftStore();
-  browserDrafts ??= createAdminWorkspaceDraftStore();
+  if (!browserDrafts || browserDraftOwner !== userId) {
+    browserDrafts?.clear();
+    browserDrafts = createAdminWorkspaceDraftStore();
+    browserDraftOwner = userId;
+  }
   return browserDrafts;
 }
 
@@ -66,12 +71,12 @@ export function useAdminWorkspaceState<T>(
  * mounted inside AdminLayout and disappears on refresh, logout or full nav.
  * Unlike global Next cacheComponents, it cannot change public page caching.
  */
-export function AdminWorkspaceKeeper({ children }: { children: ReactNode }) {
+export function AdminWorkspaceKeeper({ children, userId }: { children: ReactNode; userId: string }) {
   const pathname = usePathname();
   const query = useSearchParams().toString();
   const location = pathname + (query ? '?' + query : '');
   const router = useRouter();
-  const drafts = currentDraftStore();
+  const drafts = currentDraftStore(userId);
 
   useEffect(() => { drafts.touch(pathname); }, [drafts, pathname]);
 
@@ -95,29 +100,30 @@ export function AdminWorkspaceKeeper({ children }: { children: ReactNode }) {
           return;
         }
         const session: unknown = await result.json();
-        const userId = session && typeof session === 'object' &&
+        const sessionUserId = session && typeof session === 'object' &&
           'userId' in session && typeof session.userId === 'string'
           ? session.userId : null;
-        if (!userId) {
+        if (!sessionUserId) {
           drafts.clear();
           window.location.assign(url);
           return;
         }
-        if (verifiedSessionUserId && verifiedSessionUserId !== userId) {
+        if (userId !== sessionUserId ||
+            (verifiedSessionUserId && verifiedSessionUserId !== sessionUserId)) {
           // A cookie change to another account must never reuse old drafts.
           drafts.clear();
-          verifiedSessionUserId = userId;
+          verifiedSessionUserId = sessionUserId;
           window.location.assign(url);
           return;
         }
-        verifiedSessionUserId = userId;
+        verifiedSessionUserId = sessionUserId;
         router.push(url);
       } catch {
         // Fail closed: full navigation invokes the original AdminLayout guard.
         window.location.assign(url);
       }
     })();
-  }, [router, drafts]);
+  }, [router, drafts, userId]);
 
   const close = useCallback((url: string) => {
     if (isSafeAdminRoute(url)) {
