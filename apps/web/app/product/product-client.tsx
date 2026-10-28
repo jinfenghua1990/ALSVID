@@ -8,18 +8,22 @@ import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
 import { matchesModelRegisterSearch } from './model-register';
 
+type CustomFieldDefinition = { id:string; product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART'; code:string;
+  label:string; field_type:'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'; options:string[]; required:boolean;
+  status:'ACTIVE'|'RETIRED'; version:number };
+type CustomFieldValues = Record<string,string|number|boolean>;
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
-type Model = { id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
+type Model = { custom_fields?: CustomFieldValues; id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
 type Variant = { id: string; model_id: string; code: string; name: string; description: string; status: string; version: number };
 type Sku = { id: string; variant_id: string; sku: string; name: string; market_code: string | null; color_code: string | null; size_code: string | null; status: string; version: number };
-type Catalog = { productTypes: {code:string;name:string;description:string;status:string}[]; platforms: Platform[]; models: Model[]; variants: Variant[]; skus: Sku[] };
+type Catalog = { modelFieldDefinitions:CustomFieldDefinition[]; productTypes: {code:string;name:string;description:string;status:string}[]; platforms: Platform[]; models: Model[]; variants: Variant[]; skus: Sku[] };
 type Part = { id: string; part_number: string; name: string; category: string; default_unit: string; status: string };
 type BomRow = { id: string; code: string; name: string; model_id: string; model_code: string; revision_id: string | null; revision_code: string | null; revision_status: string | null; line_count: number | null };
 type BuildSpec = { id: string; code: string; status: string; version: number; sku_id: string; sku: string; bom_revision_id: string; revision_code: string; bom_code: string };
 type Engineering = { parts: Part[]; boms: BomRow[]; buildSpecs: BuildSpec[] };
-type EditTarget = { entity: 'model' | 'variant' | 'sku'; id: string; version: number; name: string; status: string; description?: string; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null };
+type EditTarget = { productTypeCode?:'BIKE'|'ACCESSORY'|'SERVICE_PART';customFields?:CustomFieldValues; entity: 'model' | 'variant' | 'sku'; id: string; version: number; name: string; status: string; description?: string; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null };
 
-const emptyCatalog: Catalog = { productTypes: [], platforms: [], models: [], variants: [], skus: [] };
+const emptyCatalog: Catalog = { modelFieldDefinitions:[],productTypes: [], platforms: [], models: [], variants: [], skus: [] };
 const emptyEngineering: Engineering = { parts: [], boms: [], buildSpecs: [] };
 
 // Platform labels come from actual user-maintained records, not hardcoded example platforms.
@@ -39,6 +43,36 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
+/** Schema-driven inputs do not become SKU dimensions, price, inventory or a public catalogue. */
+function ModelFieldInputs({definitions,values={}}:{definitions:CustomFieldDefinition[];values?:CustomFieldValues}) {
+  const active=definitions.filter(def=>def.status==='ACTIVE');
+  if(!active.length)return null;
+  return <fieldset className={styles.customFieldInputs}><legend>商品自定义字段</legend>
+    {active.map(def=><label key={def.id}>{def.label}{def.required?' *':''}
+      {def.field_type==='BOOLEAN'?
+        <select name={`cf.${def.code}`} defaultValue={values[def.code]===true?'true':values[def.code]===false?'false':''} required={def.required}>
+          <option value="">未填写</option><option value="true">是</option><option value="false">否</option>
+        </select>
+      :def.field_type==='SELECT'?
+        <select name={`cf.${def.code}`} defaultValue={String(values[def.code]??'')} required={def.required}>
+          <option value="">请选择</option>{def.options.map(option=><option key={option} value={option}>{option}</option>)}
+        </select>
+      :<input name={`cf.${def.code}`} type={def.field_type==='NUMBER'?'number':'text'}
+        step={def.field_type==='NUMBER'?'any':undefined} maxLength={def.field_type==='TEXT'?500:undefined}
+        defaultValue={String(values[def.code]??'')} required={def.required}/>}
+    </label>)}
+  </fieldset>;
+}
+function readModelFields(form:FormData,definitions:CustomFieldDefinition[]):CustomFieldValues {
+  const values:CustomFieldValues={};
+  for(const def of definitions.filter(item=>item.status==='ACTIVE')){
+    const raw=String(form.get(`cf.${def.code}`)??'').trim();
+    if(raw==='')continue;
+    values[def.code]=def.field_type==='NUMBER'?Number(raw):def.field_type==='BOOLEAN'?raw==='true':raw;
+  }
+  return values;
+}
+
 export default function ProductClient({ embedded = false, view = 'archive' }: { embedded?: boolean; view?: 'archive' | 'engineering' }) {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
@@ -55,6 +89,11 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   const [platformDraft, setPlatformDraft] = useState<Platform | 'new' | null>(null);
   const [platformStatusFilter, setPlatformStatusFilter] = useState('ALL');
   const [savingPlatform, setSavingPlatform] = useState(false);
+  const [fieldManager, setFieldManager] = useState(false);
+  const [fieldDraft, setFieldDraft] = useState<CustomFieldDefinition | 'new' | null>(null);
+  const [fieldScope, setFieldScope] = useState<'BIKE'|'ACCESSORY'|'SERVICE_PART'>('BIKE');
+  const [fieldType, setFieldType] = useState<'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'>('TEXT');
+  const [savingField, setSavingField] = useState(false);
   const [workspace, setWorkspace] = useState<'bikes' | 'parts' | 'platforms'>('bikes');
   const [partTab, setPartTab] = useState<'manufacturing' | 'retail'>('manufacturing');
   const [createKind, setCreateKind] = useState<'bike' | 'part' | 'accessory' | null>(null);
@@ -220,6 +259,40 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     }
   }
 
+  async function saveField(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if(!fieldDraft||savingField)return;
+    const form=new FormData(event.currentTarget);
+    const creating=fieldDraft==='new';
+    const payload=creating?{
+      productTypeCode:fieldScope,code:String(form.get('code')??''),label:form.get('label'),
+      fieldType,required:form.get('required')==='on',
+      options:fieldType==='SELECT'?String(form.get('options')??'').split('\\n').map(x=>x.trim()).filter(Boolean):[],
+    }:{
+      expectedVersion:fieldDraft.version,label:form.get('label'),
+      required:form.get('required')==='on',status:form.get('status'),
+    };
+    let written=false;
+    setSavingField(true);
+    try {
+      const saved=await api(creating?'/v1/product/model-fields':`/v1/product/model-fields/${fieldDraft.id}`,{
+        method:creating?'POST':'PATCH',body:JSON.stringify(payload),
+      }) as CustomFieldDefinition;
+      written=true;
+      const verified=await api('/v1/product/catalog') as Catalog;
+      const row=(verified.modelFieldDefinitions??[]).find(def=>def.id===saved.id);
+      if(!row||row.version!==saved.version||row.label!==saved.label||row.status!==saved.status)
+        throw new Error('字段写入后回读不一致，请核对记录后再操作');
+      setCatalog({...emptyCatalog,...verified});
+      setFieldDraft(null);
+      setMessage('商品字段已保存，并从数据库回读核验。');
+    }catch(error){
+      if(written)setFieldDraft(null);
+      setMessage((written?'字段写入成功但尚未完成回读：':'字段保存失败：')+
+        (error instanceof Error?error.message:'请求异常'));
+    }finally{setSavingField(false);}
+  }
+
   async function release(endpoint: string) {
     try {
       await api(endpoint, { method: 'POST', body: '{}' });
@@ -245,6 +318,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           marketCode: edit.entity === 'sku' ? form.get('marketCode') : undefined,
           colorCode: edit.entity === 'sku' ? form.get('colorCode') : undefined,
           sizeCode: edit.entity === 'sku' ? form.get('sizeCode') : undefined,
+          customFields: edit.entity==='model' ?
+            readModelFields(form,(catalog.modelFieldDefinitions??[]).filter(def=>def.product_type_code===edit.productTypeCode)) : undefined,
         }),
       });
       setEdit(null);
@@ -267,6 +342,11 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           </div>
           <div className={styles.archiveHeadingActions}>
             <button type="button" className={styles.archiveSecondaryButton} onClick={() => void reload()} disabled={loading}>刷新</button>
+            {workspace === 'bikes' || (workspace === 'parts' && partTab === 'retail') ?
+              <button type="button" className={styles.archiveSecondaryButton} disabled={loading||!!catalogError}
+                onClick={()=>{setFieldScope(workspace==='bikes'?'BIKE':'ACCESSORY');setFieldManager(true);}}>
+                自定义字段管理
+              </button> : null}
             {workspace === 'bikes' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建整车</button> : null}
             {workspace === 'platforms' ? <button type="button" className={styles.archivePrimaryButton} disabled={loading || !!catalogError} onClick={() => setPlatformDraft('new')}>＋ 新建技术平台</button> : null}
             {workspace === 'parts' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => { if (partTab === 'manufacturing') setCreateKind('part'); else {setNewModelType('ACCESSORY');setCreateKind('accessory');} }}>＋ {partTab === 'manufacturing' ? '新建零件' : '新建可售配件'}</button> : null}
@@ -305,7 +385,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                         <td>{platform ? platformName(platform) : '未关联'}<span>{platform?.code ?? ''}</span></td>
                         <td>{variants.length ? variants.map(v => v.name || v.code).join(' / ') : '尚未配置'}</td>
                         <td><span className={styles.archiveStatus} data-status={model.status}>{statusLabel(model.status)}</span></td>
-                        <td><button type="button" className={styles.archiveEdit} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
+                        <td><button type="button" className={styles.archiveEdit} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: model.custom_fields ?? {} })}>编辑</button></td>
                       </tr>
                     ))}</tbody>
                   </table>
@@ -349,7 +429,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                 filteredAccessories.length ? (
                   <div className={styles.archiveTableWrap}><table className={styles.archiveTable} aria-label="可售配件档案">
                     <thead><tr><th>商品名称 / 编码</th><th>类型</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>{filteredAccessories.map(({ model }) => <tr key={model.id}><td><strong>{model.name}</strong><span>{model.code}</span></td><td>{catalog.productTypes.find(type => type.code === model.product_type_code)?.name ?? model.product_type_code}</td><td>{statusLabel(model.status)}</td><td><button className={styles.archiveEdit} type="button" onClick={() => setEdit({entity:'model',id:model.id,version:model.version,name:model.name,status:model.status,description:model.description})}>编辑</button></td></tr>)}</tbody>
+                    <tbody>{filteredAccessories.map(({ model }) => <tr key={model.id}><td><strong>{model.name}</strong><span>{model.code}</span></td><td>{catalog.productTypes.find(type => type.code === model.product_type_code)?.name ?? model.product_type_code}</td><td>{statusLabel(model.status)}</td><td><button className={styles.archiveEdit} type="button" onClick={() => setEdit({entity:'model',id:model.id,version:model.version,name:model.name,status:model.status,description:model.description, productTypeCode: model.product_type_code, customFields: model.custom_fields ?? {}})}>编辑</button></td></tr>)}</tbody>
                   </table></div>
                 ) : <div className={styles.archiveEmpty}><span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span><strong>{modelSearch ? '没有找到匹配配件' : '暂无可售配件'}</strong><p>可售配件在这里建档，商城上架与定价仍在商城运营管理。</p>{!modelSearch ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('ACCESSORY');setCreateKind('accessory');}}>＋ 新建可售配件</button> : null}</div>
               )}
@@ -390,7 +470,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
                 <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
-                <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button>
+                <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: model.custom_fields ?? {} })}>编辑</button>
               </div>
               {variants.map((variant) => (
                 <div className={styles.variantBlock} key={variant.id}>
@@ -452,7 +532,11 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
               createKind === 'part' ? '/v1/engineering/parts' : '/v1/product/models',
               form => createKind === 'part' ?
                 {partNumber: form.get('partNumber'), name: form.get('name'), category: form.get('category'), defaultUnit: form.get('defaultUnit')} :
-                {productTypeCode: createKind === 'bike' ? 'BIKE' : form.get('productTypeCode'), platformId: createKind === 'bike' ? form.get('platformId') : null, code: form.get('code'), name: form.get('name'), description: form.get('description')},
+                {productTypeCode: createKind === 'bike' ? 'BIKE' : form.get('productTypeCode'),
+                 platformId: createKind === 'bike' ? form.get('platformId') : null,
+                 code: form.get('code'), name: form.get('name'), description: form.get('description'),
+                 customFields:readModelFields(form,(catalog.modelFieldDefinitions??[]).filter(def=>
+                   def.product_type_code===(createKind==='bike'?'BIKE':newModelType)))},
               () => setCreateKind(null))}>
             <div className={styles.createCardHeading}>
               <div><span>商品档案</span><h2>{createKind === 'bike' ? '新建整车' : createKind === 'part' ? '新建生产零件' : '新建可售配件'}</h2><p>填写基础信息后保存；不会自动建立 SKU、BOM 或商城绑定。</p></div>
@@ -478,6 +562,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                 <label>商品编码 <input name="code" autoFocus required maxLength={80} placeholder="输入唯一商品编码" /></label>
                 <label>商品名称 <input name="name" required maxLength={160} placeholder="输入商品名称" /></label>
                 <label>说明（可选） <textarea name="description" rows={3} placeholder="简要描述商品" /></label>
+                <ModelFieldInputs key={createKind==='bike'?'BIKE':newModelType} definitions={(catalog.modelFieldDefinitions??[])
+                  .filter(def=>def.product_type_code===(createKind==='bike'?'BIKE':newModelType))}/>
               </>
             )}
             <div className={styles.createActions}>
@@ -522,6 +608,71 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
         </div>
       ) : null}
 
+      {view === 'archive' && fieldManager && !fieldDraft ? (
+        <div className={styles.modal} role="presentation" onMouseDown={()=>setFieldManager(false)}>
+          <section className={styles.fieldManagerCard} role="dialog" aria-modal="true" aria-label="管理商品字段"
+            onMouseDown={event=>event.stopPropagation()} onKeyDown={event=>{if(event.key==='Escape')setFieldManager(false);}}>
+            <div className={styles.createCardHeading}><div><span>产品研发 / 商品主档案</span><h2>自定义字段管理</h2>
+              <p>字段仅用于商品主档案（SPU）；不会修改 SKU、价格、库存或 BOM。</p></div>
+              <button type="button" className={styles.createClose} aria-label="关闭" onClick={()=>setFieldManager(false)}>×</button>
+            </div>
+            <div className={styles.archiveFilters}>
+              <select aria-label="字段所属商品类型" value={fieldScope} onChange={event=>setFieldScope(event.target.value as typeof fieldScope)}>
+                <option value="BIKE">整车</option><option value="ACCESSORY">可售配件</option><option value="SERVICE_PART">售后配件商品</option>
+              </select>
+              <button type="button" className={styles.archivePrimaryButton} onClick={()=>{setFieldType('TEXT');setFieldDraft('new');}}>＋ 新建字段</button>
+            </div>
+            {(catalog.modelFieldDefinitions??[]).filter(def=>def.product_type_code===fieldScope).length?
+              <div className={styles.archiveTableWrap}><table className={styles.archiveTable} aria-label="商品字段定义">
+                <thead><tr><th>字段名称 / 编码</th><th>类型</th><th>必填</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>{(catalog.modelFieldDefinitions??[]).filter(def=>def.product_type_code===fieldScope).map(def=><tr key={def.id}>
+                  <td><strong>{def.label}</strong><span>{def.code}</span></td>
+                  <td>{({TEXT:'文本',NUMBER:'数字',BOOLEAN:'是/否',SELECT:'下拉选项'} as const)[def.field_type]}</td>
+                  <td>{def.required?'是':'否'}</td><td>{def.status==='ACTIVE'?'启用':'已归档'}</td>
+                  <td><button type="button" className={styles.archiveEdit} onClick={()=>{setFieldType(def.field_type);setFieldDraft(def);}}>编辑</button></td>
+                </tr>)}</tbody>
+              </table></div>
+              :<div className={styles.archiveEmpty}>当前商品类型暂无自定义字段，可自行新建。</div>}
+            <p className={styles.archiveFootnote}>已创建字段的编码、类型和选项保持稳定；归档字段后历史数据仍保留。</p>
+          </section>
+        </div>
+      ):null}
+      {view === 'archive' && fieldDraft ? (
+        <div className={styles.modal} role="presentation" onMouseDown={()=>{if(!savingField)setFieldDraft(null);}}>
+          <form className={styles.createCard} role="dialog" aria-modal="true"
+            aria-label={fieldDraft==='new'?'新建商品字段':'编辑商品字段'}
+            onSubmit={event=>void saveField(event)}
+            onMouseDown={event=>event.stopPropagation()}
+            onKeyDown={event=>{if(event.key==='Escape'&&!savingField)setFieldDraft(null);}}>
+            <div className={styles.createCardHeading}><div><span>自定义字段 / {fieldScope}</span>
+              <h2>{fieldDraft==='new'?'新建商品字段':'编辑商品字段'}</h2>
+              <p>字段类型、编码及下拉选项建档后不可直接修改，避免破坏已有商品数据。</p></div>
+              <button type="button" className={styles.createClose} aria-label="关闭" disabled={savingField} onClick={()=>setFieldDraft(null)}>×</button>
+            </div>
+            <label>字段编码<input name="code" autoFocus={fieldDraft==='new'} required maxLength={32}
+              readOnly={fieldDraft!=='new'} defaultValue={fieldDraft==='new'?'':fieldDraft.code}
+              pattern="[A-Za-z0-9][A-Za-z0-9_-]*" placeholder="如 BATTERY_CAPACITY"/></label>
+            <label>字段名称<input name="label" autoFocus={fieldDraft!=='new'} required maxLength={120}
+              defaultValue={fieldDraft==='new'?'':fieldDraft.label} placeholder="如 电池容量"/></label>
+            <label>字段类型<select name="fieldType" value={fieldType} disabled={fieldDraft!=='new'}
+              onChange={event=>setFieldType(event.target.value as typeof fieldType)}>
+              <option value="TEXT">文本</option><option value="NUMBER">数字</option><option value="BOOLEAN">是/否</option><option value="SELECT">下拉选项</option>
+            </select></label>
+            {fieldType==='SELECT'?<label>选项（每行一个）
+              <textarea name="options" rows={4} disabled={fieldDraft!=='new'} required
+                defaultValue={fieldDraft==='new'?'':fieldDraft.options.join('\n')}
+                placeholder="20 英寸\n24 英寸"/></label>:null}
+            <label className={styles.fieldCheck}><input name="required" type="checkbox"
+              defaultChecked={fieldDraft==='new'?false:fieldDraft.required}/> 必填字段</label>
+            {fieldDraft!=='new'?<label>字段状态<select name="status" defaultValue={fieldDraft.status}>
+              <option value="ACTIVE">启用</option><option value="RETIRED">归档</option></select></label>:null}
+            <div className={styles.createActions}><button type="button" className={styles.archiveSecondaryButton}
+              disabled={savingField} onClick={()=>setFieldDraft(null)}>取消</button>
+              <button type="submit" className={styles.archivePrimaryButton} disabled={savingField}>
+                {savingField?'正在保存…':'保存字段'}</button></div>
+          </form>
+        </div>
+      ):null}
       {view === "engineering" ? <>
       {message ? <div className={styles.notice} role="status">{message}</div> : null}
       {catalogError || engineeringError ? <div className={styles.notice} role="alert">生产用料数据读取失败：{[catalogError, engineeringError].filter(Boolean).join('；')}。读取失败不等于没有记录。</div> : null}
@@ -602,7 +753,12 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
             <label>名称<input name="name" defaultValue={edit.name} /></label>
             <label>状态<select name="status" defaultValue={edit.status}><option value="DRAFT">草稿</option><option value="ACTIVE">启用</option><option value="RETIRED">已退役</option></select></label>
             {edit.entity !== 'sku' ? (
-              <label>说明<textarea name="description" defaultValue={edit.description ?? ''} /></label>
+              <>
+                <label>说明<textarea name="description" defaultValue={edit.description ?? ''} /></label>
+                {edit.entity==='model'?<ModelFieldInputs
+                  definitions={(catalog.modelFieldDefinitions??[]).filter(def=>def.product_type_code===edit.productTypeCode)}
+                  values={edit.customFields??{}}/>:null}
+              </>
             ) : (
               <>
                 <label>市场<input name="marketCode" maxLength={2} defaultValue={edit.marketCode ?? ''} /></label>
