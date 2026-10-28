@@ -8,13 +8,18 @@ import { productService } from './runtime.js';
 
 interface CreatePlatformBody { code: string; name: string; description?: string }
 interface UpdatePlatformBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus }
-interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string }
+interface CreateModelFieldBody {
+  productTypeCode: ProductTypeCode; code:string; label:string;
+  fieldType:'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'; options?:string[]; required?:boolean;
+}
+interface UpdateModelFieldBody { expectedVersion:number; label?:string; status?:'ACTIVE'|'RETIRED'; required?:boolean }
+interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown> }
 interface UpdateHomepageBindingBody { slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
 interface CreateSkuBody { variantId: string; sku: string; name: string; marketCode?: string; colorCode?: string; sizeCode?: string; attributes?: Record<string, unknown> }
 interface PublicationDraftBody { expectedVersion: number; titleZh: string; titleDe: string; titleEn: string; evidenceNote: string }
 interface PublicationActionBody { action: PublicationAction; expectedVersion: number }
-interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }
+interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?:Record<string,unknown> }
 
 @Controller('v1/product')
 export class ProductController {
@@ -80,6 +85,18 @@ export class ProductController {
   async catalog(@Req() request: AuthenticatedRequest) {
     try { return { data: await productService.catalog(requireAuth(request)) }; }
     catch (error) { return throwHttpDomainError(error); }
+  }
+
+  @Post('model-fields')
+  async createModelField(@Req() request:AuthenticatedRequest,@Body() input:CreateModelFieldBody) {
+    try{return {data:await productService.createModelField(requireAuth(request),input)};}
+    catch(error){return throwHttpDomainError(error);}
+  }
+
+  @Patch('model-fields/:id')
+  async updateModelField(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:UpdateModelFieldBody) {
+    try{return {data:await productService.updateModelField(requireAuth(request),id,input)};}
+    catch(error){return throwHttpDomainError(error);}
   }
 
   @Post('platforms')
