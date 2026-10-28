@@ -215,10 +215,12 @@ try {
   // The official B2C Admin inventory workspace now shows a SERVER-SIDE join
   // of approved Product, active Commerce price, and Inventory balances.
   // It remains a read-only gate; no public checkout or stock mutation.
-  const readinessFixture = market => ({ data: {
-    market, checkedAt: '2026-10-28T10:00:00.000Z', checkoutEnabled: false, truncated: false,
+  const readinessFixture = (market, query = '') => ({ data: {
+    market, query, checkedAt: '2026-10-28T10:00:00.000Z', checkoutEnabled: false, truncated: false,
     rows: [{ skuId: '11111111-1111-4111-8111-111111111111',
-      sku: 'FC1-BLACK-DE', skuName: 'FC1 Black', modelCode: 'FC1', variantCode: 'STANDARD',
+      sku: query === 'FC2' ? 'FC2-GREY-DE' : 'FC1-BLACK-DE',
+      skuName: query === 'FC2' ? 'FC2 Grey' : 'FC1 Black',
+      modelCode: query === 'FC2' ? 'FC2' : 'FC1', variantCode: 'STANDARD',
       colorCode: 'BLACK', marketCode: market, publicationStatus: 'PUBLISHED',
       priceGross: market === 'DE' ? '2999.00' : null, currency: 'EUR',
       locationCount: market === 'DE' ? 1 : 0,
@@ -232,20 +234,38 @@ try {
   } });
   const readinessRoute = '**/api/control/v1/commerce/storefront/readiness?*';
   await page.route(readinessRoute, route => {
-    const market = new URL(route.request().url()).searchParams.get('marketCountry');
+    const url = new URL(route.request().url());
+    const market = url.searchParams.get('marketCountry');
+    const query = url.searchParams.get('query') ?? '';
     return route.fulfill({status: 200, contentType: 'application/json',
-      body: JSON.stringify(readinessFixture(market === 'AT' ? 'AT' : 'DE'))});
+      body: JSON.stringify(readinessFixture(market === 'AT' ? 'AT' : 'DE', query))});
   });
   await page.goto(base + '/admin/ecommerce/inventory');
   const readiness = page.getByRole('region', { name: '官网可售条件核对表' });
   await readiness.getByRole('row', { name: /FC1-BLACK-DE/ }).waitFor();
   assert.equal(await readiness.getByText('不可下单').count(), 1);
   assert.equal(await readiness.getByText('3.000000 台账可用').count(), 1);
+  // Search is a server query, not a filter over the first 500 returned SKUs.
+  await page.getByRole('searchbox', { name: /从数据库查询型号/ }).fill('FC2');
+  await page.getByRole('button', { name: '查询 SKU' }).click();
+  await readiness.getByRole('row', { name: /FC2-GREY-DE/ }).waitFor();
+  assert.equal(await readiness.getByRole('row', { name: /FC1-BLACK-DE/ }).count(), 0,
+    'the SKU result must reflect the server query, not stale initial rows');
+  await page.getByRole('button', { name: '清除查询' }).click();
+  await readiness.getByRole('row', { name: /FC1-BLACK-DE/ }).waitFor();
   await page.getByRole('combobox', { name: '目标市场' }).selectOption('AT');
   await readiness.getByText('未核实库存位置').waitFor();
   const atMarketRow = readiness.getByRole('row', { name: /FC1-BLACK-DE/ });
   assert.match(await atMarketRow.locator('td').nth(2).innerText(), /^未配置/,
     'AT has no price, and the same market row must show that fact');
+  const issueFilters = page.getByRole('group', { name: '未达成条件筛选' });
+  await issueFilters.getByRole('button', { name: /市场\/售价问题/ }).click();
+  assert.equal(await readiness.getByRole('row', { name: /FC1-BLACK-DE/ }).count(), 1,
+    'market/price filter reveals the AT price blocker');
+  await issueFilters.getByRole('button', { name: /发布及状态问题/ }).click();
+  assert.equal(await readiness.getByRole('row', { name: /FC1-BLACK-DE/ }).count(), 0,
+    'published items must not appear in the publication issue filter');
+  await issueFilters.getByRole('button', { name: /全部结果/ }).click();
   await page.unroute(readinessRoute);
   await page.route(readinessRoute, route => route.fulfill({
     status: 503, contentType: 'application/json', body: JSON.stringify({message: 'Temporary readiness failure'}),
@@ -254,7 +274,7 @@ try {
   await page.getByRole('alert').filter({hasText:'Temporary readiness failure'}).waitFor();
   assert.equal(await page.getByRole('region', { name: '官网可售条件核对表' }).count(), 0,
     'failed cross-domain read must not show stale stock or a false purchasable state');
-  report.checks.push('WWW/Commerce readiness: market-specific Product/Price/Inventory join, no checkout, API failure clears stale stock');
+  report.checks.push('WWW/Commerce readiness: full-catalog server SKU search, DE/AT issue filters, no checkout, API failure clears stale stock');
 
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
