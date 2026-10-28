@@ -1,0 +1,140 @@
+/* ALSVID Admin typography system.
+   Keep this file last in layout.tsx so shared typography rules win over legacy styles.
+   Phase 1 standardizes the shell, navigation, page headings, tables, forms and helper text.
+*/
+:root {
+  --alsvid-type-nav-primary: 14px;
+  --alsvid-type-nav-secondary: 13px;
+  --alsvid-type-page-title: 28px;
+  --alsvid-type-section-title: 18px;
+  --alsvid-type-subsection-title: 16px;
+  --alsvid-type-body: 13px;
+  --alsvid-type-label: 12px;
+  --alsvid-type-meta: 12px;
+  --alsvid-type-badge: 11px;
+  --alsvid-leading-body: 1.55;
+}
+
+/* Main navigation: the same level always uses the same size. */
+.shellV2 .primaryNavItem,
+.shellV2 .mobilePrimaryItem {
+  font-size: var(--alsvid-type-nav-primary) !important;
+}
+
+.shellV2 .contextNavigationTitle,
+.shellV2 .contextRail .navSection {
+  font-size: var(--alsvid-type-label) !important;
+}
+
+.shellV2 .contextNavItem,
+.shellV2 .contextRail .navItem,
+.shellV2 .workspaceTabLink {
+  font-size: var(--alsvid-type-nav-secondary) !important;
+}
+
+.shellV2 .contextNavItem small,
+.shellV2 .contextRail .navStatus,
+.shellV2 .navStatus {
+  font-size: var(--alsvid-type-badge) !important;
+}
+
+.shellV2 .contextRailTitle strong {
+  font-size: var(--alsvid-type-section-title) !important;
+}
+
+.shellV2 .contextRailTitle span,
+.shellV2 .contextRail .railFoot,
+.shellV2 .profileCopy small {
+  font-size: var(--alsvid-type-meta) !important;
+}
+
+.shellV2 .profileCopy strong,
+.shellV2 .themeToggleLabel {
+  font-size: var(--alsvid-type-label) !important;
+}
+
+/* Content hierarchy: headings stay prominent; normal business content stays compact. */
+.shellV2 .workspace {
+  font-size: var(--alsvid-type-body);
+  line-height: var(--alsvid-leading-body);
+}
+
+.shellV2 .workspace h1,
+.shellV2 .workspace > header h1,
+.shellV2 .workspace > section > header:first-child h1,
+.shellV2 .workspace .pageHeader h1 {
+  font-size: var(--alsvid-type-page-title) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.03em !important;
+}
+
+.shellV2 .workspace h2 {
+  font-size: var(--alsvid-type-section-title) !important;
+  line-height: 1.35 !important;
+}
+
+.shellV2 .workspace h3 {
+  font-size: var(--alsvid-type-section-title) !important;
+  line-height: 1.4 !important;
+}
+
+.shellV2 .workspace h4,
+.shellV2 .workspace h5,
+.shellV2 .workspace h6 {
+  font-size: var(--alsvid-type-subsection-title) !important;
+  line-height: 1.4 !important;
+}
+
+/* Standard body, table cells and controls. */
+.shellV2 .workspace :is(p, li, td, button, input, select, textarea) {
+  font-size: var(--alsvid-type-body) !important;
+  line-height: var(--alsvid-leading-body);
+}
+
+.shellV2 .workspace :is(label, legend, th, caption),
+.shellV2 .workspace :is([class*="tableHead"], [class*="TableHead"], [class*="tableHeader"], [class*="TableHeader"], [class*="fieldLabel"], [class*="FieldLabel"], [class*="filterLabel"], [class*="FilterLabel"]) {
+  font-size: var(--alsvid-type-label) !important;
+}
+
+.shellV2 .workspace :is(small, .pageIntro, .sectionLead, [class*="helper"], [class*="Helper"], [class*="description"], [class*="Description"], [class*="hint"], [class*="Hint"], [class*="subtitle"], [class*="Subtitle"], [class*="meta"], [class*="Meta"], [class*="subText"], [class*="caption"], [class*="Caption"], [class*="eyebrow"], [class*="Eyebrow"]) {
+  font-size: var(--alsvid-type-meta) !important;
+  line-height: 1.5;
+}
+
+.shellV2 .workspace :is([class*="badge"], [class*="Badge"], [class*="status"], [class*="Status"], [class*="tag"], [class*="Tag"], [class*="pill"], [class*="Pill"]) {
+  font-size: var(--alsvid-type-badge) !important;
+  line-height: 1.35;
+}
+
+/* Ensure custom div-based table implementations follow the same scale too. */
+.shellV2 .workspace :is([class*="tableRow"], [class*="TableRow"], [class*="tableCell"], [class*="TableCell"]) {
+  font-size: var(--alsvid-type-body) !important;
+}
+
+.shellV2 .workspace :is([class*="tableHead"], [class*="TableHead"], [class*="tableHeader"], [class*="TableHeader"]) {
+  font-size: var(--alsvid-type-label) !important;
+}
+
+.shellV2 .adminTopbar {
+  font-size: var(--alsvid-type-body) !important;
+}
+
+.shellV2 .workspace > header > div:first-child > :first-child,
+.shellV2 .workspace > section > header:first-child > div:first-child > :first-child {
+  font-size: var(--alsvid-type-label) !important;
+}
+
+/* Keep the typography scale predictable on smaller screens as well. */
+@media (max-width: 850px) {
+  .shellV2 .workspace h1,
+  .shellV2 .workspace > header h1,
+  .shellV2 .workspace > section > header:first-child h1,
+  .shellV2 .workspace .pageHeader h1 {
+    font-size: 26px !important;
+  }
+
+  .shellV2 .primaryNavItem,
+  .shellV2 .mobilePrimaryItem {
+    font-size: var(--alsvid-type-nav-primary) !important;
+  }
+}
