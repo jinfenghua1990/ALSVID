@@ -60,8 +60,29 @@ export function AdminWorkspaceKeeper({ children }: { children: ReactNode }) {
   useEffect(() => { drafts.touch(pathname); }, [drafts, pathname]);
 
   const navigate = useCallback((url: string) => {
-    if (isSafeAdminRoute(url)) router.push(url);
-    else window.location.assign(url);
+    if (!isSafeAdminRoute(url)) {
+      window.location.assign(url);
+      return;
+    }
+    // The App Router preserves layouts, so a client transition does not
+    // necessarily rerun AdminLayout's server-side session guard.
+    // Check authorization before reusing the in-memory authenticated shell.
+    void (async () => {
+      try {
+        const result = await fetch('/api/admin/workspace-session', {
+          method: 'GET', credentials: 'same-origin',
+          cache: 'no-store', redirect: 'manual',
+        });
+        if (result.status !== 200 || result.type === 'opaqueredirect') {
+          window.location.assign(url);
+          return;
+        }
+        router.push(url);
+      } catch {
+        // Fail closed: full navigation invokes the original AdminLayout guard.
+        window.location.assign(url);
+      }
+    })();
   }, [router]);
 
   const close = useCallback((url: string) => {
@@ -80,8 +101,8 @@ export function AdminWorkspaceKeeper({ children }: { children: ReactNode }) {
     const href = link.getAttribute('href');
     if (!href || !isSafeAdminRoute(href)) return;
     event.preventDefault();
-    router.push(href);
-  }, [router]);
+    navigate(href);
+  }, [navigate]);
 
   return <DraftContext.Provider value={drafts}>
     <WorkspaceNavigationProvider location={location} navigate={navigate} close={close}>
