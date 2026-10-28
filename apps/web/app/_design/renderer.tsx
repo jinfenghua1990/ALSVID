@@ -70,7 +70,7 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
   ],
   '生产': [
     { group: '生产计划', items: ['生产计划', '排产管理'] },
-    { group: '生产执行', items: ['生产工单', '装配流程', '生产进度'] },
+    { group: '生产执行', items: ['生产工单', 'BOM / 生产用料清单', '装配流程', '生产进度'] },
     { group: '质量管理', items: ['来料检验', '装配质检', '出厂检测'] },
     { group: '车辆追溯', items: ['VIN 管理', '出厂记录', '车辆档案'] },
   ],
@@ -165,6 +165,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '经销商列表': '/admin/dealers', 'B2B订单': '/admin/dealers/purchase/fulfillment', '采购历史': '/admin/dealers/purchase/received',
     '采购预测': '/admin/dealers/purchase/request', '销售数据': '/admin/dealers', '售后能力': '/admin/after-sales', '培训认证': '/admin/dealers/regions',
     '试骑申请与网点': '/admin/dealers/test-rides',
+    'BOM / 生产用料清单': '/admin/production#production-bom',
     '生产工作台': '/admin/production',
     '生产计划': '/admin/production', '排产管理': '/admin/production', '生产工单': '/admin/production', '装配流程': '/admin/production',
     '生产进度': '/admin/production', '来料检验': '/admin/production', '装配质检': '/admin/production', '出厂检测': '/admin/production', '出厂记录': '/admin/production/vin',

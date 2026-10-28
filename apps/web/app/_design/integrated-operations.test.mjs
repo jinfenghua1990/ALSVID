@@ -43,8 +43,14 @@ test('all six existing live workspaces share the embedded / legacy frame without
   for (const [label, area, component, file] of connected) {
     const source = read(area + '/' + file);
     assert.ok(integrated.includes('<' + component + ' embedded />'), label);
-    assert.ok(source.includes('export default function ' + component + '({ embedded = false }'), area);
-    assert.ok(source.includes('<OperationsFrame embedded={embedded} area="' + area + '"'), area);
+    if (area === 'product') {
+      assert.ok(source.includes("view?: 'archive' | 'engineering'"), 'product supports archive and production BOM views');
+      assert.ok(source.includes('view === "engineering" ? "production" : "product"'), 'product production BOM inherits production area');
+      assert.ok(integrated.includes('<ProductClient embedded view="engineering" />'), 'BOM editor is in production');
+    } else {
+      assert.ok(source.includes('export default function ' + component + '({ embedded = false }'), area);
+      assert.ok(source.includes('<OperationsFrame embedded={embedded} area="' + area + '"'), area);
+    }
     assert.ok(source.includes('</OperationsFrame>'), area);
     assert.ok(!source.includes('<AppShell'), area);
     assert.ok(!source.includes('synced-screens.json'), area);

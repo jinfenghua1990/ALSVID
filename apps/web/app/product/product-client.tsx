@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
-import { matchesModelRegisterSearch, modelBomSummary, modelEngineeringStage } from './model-register';
+import { matchesModelRegisterSearch } from './model-register';
 
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
 type Model = { id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
@@ -22,24 +22,9 @@ type EditTarget = { entity: 'model' | 'variant' | 'sku'; id: string; version: nu
 const emptyCatalog: Catalog = { productTypes: [], platforms: [], models: [], variants: [], skus: [] };
 const emptyEngineering: Engineering = { parts: [], boms: [], buildSpecs: [] };
 
-const PLATFORM_PRESENTATION: Record<string, { name: string; description: string; order: number }> = {
-  FC: { name: 'Folding Carbon', description: '碳纤维折叠技术平台', order: 0 },
-  CT: { name: 'City Touring', description: '城市通勤技术平台', order: 1 },
-  FT: { name: 'Fat Tire', description: '胖胎技术平台', order: 2 },
-  GT: { name: 'Gravel/Touring', description: 'Gravel 与长途旅行技术平台', order: 3 },
-};
-
-function platformName(platform: Platform) {
-  return PLATFORM_PRESENTATION[platform.code]?.name ?? platform.name;
-}
-
-function platformDescription(platform: Platform) {
-  return PLATFORM_PRESENTATION[platform.code]?.description ?? platform.description;
-}
-
-function platformOrder(code: string) {
-  return PLATFORM_PRESENTATION[code]?.order ?? 99;
-}
+// Platform labels come from actual user-maintained records, not hardcoded example platforms.
+function platformName(platform: Platform) { return platform.name; }
+function platformDescription(platform: Platform) { return platform.description; }
 
 function statusLabel(status: string | null | undefined) {
   if (!status) return '未设置';
@@ -54,7 +39,7 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
-export default function ProductClient({ embedded = false }: { embedded?: boolean }) {
+export default function ProductClient({ embedded = false, view = 'archive' }: { embedded?: boolean; view?: 'archive' | 'engineering' }) {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
   const [engineering, setEngineering] = useState<Engineering>(emptyEngineering);
@@ -71,14 +56,20 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   useEffect(() => {
     const revealLinkedPanel = () => {
       const id = window.location.hash.slice(1);
+      // Preserve old bookmarks without offering a second BOM editor in product research.
+      if (view === 'archive' && ['engineering', 'engineering-panel', 'production-bom'].includes(id)) {
+        router.replace('/admin/production#production-bom');
+        return;
+      }
       const target = id ? document.getElementById(id) : null;
       const panel = target?.closest('details');
+      if (target instanceof HTMLDetailsElement) target.open = true;
       if (panel) panel.open = true;
     };
     revealLinkedPanel();
     window.addEventListener('hashchange', revealLinkedPanel);
     return () => window.removeEventListener('hashchange', revealLinkedPanel);
-  }, []);
+  }, [view, router]);
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -202,12 +193,13 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
   }
 
   return (
-    <OperationsFrame embedded={embedded} area="product" footer="产品 / 工程 / 资产">
+    <OperationsFrame embedded={embedded} area={view === "engineering" ? "production" : "product"} footer={view === "engineering" ? "生产制造 / BOM" : "产品研发 / 商品档案"}>
+      {view === "archive" ? <>
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>ALSVID PRODUCT ARCHIVE</div>
           <h1>商品档案</h1>
-          <p>一条商品一行，集中查询、筛选与编辑；更多规格和工程操作按需展开。</p>
+          <p>一条商品一行，维护商品、版本和零配件档案；生产用料清单统一由生产制造管理。</p>
         </div>
         <div className={styles.releaseBadge}>商品主数据</div>
       </header>
@@ -229,7 +221,6 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
         <div><span>商品主记录</span><strong>{loading || catalogError ? '—' : catalog.models.length}</strong></div>
         <div><span>配置版本</span><strong>{loading || catalogError ? '—' : catalog.variants.length}</strong></div>
         <div><span>SKU</span><strong>{loading || catalogError ? '—' : catalog.skus.length}</strong></div>
-        <div><span>BOM</span><strong>{loading || engineeringError ? '—' : engineering.boms.length}</strong></div>
         <div><span>零部件</span><strong>{loading || engineeringError ? '—' : engineering.parts.length}</strong></div>
       </div>
 
@@ -243,7 +234,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             aria-label="搜索产品型号"
             value={modelSearch}
             onChange={(event) => setModelSearch(event.target.value)}
-            placeholder="搜索型号、平台、版本、SKU、BOM（VIN 请到车辆查询）"
+            placeholder="搜索商品编码、名称、平台、版本或 SKU"
           />
           <select aria-label="按产品类型筛选" value={typeFilter} onChange={event=>setTypeFilter(event.target.value)}>
             <option value="ALL">全部商品类型</option>
@@ -261,12 +252,12 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             <div>
               <a href="/admin/ecommerce/publications">官网发布</a>
               <a href="/admin/ecommerce/homepage">首页商品绑定</a>
-              <a href="#engineering" onClick={() => document.getElementById('engineering-panel')?.setAttribute('open', '')}>BOM / 工程版本</a>
+              <a href="/admin/production#production-bom">BOM / 生产用料清单</a>
               <a href="/admin/production/vin">VIN / 车辆查询</a>
             </div>
           </details>
           <a className={styles.createLink} href="#configuration" onClick={() => document.getElementById('product-maintenance-panel')?.setAttribute('open', '')}>＋ 新增商品</a>
-          <span>{loading ? '正在同步…' : catalogError ? '型号数据未确认' : `${filteredModels.length} / ${catalog.models.length} 个型号`}</span>
+          <span>{loading ? '正在同步…' : catalogError ? '商品数据未确认' : `${filteredModels.length} / ${catalog.models.length} 条商品`}</span>
         </div>
         {loading && catalog.models.length === 0 ? (
           <div className={styles.emptyState}>正在读取产品主数据…</div>
@@ -275,13 +266,11 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
             <table className={styles.modelTable}>
               <thead>
                 <tr>
-                  <th>型号</th>
+                  <th>商品编码 / 名称</th>
                   <th>商品类型</th>
                   <th>技术平台</th>
                   <th>配置版本</th>
                   <th>状态</th>
-                  <th>当前工程阶段</th>
-                  <th>关联 BOM</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -293,8 +282,6 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
                     <td><strong>{platform?.code ?? '—'}</strong><small>{platform ? platformName(platform) : '平台未关联'}</small></td>
                     <td>{variants.length ? variants.map((variant) => variant.name || variant.code).join(' / ') : '未配置'}</td>
                     <td><span className={styles.statusBadge}>{statusLabel(model.status)}</span></td>
-                    <td><span className={styles.stageBadge}>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelEngineeringStage(model.id, catalog, engineering)}</span></td>
-                    <td>{loading ? '正在核对…' : engineeringError ? '工程数据不可用' : modelBomSummary(model.id, engineering)}</td>
                     <td><button type="button" className={styles.tableAction} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description })}>编辑</button></td>
                   </tr>
                 ))}
@@ -307,7 +294,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
               ? '暂时无法确认型号数据。请先检查 API 连接与权限，不要将接口异常判断为数据库为空。'
               : modelSearch || statusFilter !== 'ALL' || typeFilter !== 'ALL'
                 ? '没有符合当前筛选条件的型号。'
-                : '当前没有已登记的真实型号。请在下方创建车型；系统不会自动填充示例记录。'}
+                : '当前没有已登记的商品。请点击新增商品自行建档；系统不会生成示例记录。'}
           </div>
         )}
       </section>
@@ -336,7 +323,7 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
           <p>固定平台顺序：FC、CT、FT、GT。平台定义产品技术方向；具体车型、配置和 SKU 在下方管理。</p>
         </div>
         <div className={styles.platforms}>
-          {[...catalog.platforms].sort((a, b) => platformOrder(a.code) - platformOrder(b.code)).map((platform) => (
+          {[...catalog.platforms].sort((a, b) => a.code.localeCompare(b.code)).map((platform) => (
             <article key={platform.id}>
               <span>{platform.code}</span>
               <h2>{platformName(platform)}</h2>
@@ -428,9 +415,34 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
 
       </details>
 
-      <details className={styles.collapsiblePanel} id="engineering-panel">
-        <summary>BOM、零部件与工程版本 <span>按需展开操作</span></summary>
-      <div className={styles.notice} role="note">官网首页商品绑定、商品展示审核和上架发布已归入 <a href="/admin/ecommerce">电商运营</a>。本页面继续管理唯一的产品型号、Variant、SKU 与工程资料。</div>
+      <details className={styles.collapsiblePanel} id="parts-library-panel">
+        <summary>零件主数据 <span>零件档案由你自己录入</span></summary>
+        <section className={styles.section} id="parts">
+          <div className={styles.sectionHead}><div><h2>零件库</h2></div><p>此处只维护零件资料；BOM 用料和版本在生产制造建立。</p></div>
+          {engineeringError ? <p className={styles.notice} role="alert">零件数据无法读取：{engineeringError}</p> : null}
+          <div className={styles.listCard}>
+            {engineering.parts.map(part => <div className={styles.listRow} key={part.id}><b>{part.part_number}</b><span>{part.name}</span><small>{part.category} · {part.default_unit} · {statusLabel(part.status)}</small></div>)}
+            {!engineering.parts.length && <small>{loading ? '正在读取零件…' : engineeringError ? '零件接口暂不可用' : '还没有零件，请在下方新建。'}</small>}
+          </div>
+          <section className={styles.formsGrid}>
+            <form onSubmit={e => void submitForm(e, '/v1/engineering/parts', f => ({ partNumber: f.get('partNumber'), name: f.get('name'), category: f.get('category'), defaultUnit: f.get('defaultUnit') }))}>
+              <span>零件建档</span><h3>新建零件</h3>
+              <input name="partNumber" placeholder="零件编码" required />
+              <input name="name" placeholder="零件名称" required />
+              <div className={styles.inline}><input name="category" placeholder="分类" /><input name="defaultUnit" placeholder="单位，例如 EA" required /></div>
+              <button>保存零件</button>
+            </form>
+          </section>
+        </section>
+      </details>
+      </> : null}
+
+      {view === "engineering" ? <>
+      {message ? <div className={styles.notice} role="status">{message}</div> : null}
+      {catalogError || engineeringError ? <div className={styles.notice} role="alert">生产用料数据读取失败：{[catalogError, engineeringError].filter(Boolean).join('；')}。读取失败不等于没有记录。</div> : null}
+      <details className={styles.collapsiblePanel} id="production-bom">
+        <summary>BOM / 生产用料清单 <span>创建 BOM、零件用量与生产版本</span></summary>
+      <div className={styles.notice} role="note">BOM 从产品研发建立的商品及零件档案引用数据，不重复创建商品或零件。发布后的受控版本不能静默修改。</div>
       <section className={styles.section} id="engineering">
         <div className={styles.sectionHead}>
           <div><span>工程发布</span><h2>零部件、BOM 与生产规格</h2></div>
@@ -467,14 +479,6 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       </section>
 
       <section className={styles.formsGrid}>
-        <form onSubmit={(e) => void submitForm(e, '/v1/engineering/parts', (f) => ({ partNumber: f.get('partNumber'), name: f.get('name'), category: f.get('category'), defaultUnit: f.get('defaultUnit') }))}>
-          <span>零部件主数据</span><h3>创建零部件</h3>
-          <input name="partNumber" placeholder="例如：FRAME-FC1-001" required />
-          <input name="name" placeholder="零部件名称" required />
-          <div className={styles.inline}><input name="category" placeholder="分类 FRAME" /><input name="defaultUnit" placeholder="单位 EA" /></div>
-          <button>创建零部件</button>
-        </form>
-
         <form onSubmit={(e) => void submitForm(e, '/v1/engineering/boms', (f) => ({ modelId: f.get('modelId'), code: f.get('code'), name: f.get('name'), revisionCode: f.get('revisionCode') }))}>
           <span>BOM 主数据</span><h3>创建 BOM 与草稿版本</h3>
           <select name="modelId" required defaultValue=""><option value="" disabled>选择车型</option>{catalog.models.map((m) => <option key={m.id} value={m.id}>{m.code}</option>)}</select>
@@ -503,6 +507,8 @@ export default function ProductClient({ embedded = false }: { embedded?: boolean
       </section>
 
       </details>
+
+      </> : null}
 
       {edit ? (
         <div className={styles.modal} onMouseDown={() => setEdit(null)}>

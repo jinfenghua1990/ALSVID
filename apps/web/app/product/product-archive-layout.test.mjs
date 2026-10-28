@@ -15,7 +15,9 @@ test('product archive is list-first with advanced sections collapsed', () => {
   assert.ok(client.indexOf('id="model-register"') < client.indexOf('id="product-types"'));
   assert.ok(client.indexOf('id="model-register"') < client.indexOf('id="models"'));
   assert.match(client, /id="product-maintenance-panel"/);
-  assert.match(client, /id="engineering-panel"/);
+  assert.match(client, /id="parts-library-panel"/);
+  assert.match(client, /id="production-bom"/);
+  assert.doesNotMatch(client, /id="engineering-panel"/);
   assert.match(client, /revealLinkedPanel/);
   assert.match(css, /\.modelTable tbody tr:nth-child\(even\)/);
 });
