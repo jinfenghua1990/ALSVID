@@ -100,6 +100,7 @@ try {
 
   // The Admin client draft store must survive an actual route change (not just
   // a label-only tab switch). No writes to backend or browser storage.
+  await page.evaluate(() => { window.__alsvidTabNavigationProof = 'same-document'; });
   await primary.locator('a[href="/admin/finance"]').click();
   await page.waitForURL(base + '/admin/finance');
   const resume = page.locator('.workspaceTabs a.workspaceTabLink[href*="/admin/commerce-lab/reference"]');
@@ -107,6 +108,8 @@ try {
   await resume.click();
   await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference');
   await lab.waitFor();
+  assert.equal(await page.evaluate(() => window.__alsvidTabNavigationProof),
+    'same-document', 'Admin tab switching must not reload the browser document');
   assert.equal(await lab.count(), 1, 'only one Commerce Lab instance is mounted');
   await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
   await lab.getByRole('button', { name: '商品管理', exact: true }).click();
