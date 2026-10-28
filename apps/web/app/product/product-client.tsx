@@ -320,19 +320,29 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
       <section className={styles.seriesSection} id="series">
         <div className={styles.sectionHead}>
           <div><span>TECHNOLOGY PLATFORMS</span><h2>技术平台</h2></div>
-          <p>固定平台顺序：FC、CT、FT、GT。平台定义产品技术方向；具体车型、配置和 SKU 在下方管理。</p>
+          <p>技术平台用于关联整车。此处只展示数据库中的平台档案，不固定 FC、CT 等编码，也不会自动创建任何平台或型号。</p>
         </div>
-        <div className={styles.platforms}>
-          {[...catalog.platforms].sort((a, b) => a.code.localeCompare(b.code)).map((platform) => (
-            <article key={platform.id}>
-              <span>{platform.code}</span>
-              <h2>{platformName(platform)}</h2>
-              <p>{platformDescription(platform)}</p>
-              <small>{catalog.models.filter((model) => model.platform_id === platform.id).length} 个型号</small>
-            </article>
-          ))}
-          {!catalog.platforms.length ? <div className={styles.emptySeries}>{loading ? '正在读取技术平台…' : catalogError ? '平台数据未能读取；请检查接口状态。' : '暂无技术平台数据。'}</div> : null}
-        </div>
+        {catalog.platforms.length ? (
+          <div className={styles.platformTableWrap}>
+            <table className={styles.platformTable} aria-label="技术平台档案">
+              <thead><tr><th>平台编码</th><th>平台名称</th><th>说明</th><th>关联整车</th><th>状态</th></tr></thead>
+              <tbody>
+                {[...catalog.platforms].sort((a, b) => a.code.localeCompare(b.code)).map((platform) => (
+                  <tr key={platform.id}>
+                    <td><strong>{platform.code}</strong></td>
+                    <td>{platformName(platform)}</td>
+                    <td>{platformDescription(platform) || '—'}</td>
+                    <td>{catalog.models.filter((model) => model.platform_id === platform.id).length}</td>
+                    <td>{statusLabel(platform.status)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className={styles.emptySeries}>{loading ? '正在读取技术平台…' : catalogError ? '平台数据未能读取；请检查接口状态。' : '目前没有已登记的技术平台。'}</div>
+        )}
+        <p className={styles.platformHelp}>平台新增和编辑接口目前尚未开放；这里仅显示已保存的真实记录，避免误以为能够直接修改。</p>
       </section>
 
       </details>
