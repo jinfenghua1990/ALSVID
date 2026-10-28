@@ -58,7 +58,7 @@
   new Vue({
     el:'#app',
     data:function(){return{locales:locales,specificationPresets:specificationPresets,presetChoice:'',artFrom:{page:1,limit:20,query:''},tableList:[],total:0,
-      loading:false,saving:false,uploadTarget:null,errorMsg:'',dialogVisible:false,dialogWidth:'760px',editId:null,form:empty()};},
+      loading:false,loadSequence:0,saving:false,uploadTarget:null,errorMsg:'',dialogVisible:false,dialogWidth:'760px',editId:null,form:empty()};},
     mounted:function(){this.resize();window.addEventListener('resize',this.resize);this.load();},
     beforeDestroy:function(){window.removeEventListener('resize',this.resize);},
     methods:{
@@ -69,13 +69,15 @@
         row.referenceImage==='FC2'?'/products/fc2/side-studio-1536.webp':null;},
       price:function(row){return row.proposedPriceMinor===null?'待填写':'€ '+decimal(row.proposedPriceMinor)+'（方案价）';},
       load:async function(){
-        this.loading=true;this.errorMsg='';
+        var sequence=++this.loadSequence;this.loading=true;this.errorMsg='';
         try{
           var params=new URLSearchParams({page:String(this.artFrom.page),limit:String(this.artFrom.limit),query:this.artFrom.query});
           var result=await api('?'+params,'GET');
           if(!result||!Array.isArray(result.items)||typeof result.total!=='number')throw new Error('商品数据格式异常');
+          if(sequence!==this.loadSequence)return;
           this.tableList=result.items;this.total=result.total;
-        }catch(error){this.errorMsg=error.message;}finally{this.loading=false;}
+        }catch(error){if(sequence===this.loadSequence)this.errorMsg=error.message;}
+        finally{if(sequence===this.loadSequence)this.loading=false;}
       },
       search:function(){this.artFrom.page=1;this.load();},
       reset:function(){this.artFrom.query='';this.artFrom.page=1;this.load();},
@@ -206,8 +208,9 @@
         <el-pagination layout="prev,pager,next,total" :total="total" :page-size="artFrom.limit" :current-page.sync="artFrom.page"
           @current-change="load" class="pagination"></el-pagination>
       </el-card>
-      <el-dialog :title="editId?'编辑实验商品':'添加实验商品'" :visible.sync="dialogVisible" :width="dialogWidth" :close-on-click-modal="false">
-        <el-form label-position="top" @submit.native.prevent="save">
+      <el-dialog :title="editId?'编辑实验商品':'添加实验商品'" :visible.sync="dialogVisible" :width="dialogWidth" :close-on-click-modal="false"
+        :show-close="!saving" :close-on-press-escape="!saving">
+        <el-form label-position="top" :disabled="saving" @submit.native.prevent="save">
           <el-form-item label="实验编码（保存后固定）"><el-input v-model="form.code" @input="uppercaseCode" :disabled="!!editId" maxlength="41" placeholder="例如 FC1-STANDARD"></el-input></el-form-item>
           <div class="locale-fields" v-for="lang in locales" :key="lang.id">
             <el-form-item :label="lang.name+'名称（必填）'"><el-input v-model="form.title[lang.id]" maxlength="120"></el-input></el-form-item>
