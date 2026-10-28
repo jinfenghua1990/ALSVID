@@ -20,4 +20,20 @@ test('product archive is list-first with advanced sections collapsed', () => {
   assert.doesNotMatch(client, /id="engineering-panel"/);
   assert.match(client, /revealLinkedPanel/);
   assert.match(css, /\.modelTable tbody tr:nth-child\(even\)/);
+  assert.match(client, /className=\{styles\.archiveWorkspace\}/);
+  assert.match(client, /className=\{styles\.archiveHeading\}/);
+  assert.match(client, /aria-label="整车产品档案"/);
+  assert.match(client, /aria-label="生产零件档案"/);
+  assert.match(client, /aria-label="可售配件档案"/);
+  assert.match(client, /aria-label="技术平台档案"/);
+  assert.match(client, /id="configuration"/);
+  assert.match(client, /role="dialog"/);
+  assert.match(client, /创建商品|新建整车/);
+  assert.doesNotMatch(client, /className=\{styles\.metrics\} aria-label="产品数据概览"/);
+  assert.doesNotMatch(client, /<summary>产品分类与技术平台/);
+  assert.match(css, /\.archiveTableWrap/);
+  assert.match(css, /\.archiveEmpty/);
+  assert.match(css, /\.archiveHeading h1/);
+  assert.match(css, /\.createCard/);
+
 });
