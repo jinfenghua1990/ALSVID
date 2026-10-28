@@ -96,7 +96,12 @@
   font-size: var(--alsvid-type-label) !important;
 }
 
-.shellV2 .workspace :is(small, .pageIntro, .sectionLead, [class*="helper"], [class*="Helper"], [class*="description"], [class*="Description"], [class*="hint"], [class*="Hint"], [class*="subtitle"], [class*="Subtitle"], [class*="meta"], [class*="Meta"], [class*="subText"], [class*="caption"], [class*="Caption"], [class*="eyebrow"], [class*="Eyebrow"]) {
+.shellV2 .workspace :is(.pageIntro, .sectionLead, [class*="description"], [class*="Description"]) {
+  font-size: var(--alsvid-type-body) !important;
+  line-height: var(--alsvid-leading-body);
+}
+
+.shellV2 .workspace :is(small, [class*="helper"], [class*="Helper"], [class*="hint"], [class*="Hint"], [class*="subtitle"], [class*="Subtitle"], [class*="meta"], [class*="Meta"], [class*="subText"], [class*="caption"], [class*="Caption"], [class*="eyebrow"], [class*="Eyebrow"]) {
   font-size: var(--alsvid-type-meta) !important;
   line-height: 1.5;
 }
