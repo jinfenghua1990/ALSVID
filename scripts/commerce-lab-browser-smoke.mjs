@@ -243,7 +243,9 @@ try {
   assert.equal(await readiness.getByText('3.000000 台账可用').count(), 1);
   await page.getByRole('combobox', { name: '目标市场' }).selectOption('AT');
   await readiness.getByText('未核实库存位置').waitFor();
-  assert.equal(await readiness.getByText('未配置', { exact: true }).count(), 1);
+  const atMarketRow = readiness.getByRole('row', { name: /FC1-BLACK-DE/ });
+  assert.match(await atMarketRow.locator('td').nth(2).innerText(), /^未配置/,
+    'AT has no price, and the same market row must show that fact');
   await page.unroute(readinessRoute);
   await page.route(readinessRoute, route => route.fulfill({
     status: 503, contentType: 'application/json', body: JSON.stringify({message: 'Temporary readiness failure'}),
