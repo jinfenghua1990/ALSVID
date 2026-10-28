@@ -1,7 +1,7 @@
 import { ForbiddenError } from '@alsvid/kernel';
 import { postgresErrorCode } from '@alsvid/database';
 import { ProductConflictError, ProductNotFoundError, ProductValidationError } from '../core/errors.js';
-import { ProductCapability, type HomepageBinding, type HomepageBindingMode, type HomepageSlotCode, type ProductCatalog, type ProductEntityKind, type ProductStatus, type ProductTypeCode } from '../core/model.js';
+import { ProductCapability, type HomepageBinding, type HomepageBindingMode, type HomepageSlotCode, type ModelFieldDefinition, type CustomFieldType, type CustomFieldValue, type ProductCatalog, type ProductEntityKind, type ProductStatus, type ProductTypeCode } from '../core/model.js';
 import { normalizeProductCode, normalizeProductCountry } from '../core/normalization.js';
 import {approvedCatalogAssets,mergeCatalogAssets,assertPublicationTransition,curatedCatalogImage,toPublicCatalogItem,validatePublicationDraft,type PublicationAction,type PublicationDraft} from '../core/publication.js';
 import type { ProductActor, ProductAuditPort, ProductRepository } from './ports.js';
@@ -188,7 +188,60 @@ export class ProductService {
     return row;
   }
 
-  async createModel(actor: ProductActor, input: { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string }): Promise<any> {
+  async createModelField(actor: ProductActor, input: {
+    productTypeCode: ProductTypeCode; code: string; label: string;
+    fieldType: CustomFieldType; options?: string[]; required?: boolean;
+  }): Promise<ModelFieldDefinition> {
+    requireCapability(actor, ProductCapability.Write);
+    if (!input || !['BIKE','ACCESSORY','SERVICE_PART'].includes(input.productTypeCode))
+      throw new ProductValidationError('Invalid product type for custom field');
+    if (typeof input.code !== 'string') throw new ProductValidationError('Field code is required');
+    const code = normalizeProductCode(input.code);
+    const label = normalizeFieldLabel(input.label);
+    if (!['TEXT','NUMBER','BOOLEAN','SELECT'].includes(input.fieldType))
+      throw new ProductValidationError('Unsupported custom field type');
+    const options = normalizeFieldOptions(input.fieldType,input.options);
+    if (input.required !== undefined && typeof input.required !== 'boolean')
+      throw new ProductValidationError('Field required flag must be boolean');
+    try {
+      const row = await this.repository.createModelField({
+        productTypeCode: input.productTypeCode,code,label,fieldType:input.fieldType,
+        options,required:input.required??false,actorUserId:actor.userId,
+      });
+      await this.audit.record({actorUserId:actor.userId,action:'product.model_field_created',
+        targetType:'product.model_field',targetId:row.id,metadata:{code,productTypeCode:input.productTypeCode}});
+      return row;
+    } catch(error) {
+      mapCreateError(error, 'Custom field code already exists for this product type', 'Product type not found');
+    }
+  }
+
+  async updateModelField(actor: ProductActor,id:string,input:{
+    expectedVersion:number;label?:string;status?:'ACTIVE'|'RETIRED';required?:boolean;
+  }):Promise<ModelFieldDefinition> {
+    requireCapability(actor, ProductCapability.Write);
+    if (!input || !Number.isInteger(input.expectedVersion) || input.expectedVersion<1)
+      throw new ProductValidationError('expectedVersion is required');
+    if (input.status!==undefined && !['ACTIVE','RETIRED'].includes(input.status))
+      throw new ProductValidationError('Invalid custom field status');
+    if (input.required!==undefined && typeof input.required!=='boolean')
+      throw new ProductValidationError('Required must be boolean');
+    if (input.label===undefined && input.status===undefined && input.required===undefined)
+      throw new ProductValidationError('No custom field changes supplied');
+    const row=await this.repository.updateModelField({
+      id,expectedVersion:input.expectedVersion,label:input.label===undefined?null:normalizeFieldLabel(input.label),
+      status:input.status??null,required:input.required??null,actorUserId:actor.userId,
+    });
+    if (!row) {
+      if (!await this.repository.modelFieldExists(id)) throw new ProductNotFoundError('Custom field not found');
+      throw new ProductConflictError('Custom field changed; reload before saving');
+    }
+    await this.audit.record({actorUserId:actor.userId,action:'product.model_field_updated',
+      targetType:'product.model_field',targetId:row.id,metadata:{version:row.version,status:row.status}});
+    return row;
+  }
+
+  async createModel(actor: ProductActor, input: { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown> }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
     const code = normalizeProductCode(input.code);
     const productTypeCode = input.productTypeCode ?? 'BIKE';
@@ -196,8 +249,10 @@ export class ProductService {
     if (productTypeCode === 'BIKE' && !input.platformId) throw new ProductValidationError('Bicycle requires technical platform');
     if (productTypeCode !== 'BIKE' && input.platformId) throw new ProductValidationError('Accessory/service part cannot use a bicycle platform');
     if (!input.name?.trim()) throw new ProductValidationError('Model name is required');
+    const customFields = validateModelFields(await this.repository.modelFieldDefinitions(),
+      productTypeCode,input.customFields ?? {},{});
     try {
-      const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', actorUserId: actor.userId });
+      const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', customFields, actorUserId: actor.userId });
       if (!row) throw new ProductValidationError('Selected technical platform is missing or not active');
       await this.audit.record({ actorUserId: actor.userId, action: 'product.model_created', targetType: 'product.model', targetId: row.id, metadata: { code } });
       return row;
@@ -243,8 +298,16 @@ export class ProductService {
     }
   }
 
-  async updateEntity(actor: ProductActor, entity: ProductEntityKind, id: string, input: { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null }): Promise<any> {
+  async updateEntity(actor: ProductActor, entity: ProductEntityKind, id: string, input: { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?: Record<string,unknown> }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
+    let customFields:Record<string,CustomFieldValue>={};
+    if (input.customFields!==undefined) {
+      if (entity!=='model')throw new ProductValidationError('Custom model fields belong only to model records');
+      const target=await this.repository.modelFieldTarget(id);
+      if (!target)throw new ProductNotFoundError('Model not found');
+      customFields=validateModelFields(await this.repository.modelFieldDefinitions(),
+        target.product_type_code,input.customFields,target.custom_fields);
+    }
     if (!Number.isInteger(input.expectedVersion) || input.expectedVersion < 1) throw new ProductValidationError('expectedVersion is required');
     const row = await this.repository.update({
       entity,
@@ -260,6 +323,8 @@ export class ProductService {
       colorCode: input.colorCode?.trim() || null,
       sizeCodeProvided: input.sizeCode !== undefined,
       sizeCode: input.sizeCode?.trim() || null,
+      customFieldsProvided: input.customFields!==undefined,
+      customFields,
       actorUserId: actor.userId,
     });
     if (!row) {
@@ -269,6 +334,60 @@ export class ProductService {
     await this.audit.record({ actorUserId: actor.userId, action: `product.${entity}_updated`, targetType: `product.${entity}`, targetId: id });
     return row;
   }
+}
+
+function normalizeFieldLabel(label:unknown):string {
+  if(typeof label!=='string'||!label.trim()||label.trim().length>120)
+    throw new ProductValidationError('Field label must be 1-120 characters');
+  return label.trim();
+}
+function normalizeFieldOptions(type:CustomFieldType,value:unknown):string[] {
+  if(type!=='SELECT'){
+    if(value!==undefined && (!Array.isArray(value)||value.length>0))
+      throw new ProductValidationError('Only SELECT fields may provide choices');
+    return [];
+  }
+  if(!Array.isArray(value)||value.length<1||value.length>30||
+    value.some(x=>typeof x!=='string'||!x.trim()||x.trim().length>80))
+    throw new ProductValidationError('SELECT requires 1-30 short options');
+  const normalized=value.map(x=>(x as string).trim());
+  if(new Set(normalized).size!==normalized.length)
+    throw new ProductValidationError('SELECT choices must be unique');
+  return normalized;
+}
+/** Full active-key replacement; do not lose retired field values used by historic records. */
+function validateModelFields(definitions:ModelFieldDefinition[],productTypeCode:ProductTypeCode,
+  incoming:unknown,existing:Record<string,CustomFieldValue>):Record<string,CustomFieldValue> {
+  if(!incoming||typeof incoming!=='object'||Array.isArray(incoming))
+    throw new ProductValidationError('Custom fields must be an object');
+  const active=definitions.filter(def=>def.product_type_code===productTypeCode&&def.status==='ACTIVE');
+  const allowed=new Map(active.map(def=>[def.code,def]));
+  const result={...existing};
+  for(const def of active)delete result[def.code];
+  for(const [code,value] of Object.entries(incoming)) {
+    const def=allowed.get(code);
+    if(!def)throw new ProductValidationError('Unknown or inactive custom field: '+code);
+    if(value===null||value===''||value===undefined)continue;
+    if(def.field_type==='TEXT') {
+      if(typeof value!=='string'||value.trim().length>500)
+        throw new ProductValidationError(def.label+' requires text of at most 500 characters');
+      result[code]=value.trim();
+    }else if(def.field_type==='NUMBER') {
+      if(typeof value!=='number'||!Number.isFinite(value))
+        throw new ProductValidationError(def.label+' must be a finite number');
+      result[code]=value;
+    }else if(def.field_type==='BOOLEAN') {
+      if(typeof value!=='boolean')throw new ProductValidationError(def.label+' must be yes or no');
+      result[code]=value;
+    }else if(def.field_type==='SELECT') {
+      if(typeof value!=='string'||!def.options.includes(value))
+        throw new ProductValidationError(def.label+' must match a configured option');
+      result[code]=value;
+    }
+  }
+  for(const def of active) if(def.required && result[def.code]===undefined)
+    throw new ProductValidationError('Required custom field is missing: '+def.label);
+  return result;
 }
 
 function requirePlatformName(value: unknown): string {
