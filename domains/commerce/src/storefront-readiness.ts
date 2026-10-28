@@ -1,5 +1,6 @@
 import type { DatabasePort } from '@alsvid/database';
 import { ForbiddenError } from '@alsvid/kernel';
+import { CommerceValidationError } from './core/errors.js';
 
 export type StorefrontMarket = 'DE' | 'AT';
 export type StorefrontReadinessBlocker =
@@ -27,7 +28,7 @@ export type StorefrontReadinessRow = {
 };
 export type StorefrontReadinessSnapshot = {
   market: StorefrontMarket; checkedAt: string; checkoutEnabled: false;
-  truncated: boolean; rows: StorefrontReadinessRow[];
+  truncated: boolean; query: string; rows: StorefrontReadinessRow[];
 };
 type ReadinessFact = {
   sku_id: string; sku: string; sku_name: string; model_code: string;
@@ -89,11 +90,14 @@ export function evaluateStorefrontReadiness(fact: ReadinessFact, market: Storefr
  */
 export class StorefrontReadinessService {
   constructor(private readonly db: DatabasePort) {}
-  async summary(actor: { permissions: readonly string[] }, market: unknown): Promise<StorefrontReadinessSnapshot> {
+  async summary(actor: { permissions: readonly string[] }, market: unknown, search: unknown = ''): Promise<StorefrontReadinessSnapshot> {
     if (!actor.permissions.includes('commerce.storefront.read') ||
         !actor.permissions.includes('inventory.read'))
       throw new ForbiddenError('COMMERCE_FORBIDDEN', 'Commerce and inventory read permissions required');
-    if (market !== 'DE' && market !== 'AT') throw new Error('INVALID_STOREFRONT_MARKET');
+    if (market !== 'DE' && market !== 'AT') throw new CommerceValidationError('marketCountry must be DE or AT');
+    if (typeof search !== 'string') throw new CommerceValidationError('SKU search must be a string');
+    const query = search.trim();
+    if (query.length > 100) throw new CommerceValidationError('SKU search cannot exceed 100 characters');
     const result = await this.db.query<ReadinessFact>(`
       SELECT s.id AS sku_id, s.sku, s.name AS sku_name,
         m.code AS model_code, v.code AS variant_code,
@@ -123,11 +127,17 @@ export class StorefrontReadinessService {
           AND l.active = true AND l.location_type IN ('PICK','STORAGE')
           AND w.active = true AND w.country_code = $1
       ) stock ON true
+      -- A literal, parameterized search is applied before the 500-row cap.
+      -- Search term '%' and '_' are text, never SQL wildcard operators.
+      WHERE ($2 = '' OR POSITION(LOWER($2) IN LOWER(s.sku)) > 0
+        OR POSITION(LOWER($2) IN LOWER(s.name)) > 0
+        OR POSITION(LOWER($2) IN LOWER(m.code)) > 0
+        OR POSITION(LOWER($2) IN LOWER(v.code)) > 0)
       ORDER BY m.code, v.code, s.sku
-      LIMIT ${MAX_ROWS + 1}`, [market]);
+      LIMIT ${MAX_ROWS + 1}`, [market, query]);
     return {
       market, checkedAt: new Date().toISOString(), checkoutEnabled: false,
-      truncated: result.rows.length > MAX_ROWS,
+      truncated: result.rows.length > MAX_ROWS, query,
       rows: result.rows.slice(0, MAX_ROWS).map(row => evaluateStorefrontReadiness(row, market)),
     };
   }
