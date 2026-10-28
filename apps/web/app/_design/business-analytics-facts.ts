@@ -1,6 +1,6 @@
 /** Strict projections: missing data must be reported unavailable, not a fabricated zero. */
-type OrderFacts={total:number;draft:number;submitted:number;other:number};
-type RefundFacts={requests:number};
+export type OrderFacts={total:number;draft:number;submitted:number;other:number};
+export type RefundFacts={requests:number};
 export function readOrderFacts(input:unknown):OrderFacts {
  if(!input||typeof input!=='object')throw new Error('商城订单摘要格式异常');
  const o=input as Record<string,unknown>;
