@@ -214,6 +214,37 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
           <div><span>覆盖市场</span><b>{dealerLoad === 'ready' ? metrics.countries : '—'}</b></div>
         </div>
 
+        {showCreate ? <section className={styles.createGrid} id="new-dealer" aria-label="创建经销商">
+          <form className={styles.card} onSubmit={submit} aria-label="新建经销商档案">
+            <span>新建经销商档案</span>
+            <h2>将合作伙伴加入经销商运营层</h2>
+            <label htmlFor="dealer-partner">已存在的合作伙伴（必填）</label>
+            <select id="dealer-partner" name="partnerId" required defaultValue="" disabled={partnerLoad !== 'ready' || eligiblePartners.length === 0}>
+              <option value="" disabled>选择具备 DEALER 角色的合作伙伴</option>
+              {eligiblePartners.map((item) => (
+                <option key={item.id} value={item.id}>{item.partnerCode} · {item.displayName}</option>
+              ))}
+            </select>
+            <label htmlFor="dealer-markets">授权销售国家代码（用逗号分隔）</label>
+            <input id="dealer-markets" name="markets" placeholder="例如：DE, AT" />
+            <div className={styles.checks}>
+              <label><input type="checkbox" name="salesEnabled" defaultChecked /> 销售</label>
+              <label><input type="checkbox" name="serviceEnabled" /> 售后服务</label>
+            </div>
+            <label htmlFor="dealer-note">合作备注</label>
+            <input id="dealer-note" name="note" placeholder="商业 / 运营备注" />
+            {partnerLoad === 'error' ? <p className={styles.formHelp} role="alert">{partnerError}</p> : null}
+            {partnerLoad === 'ready' && eligiblePartners.length === 0
+              ? <p className={styles.formHelp}>没有可选的合作伙伴。请先在合作伙伴管理建立具备 DEALER 角色的主体。</p> : null}
+            <button type="submit" disabled={dealerLoad !== 'ready' || partnerLoad !== 'ready' || eligiblePartners.length === 0}>创建经销商档案</button>
+          </form>
+          <div className={styles.rule}>
+            <span>数据边界</span>
+            <h2>不重复维护经销商主数据</h2>
+            <p>名称、法律主体、VAT/EORI、地址与联系人仍由 Partner 主数据负责。Dealer 只保存 ALSVID 运营经销商网络所需的业务关系事实。</p>
+          </div>
+        </section> : null}
+
         <section className={styles.grid} aria-label="经销商运营档案">
           <div className={styles.listColumn}>
             <div className={styles.listToolbar}>
@@ -285,36 +316,7 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
             <div className={styles.detail}><p className={styles.empty}>请选择一个经销商。</p></div>
           )}
         </section>
-        {showCreate ? <section className={styles.createGrid} id="new-dealer" aria-label="创建经销商">
-          <form className={styles.card} onSubmit={submit} aria-label="新建经销商档案">
-            <span>新建经销商档案</span>
-            <h2>将合作伙伴加入经销商运营层</h2>
-            <label htmlFor="dealer-partner">已存在的合作伙伴（必填）</label>
-            <select id="dealer-partner" name="partnerId" required defaultValue="" disabled={partnerLoad !== 'ready' || eligiblePartners.length === 0}>
-              <option value="" disabled>选择具备 DEALER 角色的合作伙伴</option>
-              {eligiblePartners.map((item) => (
-                <option key={item.id} value={item.id}>{item.partnerCode} · {item.displayName}</option>
-              ))}
-            </select>
-            <label htmlFor="dealer-markets">授权销售国家代码（用逗号分隔）</label>
-            <input id="dealer-markets" name="markets" placeholder="例如：DE, AT" />
-            <div className={styles.checks}>
-              <label><input type="checkbox" name="salesEnabled" defaultChecked /> 销售</label>
-              <label><input type="checkbox" name="serviceEnabled" /> 售后服务</label>
-            </div>
-            <label htmlFor="dealer-note">合作备注</label>
-            <input id="dealer-note" name="note" placeholder="商业 / 运营备注" />
-            {partnerLoad === 'error' ? <p className={styles.formHelp} role="alert">{partnerError}</p> : null}
-            {partnerLoad === 'ready' && eligiblePartners.length === 0
-              ? <p className={styles.formHelp}>没有可选的合作伙伴。请先在合作伙伴管理建立具备 DEALER 角色的主体。</p> : null}
-            <button type="submit" disabled={dealerLoad !== 'ready' || partnerLoad !== 'ready' || eligiblePartners.length === 0}>创建经销商档案</button>
-          </form>
-          <div className={styles.rule}>
-            <span>数据边界</span>
-            <h2>不重复维护经销商主数据</h2>
-            <p>名称、法律主体、VAT/EORI、地址与联系人仍由 Partner 主数据负责。Dealer 只保存 ALSVID 运营经销商网络所需的业务关系事实。</p>
-          </div>
-        </section> : null}
+
 
       </section>
     </OperationsFrame>
