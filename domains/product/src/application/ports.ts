@@ -34,7 +34,7 @@ export interface UpdatePlatformRecord {
 }
 
 export interface CreateModelRecord {
-  customFields: Record<string, CustomFieldValue>;
+  customFields?: Record<string, CustomFieldValue>;
   platformId: string | null;
   productTypeCode: ProductTypeCode;
   code: string;
