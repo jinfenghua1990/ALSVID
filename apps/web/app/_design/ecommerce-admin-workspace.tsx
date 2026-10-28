@@ -5,6 +5,7 @@ import { HomepageProductBindingPanel } from '../product/homepage-product-binding
 import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
 import { StorefrontOrderDraftPanel } from '../commerce/storefront-orders-panel';
 import { EcommerceInventoryPanel } from './ecommerce-inventory-panel';
+import { StorefrontReadinessPanel } from './storefront-readiness-panel';
 import { computeEcommerceOverview, type EcommerceOverviewMetric } from './ecommerce-overview-metrics';
 
 type Model = { id: string; code: string; name: string; status: string; product_type_code: string };
@@ -173,7 +174,10 @@ export function EcommerceAdminWorkspace({ route = '/admin/ecommerce' }: { route?
     </div>;
   }
 
-  if (view === 'inventory') return <div className="av-live-operations av-commerce-workspace" aria-label="电商库存查询工作区"><EcommerceInventoryPanel /></div>;
+  if (view === 'inventory') return <div className="av-live-operations av-commerce-workspace" aria-label="电商库存查询工作区">
+    <StorefrontReadinessPanel />
+    <EcommerceInventoryPanel />
+  </div>;
   if (view === 'pricing') return <div className="av-live-operations av-commerce-workspace" aria-label="商城价格管理工作区"><StorefrontOrderDraftPanel mode="pricing" /></div>;
   if (view === 'orders') return <div className="av-live-operations av-commerce-workspace" aria-label="B2C 订单管理工作区"><StorefrontOrderDraftPanel mode="orders" /></div>;
 
