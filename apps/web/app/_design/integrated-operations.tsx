@@ -29,7 +29,7 @@ export function IntegratedOperations({ area, route }: { area: string; route?: st
     case '电商': return <EcommerceAdminWorkspace route={route ?? '/admin/ecommerce'} />;
     case '财务': return <FinanceClient embedded />;
     case '物流': return <LogisticsClient embedded />;
-    case '生产': return <ProductionClient embedded />;
+    case '生产': return <><ProductionClient embedded /><ProductClient embedded view="engineering" /></>;
     case '库存': return <InventoryClient embedded />;
     case '经销商': return <DealersClient embedded />;
     case '供应链': return <SupplyClient embedded />;
