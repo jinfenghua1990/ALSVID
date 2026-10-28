@@ -98,6 +98,24 @@ try {
   assert.deepEqual(mutations, [], 'lab interactions must not issue backend writes');
   assert.equal(await page.evaluate(() => JSON.stringify({ ...localStorage })), before, 'original browser storage is unchanged');
 
+  // The Admin client draft store must survive an actual route change (not just
+  // a label-only tab switch). No writes to backend or browser storage.
+  await primary.locator('a[href="/admin/finance"]').click();
+  await page.waitForURL(base + '/admin/finance');
+  const resume = page.locator('.workspaceTabs a.workspaceTabLink[href*="/admin/commerce-lab/reference"]');
+  await resume.waitFor();
+  await resume.click();
+  await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference');
+  await lab.waitFor();
+  assert.equal(await lab.count(), 1, 'only one Commerce Lab instance is mounted');
+  await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
+  await lab.getByRole('button', { name: '商品管理', exact: true }).click();
+  assert.equal(await lab.getByRole('textbox', { name: 'demo-fc1 名称', exact: true }).inputValue(),
+    'FC1 CI 示例', 'unsaved product name must survive a workspace tab switch');
+  assert.equal(await lab.getByRole('spinbutton', { name: 'demo-fc1 示例售价', exact: true }).inputValue(),
+    '3199', 'unsaved product price must survive a workspace tab switch');
+  report.checks.push('Admin tab switch retains unsaved product name and price in memory');
+
   await page.reload(); await lab.waitFor();
   await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
   await lab.getByRole('button', { name: '订单管理 (0)', exact: true }).click();
