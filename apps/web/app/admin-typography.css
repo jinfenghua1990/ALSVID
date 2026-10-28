@@ -106,7 +106,7 @@
   line-height: 1.5;
 }
 
-.shellV2 .workspace :is([class*="badge"], [class*="Badge"], [class*="status"], [class*="Status"], [class*="tag"], [class*="Tag"], [class*="pill"], [class*="Pill"]) {
+.shellV2 .workspace :is(.statusPill, [class*="statusBadge"], [class*="StatusBadge"], [class*="badge"], [class*="Badge"], [class*="tag"], [class*="Tag"], [class*="pill"], [class*="Pill"]) {
   font-size: var(--alsvid-type-badge) !important;
   line-height: 1.35;
 }
