@@ -111,8 +111,13 @@ try {
   await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference');
   await lab.waitFor();
   assert.equal(await lab.count(), 1, 'only the resumed commerce lab is visible');
-  assert.match(await lab.innerText(), /FC1 CI 示例/, 'tab switch must preserve in-memory edits');
-  report.checks.push('switching Admin tabs keeps a previously edited in-memory component alive');
+  await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
+  await lab.getByRole('button', { name: '商品管理', exact: true }).click();
+  assert.equal(await lab.getByRole('textbox', { name: 'demo-fc1 名称', exact: true }).inputValue(),
+    'FC1 CI 示例', 'tab switch must preserve unsaved in-memory product name');
+  assert.equal(await lab.getByRole('spinbutton', { name: 'demo-fc1 示例售价', exact: true }).inputValue(),
+    '3199', 'tab switch must preserve unsaved in-memory price');
+  report.checks.push('switching Admin tabs keeps product name and price edits alive in memory');
 
   await page.reload(); await lab.waitFor();
   await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
