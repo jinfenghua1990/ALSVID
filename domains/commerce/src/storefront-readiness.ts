@@ -44,17 +44,14 @@ const validAmount = (v: string | null): boolean =>
   Number.isFinite(Number(v));
 
 /** Deterministic, fail-closed diagnostics. Never grants permission to sell. */
-export function evaluateStorefrontReadiness(fact: ReadinessFact): StorefrontReadinessRow {
+export function evaluateStorefrontReadiness(fact: ReadinessFact, market: StorefrontMarket): StorefrontReadinessRow {
   const blockers: StorefrontReadinessBlocker[] = [];
   if (fact.publication_status !== 'PUBLISHED') blockers.push('MODEL_NOT_PUBLISHED');
   if (fact.model_status !== 'ACTIVE') blockers.push('MODEL_NOT_ACTIVE');
   if (fact.variant_status !== 'ACTIVE') blockers.push('VARIANT_NOT_ACTIVE');
   if (fact.sku_status !== 'ACTIVE') blockers.push('SKU_NOT_ACTIVE');
   // A missing/global/unknown market code is not evidence of DE or AT eligibility.
-  if (fact.market_code !== 'DE' && fact.market_code !== 'AT' ||
-      fact.market_code !== null && fact.market_code !== undefined && fact.market_code.length !== 2) {
-    blockers.push('MARKET_SCOPE_UNVERIFIED');
-  }
+  if (fact.market_code !== market) blockers.push('MARKET_SCOPE_UNVERIFIED');
   if (!fact.unit_price_gross || !validAmount(fact.unit_price_gross) ||
       Number(fact.unit_price_gross) <= 0 ||
       !Number.isInteger(fact.tax_rate_basis_points) ||
@@ -122,19 +119,16 @@ export class StorefrontReadinessService {
         JOIN warehouse.locations l ON l.id = a.location_id
         JOIN warehouse.warehouses w ON w.id = l.warehouse_id
         WHERE a.item_kind = 'SKU' AND a.sku_id = s.id
-          AND l.active = true AND w.active = true AND w.country_code = $1
+          AND upper(a.unit) = 'EA'
+          AND l.active = true AND l.location_type IN ('PICK','STORAGE')
+          AND w.active = true AND w.country_code = $1
       ) stock ON true
       ORDER BY m.code, v.code, s.sku
       LIMIT ${MAX_ROWS + 1}`, [market]);
     return {
       market, checkedAt: new Date().toISOString(), checkoutEnabled: false,
       truncated: result.rows.length > MAX_ROWS,
-      rows: result.rows.slice(0, MAX_ROWS).map(row => {
-        const evaluated = evaluateStorefrontReadiness(row);
-        if (row.market_code !== market && !evaluated.blockers.includes('MARKET_SCOPE_UNVERIFIED'))
-          evaluated.blockers.unshift('MARKET_SCOPE_UNVERIFIED');
-        return evaluated;
-      }),
+      rows: result.rows.slice(0, MAX_ROWS).map(row => evaluateStorefrontReadiness(row, market)),
     };
   }
 }
