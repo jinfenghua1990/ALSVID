@@ -1,9 +1,6 @@
 import type { AppNavItem } from '@alsvid/ui';
 
 const configuredNavigation: readonly AppNavItem[] = [
-  { label: '商城方案对比', href: '/admin/commerce-lab', area: '商城方案对比', section: '独立商城' },
-  { label: '独立商品管理', href: '/admin/commerce-lab/catalog', area: '商城方案对比', section: '独立商城' },
-  { label: '旧版交互样机', href: '/admin/commerce-lab/reference', area: '商城方案对比', section: '独立商城' },
   { label: '工作台', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '今日概览', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '待办与异常', href: '/admin', area: '工作台', section: '运营概览' },
@@ -26,6 +23,9 @@ const configuredNavigation: readonly AppNavItem[] = [
   { label: 'B2C 商城订单', href: '/admin/ecommerce/orders', area: '商城运营', section: '商城交易' },
   { label: '商城促销与支付配置', href: '/admin/ecommerce', area: '商城运营', section: '后续能力', status: '骨架' },
   { label: '旧版渠道订单查询', href: '/commerce', area: '商城运营', section: '兼容查询' },
+  { label: '商城方案对比', href: '/admin/commerce-lab', area: '商城方案对比', section: '独立商城' },
+  { label: '独立商品管理', href: '/admin/commerce-lab/catalog', area: '商城方案对比', section: '独立商城' },
+  { label: '旧版交互样机', href: '/admin/commerce-lab/reference', area: '商城方案对比', section: '独立商城' },
   { label: 'B2B 经销商订单', href: '/admin/dealers', area: '经销商管理', section: 'B2B 销售', status: '骨架' },
   { label: '售后 / 配件订单', href: '/after-sales', area: '售后服务', section: '服务订单', status: '骨架' },
   { label: '跨境物流', href: '/admin/logistics', area: '跨境物流', section: '出口交付' },
@@ -99,7 +99,7 @@ const configuredNavigation: readonly AppNavItem[] = [
  * therefore point at the workspace root, never at a section that does not exist.
  * `app-navigation.test.mjs` enforces this invariant.
  */
-export const appNavigation: readonly AppNavItem[] = configuredNavigation.filter((item) => item.area !== '商城方案对比').map((item) =>
+export const appNavigation: readonly AppNavItem[] = configuredNavigation.map((item) =>
   item.status === '骨架'
     ? { ...item, disabled: true, status: '建设中' }
     : item,

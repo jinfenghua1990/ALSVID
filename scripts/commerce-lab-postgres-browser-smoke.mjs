@@ -119,10 +119,10 @@ try{
   await admin.addCookies([{name:'alsvid_session',value:token,domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   const page=await admin.newPage();page.on('pageerror',error=>errors.push(error.message));
   await page.goto(base+'/admin/commerce-lab');
-  // The experimental comparison route remains bookmark-compatible but is no longer a top-level module.
+  // The comparison catalog has a dedicated primary menu, distinct from ecommerce.
   const primaryNav=page.getByRole('navigation',{name:'一级导航',exact:true});
   await primaryNav.getByRole('link',{name:'商城运营',exact:true}).waitFor();
-  assert.equal(await primaryNav.getByRole('link',{name:'商城方案对比',exact:true}).count(),0,'comparison has no primary entry');
+  assert.equal(await primaryNav.getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page','comparison has its own active primary entry');
   await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).click();
   await page.waitForURL(url=>url.pathname==='/admin/commerce-lab/catalog'&&url.searchParams.get('alsvidMenuLabel')==='独立商品管理');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
@@ -222,7 +222,7 @@ try{
   assert.equal(records.get(id).version,3);
   await page.reload();
   await frame.getByText('ALSVID FC1 已更新',{exact:true}).waitFor();
-  assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).count(),0,'comparison is not restored to the main nav on reload');
+  assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page','comparison remains active after reload');
   assert.equal(await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
   await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-desktop.png'),fullPage:true});
