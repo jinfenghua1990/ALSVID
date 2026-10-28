@@ -212,6 +212,72 @@ try {
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
   report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
 
+  // Admin dealer center: the full workspace must be within one Admin shell,
+  // show only real API facts and never turn an API outage into a fabricated 0.
+  const dealerRows = [
+    { id: 'dealer-ci', partner_id: 'partner-ci', partner_code: 'PARTNER-CI',
+      display_name: 'CI 德国经销商', country_code: 'DE', status: 'ACTIVE',
+      market_countries: ['DE'], sales_enabled: true, service_enabled: false,
+      note: '', version: 1, default_shipping_line1: null,
+      default_shipping_city: null, default_shipping_country: null,
+      default_contact_type: null, default_contact_value: null,
+      default_inventory_location_code: null, default_inventory_warehouse_code: null },
+    { id: 'dealer-ci-2', partner_id: 'partner-ci-2', partner_code: 'PARTNER-CI-2',
+      display_name: 'CI 奥地利经销商', country_code: 'AT', status: 'PROSPECT',
+      market_countries: ['AT'], sales_enabled: false, service_enabled: true,
+      note: '', version: 1, default_shipping_line1: null,
+      default_shipping_city: null, default_shipping_country: null,
+      default_contact_type: null, default_contact_value: null,
+      default_inventory_location_code: null, default_inventory_warehouse_code: null },
+  ];
+  const partnerRows = [
+    { id: 'partner-ci', partnerCode: 'PARTNER-CI', displayName: 'CI 德国经销商', countryCode: 'DE', roles: ['DEALER'] },
+    { id: 'partner-ci-2', partnerCode: 'PARTNER-CI-2', displayName: 'CI 奥地利经销商', countryCode: 'AT', roles: ['DEALER'] },
+    { id: 'partner-ci-3', partnerCode: 'PARTNER-CI-3', displayName: 'CI 合作伙伴', countryCode: 'DE', roles: ['DEALER'] },
+  ];
+  await page.route('**/api/control/v1/dealers', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: { dealers: dealerRows, history: [] } }),
+  }));
+  await page.route('**/api/control/v1/partners', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ data: partnerRows }),
+  }));
+  await page.goto(base + '/admin/dealers');
+  const dealerCenter = page.locator('[data-area="dealers"]');
+  await dealerCenter.getByRole('heading', { name: '经销商管理', exact: true }).waitFor();
+  assert.equal(await page.locator('body > div[style*="background"]').count(), 0,
+    'dealer module must not render detached top banners');
+  const dealerNav = page.getByRole('complementary', { name: '二级导航', exact: true });
+  assert.equal(await dealerNav.getByRole('link', { name: '合作申请', exact: true }).count(), 1);
+  assert.equal(await dealerNav.getByRole('link', { name: '客户试骑与合作网点', exact: true }).count(), 1);
+  assert.equal(await dealerNav.getByRole('link', { name: /B2B订单/ }).count(), 0,
+    'unimplemented B2B capability must not be an active link');
+  const metricValues = dealerCenter.locator('[class*="metrics"] b');
+  await metricValues.first().getByText('2', { exact: true }).waitFor();
+  assert.deepEqual(await metricValues.allTextContents(), ['2', '1', '1', '2']);
+  await dealerCenter.getByRole('searchbox', { name: '搜索经销商' }).fill('奥地利');
+  assert.equal(await dealerCenter.getByRole('button', { name: /CI 奥地利经销商/ }).count(), 1);
+  assert.equal(await dealerCenter.getByRole('button', { name: /CI 德国经销商/ }).count(), 0);
+  await dealerCenter.getByRole('searchbox', { name: '搜索经销商' }).clear();
+  await dealerCenter.getByRole('combobox', { name: '合作状态' }).selectOption('ACTIVE');
+  assert.equal(await dealerCenter.getByRole('button', { name: /CI 奥地利经销商/ }).count(), 0);
+  await dealerCenter.getByRole('combobox', { name: '合作状态' }).selectOption('ALL');
+  await dealerCenter.getByRole('button', { name: '＋ 新建经销商' }).click();
+  const createDealer = dealerCenter.getByRole('form', { name: '新建经销商档案' });
+  await createDealer.waitFor();
+  assert.equal(await createDealer.getByRole('combobox', { name: '已存在的合作伙伴（必填）' })
+    .locator('option').count(), 2, 'create form only lists unassigned DEALER partners');
+  await page.screenshot({ path: path.join(output, 'admin-dealers-operations-desktop.png'), fullPage: true });
+  await page.unroute('**/api/control/v1/dealers');
+  await page.route('**/api/control/v1/dealers', route => route.fulfill({
+    status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Dealer API unavailable' }),
+  }));
+  await page.reload();
+  await dealerCenter.getByRole('alert').filter({ hasText: 'Dealer API unavailable' }).waitFor();
+  assert.deepEqual(await metricValues.allTextContents(), ['—', '—', '—', '—'],
+    'failed API reads must not be displayed as zero dealers');
+  report.checks.push('Admin dealer center: real fixture totals, filter, linked menu, existing Partner-only creation, API outage does not show 0');
+
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
   await context.close();
