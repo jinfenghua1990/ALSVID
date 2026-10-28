@@ -56,7 +56,8 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [quoteItemType, setQuoteItemType] = useState<ItemType>('PART');
   const [poRows, setPoRows] = useState<Array<{ id: number; itemType: ItemType }>>([{ id: 0, itemType: 'PART' }]);
   const nextPoId = useRef(1);
-  const [activeView, setActiveView] = useState<SupplyView>(() => supplyViewFromHash(typeof window === 'undefined' ? '' : window.location.hash));
+  // Keep server and initial client render identical; select the URL hash after hydration.
+  const [activeView, setActiveView] = useState<SupplyView>('suppliers');
   const [supplierQuery, setSupplierQuery] = useState('');
   const [selectedPartner, setSelectedPartner] = useState('all');
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -118,6 +119,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   // Follow later hash changes so a sidebar deep link still switches tabs on an open workspace.
   useEffect(() => {
     const onHashChange = () => setActiveView(supplyViewFromHash(window.location.hash));
+    onHashChange(); // Also resolve an initial /admin/supply#quotations etc. deep link.
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
