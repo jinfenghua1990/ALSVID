@@ -1,9 +1,9 @@
-import {Body,Controller,Get,Param,Post,Query,Req} from '@nestjs/common';
+import {BadRequestException,Body,Controller,Get,Param,Post,Query,Req} from '@nestjs/common';
 import type {CreateStorefrontOrderInput,CreateStorefrontPriceInput,StorefrontOrderQuery} from '@alsvid/commerce';
 import type {AuthenticatedRequest} from './auth.guard.js';
 import {requireAuth} from './auth.guard.js';
 import {throwHttpDomainError} from './domain-errors.js';
-import {storefrontOrderService} from './runtime.js';
+import {storefrontOrderService,storefrontReadinessService} from './runtime.js';
 
 interface ExpectedVersionBody{expectedVersion:number}
 interface CancelDraftBody extends ExpectedVersionBody{reason:string}
@@ -11,6 +11,13 @@ interface CancelDraftBody extends ExpectedVersionBody{reason:string}
 /** Internal draft, submission and price-book operations only. Submitting an order records customer intent; it does not start a payment attempt. No public checkout or payment endpoint is exposed. */
 @Controller('v1/commerce/storefront')
 export class StorefrontOrdersController{
+ @Get('readiness')
+ async readiness(@Req() request:AuthenticatedRequest,@Query('marketCountry') marketCountry?:string){
+  if(marketCountry!=='DE'&&marketCountry!=='AT')
+   throw new BadRequestException('marketCountry must be DE or AT');
+  try{return{data:await storefrontReadinessService.summary(requireAuth(request),marketCountry)};}
+  catch(error){return throwHttpDomainError(error);}
+ }
  @Get('summary')
  async summary(@Req() request:AuthenticatedRequest,@Query() query:StorefrontOrderQuery){
   try{return{data:await storefrontOrderService.summary(requireAuth(request),query??{})};}
