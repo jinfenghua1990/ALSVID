@@ -67,6 +67,15 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
+          name: comparison-pagination-visual-review
+          path: |
+            .tmp/fc1-v4-review/comparison-pagination-*.png
+            .tmp/fc1-v4-review/comparison-pagination-browser-report.json
+          retention-days: 14
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
           name: fc1-and-official-browser-review
           path: .tmp/fc1-v4-review
           retention-days: 30

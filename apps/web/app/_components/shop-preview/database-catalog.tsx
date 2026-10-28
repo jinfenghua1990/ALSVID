@@ -31,20 +31,31 @@ export function DatabaseCatalog({locale,snapshot}:{locale:Locale;snapshot:LabCat
     const controller=new AbortController();
     const missing=bag.filter(line=>!snapshot.products.some(product=>product.id===line.id));
     setBagLookup({});
-    void Promise.all(missing.map(async line=>{
+    let active=true,next=0;
+    const timeout=window.setTimeout(()=>controller.abort(),8000);
+    async function check(line:BagLine):Promise<LabLocaleText|null>{
       try{
         const response=await fetch('/shop-preview/selection/'+encodeURIComponent(line.id),{signal:controller.signal,cache:'no-store'});
-        if(!response.ok)return[line.id,null] as const;
+        if(!response.ok)return null;
         const data:unknown=await response.json();
         const title=(data as {title?:unknown}|null)?.title;
-        if(!title||typeof title!=='object'||Array.isArray(title))return[line.id,null] as const;
+        if(!title||typeof title!=='object'||Array.isArray(title))return null;
         const row=title as Record<string,unknown>;
         if(!['zh','de','en'].every(key=>typeof row[key]==='string'&&(row[key] as string).trim().length>0&&(row[key] as string).length<=120))
-          return[line.id,null] as const;
-        return[line.id,{zh:row.zh as string,de:row.de as string,en:row.en as string}] as const;
-      }catch{return[line.id,null] as const;}
-    })).then(entries=>{if(!controller.signal.aborted)setBagLookup(Object.fromEntries(entries));});
-    return()=>controller.abort();
+          return null;
+        return{zh:row.zh as string,de:row.de as string,en:row.en as string};
+      }catch{return null;}
+    }
+    async function worker(){
+      while(active&&next<missing.length){
+        const line=missing[next++];
+        if(!line)return;
+        const title=controller.signal.aborted?null:await check(line);
+        if(active)setBagLookup(previous=>({...previous,[line.id]:title}));
+      }
+    }
+    for(let index=0;index<Math.min(6,missing.length);index++)void worker();
+    return()=>{active=false;window.clearTimeout(timeout);controller.abort();};
   },[bagOpen,bag,snapshot.products]);
   const pages=Math.ceil(snapshot.total/snapshot.limit);
   function pageHref(page:number){
