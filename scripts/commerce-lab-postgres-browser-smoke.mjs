@@ -202,7 +202,7 @@ try{
   await frame.getByText('ALSVID FC1 原生联动',{exact:true}).waitFor();
   report.checks.push('pending save disables form controls and dialog closing until the write finishes');
 
-  await frame.locator('#app').evaluate(element=>{
+  await frame.locator('.article-manager').evaluate(element=>{
     const vm=element.__vue__,originalLoad=vm.load;
     vm.load=function(){const work=originalLoad.apply(this,arguments);this._lastTestLoad=work;return work;};
   });
@@ -211,14 +211,14 @@ try{
   const oldResponse=page.waitForResponse(response=>response.request().method()==='GET'&&new URL(response.url()).searchParams.get('query')==='race-old');
   await frame.getByRole('button',{name:'查询',exact:true}).click();
   await oldSearchStarted;
-  await frame.locator('#app').evaluate(element=>{window.__alsvidOldLoad=element.__vue__._lastTestLoad;});
+  await frame.locator('.article-manager').evaluate(element=>{window.__alsvidOldLoad=element.__vue__._lastTestLoad;});
   const resetResponse=page.waitForResponse(response=>response.request().method()==='GET'&&new URL(response.url()).pathname==='/admin/commerce-lab/api/products'&&new URL(response.url()).searchParams.get('query')==='');
   await frame.getByRole('button',{name:'重置',exact:true}).click();
   assert.equal((await resetResponse).status(),200);
   await frame.getByText('ALSVID FC1 原生联动',{exact:true}).waitFor();
   releaseOldSearch();
   assert.equal((await oldResponse).status(),200);
-  await frame.locator('#app').evaluate(()=>window.__alsvidOldLoad);
+  await frame.locator('.article-manager').evaluate(()=>window.__alsvidOldLoad);
   assert.equal(await frame.getByText('ALSVID FC1 原生联动',{exact:true}).count(),1,'older response cannot overwrite a later reset');
   report.checks.push('a delayed older search cannot overwrite the latest reset results');
 
