@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(appDirectory, '../..'),
   agentRules: false,
+  cacheComponents: true,
   transpilePackages: ['@alsvid/ui'],
   serverExternalPackages: ['geoip-country'],
   outputFileTracingIncludes: {
