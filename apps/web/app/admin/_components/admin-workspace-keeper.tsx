@@ -14,10 +14,12 @@ type CacheState = { active:string; pages:CachedPage[] };
  * Nothing is serialized to storage; a hard refresh, logout, or new session clears it.
  */
 export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
-  const pathname=usePathname();
+  const path=usePathname();
   const search=useSearchParams().toString();
+  const location=path+(search?'?'+search:'');
   const router=useRouter();
-  const path=pathname+(search?'?'+search:'');
+  // Cache by pathname, not query: transient App Router search updates must not
+  // mount a second copy of the same screen in a hidden Activity.
   const [cache,setCache]=useState<CacheState>(()=>({
     active:path,pages:[{path,content:children}],
   }));
@@ -42,7 +44,7 @@ export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
   },[router]);
 
   const close=useCallback((url:string)=>{
-    const key=url.split('#')[0]!;
+    const key=new URL(url,window.location.origin).pathname;
     setCache(prev=>({...prev,pages:prev.pages.filter(page=>page.path!==key)}));
   },[]);
 
@@ -67,7 +69,7 @@ export function AdminWorkspaceKeeper({children}:{children:ReactNode}){
     return keys.map(key=>({path:key,content:saved.get(key)??children}));
   })();
 
-  return <WorkspaceNavigationProvider location={path} navigate={navigate} close={close}>
+  return <WorkspaceNavigationProvider location={location} navigate={navigate} close={close}>
     <div data-alsvid-admin-workspace-cache="true" onClickCapture={captureAdminLink}>
       {pages.map(page=><Activity key={page.path} mode={page.path===path?'visible':'hidden'}>
         {page.path===path?children:page.content}
