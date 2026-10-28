@@ -13,7 +13,7 @@ export interface SupplierAcknowledgement {
 }
 export interface SupplierPortalOrder {
  id:string;poNumber:string;status:string;version:number;currency:string;issuedAt:string|null;
- supplierName:string;lines:Array<{id:string;lineNo:number;description:string;orderedQuantity:string;unit:string;requestedDate:string|null}>;
+ supplierName:string;lines:Array<{id:string;lineNo:number;lineKind?:'PURCHASE'|'GIFT';description:string;orderedQuantity:string;unit:string;requestedDate:string|null}>;
 }
 export interface SupplierPortalRepository {
  transaction<T>(f:(executor:QueryExecutor)=>Promise<T>):Promise<T>;

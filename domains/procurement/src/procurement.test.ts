@@ -55,3 +55,26 @@ test('receipt ownership and over-quantity database failures become validation er
     );
   }
 });
+
+
+test('supplier gift PO line must be zero priced, and uses the ordinary audited PO flow',async()=>{
+ const {ProcurementService}=await import('./application/procurement-service.js');
+ const actor={userId:'user-1',permissions:['procurement.write']};
+ const captured: Array<import('./core/model.js').ProcurementLineInput>=[];
+ const actions:string[]=[];
+ const repository={
+  transaction:async(work:(e:unknown)=>Promise<unknown>)=>work({}),
+  createPurchaseOrderHeader:async()=> 'po-1',
+  insertPurchaseOrderLine:async(_id:string,_no:number,line:import('./core/model.js').ProcurementLineInput)=>{captured.push(line);},
+  findPurchaseOrder:async()=>({id:'po-1'}),
+ } as unknown as import('./application/ports.js').ProcurementRepository;
+ const service=new ProcurementService(repository,{record:async(e)=>{actions.push(e.action);}});
+ const baseLine={itemType:'PART' as const,itemId:'part-1',quantity:2,unit:'EA'};
+ await assert.rejects(()=>service.createPurchaseOrder(actor,{supplierPartnerId:'supplier-1',currency:'EUR',
+   lines:[{...baseLine,lineKind:'GIFT',unitPrice:1}]}),/zero purchase price/);
+ assert.equal(captured.length,0);
+ await service.createPurchaseOrder(actor,{supplierPartnerId:'supplier-1',currency:'EUR',
+   lines:[{...baseLine,lineKind:'PURCHASE',unitPrice:20},{...baseLine,lineKind:'GIFT',unitPrice:0}]});
+ assert.deepEqual(captured.map(line=>[line.lineKind,line.unitPrice]),[['PURCHASE','20'],['GIFT','0']]);
+ assert.deepEqual(actions,['procurement.po_created']);
+});

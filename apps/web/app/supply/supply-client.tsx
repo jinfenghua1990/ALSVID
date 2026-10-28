@@ -8,13 +8,14 @@ import { useRouter } from 'next/navigation';
 import styles from './supply.module.css';
 
 type ItemType = 'PART' | 'SKU';
+type PoLineKind = 'PURCHASE' | 'GIFT';
 type Partner = { id: string; partnerCode: string; displayName: string; roles: string[]; kind?: 'ORGANIZATION' | 'PERSON'; legalName?: string | null; status?: string | null; countryCode?: string | null };
 type Part = { id: string; part_number: string; name: string };
 type Sku = { id: string; sku: string; name: string };
 type Quotation = { id: string; quotation_number: string; supplier_name: string; supplier_partner_id: string; supplier_reference: string | null; currency: string; status: string; valid_until: string | null; created_at: string };
 type QuoteLine = { id: string; quotation_id: string; line_no: number; item_type: ItemType; part_number: string | null; sku: string | null; quantity: string; unit: string; unit_price: string };
 type PurchaseOrder = { id: string; po_number: string; supplier_name: string; supplier_partner_id: string; currency: string; status: string; total_amount: string; issued_at: string | null; confirmed_at: string | null; created_at: string };
-type PoLine = { id: string; purchase_order_id: string; line_no: number; item_type: ItemType; part_number: string | null; sku: string | null; ordered_quantity: string; unit: string; unit_price: string; requested_date: string | null };
+type PoLine = { id: string; purchase_order_id: string; line_no: number; line_kind?: PoLineKind; item_type: ItemType; part_number: string | null; sku: string | null; ordered_quantity: string; unit: string; unit_price: string; requested_date: string | null };
 type Receipt = { id: string; purchase_order_id: string; kind: string; reference: string | null; occurred_on: string; created_at: string };
 type Snapshot = { id: string; purchase_order_id: string; state: string; po_version: number; created_at: string };
 type Procurement = { quotations: Quotation[]; quoteLines: QuoteLine[]; purchaseOrders: PurchaseOrder[]; purchaseOrderLines: PoLine[]; confirmations: unknown[]; confirmationLines: unknown[]; receipts: Receipt[]; receiptLines: unknown[]; snapshots: Snapshot[] };
@@ -54,7 +55,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
   const [loadErrors, setLoadErrors] = useState<{ procurement?: string; partners?: string; engineering?: string; catalog?: string }>({});
   const [selectedPo, setSelectedPo] = useState('');
   const [quoteItemType, setQuoteItemType] = useState<ItemType>('PART');
-  const [poRows, setPoRows] = useState<Array<{ id: number; itemType: ItemType }>>([{ id: 0, itemType: 'PART' }]);
+  const [poRows, setPoRows] = useState<Array<{ id: number; itemType: ItemType; lineKind: PoLineKind }>>([{ id: 0, itemType: 'PART', lineKind: 'PURCHASE' }]);
   const nextPoId = useRef(1);
   // Keep server and initial client render identical; select the URL hash after hydration.
   const [activeView, setActiveView] = useState<SupplyView>('suppliers');
@@ -221,13 +222,15 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
     const itemType = String(form.get('poType-' + id)) as ItemType;
     const itemId = String(form.get('poItem-' + id) ?? '');
     const quantity = String(form.get('poQuantity-' + id) ?? '');
-    const unitPrice = String(form.get('poPrice-' + id) ?? '');
+    const lineKind=String(form.get('poKind-'+id)??'PURCHASE') as PoLineKind;
+    if(!['PURCHASE','GIFT'].includes(lineKind))throw new Error('采购行性质无效');
+    const unitPrice=lineKind==='GIFT'?'0':String(form.get('poPrice-'+id)??'');
     if (!['PART','SKU'].includes(itemType) || !itemId ||
       !Number.isFinite(Number(quantity)) || Number(quantity) <= 0 ||
       !unitPrice || !Number.isFinite(Number(unitPrice)) || Number(unitPrice) < 0) {
       throw new Error('请为每一条采购明细选择物料并填写有效数量和单价');
     }
-    return { itemType, itemId, quantity, unitPrice,
+    return { lineKind, itemType, itemId, quantity, unitPrice,
       unit: String(form.get('poUnit-' + id) || 'EA'),
       requestedDate: String(form.get('poDate-' + id) || '') || undefined };
   }
@@ -321,22 +324,29 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <label><span>付款条件</span><input name="paymentTerms" placeholder="付款约定" /></label>
               <label><span>定金条件</span><input name="depositTerms" placeholder="定金约定" /></label>
               <div className={styles.poLines}>
-                <div className={styles.lineHeading}><strong>采购物料明细 · {poRows.length} 行</strong><button type="button" className={styles.textAction} disabled={busy} onClick={() => setPoRows(rows => [...rows, { id: nextPoId.current++, itemType: 'PART' }])}>＋ 添加物料</button></div>
+                <div className={styles.lineHeading}><strong>采购物料明细 · {poRows.length} 行</strong><button type="button" className={styles.textAction} disabled={busy} onClick={() => setPoRows(rows => [...rows, { id: nextPoId.current++, itemType: 'PART', lineKind:'PURCHASE' }])}>＋ 添加物料</button></div>
                 {poRows.map((row, index) => <div className={styles.poLine} key={row.id}>
                   <div className={styles.lineHeading}><strong>物料行 {index + 1}</strong>{poRows.length > 1 ? <button type="button" className={styles.textActionDanger} disabled={busy} onClick={() => setPoRows(rows => rows.filter(item => item.id !== row.id))}>移除</button> : null}</div>
                   <div className={styles.formPair}>
-                    <label><span>物料类型</span><select name={'poType-' + row.id} value={row.itemType} onChange={(event) => setPoRows(rows => rows.map(item => item.id === row.id ? { ...item, itemType: event.target.value as ItemType } : item))}><option value="PART">零件</option><option value="SKU">整车 SKU</option></select></label>
+                    <label><span>采购行性质</span><select name={'poKind-'+row.id} value={row.lineKind}
+                     onChange={event=>setPoRows(rows=>rows.map(item=>item.id===row.id?
+                       {...item,lineKind:event.target.value as PoLineKind}:item))}>
+                       <option value="PURCHASE">正常采购</option><option value="GIFT">供应商赠品</option>
+                     </select></label>
+                     <label><span>物料类型</span><select name={'poType-' + row.id} value={row.itemType} onChange={(event) => setPoRows(rows => rows.map(item => item.id === row.id ? { ...item, itemType: event.target.value as ItemType } : item))}><option value="PART">零件</option><option value="SKU">整车 SKU</option></select></label>
                     <label><span>物料</span><select key={row.itemType} name={'poItem-' + row.id} required defaultValue=""><option value="" disabled>选择物料</option>{itemOptions(row.itemType)}</select></label>
                   </div>
                   <div className={styles.formPair}>
                     <label><span>数量</span><input name={'poQuantity-' + row.id} type="number" min="0.000001" step="any" placeholder="输入数量" required /></label>
                     <label><span>单位</span><input name={'poUnit-' + row.id} defaultValue="EA" /></label>
-                    <label><span>单价</span><input name={'poPrice-' + row.id} type="number" min="0" step="any" placeholder="输入单价" required /></label>
+                    <label><span>单价</span><input name={'poPrice-' + row.id} type="number" min="0" step="any"
+                      key={row.lineKind} defaultValue={row.lineKind==='GIFT'?'0':undefined}
+                      readOnly={row.lineKind==='GIFT'} placeholder="输入单价" required /></label>
                   </div>
                   <label><span>要求交付日期</span><input name={'poDate-' + row.id} type="date" /></label>
                 </div>)}
               </div>
-              <div className={styles.formFooter}><span>创建后可在采购订单中查看并发出。</span><button className={styles.buttonPrimary} type="submit" disabled={busy}>{busy ? '提交中…' : '创建采购单草稿'}</button></div>
+              <div className={styles.formFooter}><span>赠品固定 0 单价，仍需供应商确认及实物收货；创建后可在采购订单中查看并发出。</span><button className={styles.buttonPrimary} type="submit" disabled={busy}>{busy ? '提交中…' : '创建采购单草稿'}</button></div>
             </form>
           </section>
         ) : null}
@@ -406,7 +416,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
                   <thead><tr><th>采购单号</th><th>供应商</th><th>金额</th><th>创建时间</th><th>发出时间</th><th>状态</th><th>操作</th></tr></thead>
                   <tbody>{visibleOrders.map((po) => (
                     <tr key={po.id} data-selected={selectedPo === po.id}>
-                      <td><strong>{po.po_number}</strong><small className={styles.subText}>{data.purchaseOrderLines.filter((line) => line.purchase_order_id === po.id).length} 个物料行</small></td>
+                      <td><strong>{po.po_number}</strong><small className={styles.subText}>{data.purchaseOrderLines.filter((line) => line.purchase_order_id === po.id).length} 行 · 赠品 {data.purchaseOrderLines.filter((line) => line.purchase_order_id === po.id && line.line_kind === 'GIFT').length} 行</small></td>
                       <td>{po.supplier_name}</td><td>{po.currency.trim()} {po.total_amount}</td><td>{new Date(po.created_at).toLocaleDateString('zh-CN')}</td><td>{po.issued_at ? new Date(po.issued_at).toLocaleDateString('zh-CN') : '—'}</td>
                       <td><span className={styles.status} data-tone={statusTone(po.status)}>{statusLabel(po.status)}</span></td>
                       <td><div className={styles.tableActions}>{po.status === 'DRAFT' ? <button className={styles.textAction} type="button" onClick={() => void action('/v1/procurement/purchase-orders/' + po.id + '/issue')}>发出</button> : null}<button className={styles.textAction} type="button" onClick={() => setSelectedPo(po.id)}>{selectedPo === po.id ? '已选中' : '查看明细'}</button></div></td>
@@ -444,13 +454,13 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
               <div><span className={styles.sectionEyebrow}>PURCHASE ORDER DETAIL</span><h2>{selected.po_number} · {selected.supplier_name}</h2><p><span className={styles.status} data-tone={statusTone(selected.status)}>{statusLabel(selected.status)}</span> · {selected.currency.trim()} {selected.total_amount}</p></div>
               <button className={styles.closeButton} type="button" onClick={() => setSelectedPo('')}>关闭详情 ×</button>
             </div>
-            <div className={styles.lineGrid}>{selectedLines.map((line) => <div className={styles.lineCard} key={line.id}><b>物料行 {line.line_no}</b><span>{line.part_number ?? line.sku}</span><small>{line.ordered_quantity} {line.unit} × {line.unit_price}</small>{line.requested_date ? <small>要求交付：{line.requested_date}</small> : null}</div>)}</div>
+            <div className={styles.lineGrid}>{selectedLines.map((line) => <div className={styles.lineCard} key={line.id}><b>{line.line_kind==='GIFT'?'赠品行':'采购行'} {line.line_no}</b><span>{line.part_number ?? line.sku}</span><small>{line.ordered_quantity} {line.unit} × {line.unit_price}</small>{line.requested_date ? <small>要求交付：{line.requested_date}</small> : null}</div>)}</div>
             <div className={styles.detailForms}>
               <form className={styles.detailForm} key={'confirm-' + selected.id} onSubmit={(event) => { void post(event, '/v1/procurement/purchase-orders/' + selected.id + '/confirm', (form) => ({ supplierReference: form.get('supplierReference') || undefined, note: form.get('note') || undefined, lines: selectedLines.map(line => ({ purchaseOrderLineId: line.id, confirmedQuantity: form.get('confirmedQuantity-' + line.id), confirmedDate: form.get('confirmedDate-' + line.id) || undefined })) })); }}>
                 <div><span className={styles.sectionEyebrow}>SUPPLIER ACKNOWLEDGEMENT</span><h3>确认全部采购明细</h3><p>各行数量和交期独立确认，避免遗漏。</p></div>
                 <label><span>供应商确认单号</span><input name="supplierReference" placeholder="确认单号（可选）" /></label>
                 {selectedLines.map(line => <div className={styles.lineInput} key={line.id}>
-                  <strong>{line.part_number ?? line.sku} · 采购数量 {line.ordered_quantity} {line.unit}</strong>
+                  <strong>{line.part_number ?? line.sku} · {line.line_kind==='GIFT'?'赠品':'采购'}数量 {line.ordered_quantity} {line.unit}</strong>
                   <label><span>确认数量</span><input name={'confirmedQuantity-' + line.id} type="number" min="0.000001" step="any" defaultValue={line.ordered_quantity} required /></label>
                   <label><span>确认交期</span><input name={'confirmedDate-' + line.id} type="date" defaultValue={line.requested_date ?? ''} /></label>
                 </div>)}
@@ -467,7 +477,7 @@ export default function SupplyClient({ embedded = false }: { embedded?: boolean 
                 <div><span className={styles.sectionEyebrow}>FULFILLMENT EVIDENCE</span><h3>分批收货 / 承诺</h3><p>按物料行逐次登记，未收货的明细不会自动入账。</p></div>
                 <label><span>记录类型</span><select name="kind"><option value="PHYSICAL_RECEIPT">实物收货</option><option value="FACTORY_COMMITMENT">工厂承诺</option></select></label>
                 <label><span>参考编号</span><input name="reference" placeholder="收货单 / 承诺编号" /></label>
-                <label><span>选择采购明细</span><select name="purchaseOrderLineId" required defaultValue=""><option value="" disabled>选择本次收货的物料行</option>{selectedLines.map(line => <option value={line.id} key={line.id}>{line.line_no} · {line.part_number ?? line.sku} · 采购 {line.ordered_quantity} {line.unit}</option>)}</select></label>
+                <label><span>选择采购明细</span><select name="purchaseOrderLineId" required defaultValue=""><option value="" disabled>选择本次收货的物料行</option>{selectedLines.map(line => <option value={line.id} key={line.id}>{line.line_no} · {line.part_number ?? line.sku} · {line.line_kind==='GIFT'?'赠品':'采购'} {line.ordered_quantity} {line.unit}</option>)}</select></label>
                 <label><span>本次数量</span><input name="quantity" type="number" min="0.000001" step="any" placeholder="本次数量" required /></label>
                 <label><span>发生日期</span><input name="occurredOn" type="date" required /></label>
                 <label><span>备注</span><input name="note" placeholder="补充说明（可选）" /></label>
