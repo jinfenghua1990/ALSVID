@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type PropsWithChildren, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type MouseEvent, type PropsWithChildren, type ReactNode } from 'react';
 import { ThemeToggle } from './theme-toggle';
 import { contextualHref, navigationArea, resolveNavigation } from './navigation-context';
 
@@ -118,6 +118,25 @@ const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string
   { path: '/portal-launcher', label: '工作入口', icon: '🧭' },
 ];
 
+type WorkspaceNavigation = {
+  location: string;
+  navigate(path: string): void;
+  close(path: string): void;
+};
+const WorkspaceNavigationContext = createContext<WorkspaceNavigation | null>(null);
+
+/** Only the authenticated Admin layout supplies client navigation / live-tab caching.
+ * Outside Admin, tab links keep their original plain-anchor behavior. */
+export function WorkspaceNavigationProvider({
+  children, location, navigate, close,
+}: PropsWithChildren<WorkspaceNavigation>) {
+  return (
+    <WorkspaceNavigationContext.Provider value={{ location, navigate, close }}>
+      {children}
+    </WorkspaceNavigationContext.Provider>
+  );
+}
+
 const WORKSPACE_TAB_STORAGE_KEY = 'alsvid_workspace_tabs_v1';
 const WORKSPACE_TAB_LIMIT = 8;
 
@@ -167,12 +186,15 @@ function readWorkspaceTabs(): WorkspaceTab[] {
 }
 
 export function WorkspaceTabs() {
+  const workspace = useContext(WorkspaceNavigationContext);
   const [tabs, setTabs] = useState<WorkspaceTab[]>([]);
   const [activePath, setActivePath] = useState('');
 
   useEffect(() => {
     const syncCurrentTab = () => {
-      const path = window.location.pathname + window.location.search + window.location.hash;
+      const path = workspace
+        ? workspace.location + window.location.hash
+        : window.location.pathname + window.location.search + window.location.hash;
       if (!isAllowedWorkspacePath(path)) return;
       const next = readWorkspaceTabs();
       const current = workspaceTabFor(path);
@@ -197,7 +219,7 @@ export function WorkspaceTabs() {
       window.removeEventListener('popstate', syncCurrentTab);
       window.removeEventListener('hashchange', syncCurrentTab);
     };
-  }, []);
+  }, [workspace?.location]);
 
   function toggleRail() {
     document.querySelector('.shellFrame')?.classList.toggle('shellFrameRailCollapsed');
@@ -213,9 +235,11 @@ export function WorkspaceTabs() {
     } catch {
       // The tab bar still works for this page if storage is unavailable.
     }
+    workspace?.close(path);
     if (path === activePath) {
       const fallback = tabs[index - 1] ?? tabs[index + 1];
-      window.location.assign(fallback?.path ?? '/admin');
+      if (workspace) workspace.navigate(fallback?.path ?? '/admin');
+      else window.location.assign(fallback?.path ?? '/admin');
     }
   }
 
@@ -225,7 +249,13 @@ export function WorkspaceTabs() {
       <div className="workspaceTabsList">
         {tabs.map((tab) => (
           <div className="workspaceTab" key={tab.path} data-active={activePath === tab.path}>
-            <a className="workspaceTabLink" href={tab.path} aria-current={activePath === tab.path ? 'page' : undefined}>
+            <a className="workspaceTabLink" href={tab.path} aria-current={activePath === tab.path ? 'page' : undefined}
+              onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+                if (!workspace || event.defaultPrevented || event.button !== 0 ||
+                    event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                workspace.navigate(tab.path);
+              }}>
               <span className="workspaceTabIcon" aria-hidden="true">{tab.icon}</span>
               <span className="workspaceTabLabel">{tab.label}</span>
             </a>
