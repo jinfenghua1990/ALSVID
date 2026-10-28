@@ -277,6 +277,24 @@ try {
   await dealerCenter.getByRole('alert').filter({ hasText: 'Dealer API unavailable' }).waitFor();
   assert.deepEqual(await metricValues.allTextContents(), ['—', '—', '—', '—'],
     'failed API reads must not be displayed as zero dealers');
+  // A new dealer must first have an existing Partner legal entity; keep that
+  // workflow inside the authenticated Admin shell, using the one Partner API.
+  await page.route('**/api/partners*', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }),
+  }));
+  await page.goto(base + '/admin/partners');
+  await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
+  await page.locator('[data-area="partners"]').waitFor();
+  const partnerNav = page.getByRole('complementary', { name: '二级导航', exact: true });
+  assert.equal(await partnerNav.getByRole('link', { name: '合作伙伴主体', exact: true }).count(), 1);
+  assert.equal(await page.locator('.partnerWorkspace').count(), 1,
+    'Partner master is embedded once; the legacy AppShell is not nested');
+  await page.getByRole('button', { name: '新建合作伙伴', exact: true }).click();
+  assert.equal(await page.locator('.modalCard input[name="DEALER"]').isChecked(), true,
+    'Dealer-origin Partner creation preselects the DEALER role');
+  assert.equal(await page.locator('[data-area="partners"] a[href="/admin/dealers"]').count(), 1,
+    'guided onboarding returns to Dealer setup');
+  report.checks.push('Dealer onboarding: existing Partner master opens inside Admin and preselects DEALER role');
   // Real intake and test-ride modules must retain the same Admin shell when opened.
   await page.goto(base + '/admin/dealers/applications');
   await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
