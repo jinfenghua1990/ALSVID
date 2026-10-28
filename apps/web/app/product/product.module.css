@@ -353,3 +353,15 @@
   .collapsiblePanel > summary { padding: 12px; }
   .collapsiblePanel > section, .collapsiblePanel > .formsGrid, .collapsiblePanel > .notice { margin-left: 12px; margin-right: 12px; }
 }
+
+/* Technical platforms are user-owned master data: one recorded platform per row. */
+.platformTableWrap { width: 100%; max-width: 100%; overflow-x: auto; border: 1px solid var(--alsvid-line); border-radius: 8px; background: var(--alsvid-panel); }
+.platformTable { width: 100%; min-width: 690px; border-collapse: collapse; text-align: left; }
+.platformTable th, .platformTable td { padding: 10px 12px; border-bottom: 1px solid var(--alsvid-line); font-size: 12px; vertical-align: middle; }
+.platformTable th { background: var(--alsvid-panel-2); color: var(--alsvid-muted); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.platformTable td { color: var(--alsvid-text-2); line-height: 1.45; }
+.platformTable td strong { color: var(--alsvid-text); }
+.platformTable tbody tr:last-child td { border-bottom: none; }
+.platformTable tbody tr:nth-child(even) { background: color-mix(in srgb, var(--alsvid-panel-2) 42%, var(--alsvid-panel)); }
+.platformTable tbody tr:hover { background: var(--alsvid-panel-2); }
+.platformHelp { margin: 9px 0 0; color: var(--alsvid-muted); font-size: 11px; line-height: 1.55; }
