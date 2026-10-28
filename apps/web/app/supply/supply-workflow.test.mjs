@@ -6,7 +6,10 @@ const source = readFileSync(new URL('./supply-client.tsx', import.meta.url), 'ut
 
 test('purchase order editor supports multiple independent material rows', () => {
   assert.match(source, /poRows\.map\(row => purchaseLine\(form, row\.id\)\)/);
-  assert.match(source, /setPoRows\(rows => \[\.\.\.rows, \{ id: nextPoId\.current\+\+, itemType: 'PART' \}\]\)/);
+  assert.match(source, /setPoRows\\(rows => \\[\\.\\.\\.rows, \\{ id: nextPoId\\.current\\+\\+, itemType: 'PART', lineKind:'PURCHASE' \\}\\]\\)/);
+  assert.match(source, /供应商赠品/);
+  assert.match(source, /poKind-/);
+  assert.match(source, /line_kind === 'GIFT'/);
   assert.match(source, /rows\.filter\(item => item\.id !== row\.id\)/);
 });
 
