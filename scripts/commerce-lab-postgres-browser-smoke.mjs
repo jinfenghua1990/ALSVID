@@ -191,6 +191,7 @@ try{
   assert.equal(await titleInput.isDisabled(),true,'title cannot change while its save is pending');
   assert.equal(await dialog.locator('[data-spec-index="0"] [data-locale="zh"] input').nth(1).isDisabled(),true,'parameter cannot change while saving');
   assert.equal(await dialog.locator('.el-checkbox__original').first().isDisabled(),true,'featured flag cannot change while saving');
+  assert.equal(await dialog.getByRole('button',{name:'复制相同数值到德/英空白栏',exact:true}).first().isDisabled(),true,'copy action cannot change a parameter while saving');
   assert.equal(await frame.getByRole('button',{name:'取消',exact:true}).isDisabled(),true,'cancel cannot close an in-flight save');
   assert.equal(await dialog.locator('.el-dialog__headerbtn').count(),0,'close button is unavailable while saving');
   await page.keyboard.press('Escape');

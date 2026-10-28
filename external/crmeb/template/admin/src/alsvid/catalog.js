@@ -242,8 +242,8 @@
                 <el-form-item :label="lang.name+'参数值'"><el-input v-model="spec.value[lang.id]" maxlength="160"></el-input></el-form-item>
               </div>
               <div class="specification-row-footer">
-                <el-checkbox v-model="spec.featured" :disabled="!spec.featured&&featuredCount()>=4">显示在商品卡片</el-checkbox>
-                <el-button type="text" @click="copySpecificationValue(index)">复制相同数值到德/英空白栏</el-button>
+                <el-checkbox v-model="spec.featured" :disabled="saving||(!spec.featured&&featuredCount()>=4)">显示在商品卡片</el-checkbox>
+                <el-button type="text" @click="copySpecificationValue(index)" :disabled="saving">复制相同数值到德/英空白栏</el-button>
               </div>
             </div>
           </section>
