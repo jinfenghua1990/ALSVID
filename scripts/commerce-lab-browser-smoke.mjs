@@ -212,6 +212,48 @@ try {
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
   report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
 
+  // The official B2C Admin inventory workspace now shows a SERVER-SIDE join
+  // of approved Product, active Commerce price, and Inventory balances.
+  // It remains a read-only gate; no public checkout or stock mutation.
+  const readinessFixture = market => ({ data: {
+    market, checkedAt: '2026-10-28T10:00:00.000Z', checkoutEnabled: false, truncated: false,
+    rows: [{ skuId: '11111111-1111-4111-8111-111111111111',
+      sku: 'FC1-BLACK-DE', skuName: 'FC1 Black', modelCode: 'FC1', variantCode: 'STANDARD',
+      colorCode: 'BLACK', marketCode: market, publicationStatus: 'PUBLISHED',
+      priceGross: market === 'DE' ? '2999.00' : null, currency: 'EUR',
+      locationCount: market === 'DE' ? 1 : 0,
+      onHand: market === 'DE' ? '4.000000' : null,
+      reserved: market === 'DE' ? '1.000000' : null,
+      ledgerAvailable: market === 'DE' ? '3.000000' : null,
+      checkoutEnabled: false, inventoryReservable: false,
+      blockers: market === 'DE' ? ['CHANNEL_ALLOCATION_UNVERIFIED','TAX_SHIPPING_UNVERIFIED','PSP_NOT_CONFIGURED']
+        : ['NO_ACTIVE_PRICE','NO_MARKET_STOCK_POSITION','CHANNEL_ALLOCATION_UNVERIFIED','PSP_NOT_CONFIGURED'],
+    }],
+  } });
+  const readinessRoute = '**/api/control/v1/commerce/storefront/readiness?*';
+  await page.route(readinessRoute, route => {
+    const market = new URL(route.request().url()).searchParams.get('marketCountry');
+    return route.fulfill({status: 200, contentType: 'application/json',
+      body: JSON.stringify(readinessFixture(market === 'AT' ? 'AT' : 'DE'))});
+  });
+  await page.goto(base + '/admin/ecommerce/inventory');
+  const readiness = page.getByRole('region', { name: '官网可售条件核对表' });
+  await readiness.getByRole('row', { name: /FC1-BLACK-DE/ }).waitFor();
+  assert.equal(await readiness.getByText('不可下单').count(), 1);
+  assert.equal(await readiness.getByText('3.000000 台账可用').count(), 1);
+  await page.getByRole('combobox', { name: '目标市场' }).selectOption('AT');
+  await readiness.getByText('未核实库存位置').waitFor();
+  assert.equal(await readiness.getByText('未配置', { exact: true }).count(), 1);
+  await page.unroute(readinessRoute);
+  await page.route(readinessRoute, route => route.fulfill({
+    status: 503, contentType: 'application/json', body: JSON.stringify({message: 'Temporary readiness failure'}),
+  }));
+  await page.reload();
+  await page.getByRole('alert').filter({hasText:'Temporary readiness failure'}).waitFor();
+  assert.equal(await page.getByRole('region', { name: '官网可售条件核对表' }).count(), 0,
+    'failed cross-domain read must not show stale stock or a false purchasable state');
+  report.checks.push('WWW/Commerce readiness: market-specific Product/Price/Inventory join, no checkout, API failure clears stale stock');
+
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
   await context.close();
