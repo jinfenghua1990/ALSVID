@@ -83,3 +83,25 @@ test('ordered specifications persist and publication-only older updates never er
     assert.deepEqual((await service.publicProduct(row.id)).specifications,[],'explicit empty array clears the section');
   }finally{await db.close();}
 });
+
+test('comparison search treats underscores, percent signs and backslashes as literal text',{skip:!hasDatabase},async()=>{
+  const db=new Database();const tag='LIT'+randomUUID().replaceAll('-','').slice(0,12).toUpperCase();
+  try{
+    const auth=await owner(db),service=createComparisonCatalogService(db,noopAudit);
+    const create=(suffix:string,title:string)=>service.create(auth,{...input(tag+suffix),
+      title:{zh:title,de:'Referenz',en:'Reference'}});
+    const under=await create('_X',tag+' under_score'),underOther=await create('AX',tag+' underXscore');
+    const percent=await create('-P',tag+' 50%');await create('-Q',tag+' 500');
+    const slash=await create('-S',tag+' A\\B');await create('-T',tag+' AB');
+    async function ids(query:string){return (await service.adminList(auth,{query})).items.map(row=>row.id);}
+    assert.deepEqual(await ids(tag+'_X'),[under.id],'underscore in a product code is not a single-character wildcard');
+    assert.deepEqual(await ids(tag+' 50%'),[percent.id],'percent in a title is not a multi-character wildcard');
+    assert.deepEqual(await ids(tag+' A\\B'),[slash.id],'backslash in a title is matched literally');
+    assert.deepEqual(await ids(tag+' under_score'),[under.id],'underscore in a title is matched literally');
+    assert.deepEqual(await ids(tag.toLowerCase()+'ax'),[underOther.id],'ordinary search remains case-insensitive');
+    assert.equal((await service.publicList({query:tag+'_X'})).total,0,'drafts remain hidden');
+    await service.update(auth,under.id,{title:under.title,description:under.description,referenceImage:under.referenceImage,
+      proposedPriceMinor:under.proposedPriceMinor,status:'PUBLISHED',expectedVersion:under.version});
+    assert.deepEqual((await service.publicList({query:tag+'_X'})).items.map(row=>row.id),[under.id]);
+  }finally{await db.close();}
+});

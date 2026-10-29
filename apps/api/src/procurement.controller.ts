@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import type { ConfirmationLineInput, ProcurementLineInput, ReceiptLineInput } from '@alsvid/procurement';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
-import { throwHttpDomainError } from './domain-errors.js';
 import { procurementService } from './runtime.js';
 
 interface CreateQuotationBody { supplierPartnerId: string; supplierReference?: string; currency: string; validUntil?: string; incoterm?: string; paymentTerms?: string; lines: ProcurementLineInput[] }
@@ -15,44 +14,37 @@ interface QuotationStatusBody { status?: 'RECEIVED' | 'ACCEPTED' | 'REJECTED' | 
 export class ProcurementController {
   @Get()
   async summary(@Req() request: AuthenticatedRequest) {
-    try { return { data: await procurementService.summary(requireAuth(request)) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await procurementService.summary(requireAuth(request)) };
   }
 
   @Post('quotations')
   async createQuotation(@Req() request: AuthenticatedRequest, @Body() input: CreateQuotationBody) {
-    try { return { data: await procurementService.createQuotation(requireAuth(request), input) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await procurementService.createQuotation(requireAuth(request), input) };
   }
 
   @Post('quotations/:id/status')
   async quotationStatus(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: QuotationStatusBody) {
-    if (!input?.status) return throwHttpDomainError(new Error('status is required'));
-    try { return { data: await procurementService.setQuotationStatus(requireAuth(request), id, input.status) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    if (!input?.status) throw new BadRequestException('status is required');
+    return { data: await procurementService.setQuotationStatus(requireAuth(request), id, input.status) };
   }
 
   @Post('purchase-orders')
   async createPurchaseOrder(@Req() request: AuthenticatedRequest, @Body() input: CreatePurchaseOrderBody) {
-    try { return { data: await procurementService.createPurchaseOrder(requireAuth(request), input) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await procurementService.createPurchaseOrder(requireAuth(request), input) };
   }
 
   @Post('purchase-orders/:id/issue')
   async issue(@Req() request: AuthenticatedRequest, @Param('id') id: string) {
-    try { return { data: await procurementService.issuePurchaseOrder(requireAuth(request), id) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await procurementService.issuePurchaseOrder(requireAuth(request), id) };
   }
 
   @Post('purchase-orders/:id/confirm')
   async confirm(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: ConfirmOrderBody) {
-    try { return { data: await procurementService.confirmPurchaseOrder(requireAuth(request), id, input) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await procurementService.confirmPurchaseOrder(requireAuth(request), id, input) };
   }
 
   @Post('purchase-orders/:id/receipts')
   async receipt(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: RecordReceiptBody) {
-    try { return { data: await procurementService.recordReceipt(requireAuth(request), id, input) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await procurementService.recordReceipt(requireAuth(request), id, input) };
   }
 }

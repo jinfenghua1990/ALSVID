@@ -23,13 +23,14 @@ const roleLabels: Record<Role, string> = {
   LOGISTICS_PROVIDER: '物流服务商',
 };
 
-export default function PartnersClient() {
+export default function PartnersClient({ embedded = false }: { embedded?: boolean } = {}) {
   const router = useRouter();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selected, setSelected] = useState<PartnerDetail | null>(null);
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -45,9 +46,15 @@ export default function PartnersClient() {
   }
 
   async function load(search = '') {
+    setLoadStatus('loading');
     try {
-      setPartners(await api(`/api/partners?q=${encodeURIComponent(search)}`));
+      const rows: unknown = await api(`/api/partners?q=${encodeURIComponent(search)}`);
+      if (!Array.isArray(rows)) throw new Error('合作伙伴数据格式不正确');
+      setPartners(rows as Partner[]);
+      setLoadStatus('ready');
+      setMessage('');
     } catch (error) {
+      setLoadStatus('error');
       setMessage(error instanceof Error ? error.message : '无法加载合作伙伴');
     }
   }
@@ -113,27 +120,33 @@ export default function PartnersClient() {
     } catch (error) { setMessage(error instanceof Error ? error.message : '无法保存合作伙伴'); }
   }
 
-  return (
-    <AppShell navigation={navigationFor('/partners')} footer="ALSVID · 内部管理">
+  const content = (
+    <>
       <section className="partnerWorkspace">
         <header className="partnerHeader">
           <div><div className="eyebrow">合作伙伴 / PARTNER MASTER</div><h1 className="sectionTitle">一个主体，多种业务角色。</h1><p className="sectionLead">供应商、工厂、经销商、客户与服务伙伴共享同一个稳定的业务身份，避免重复建档。</p></div>
-          <button className="primaryButton" onClick={() => setCreateOpen(true)}>新建合作伙伴</button>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            {embedded ? <a href="/admin/dealers" style={{ fontSize: 13, fontWeight: 650 }}>返回经销商管理</a> : null}
+            <button className="primaryButton" onClick={() => setCreateOpen(true)}>新建合作伙伴</button>
+          </div>
         </header>
 
-        <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{roleLabels[role]}</span><b>{count}</b></div>)}</div>
+        <div className="metricRow">{counts.map(([role, count]) => <div className="metric" key={role}><span>{roleLabels[role]}</span><b>{loadStatus === 'ready' ? count : '—'}</b></div>)}</div>
         <div className="toolbar"><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void load(query); }} placeholder="搜索名称或合作伙伴编号" /><button onClick={() => void load(query)}>搜索</button></div>
-        {message ? <div className="notice">{message}</div> : null}
+        {message ? <div className="notice" role={loadStatus === 'error' ? 'alert' : 'status'}>{message}</div> : null}
 
         <div className="partnerGrid">
           <div className="tableCard">
             <div className="tableHead"><span>合作伙伴</span><span>业务角色</span><span>状态</span></div>
-            {partners.map((partner) => <button className="tableRow" key={partner.id} onClick={() => void openPartner(partner.id)}><span><b>{partner.displayName}</b><small>{partner.partnerCode} · {partner.countryCode ?? '—'}</small></span><span className="roleList">{partner.roles.length ? partner.roles.map((role) => <i key={role}>{roleLabels[role]}</i>) : <small>未分配角色</small>}</span><span>{partner.status === 'ACTIVE' ? '启用' : partner.status === 'INACTIVE' ? '停用' : partner.status}</span></button>)}
-            {!partners.length ? <div className="emptyState">暂无合作伙伴。录入后将在这里显示。</div> : null}
+            {(loadStatus === 'ready' ? partners : []).map((partner) => <button className="tableRow" key={partner.id} onClick={() => void openPartner(partner.id)}><span><b>{partner.displayName}</b><small>{partner.partnerCode} · {partner.countryCode ?? '—'}</small></span><span className="roleList">{partner.roles.length ? partner.roles.map((role) => <i key={role}>{roleLabels[role]}</i>) : <small>未分配角色</small>}</span><span>{partner.status === 'ACTIVE' ? '启用' : partner.status === 'INACTIVE' ? '停用' : partner.status}</span></button>)}
+            {loadStatus === 'loading' ? <div className="emptyState" role="status">正在读取合作伙伴…</div> : null}
+            {loadStatus === 'error' ? <div className="emptyState">无法读取合作伙伴列表。
+              <button type="button" onClick={() => { void load(query); }}>重新加载</button></div> : null}
+            {loadStatus === 'ready' && !partners.length ? <div className="emptyState">暂无合作伙伴。录入后将在这里显示。</div> : null}
           </div>
 
           <aside className="detailCard">
-            {selected ? <form className="stack" onSubmit={savePartner}>
+            {selected && loadStatus === 'ready' ? <form className="stack" onSubmit={savePartner}>
               <div><div className="eyebrow">{selected.partnerCode}</div><h2>{selected.displayName}</h2></div>
               <label>显示名称<input name="displayName" defaultValue={selected.displayName} required /></label>
               <label>法定名称<input name="legalName" defaultValue={selected.legalName ?? ''} /></label>
@@ -156,9 +169,14 @@ export default function PartnersClient() {
         <div className="split"><label>国家 / 地区代码<input name="countryCode" maxLength={2} placeholder="DE" /></label><label>主要邮箱<input name="primaryEmail" type="email" /></label></div>
         <div className="split"><label>标识类型<input name="identifierScheme" placeholder="VAT / EORI / REGISTRATION" /></label><label>标识值<input name="identifierValue" /></label></div>
         <fieldset><legend>注册地址</legend><div className="stack"><label>详细地址<input name="addressLine1" /></label><div className="split"><label>城市<input name="addressCity" /></label><label>邮编<input name="addressPostalCode" /></label></div><label>国家 / 地区代码<input name="addressCountry" maxLength={2} placeholder="DE" /></label></div></fieldset>
-        <fieldset><legend>业务角色</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} />{roleLabels[role]}</label>)}</div></fieldset>
+        <fieldset><legend>业务角色</legend><div className="checkGrid">{allRoles.map((role) => <label key={role}><input type="checkbox" name={role} defaultChecked={embedded && role === 'DEALER'} />{roleLabels[role]}</label>)}</div></fieldset>
         <button className="primaryButton">创建合作伙伴</button>
       </form></div> : null}
-    </AppShell>
+    </>
   );
+  // /partners preserves its original shell. The Admin counterpart nests only
+  // the existing business component in AdminScreen — not a second AppShell.
+  return embedded
+    ? <div className="av-live-operations" data-area="partners">{content}</div>
+    : <AppShell navigation={navigationFor('/partners')} footer="ALSVID · 内部管理">{content}</AppShell>;
 }

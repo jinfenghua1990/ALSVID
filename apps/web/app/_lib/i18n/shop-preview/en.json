@@ -61,5 +61,13 @@
   "comparison.specifications": "Specifications",
   "comparison.highlights": "Key specifications",
   "comparison.backToCatalog": "Back to products",
-  "comparison.productUnavailable": "This product is temporarily unavailable. Please try again later."
+  "comparison.productUnavailable": "This product is temporarily unavailable. Please try again later.",
+  "comparison.searchAction": "Search",
+  "comparison.pagination": "Product pages",
+  "comparison.previous": "Previous",
+  "comparison.next": "Next",
+  "comparison.page": "Page {page} of {pages}",
+  "comparison.noPage": "There are no products on this page. Please go back.",
+  "comparison.selectionPending": "Checking selected product…",
+  "comparison.bagLimit": "The preview bag can hold up to 100 different products."
 }

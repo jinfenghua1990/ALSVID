@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { cache } from 'react';
 import type { ProtectedPortalId } from './portal-routing';
 import { ownerPreviewAllowed } from './owner-preview-policy';
 import { sessionCookieNameForPortal } from './session-cookie';
@@ -37,23 +38,47 @@ const DEV_SESSION: PortalSession = {
   permissions: [],
 };
 
+type SessionLookup =
+  | { kind: 'session'; session: PortalSession }
+  | { kind: 'missing' }
+  | { kind: 'expired' }
+  | { kind: 'unavailable' };
+
+/**
+ * Layouts, pages and route handlers of a single render pass all ask for the same
+ * session. `cache()` collapses them into one `/v1/auth/me` call per request
+ * instead of one per caller.
+ */
+const lookupPortalSession = cache(async (portal: ProtectedPortalId): Promise<SessionLookup> => {
+  const token = (await cookies()).get(sessionCookieNameForPortal(portal))?.value;
+  if (!token) return { kind: 'missing' };
+
+  try {
+    const response = await fetch(`${apiBase}/v1/auth/me`, {
+      headers: { authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (response.status === 401 || response.status === 403) return { kind: 'expired' };
+    if (!response.ok) return { kind: 'unavailable' };
+
+    const payload = await response.json() as { data?: PortalSession };
+    const session = payload.data;
+    if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) return { kind: 'expired' };
+    return { kind: 'session', session };
+  } catch {
+    return { kind: 'unavailable' };
+  }
+});
+
 export async function requirePortalSession(portal: ProtectedPortalId, returnTo: string): Promise<PortalSession> {
   if (ownerPreviewAllowed(portal, process.env.NODE_ENV, process.env.ALSVID_DEV_OPEN_PORTAL)) return DEV_SESSION;
 
-  const token = (await cookies()).get(sessionCookieNameForPortal(portal))?.value;
-  if (!token) loginRedirect(portal, returnTo);
+  const result = await lookupPortalSession(portal);
+  if (result.kind === 'missing') loginRedirect(portal, returnTo);
+  if (result.kind === 'expired') loginRedirect(portal, returnTo, 'session-expired');
+  if (result.kind === 'unavailable') throw new Error('Unable to validate ALSVID session');
 
-  const response = await fetch(`${apiBase}/v1/auth/me`, {
-    headers: { authorization: `Bearer ${token}` },
-    cache: 'no-store',
-  });
-
-  if (response.status === 401 || response.status === 403) loginRedirect(portal, returnTo, 'session-expired');
-  if (!response.ok) throw new Error('Unable to validate ALSVID session');
-
-  const payload = await response.json() as { data?: PortalSession };
-  const session = payload.data;
-  if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) loginRedirect(portal, returnTo, 'session-expired');
+  const session = result.session;
   if (session.passwordSetupRequired) loginRedirect(portal, returnTo, 'password-setup-required');
   if (!canAccessPortal(portal, session)) loginRedirect(portal, returnTo, 'portal-access-denied');
   return session;
@@ -72,20 +97,6 @@ export function readInternalPreviewSession(): Promise<PortalSession | null> {
 
 /** Reads the server-selected portal cookie; authentication never confers portal permissions. */
 export async function readPortalSession(portal: ProtectedPortalId): Promise<PortalSession | null> {
-  const token = (await cookies()).get(sessionCookieNameForPortal(portal))?.value;
-  if (!token) return null;
-
-  try {
-    const response = await fetch(`${apiBase}/v1/auth/me`, {
-      headers: { authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!response.ok) return null;
-    const payload = await response.json() as { data?: PortalSession };
-    const session = payload.data;
-    if (!session?.userId || !Array.isArray(session.roles) || !Array.isArray(session.permissions)) return null;
-    return session;
-  } catch {
-    return null;
-  }
+  const result = await lookupPortalSession(portal);
+  return result.kind === 'session' ? result.session : null;
 }

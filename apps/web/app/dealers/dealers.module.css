@@ -1,1 +1,45 @@
 .shell{min-height:100vh;display:grid;grid-template-columns:228px 1fr;background:var(--alsvid-bg);color:var(--alsvid-text)}.rail{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--alsvid-line);display:flex;flex-direction:column;background:var(--alsvid-rail)}.brand{font-size:15px;font-weight:850;letter-spacing:.18em;margin-bottom:44px;color:var(--alsvid-text)}.rail nav{display:grid;gap:5px}.rail nav a{padding:9px 11px;border-radius:8px;color:var(--alsvid-muted);font-size:13px}.rail nav a:hover,.rail nav .active{background:var(--alsvid-accent-soft);color:var(--alsvid-accent)}.foot{margin-top:auto;font-size:9px;color:var(--alsvid-muted);letter-spacing:.08em;text-transform:uppercase}.workspace{min-width:0;padding:42px clamp(28px,5vw,76px) 80px;background:var(--alsvid-bg)}.header h1{font-size:clamp(38px,5vw,62px);line-height:1;letter-spacing:-.05em;margin:0;max-width:900px;color:var(--alsvid-text)}.header p{max-width:850px;color:var(--alsvid-muted);line-height:1.7;font-size:12px}.eyebrow,.card>span,.rule>span,.sectionHead>span,.timeline>span,.list button>span{font-size:9px;font-weight:800;letter-spacing:.14em;color:var(--alsvid-muted)}.notice{margin:18px 0 0;padding:11px 13px;border:1px solid var(--alsvid-line);border-radius:11px;background:var(--alsvid-panel);color:var(--alsvid-text-2);font-size:11px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);margin:32px 0 14px;border:1px solid var(--alsvid-line);border-radius:14px;background:var(--alsvid-panel);overflow:hidden}.metrics div{padding:15px;border-right:1px solid var(--alsvid-line);display:grid;gap:8px}.metrics div:last-child{border-right:0}.metrics span{font-size:9px;color:var(--alsvid-muted)}.metrics b{font-size:25px;color:var(--alsvid-text)}.createGrid{display:grid;grid-template-columns:1.3fr .7fr;gap:12px;margin-bottom:12px}.card,.rule,.detail{background:var(--alsvid-panel);border:1px solid var(--alsvid-line);border-radius:14px;padding:18px;color:var(--alsvid-text)}.card{display:grid;gap:9px}.card h2,.rule h2{margin:5px 0 10px;font-size:20px;color:var(--alsvid-text)}.card input,.card select{width:100%;border:1px solid var(--alsvid-line);border-radius:9px;padding:9px 10px;background:var(--alsvid-input);color:var(--alsvid-text);font:inherit;font-size:11px;outline:0}.card input:focus,.card select:focus{border-color:var(--alsvid-accent);box-shadow:0 0 0 3px var(--alsvid-accent-soft)}.card button,.actions button{border:0;border-radius:9px;padding:10px 12px;background:var(--alsvid-accent);color:#fff;font-weight:700}.checks{display:flex;gap:18px}.checks label{font-size:11px;display:flex;align-items:center;gap:6px;color:var(--alsvid-text-2)}.checks input{width:auto}.rule{display:flex;flex-direction:column;justify-content:center}.rule p{font-size:11px;line-height:1.7;color:var(--alsvid-muted)}.grid{display:grid;grid-template-columns:.34fr .66fr;gap:12px}.list{display:grid;gap:6px;align-content:start;max-height:650px;overflow:auto}.list button{border:1px solid var(--alsvid-line);border-radius:10px;background:var(--alsvid-panel);padding:13px;text-align:left;display:grid;gap:5px;color:var(--alsvid-text)}.list button:hover{background:var(--alsvid-panel-2)}.list button b{font-size:12px}.list button small{font-size:9px;color:var(--alsvid-muted)}.list .selected{outline:2px solid var(--alsvid-accent);outline-offset:-2px}.sectionHead h2{font-size:30px;margin:6px 0;color:var(--alsvid-text)}.sectionHead p{font-size:11px;color:var(--alsvid-muted)}.factGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--alsvid-line);border:1px solid var(--alsvid-line);border-radius:10px;overflow:hidden;margin:16px 0}.factGrid div{background:var(--alsvid-panel);padding:12px;display:grid;gap:4px}.factGrid span{font-size:8px;color:var(--alsvid-muted)}.factGrid b{font-size:11px;overflow-wrap:anywhere;color:var(--alsvid-text)}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions .secondary{background:var(--alsvid-bg-soft);color:var(--alsvid-text-2)}.timeline{margin-top:22px;padding-top:18px;border-top:1px solid var(--alsvid-line)}.timeline article{display:grid;grid-template-columns:160px 180px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--alsvid-line)}.timeline time,.timeline p{font-size:9px;color:var(--alsvid-muted);margin:0}.timeline b{font-size:10px;color:var(--alsvid-text)}.empty{min-height:80px;display:grid;place-items:center;font-size:11px;color:var(--alsvid-muted)}@media(max-width:1050px){.createGrid,.grid{grid-template-columns:1fr}.factGrid{grid-template-columns:1fr 1fr}}@media(max-width:800px){.shell{grid-template-columns:1fr}.rail{display:none}.workspace{padding:28px 18px 60px}.metrics{grid-template-columns:repeat(2,1fr)}.factGrid{grid-template-columns:1fr}.timeline article{grid-template-columns:1fr}}
+
+
+/* Dealer operations center: one compact Admin work area, no detached banners. */
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.headerText{min-width:280px;flex:1}
+.header h1{font-size:clamp(25px,2.6vw,36px);line-height:1.18;letter-spacing:-.035em}
+.header p{font-size:13px;line-height:1.65;margin:10px 0 0;max-width:850px}
+.headerActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.headerLink,.primaryAction{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border-radius:9px;border:1px solid var(--alsvid-line);background:var(--alsvid-panel);color:var(--alsvid-text-2);font-weight:700;font-size:12px;text-decoration:none;cursor:pointer}
+.headerLink:hover{background:var(--alsvid-panel-2)}
+.primaryAction{border-color:var(--alsvid-accent);background:var(--alsvid-accent);color:#fff}
+.primaryAction:hover{opacity:.9}
+.metrics{margin:19px 0 18px}
+.metrics div{padding:17px}
+.metrics span{font-size:11px}
+.metrics b{font-size:28px}
+.grid{grid-template-columns:minmax(270px,.38fr) minmax(0,.62fr);align-items:start}
+.listColumn{min-width:0;display:grid;gap:10px}
+.listToolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 10px;background:var(--alsvid-panel);border:1px solid var(--alsvid-line);padding:14px;border-radius:13px}
+.listHeading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.listHeading strong{font-size:14px;color:var(--alsvid-text)}
+.listHeading small{color:var(--alsvid-muted);font-size:11px}
+.listToolbar label{font-size:10px;color:var(--alsvid-muted)}
+.listToolbar input,.listToolbar select{min-width:0;width:100%;padding:9px 10px;border:1px solid var(--alsvid-line);border-radius:9px;background:var(--alsvid-input);color:var(--alsvid-text);font:inherit;font-size:12px}
+.listToolbar input:focus-visible,.listToolbar select:focus-visible,.headerActions a:focus-visible,.headerActions button:focus-visible{outline:2px solid var(--alsvid-accent);outline-offset:2px}
+.list button{padding:15px}
+.list button b{font-size:13px}
+.list button small{font-size:11px}
+.list button>span{font-size:10px}
+.sectionHead h2{font-size:clamp(20px,2.2vw,27px)}
+.factGrid span{font-size:10px}
+.factGrid b{font-size:12px}
+.timeline time,.timeline p{font-size:11px}
+.timeline b{font-size:11px}
+.createGrid{margin-top:16px;margin-bottom:0}
+.card label{font-size:12px;font-weight:650;color:var(--alsvid-text-2)}
+.card input,.card select{font-size:12px}
+.card button:disabled{cursor:not-allowed;opacity:.45}
+.formHelp{margin:2px 0;color:var(--alsvid-muted);font-size:12px;line-height:1.5}
+.error{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0;padding:12px 14px;border:1px solid #b36c56;border-radius:10px;color:var(--alsvid-text);background:var(--alsvid-panel);font-size:12px}
+.error button{border:1px solid var(--alsvid-line);background:var(--alsvid-input);color:var(--alsvid-text);border-radius:7px;padding:7px 11px;cursor:pointer}
+@media(max-width:1050px){.grid{grid-template-columns:1fr}.list{max-height:380px}}
+@media(max-width:720px){.header{display:grid}.headerText{min-width:0}.headerActions{width:100%}.headerLink,.primaryAction{flex:1}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics div{padding:13px}.listToolbar{grid-template-columns:1fr 1fr}.createGrid{grid-template-columns:1fr}}
+@media(max-width:400px){.listToolbar{grid-template-columns:1fr}.headerActions{display:grid;grid-template-columns:1fr 1fr}.primaryAction{grid-column:1/-1}}

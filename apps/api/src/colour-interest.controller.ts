@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, ForbiddenException, Get, Post, R
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { Public } from './public.decorator.js';
+import { PublicRateLimit } from './platform/public-rate-limit.decorator.js';
 import { database } from './runtime.js';
 
 type ColourPreferenceInput = {
@@ -25,6 +26,7 @@ function allowed(value: unknown, options: readonly string[]): value is string {
 export class ColourInterestController {
   /** Public, deliberately small and pseudonymous: no email, names, IP or purchase records. */
   @Public()
+  @PublicRateLimit({ perClient: 120, windowMs: 60 * 60 * 1000 })
   @Post()
   async select(@Body() input: ColourPreferenceInput) {
     if (

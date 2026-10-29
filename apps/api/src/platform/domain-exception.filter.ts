@@ -41,7 +41,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     logger.error('api.request.failed', {
       ...(context ?? {}),
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error : String(error),
     });
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
