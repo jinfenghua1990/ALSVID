@@ -12,6 +12,7 @@ on:
       - 'scripts/commerce-lab-browser-smoke.mjs'
       - 'scripts/shop-preview-browser-smoke.mjs'
       - 'scripts/commerce-lab-postgres-browser-smoke.mjs'
+      - 'scripts/commerce-lab-pagination-browser-smoke.mjs'
       - '.github/workflows/fc1-preview.yml'
   workflow_dispatch:
 permissions:
@@ -62,6 +63,16 @@ jobs:
           node scripts/commerce-lab-browser-smoke.mjs
           node scripts/shop-preview-browser-smoke.mjs
           node scripts/commerce-lab-postgres-browser-smoke.mjs
+          node scripts/commerce-lab-pagination-browser-smoke.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: comparison-pagination-visual-review
+          path: |
+            .tmp/fc1-v4-review/comparison-pagination-*.png
+            .tmp/fc1-v4-review/comparison-pagination-browser-report.json
+          retention-days: 14
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v7
         if: always()
         with:

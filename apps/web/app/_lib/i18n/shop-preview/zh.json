@@ -61,5 +61,13 @@
   "comparison.specifications": "详细参数",
   "comparison.highlights": "核心参数",
   "comparison.backToCatalog": "返回商品列表",
-  "comparison.productUnavailable": "暂时无法读取商品，请稍后重试。"
+  "comparison.productUnavailable": "暂时无法读取商品，请稍后重试。",
+  "comparison.searchAction": "搜索",
+  "comparison.pagination": "商品分页",
+  "comparison.previous": "上一页",
+  "comparison.next": "下一页",
+  "comparison.page": "第 {page} / {pages} 页",
+  "comparison.noPage": "此页没有商品，请返回上一页。",
+  "comparison.selectionPending": "正在核对所选商品…",
+  "comparison.bagLimit": "预览袋最多保存 100 件不同商品。"
 }

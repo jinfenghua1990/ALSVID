@@ -2,14 +2,18 @@ import 'server-only';
 import {cache} from 'react';
 import {parseLabProducts,parsePublishedLabProduct,type LabPublishedProduct,type LabCatalogSnapshot} from './catalog-contract';
 const apiBase=process.env.ALSVID_API_BASE_URL??'http://localhost:4000/api';
-export async function publishedComparisonCatalog():Promise<LabCatalogSnapshot>{
+const comparisonPageSize=20;
+export async function publishedComparisonCatalog(page=1,query=''):Promise<LabCatalogSnapshot>{
   const checkedAt=new Date().toISOString();
+  const safePage=Number.isSafeInteger(page)&&page>=1&&page<=10000?page:1;
+  const safeQuery=query.trim().slice(0,120);
+  const params=new URLSearchParams({page:String(safePage),limit:String(comparisonPageSize),query:safeQuery});
   try{
-    const response=await fetch(apiBase+'/v1/commerce-lab/public/products?limit=100',{
+    const response=await fetch(apiBase+'/v1/commerce-lab/public/products?'+params,{
       cache:'no-store',redirect:'error',signal:AbortSignal.timeout(8000)});
     if(!response.ok)throw new Error('Comparison catalog unavailable');
-    return{state:'connected',...parseLabProducts(await response.json()),checkedAt};
-  }catch{return{state:'unavailable',products:[],total:0,checkedAt};}
+    return{state:'connected',...parseLabProducts(await response.json()),page:safePage,limit:comparisonPageSize,query:safeQuery,checkedAt};
+  }catch{return{state:'unavailable',products:[],total:0,page:safePage,limit:comparisonPageSize,query:safeQuery,checkedAt};}
 }
 
 export type PublishedProductSnapshot={state:'ready';product:LabPublishedProduct}|{state:'not-found'|'unavailable'};
