@@ -96,7 +96,7 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
       <div><strong>暂无符合条件的发布候选</strong>
         <p>当前真实产品目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车；已核对素材的商品型号 {allowed.length} 个{allowed.length?'（'+allowed.join('、')+'）':''}。只有状态为 ACTIVE、类型为整车、且已录入官网素材白名单的型号才会进入发布审核。这里不会自动生成虚构商品。</p>
       </div>
-      <a href="/admin/product#model-register" className={styles.emptyAction}>检查产品型号与类型 →</a>
+      <a href="/admin/product?type=BIKE#vehicle-models" className={styles.emptyAction}>检查产品型号与类型 →</a>
     </div>:null}
     <p className={styles.note}>首批只支持已有真实详情页与已登记车图、并已录入素材白名单的型号。其他整车、配件、图片和适配规则需要独立验证，不会因为类型是 ACTIVE 就自动上架。</p>
   </section>;

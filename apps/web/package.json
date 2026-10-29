@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "node ../../scripts/build-commerce-lab-static.mjs && next build",
+    "build": "next build",
     "start": "next start -p 3000",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",

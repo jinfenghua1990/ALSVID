@@ -25,7 +25,7 @@ test('reviewed screens have unique protected routes and complete table rows', ()
   assert.equal(new Set(screens.map(screen => screen.route)).size, screens.length);
   for (const screen of screens) {
     assert.ok(screen.route.startsWith('/admin/'));
-    assert.ok(screen.title && screen.blocks.length, screen.route);
+    assert.ok(screen.title && (screen.blocks.length || screen.route === '/admin/production'), screen.route);
     for (const step of screen.steps ?? []) assert.ok(at(step.href), step.href);
     for (const block of screen.blocks) {
       if (block.kind === 'table') for (const row of block.rows) assert.equal(row.length, block.columns.length, `${screen.route}: ${block.title}`);

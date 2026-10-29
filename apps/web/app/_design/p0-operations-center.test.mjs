@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const read = (name) => readFileSync(join(here, name), 'utf8');
 const time = '2026-10-23 18:00:00';
 
-test('P0 stays within five priority areas while comparison is a separate primary menu', () => {
+test('P0 stays within five priority areas and the comparison module is absent', () => {
   assert.deepEqual(P0_AREAS.map(item => item.key), ['product', 'orders', 'inventory', 'production', 'settings']);
   assert.equal(new Set(P0_AREAS.map(item => item.key)).size, 5);
   const allowed = new Set(P0_READ_SOURCES.map(source => source.key));
@@ -25,10 +25,10 @@ test('P0 stays within five priority areas while comparison is a separate primary
   }
   const registry = read('business-module-registry.ts');
   const entries = [...registry.matchAll(/\{ label: '([^']+)', href: '(\/admin[^']*)'/g)];
-  assert.equal(entries.length, 14);
-  assert.equal(entries.filter(([, label, href]) => label === '商城方案对比' && href === '/admin/commerce-lab').length, 1);
+  assert.equal(entries.length, 13);
+  assert.equal(entries.filter(([, label]) => label === '商城方案对比').length, 0);
   assert.deepEqual(new Set(entries.map(([, label]) => label)), new Set([
-    '工作台', '产品研发', '商城运营', '商城方案对比', '经销商管理', '生产制造', '库存管理',
+    '工作台', '产品研发', '商城运营', '经销商管理', '生产制造', '库存管理',
     '跨境物流', '采购管理', '客户与车主', '售后服务', '财务管理', '经营分析', '设置',
   ]));
 });
@@ -70,12 +70,12 @@ test('P0 metrics accept record lists only and never turn missing data into zero'
   assert.equal(parseP0Source(staff, { data: { users: [] } }, time).state, 'unavailable');
 });
 
-test('P0 user interface is authorized, read-only and integrated before the legacy summary', () => {
+test('P0 legacy verbose summary is not mounted on the current renderer', () => {
   const component = read('p0-operations-center.tsx');
   const css = read('p0-operations-center.module.css');
   const renderer = read('renderer.tsx');
-  assert.match(renderer, /<P0OperationsCenter \/>/);
-  assert.ok(renderer.indexOf('<P0OperationsCenter />') < renderer.indexOf('<LiveWorkbench />'));
+  assert.doesNotMatch(renderer, /<P0OperationsCenter \/>/);
+  assert.doesNotMatch(renderer, /<LiveWorkbench \/>/);
   assert.match(component, /Promise\.all\(P0_READ_SOURCES\.map/);
   assert.match(component, /\/api\/control/);
   assert.match(component, /cache: 'no-store', method: 'GET'/);

@@ -19,8 +19,11 @@ test('product archive is product and parts only; BOM editor is manufacturing-onl
   assert.doesNotMatch(client, /id="engineering-panel"/);
   assert.match(integrated, /case '生产': return <><ProductionClient embedded \/><ProductClient embedded view="engineering" \/><\/>;/);
   assert.match(renderer, /'BOM \/ 生产用料清单': '\/admin\/production#production-bom'/);
-  assert.match(renderer, /group: '生产执行', items: \['生产工单', 'BOM \/ 生产用料清单'/);
-  assert.match(renderer, /group: '商品档案', items: \['整车产品', '零配件', '技术平台'\]/);
+  assert.match(renderer, /group: '生产制造', items: \['生产工作台', '生产订单', '装配与质检', '车辆档案'\]/);
+  assert.ok(renderer.includes("'整车产品（车辆明细）'"));
+  assert.ok(renderer.includes("'车辆型号'"));
+  assert.ok(renderer.includes("'零配件'"));
+  assert.ok(renderer.includes("'技术平台'"));
 });
 
 test('product platform labels are exclusively user-authored records', () => {

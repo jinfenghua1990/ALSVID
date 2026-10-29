@@ -88,15 +88,8 @@ test('merge keeps ready items and counts blocked sources separately', () => {
   assert.equal(merged.blocked, 2);
 });
 
-test('workbench mounts live todos ahead of fixture task blocks and stays read-only', () => {
+test('workbench no longer mounts the removed verbose todo blocks', () => {
   const renderer = read('renderer.tsx');
-  const component = read('live-workbench-todos.tsx');
-  assert.match(renderer, /<LiveWorkbenchTodos \/>/);
-  assert.ok(renderer.indexOf('<LiveWorkbenchTodos />') < renderer.indexOf("block.kind !== 'tasks'"));
-  assert.match(component, /\/api\/control/);
-  assert.match(component, /cache: 'no-store'/);
-  assert.doesNotMatch(component, /method:\s*['"](?:POST|PUT|PATCH|DELETE)['"]/);
-  assert.match(component, /response\.status === 401/);
-  assert.match(component, /response\.status === 403/);
-  assert.match(component, /不按 0 条待办计算/);
+  assert.doesNotMatch(renderer, /<LiveWorkbenchTodos \/>/);
+  assert.doesNotMatch(renderer, /block\.kind !== 'tasks'/);
 });

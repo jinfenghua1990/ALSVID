@@ -370,19 +370,33 @@
 /* Product archive 2026: one focused operational workspace, no decorative KPI/dashboard blocks. */
 .archiveWorkspace {
   width: 100%;
+  height: calc(100dvh - 132px);
+  max-height: calc(100dvh - 132px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
   padding: clamp(19px, 2vw, 30px);
   border: 1px solid var(--alsvid-line);
   border-radius: 14px;
   background: var(--alsvid-panel);
   color: var(--alsvid-text);
 }
+.archiveScrollArea {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
+  scrollbar-gutter: stable;
+}
 .archiveHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 22px;
-  padding-bottom: 25px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--alsvid-line);
 }
 .archiveHeadingCopy { min-width: 0; max-width: 840px; }
@@ -420,8 +434,8 @@
 .archivePrimaryButton:focus-visible, .archiveSecondaryButton:focus-visible, .archiveEdit:focus-visible,
 .archiveFilters input:focus-visible, .archiveFilters select:focus-visible { outline: 3px solid var(--alsvid-accent-soft); outline-offset: 2px; }
 .archivePrimaryButton:disabled, .archiveSecondaryButton:disabled { cursor: not-allowed; opacity: .55; }
-.archivePanel { margin-top: 23px; padding: 0; border: 0; }
-.archivePanelTitle { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+.archivePanel { margin-top: 16px; padding: 0; border: 0; }
+.archivePanelTitle { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 11px; }
 .archivePanelTitle h2 { margin: 0; color: var(--alsvid-text); font-size: 18px; font-weight: 680; line-height: 1.4; }
 .archivePanelTitle p { margin: 3px 0 0; color: var(--alsvid-muted); font-size: 12px; line-height: 1.5; }
 .archivePanelTitle > span { color: var(--alsvid-muted); font-size: 12px; white-space: nowrap; padding-top: 3px; }
@@ -448,6 +462,19 @@
 .archiveTable td { color: var(--alsvid-text-2); font-size: 13px; line-height: 1.5; }
 .archiveTable td strong { display: block; color: var(--alsvid-text); font-size: 14px; font-weight: 630; line-height: 1.5; }
 .archiveTable td > span:not(.archiveStatus) { display: block; margin-top: 3px; color: var(--alsvid-muted); font-size: 12px; }
+.vehicleTable { min-width: 1120px; table-layout: fixed; }
+.vehicleTable th, .vehicleTable td { padding: 10px 12px; }
+.vehicleTable th:nth-child(1) { width: 90px; }
+.vehicleTable th:nth-child(2) { width: 250px; }
+.vehicleTable th:nth-child(3) { width: 150px; }
+.vehicleTable th:nth-child(4) { width: 185px; }
+.vehicleTable th:nth-child(5) { width: 120px; }
+.vehicleTable th:nth-child(6) { width: 105px; }
+.vehicleTable th:nth-child(7) { width: 85px; }
+.vehicleTable th:nth-child(8) { width: 150px; }
+.vehicleTable td { font-size: 12px; line-height: 1.35; }
+.vehicleTable td strong { font-size: 12px; }
+.vehicleTable td > span:not(.archiveStatus) { font-size: 11px; }
 .archiveTable tbody tr:last-child td { border-bottom: none; }
 .archiveTable tbody tr:hover { background: var(--alsvid-bg-soft); }
 .archiveEdit { min-height: 33px; padding: 0 12px; font-size: 12px; }
@@ -485,6 +512,8 @@
 .createGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .createActions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 12px; border-top: 1px solid var(--alsvid-line); }
 @media (max-width: 900px) {
+  .archiveWorkspace { height: auto; max-height: none; overflow: visible; }
+  .archiveScrollArea { overflow: visible; padding-right: 0; }
   .archiveHeading { flex-direction: column; align-items: flex-start; }
   .archiveHeadingActions { width: 100%; }
   .archiveFilters { flex-wrap: wrap; }
@@ -520,6 +549,51 @@
 .editCard .actions { padding-top: 14px; border-top: 1px solid var(--alsvid-line); }
 .editCard .actions button { min-height: 40px; padding: 0 17px; font-size: 13px; border-radius: 8px; }
 @media(max-width: 540px) { .editCard { padding: 18px; } }
+
+/* Vehicle model technical specification center: one page, collapsible modules, table-like density. */
+.tableActionGroup { display: flex; flex-wrap: wrap; gap: 6px; }
+.specEditor { width: min(1220px, 100%); max-height: min(94vh, 980px); overflow: auto; box-sizing: border-box; padding: 24px; border: 1px solid var(--alsvid-line); border-radius: 14px; background: var(--alsvid-panel); color: var(--alsvid-text); box-shadow: 0 24px 72px rgba(0,0,0,.22); }
+.specInline { margin-top: 16px; }
+.specEditorInline { width: 100%; max-height: none; box-shadow: none; }
+.specEditorHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--alsvid-line); }
+.specKicker { display: block; margin-bottom: 7px; color: var(--alsvid-muted); font-size: 11px; }
+.specEditorHeader h2 { margin: 0; color: var(--alsvid-text); font-size: 25px; letter-spacing: -.03em; }
+.specEditorHeader p { margin: 7px 0 0; color: var(--alsvid-muted); font-size: 12px; line-height: 1.55; }
+.specEditorMeta { display: flex; align-items: center; gap: 12px; color: var(--alsvid-muted); font-size: 12px; white-space: nowrap; }
+.specEditorToolbar { display: flex; align-items: center; gap: 14px; padding: 16px 0 12px; color: var(--alsvid-text); font-size: 15px; font-weight: 700; }
+.specEditorToolbar > div { display: flex; gap: 7px; margin-left: auto; }
+.specToolbarHint { color: var(--alsvid-muted); font-size: 11px; font-weight: 400; }
+.specModules { display: grid; gap: 8px; }
+.specModule { border: 1px solid var(--alsvid-line); border-radius: 9px; background: var(--alsvid-panel); }
+.specModuleHeader { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 15px; border: 0; background: transparent; color: var(--alsvid-text); text-align: left; cursor: pointer; }
+.specModuleHeader:hover { background: var(--alsvid-bg-soft); }
+.specModuleHeader > span:first-child { min-width: 0; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.specModuleHeader b { font-size: 13px; }
+.specModuleHeader small { color: var(--alsvid-muted); font-size: 11px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 680px; }
+.specProgress { flex: 0 0 auto; color: var(--alsvid-accent); font-size: 11px; font-weight: 650; white-space: nowrap; }
+.specProgress i { display: inline-block; margin-left: 8px; color: var(--alsvid-muted); font-style: normal; font-size: 14px; }
+.specModuleBody { padding: 0 15px 16px; border-top: 1px solid var(--alsvid-line); }
+.specFieldGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; padding-top: 15px; }
+.specFieldGrid label, .specReferences > label { display: grid; gap: 6px; color: var(--alsvid-text-2); font-size: 12px; font-weight: 620; }
+.specFieldGrid input, .specFieldGrid select, .specReferences input, .specReferences select { width: 100%; min-height: 38px; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--alsvid-line-strong); border-radius: 6px; background: var(--alsvid-input); color: var(--alsvid-text); font: inherit; font-size: 12px; font-weight: 400; }
+.specFieldGrid input:focus, .specFieldGrid select:focus, .specReferences input:focus, .specReferences select:focus { outline: 3px solid var(--alsvid-accent-soft); border-color: var(--alsvid-accent); }
+.specReferences { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 14px; margin-top: 14px; }
+.specReferences fieldset { min-width: 0; margin: 0; padding: 11px 12px; border: 1px solid var(--alsvid-line); border-radius: 7px; }
+.specReferences legend { padding: 0 5px; color: var(--alsvid-text-2); font-size: 12px; font-weight: 620; }
+.specPartList { max-height: 190px; overflow: auto; display: grid; gap: 7px; }
+.specPartList label { display: flex; align-items: center; gap: 7px; color: var(--alsvid-text-2); font-size: 11px; font-weight: 400; }
+.specPartList input { width: 15px; min-height: 15px; flex: 0 0 15px; }
+.specPartList small { color: var(--alsvid-muted); font-size: 11px; }
+.specEditorFooter { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 17px; margin-top: 15px; border-top: 1px solid var(--alsvid-line); color: var(--alsvid-muted); font-size: 11px; line-height: 1.5; }
+.specEditorFooter > div { display: flex; flex-shrink: 0; gap: 8px; }
+@media (max-width: 780px) {
+  .specEditor { padding: 16px; }
+  .specEditorHeader, .specEditorToolbar, .specEditorFooter { align-items: flex-start; flex-direction: column; }
+  .specEditorToolbar > div { margin-left: 0; }
+  .specFieldGrid, .specReferences { grid-template-columns: 1fr; }
+  .specEditorFooter > div { width: 100%; }
+  .specEditorFooter > div button { flex: 1; }
+}
 
 /* Product/SPU custom fields: compact definitions panel and dynamic value inputs. */
 .fieldManagerCard {

@@ -4,20 +4,18 @@ import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
-import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
+import { LiveOperationEntry, AdminLogout } from './live-operations';
 import { AdminGlobalSearch } from './admin-global-search';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
 import { ArchitectureOverview } from './architecture-overview';
 import { ADMIN_MODULES } from './business-module-registry';
-import { AdminModuleDirectory } from './admin-module-directory';
-import { P0OperationsCenter } from './p0-operations-center';
-import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
 import ProductClient from '../product/product-client';
 import { BusinessAnalyticsOverview } from './business-analytics-overview';
+import { backendFetch } from '../api/_lib/backend';
 
 const AREAS = ADMIN_MODULES;
 // Keep all business modules directly accessible; no hidden More dropdown.
@@ -42,18 +40,16 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
   '工作台': [
     { group: '工作台', items: ['经营总览', '待办任务', '异常预警', '最近访问'] },
   ],
-  '商城方案对比': [
-    { group: '独立商城', items: ['方案总览与布局比较', '独立商品管理', '旧版交互样机'] },
-  ],
   '数据': [
     { group: '数据分析', items: ['数据总览', '销售分析', '生产与库存分析', '售后与经销商分析'] },
     { group: '已接入专题', items: ['FC1 颜色偏好'] },
   ],
   '电商': [
-    { group: '订单管理', items: ['B2C 订单管理'] },
-    { group: '商城商品', items: ['官网商品发布与审核', '首页商品绑定', '商城价格管理'] },
-    { group: '运营工具', items: ['电商工作台', '电商库存查询'] },
-    { group: '后续能力', items: ['营销活动（待接入）', '支付配置（待接入）'] },
+    { group: '电商工作台', items: ['电商工作台'] },
+    { group: '商品管理', items: ['商城商品列表', '首页商品编排', '商品分类'] },
+    { group: '价格管理', items: ['商城价格管理'] },
+    { group: '订单与库存', items: ['B2C 订单管理', '电商库存查询'] },
+    { group: '后续能力', items: ['营销运营（后续开发）', '支付配置（后续开发）'] },
   ],
   '财务': [
     { group: '财务工作区', items: ['应收 / 应付与资金', '到岸成本与汇率'] },
@@ -70,10 +66,7 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '计划接入', items: ['B2B订单（待接入）', '区域授权（待接入）', '经销商库存（待接入）'] },
   ],
   '生产': [
-    { group: '生产计划', items: ['生产计划', '排产管理'] },
-    { group: '生产执行', items: ['生产工单', 'BOM / 生产用料清单', '装配流程', '生产进度'] },
-    { group: '质量管理', items: ['来料检验', '装配质检', '出厂检测'] },
-    { group: '车辆追溯', items: ['VIN 管理', '出厂记录', '车辆档案'] },
+    { group: '生产制造', items: ['生产工作台', '生产订单', '装配与质检', '车辆档案'] },
   ],
   '供应链': [
     { group: '采购业务', items: ['采购订单', '采购报价', '收货记录'] },
@@ -121,6 +114,27 @@ function secondaryMenuIcon(label: string): string {
   return SECONDARY_MENU_ICONS.find(([pattern]) => pattern.test(label))?.[1] ?? '📄';
 }
 
+type VehicleModelMenuRecord = { code: string; name: string; product_type_code: string };
+
+function vehicleModelShortName(model: Pick<VehicleModelMenuRecord, 'name' | 'code'>): string {
+  const match = model.name.match(/\bALSVID\s+([A-Z0-9]+)\b/i);
+  return match?.[1] ?? model.code;
+}
+
+async function readVehicleModelMenu(): Promise<readonly { label: string; shortName: string }[]> {
+  try {
+    const response = await backendFetch('/v1/product/catalog');
+    if (!response.ok) return [];
+    const payload = await response.json() as { data?: { models?: VehicleModelMenuRecord[] } };
+    return (payload.data?.models ?? [])
+      .filter(model => model.product_type_code === 'BIKE')
+      .map(model => ({ label: `${vehicleModelShortName(model)} · 技术参数`, shortName: vehicleModelShortName(model) }))
+      .filter((model, index, models) => models.findIndex(item => item.label === model.label) === index);
+  } catch {
+    return [];
+  }
+}
+
 function menuDestination(screen: Screen, label: string): string | undefined {
   if (screen.area === '经销商') {
     const dealerDestinations: Readonly<Record<string, string>> = {
@@ -131,21 +145,17 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     };
     if (dealerDestinations[label]) return dealerDestinations[label];
   }
-  if (screen.area === '商城方案对比') {
-    if (label === '方案总览与布局比较') return '/admin/commerce-lab';
-    if (label === '独立商品管理') return '/admin/commerce-lab/catalog';
-    if (label === '旧版交互样机') return '/admin/commerce-lab/reference';
-    return undefined;
-  }
   if (screen.area === '经销商' && ['联系信息', '合作状态'].includes(label)) return '/admin/dealers';
   if (screen.area === '供应链' && label === '合作状态') return '/admin/supply';
   if (screen.area === '客户' && label === '联系信息') return '/admin/customers';
   const operational: Record<string, string> = {
     '经营总览': '/admin',
     '电商工作台': '/admin/ecommerce',
+    '商城商品列表': '/admin/ecommerce/products',
     '官网商品发布': '/admin/ecommerce/publications',
     '官网商品发布与审核': '/admin/ecommerce/publications',
     '首页商品绑定': '/admin/ecommerce/homepage',
+    '首页商品编排': '/admin/ecommerce/homepage',
     '商城售价与 B2C 订单': '/admin/ecommerce/orders',
     '商城价格管理': '/admin/ecommerce/pricing',
     'B2C 订单管理': '/admin/ecommerce/orders',
@@ -178,6 +188,7 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     '试骑申请与网点': '/admin/dealers/test-rides',
     'BOM / 生产用料清单': '/admin/production#production-bom',
     '生产工作台': '/admin/production',
+    '生产订单': '/admin/production#work-orders', '装配与质检': '/admin/production#quality',
     '生产计划': '/admin/production', '排产管理': '/admin/production', '生产工单': '/admin/production', '装配流程': '/admin/production',
     '生产进度': '/admin/production', '来料检验': '/admin/production', '装配质检': '/admin/production', '出厂检测': '/admin/production', '出厂记录': '/admin/production/vin',
     '新建生产计划 · 选择型号': '/admin/production/new/model', '新建生产计划 · 选择 BOM': '/admin/production/new/bom',
@@ -229,10 +240,12 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     const destinations: Record<string, string> = {
       'FC Platform': '/admin/product#series', 'CT Platform': '/admin/product#series', 'FT Platform': '/admin/product#series', 'GT Platform': '/admin/product#series',
       '整车产品': '/admin/product?type=BIKE',
+      '整车产品（车辆明细）': '/admin/product?type=BIKE#vehicle-details',
+      '车辆型号': '/admin/product?type=BIKE#vehicle-models',
       '零配件': '/admin/product?type=PARTS#parts',
-      '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product#model-register', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
+      '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product?type=BIKE#vehicle-models', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
       'BOM': '/admin/product#engineering', '零件库': '/admin/product#parts', '工程文件': '/admin/product#engineering', '版本控制': '/admin/product#engineering',
-      '开发中': '/admin/product#model-register', '量产': '/admin/product#model-register', '停产': '/admin/product#model-register', '归档': '/admin/product#model-register',
+      '开发中': '/admin/product?type=BIKE#vehicle-models', '量产': '/admin/product?type=BIKE#vehicle-models', '停产': '/admin/product?type=BIKE#vehicle-models', '归档': '/admin/product?type=BIKE#vehicle-models',
     };
     if (destinations[label]) return destinations[label];
   }
@@ -609,13 +622,16 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
   const actions = screen.actions ?? [];
   const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
   const isLiveProductRoot = screen.id === 'product' && screen.route === '/admin/product';
+  const vehicleModelMenu = isLiveProductRoot ? await readVehicleModelMenu() : [];
+  const vehicleModelRoutes = new Map(vehicleModelMenu.map(model => [model.label, `/admin/product?type=BIKE&model=${encodeURIComponent(model.shortName)}#vehicle-models`]));
   const isCustomLiveModule = Boolean(screen.sourceNode?.startsWith('module:'));
+  const isLiveProductionWorkspace = screen.id === 'production' && screen.route === '/admin/production';
   const secondaryNavigation = isLiveProductRoot
-    ? [{ group: '商品档案', items: ['整车产品', '零配件', '技术平台'] }]
+    ? [{ group: '', items: ['整车产品（车辆明细）', ...(vehicleModelMenu.length ? vehicleModelMenu.map(model => model.label) : ['车辆型号']), '零配件', '技术平台'] }]
     : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
-  const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
+  const menuRouteFor = (item: string) => vehicleModelRoutes.get(item) ?? menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
-  const isIntegratedOverview = Boolean(screen.sourceNode && hasIntegratedOperations(screen.area) && (
+  const isIntegratedOverview = Boolean((screen.sourceNode || isLiveProductionWorkspace) && hasIntegratedOperations(screen.area) && (
     (screen.route.split('/').length === 3 && screen.area !== '订单') ||
     (screen.area === '订单' && screen.route === '/admin/orders') ||
     (screen.area === '电商' && screen.route.startsWith('/admin/ecommerce/'))
@@ -631,6 +647,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         return {
           key: [screen.area, group.group, item].join('::'),
           label: item,
+          ...(screen.area === '产品' && (item === '车辆型号' || vehicleModelRoutes.has(item)) ? { nested: true } : {}),
           ...(href ? { href } : {}),
           icon: secondaryMenuIcon(item),
           ...(!href ? { status: '待开发' } : {}),
@@ -698,7 +715,6 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
               <p className="av-pagesub">{isVehicleDetail ? '真实车辆主键查询与售后导航；未确认的客户归属不在这里自动生成。' : screen.subtitle}</p>
             </div>
-            {screen.id === 'workbench' ? <a className="av-btn" href="/admin/architecture">查看系统架构 →</a> : null}
             {actions.length > 0 && !isIntegratedOverview && !isVehicleDetail ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
@@ -722,13 +738,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
 
           {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
           {children ?? (screen.id === 'workbench' ? (
-            <>
-              <P0OperationsCenter />
-              <LiveWorkbenchTodos />
-              <details className="av-card av-design-archive"><summary>其他业务数据概览（原有看板）</summary><LiveWorkbench /></details>
-              <AdminModuleDirectory />
-              <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis' && block.kind !== 'tasks')} />
-            </>
+            <Blocks blocks={screen.blocks.filter((block) => block.kind === 'shortcuts')} />
           ) : screen.id === 'system-architecture' ? (
             <ArchitectureOverview />
           ) : isVehicleDetail ? (

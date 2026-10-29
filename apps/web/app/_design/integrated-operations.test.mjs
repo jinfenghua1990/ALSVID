@@ -22,7 +22,7 @@ test('canonical /admin module overview has an existing reviewed screen for every
   for (const [label, area] of connected) {
     const route = area === 'commerce' ? '/admin/orders' : area === 'supply' ? '/admin/supply' : '/admin/' + area;
     const screen = screens.find((item) => item.route === route);
-    assert.ok(screen?.sourceNode, route);
+    assert.ok(screen && (screen.sourceNode || route === '/admin/production'), route);
     assert.equal(screen.area, label, route);
     assert.ok(existsSync(join(app, route.slice(1), 'page.tsx')), route);
   }

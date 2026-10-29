@@ -1,0 +1,9 @@
+.workspace{display:grid;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.kpis>div{display:grid;gap:4px;padding:12px;border:1px solid var(--av-line);border-radius:9px;background:var(--av-panel-soft)}
+.kpis span{color:var(--av-muted);font-size:11px}.kpis strong{font-size:20px;color:var(--av-text)}
+.form{display:grid;grid-template-columns:1.4fr 1fr 1.4fr .7fr auto;gap:10px;align-items:end}
+.form label{display:grid;gap:5px;color:var(--av-text-soft);font-size:11px}.form input,.form select{min-height:36px;padding:8px 10px;border:1px solid var(--av-line);border-radius:8px;background:var(--av-panel-soft);color:var(--av-text);font:inherit}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:1000px){.form{grid-template-columns:repeat(2,minmax(0,1fr))}.form button{grid-column:1/-1;justify-self:start}}
+@media(max-width:600px){.kpis{grid-template-columns:1fr}.form{grid-template-columns:1fr}}

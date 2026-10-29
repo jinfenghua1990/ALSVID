@@ -3,6 +3,7 @@ import type { Screen } from "../../../_design";
 import { notFound } from "next/navigation";
 
 const ecommerceSections = {
+  products: { id: "ecommerce-products", title: "商城商品列表", subtitle: "集中查看商品、SKU、销售市场、商城价格、库存台账和发布状态。" },
   publications: { id: "ecommerce-publications", title: "官网商品发布与审核", subtitle: "维护真实商品资料、三语标题、审核状态和官网公开目录。" },
   homepage: { id: "ecommerce-homepage", title: "首页商品绑定", subtitle: "将官网首页展示位关联到产品中心的真实 Model ID。" },
   inventory: { id: "ecommerce-inventory", title: "电商库存查询", subtitle: "只读查看 SKU 库位和 VIN 整车库存；台账可用量不等于商城可售量。" },

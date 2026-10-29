@@ -1,5 +1,6 @@
 import type { HomepageBinding, HomepageBindingMode, HomepageSlotCode, ModelFieldDefinition, CustomFieldType, CustomFieldValue, PlatformRow, ProductCatalog, ProductEntityKind, ProductStatus, ProductTypeCode } from '../core/model.js';
 import type { CatalogPublishAssetRow,PublicationRow,PublicationStatus,PublicationDraft } from '../core/publication.js';
+import type { QueryExecutor } from '@alsvid/database';
 
 export interface ProductActor {
   userId: string;
@@ -13,7 +14,7 @@ export interface ProductAuditPort {
     targetType: string;
     targetId: string;
     metadata?: Record<string, unknown>;
-  }): Promise<void>;
+  }, executor?: QueryExecutor): Promise<void>;
 }
 
 export interface CreatePlatformRecord {
@@ -35,6 +36,7 @@ export interface UpdatePlatformRecord {
 
 export interface CreateModelRecord {
   customFields?: Record<string, CustomFieldValue>;
+  technicalSpecs?: Record<string, unknown>;
   platformId: string | null;
   productTypeCode: ProductTypeCode;
   code: string;
@@ -66,6 +68,8 @@ export interface CreateSkuRecord {
 export interface UpdateProductRecord {
   customFieldsProvided: boolean;
   customFields: Record<string, CustomFieldValue>;
+  technicalSpecsProvided: boolean;
+  technicalSpecs: Record<string, unknown>;
   entity: ProductEntityKind;
   id: string;
   expectedVersion: number;
@@ -83,6 +87,7 @@ export interface UpdateProductRecord {
 }
 
 export interface ProductRepository {
+  transaction<T>(work: (executor: QueryExecutor) => Promise<T>): Promise<T>;
   publications(): Promise<PublicationRow[]>;
   publishedPublications(): Promise<PublicationRow[]>;
   suppressedPublishedCodes():Promise<string[]>;
@@ -106,8 +111,9 @@ export interface ProductRepository {
     id: string; expectedVersion: number; label: string | null; status: 'ACTIVE' | 'RETIRED' | null;
     required: boolean | null; actorUserId: string;
   }): Promise<ModelFieldDefinition | null>;
+  deleteModelField(input: { id: string; expectedVersion: number; actorUserId: string }, executor: QueryExecutor): Promise<(ModelFieldDefinition & { affectedModels: number }) | null>;
   modelFieldExists(id: string): Promise<boolean>;
-  modelFieldTarget(id: string): Promise<{ product_type_code: ProductTypeCode; custom_fields: Record<string, CustomFieldValue> } | null>;
+  modelFieldTarget(id: string): Promise<{ product_type_code: ProductTypeCode; custom_fields: Record<string, unknown> } | null>;
   createPlatform(input: CreatePlatformRecord): Promise<PlatformRow>;
   updatePlatform(input: UpdatePlatformRecord): Promise<PlatformRow | null>;
   platformExists(id: string): Promise<boolean>;

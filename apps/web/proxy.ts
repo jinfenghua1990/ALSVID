@@ -32,6 +32,7 @@ export function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete('x-alsvid-locale');
+  requestHeaders.set('x-alsvid-return-to', `${path}${request.nextUrl.search}`);
   const locale = path.split('/')[1];
   if (isLocale(locale)) requestHeaders.set('x-alsvid-locale', locale);
   return NextResponse.next({ request: { headers: requestHeaders } });

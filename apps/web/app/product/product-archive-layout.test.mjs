@@ -12,8 +12,8 @@ test('canonical admin product module embeds the live single-source product archi
 });
 
 test('product archive is list-first with advanced sections collapsed', () => {
-  assert.ok(client.indexOf('id="model-register"') < client.indexOf('id="product-types"'));
-  assert.ok(client.indexOf('id="model-register"') < client.indexOf('id="models"'));
+  assert.ok(client.indexOf('id="vehicle-models"') < client.indexOf('id="product-types"'));
+  assert.ok(client.indexOf('id="vehicle-models"') < client.indexOf('id="models"'));
   assert.match(client, /id="product-maintenance-panel"/);
   assert.match(client, /id="parts-library-panel"/);
   assert.match(client, /id="production-bom"/);

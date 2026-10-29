@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import type { HomepageBindingMode, HomepageSlotCode, PublicationAction, ProductStatus, ProductTypeCode } from '@alsvid/product';
 import { Public } from './public.decorator.js';
 import type { AuthenticatedRequest } from './auth.guard.js';
@@ -12,13 +12,14 @@ interface CreateModelFieldBody {
   fieldType:'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'; options?:string[]; required?:boolean;
 }
 interface UpdateModelFieldBody { expectedVersion:number; label?:string; status?:'ACTIVE'|'RETIRED'; required?:boolean }
-interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown> }
+interface DeleteModelFieldBody { expectedVersion:number }
+interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown>; technicalSpecs?: Record<string,unknown> }
 interface UpdateHomepageBindingBody { slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
 interface CreateSkuBody { variantId: string; sku: string; name: string; marketCode?: string; colorCode?: string; sizeCode?: string; attributes?: Record<string, unknown> }
 interface PublicationDraftBody { expectedVersion: number; titleZh: string; titleDe: string; titleEn: string; evidenceNote: string }
 interface PublicationActionBody { action: PublicationAction; expectedVersion: number }
-interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?:Record<string,unknown> }
+interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?:Record<string,unknown>; technicalSpecs?: Record<string,unknown> }
 
 @Controller('v1/product')
 export class ProductController {
@@ -84,6 +85,11 @@ export class ProductController {
   @Patch('model-fields/:id')
   async updateModelField(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:UpdateModelFieldBody) {
     return {data:await productService.updateModelField(requireAuth(request),id,input)};
+  }
+
+  @Delete('model-fields/:id')
+  async deleteModelField(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:DeleteModelFieldBody) {
+    return {data:await productService.deleteModelField(requireAuth(request),id,input)};
   }
 
   @Post('platforms')

@@ -189,9 +189,7 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
       <section>
         <header className={styles.header}>
           <div className={styles.headerText}>
-            <div className={styles.eyebrow}>渠道运营 / DEALER NETWORK</div>
             <h1>经销商管理</h1>
-            <p>管理经销商合作状态、销售市场和服务能力。企业主体、地址和联系人由合作伙伴主数据统一维护。</p>
           </div>
           <div className={styles.headerActions}>
             <a className={styles.headerLink} href="/admin/dealers/applications">合作申请</a>
@@ -249,35 +247,38 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
         </section> : null}
 
         <section className={styles.grid} aria-label="经销商运营档案">
-          <div className={styles.listColumn}>
-            <div className={styles.listToolbar}>
-              <div className={styles.listHeading}><strong>经销商列表</strong><small>{dealerLoad === 'ready' ? `${filtered.length} / ${summary.dealers.length} 家` : '读取中'}</small></div>
-              <label htmlFor="dealer-search">搜索经销商</label>
-              <input id="dealer-search" type="search" value={search} onChange={event => setSearch(event.target.value)}
-                placeholder="公司名称、编码、国家" />
-              <label htmlFor="dealer-status-filter">合作状态</label>
-              <select id="dealer-status-filter" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+          <div className={styles.listToolbar}>
+            <strong>经销商列表</strong>
+            <span>{dealerLoad === 'ready' ? `${filtered.length} / ${summary.dealers.length} 家` : '读取中'}</span>
+            <input aria-label="搜索经销商" id="dealer-search" type="search" value={search} onChange={event => setSearch(event.target.value)}
+              placeholder="公司名称、编码、国家" />
+            <select aria-label="合作状态" id="dealer-status-filter" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
                 <option value="ALL">全部状态</option>
                 <option value="PROSPECT">潜在合作</option>
                 <option value="ACTIVE">合作中</option>
                 <option value="SUSPENDED">已暂停</option>
                 <option value="CLOSED">已关闭</option>
-              </select>
-            </div>
-            <div className={styles.list}>
-            {filtered.map((item) => (
-              <button key={item.id} className={selected?.id === item.id ? styles.selected : ''} onClick={() => setSelectedId(item.id)}>
-                <span>{statusLabel(item.status)}</span>
-                <b>{item.display_name}</b>
-                <small>{item.partner_code} · {(item.market_countries ?? []).join(' · ') || '尚未设置市场'}</small>
-              </button>
-            ))}
-            {dealerLoad === 'loading' ? <p className={styles.empty} role="status">正在读取经销商数据…</p> : null}
-            {dealerLoad === 'ready' && summary.dealers.length === 0
-              ? <p className={styles.empty}>当前还没有经销商运营档案。可通过「新建经销商」关联已登记的合作伙伴。</p> : null}
-            {dealerLoad === 'ready' && summary.dealers.length > 0 && filtered.length === 0
-              ? <p className={styles.empty}>没有符合筛选条件的经销商。</p> : null}
+            </select>
           </div>
+          <div className={styles.tableWrap}>
+            <table className={styles.dealerTable}>
+              <thead><tr><th>经销商</th><th>编码</th><th>销售市场</th><th>状态</th><th>业务能力</th><th>默认联系人</th><th>收货城市</th><th>详情</th></tr></thead>
+              <tbody>
+                {filtered.map(item => <tr key={item.id} data-selected={selected?.id === item.id}>
+                  <td><strong>{item.display_name}</strong></td>
+                  <td>{item.partner_code}</td>
+                  <td>{item.market_countries.join(', ') || '—'}</td>
+                  <td>{statusLabel(item.status)}</td>
+                  <td>{[item.sales_enabled ? '销售' : '', item.service_enabled ? '售后' : ''].filter(Boolean).join(' · ') || '—'}</td>
+                  <td>{item.default_contact_value ?? '—'}</td>
+                  <td>{item.default_shipping_city ?? '—'}</td>
+                  <td><button type="button" className={styles.rowAction} aria-expanded={selected?.id === item.id} onClick={() => setSelectedId(selected?.id === item.id ? '' : item.id)}>{selected?.id === item.id ? '收起' : '查看'}</button></td>
+                </tr>)}
+                {dealerLoad === 'loading' ? <tr><td colSpan={8}>正在读取经销商数据…</td></tr> : null}
+                {dealerLoad === 'ready' && summary.dealers.length === 0 ? <tr><td colSpan={8}>暂无经销商档案</td></tr> : null}
+                {dealerLoad === 'ready' && summary.dealers.length > 0 && filtered.length === 0 ? <tr><td colSpan={8}>没有符合筛选条件的经销商</td></tr> : null}
+              </tbody>
+            </table>
           </div>
 
           {selected ? (

@@ -31,7 +31,7 @@ const areaIcons: Record<string, string> = {
   电商: '🛒', 生产: '🏭', 生产制造: '🏭', 库存: '🚚', 仓储物流: '🚚',
   经销商: '🏢', '经销商/B2B': '🏢', 客户: '👤', 客户车主: '👤',
   售后: '🛠️', 售后服务: '🛠️', 供应链: '📦', 供应链采购: '📦',
-  数据: '📈', 数据分析: '📈', 设置: '⚙️', 财务结算: '💳', 商城方案对比: '📊',
+  数据: '📈', 数据分析: '📈', 设置: '⚙️', 财务结算: '💳',
 };
 
 const areaDescriptions: Record<string, string> = {
@@ -88,8 +88,6 @@ const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string
   { path: '/admin/production/vin', label: 'VIN / 车辆查询', icon: '🔎' },
   { path: '/admin/ecommerce/pricing', label: '商城价格管理', icon: '💶' },
   { path: '/admin/ecommerce/orders', label: 'B2C 订单管理', icon: '🧾' },
-  { path: '/admin/commerce-lab/catalog', label: '独立商品管理', icon: '🛍️' },
-  { path: '/admin/commerce-lab', label: '商城方案对比', icon: '📊' },
   { path: '/admin/orders/detail', label: '订单详情', icon: '🧾' },
   { path: '/admin/dealers/detail', label: '经销商档案', icon: '🏢' },
   { path: '/admin/product', label: '产品中心', icon: '📦' },
@@ -263,6 +261,7 @@ export type AdminSecondaryNavigationItem = {
   label: string;
   href?: string;
   icon: string;
+  nested?: boolean;
   status?: string;
   disabled?: boolean;
 };
@@ -332,12 +331,10 @@ export function AdminSecondaryNavigation({
     <aside className="av-rail av-rail--ecfx" aria-label="二级导航">
       <div className="av-railbrand">
         <strong>{moduleLabel}</strong>
-        <span>模块导航</span>
       </div>
       <nav className="av-railnav" aria-label={moduleLabel + '二级导航'}>
         {groups.map((group) => (
           <div className="av-railgroup" key={group.label}>
-            <div className="av-railtitle">{group.label}</div>
             {group.items.map((item) => {
               const active = activeKey === item.key;
               const unavailable = item.disabled || !item.href;
@@ -354,7 +351,7 @@ export function AdminSecondaryNavigation({
                 </span>
               ) : (
                 <a
-                  className="av-railitem"
+                  className={'av-railitem' + (item.nested ? ' av-railitem--nested' : '')}
                   key={item.key}
                   href={secondaryNavigationHref(item.href!, item.key, item.label)}
                   data-active={active}
@@ -447,7 +444,6 @@ export function AppShell({
             <div className="contextRailSticky">
               <div className="contextRailTitle">
                 <strong>{activeArea}</strong>
-                <span>模块导航</span>
               </div>
               <nav className={`contextRailNav ${classNames.nav ?? ''}`.trim()} aria-label={`${activeArea} 二级导航`}>
                 <NavigationItems navigation={contextualNavigation} activeClassName={classNames.active} />

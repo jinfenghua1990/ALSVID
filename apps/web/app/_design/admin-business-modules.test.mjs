@@ -29,7 +29,7 @@ test('one primary navigation maps old areas to new business destinations without
   assert.ok(!registry.includes("label: '订单管理'"), 'mixed B2B/B2C order hub is not a primary module');
   assert.match(ui, /const AREAS = ADMIN_MODULES/);
   assert.match(ui, /legacyAreas\.includes\(area\)/);
-  assert.match(ui, /商城促销与支付配置|营销活动（待接入）/);
+  assert.match(ui, /商城促销与支付配置|营销活动（待接入）|营销运营（后续开发）/);
 });
 
 test('ecommerce has a dedicated workbench and distinct real workflow routes', () => {
@@ -37,11 +37,11 @@ test('ecommerce has a dedicated workbench and distinct real workflow routes', ()
   const route = read('../admin/ecommerce/[section]/page.tsx');
   const product = read('../product/product-client.tsx');
   assert.match(ecommerce, /view === 'overview'/);
-  assert.match(ecommerce, /<HomepageProductBindingPanel models=\{models\} loadError=""/);
+  assert.match(ecommerce, /<EcommerceHomepageWorkspace models=\{models\} loadError=""/);
   assert.match(ecommerce, /<CatalogPublicationPanel models=\{models\} \/>/);
   assert.match(ecommerce, /<EcommerceInventoryPanel \/>/);
-  assert.match(ecommerce, /<StorefrontOrderDraftPanel mode="pricing" \/>/);
-  assert.match(ecommerce, /<StorefrontOrderDraftPanel mode="orders" \/>/);
+  assert.match(ecommerce, /<EcommercePricingWorkspace \/>/);
+  assert.match(ecommerce, /<EcommerceOrdersWorkspace \/>/);
   for (const section of ['publications', 'homepage', 'inventory', 'pricing', 'orders'])
     assert.ok(route.includes(section), 'dedicated ecommerce route: ' + section);
   const stock = read('./ecommerce-inventory-panel.tsx');
@@ -72,17 +72,17 @@ test('finance and logistics mount their original authenticated workspaces, witho
   assert.ok(existsSync(new URL('../logistics/page.tsx', import.meta.url)));
 });
 
-test('framework directory has a single source of 14 Admin modules and does not present mocked KPI records', () => {
+test('framework directory has a single source of 13 Admin modules and does not present mocked KPI records', () => {
   const source = read('./business-module-registry.ts');
   const directory = read('./admin-module-directory.tsx');
   const ui = read('./renderer.tsx');
   const labels = [...source.matchAll(/\{ label: '([^']+)', href: '(\/admin[^']*)'/g)];
-  assert.equal(labels.length, 14, 'exactly fourteen top-level modules');
-  assert.equal(new Set(labels.map(match => match[1])).size, 14, 'module labels are unique');
-  assert.equal(new Set(labels.map(match => match[2])).size, 14, 'module routes are unique');
+  assert.equal(labels.length, 13, 'exactly thirteen top-level modules');
+  assert.equal(new Set(labels.map(match => match[1])).size, 13, 'module labels are unique');
+  assert.equal(new Set(labels.map(match => match[2])).size, 13, 'module routes are unique');
   assert.match(directory, /ADMIN_MODULES\.map\(/);
   assert.match(directory, /部分功能接入/);
-  assert.match(ui, /<AdminModuleDirectory \/>/);
+  assert.match(ui, /const AREAS = ADMIN_MODULES/);
   assert.match(ui, /<AdminSecondaryNavigation moduleLabel=\{moduleLabel\} groups=\{secondaryNavGroups\} \/>/);
   assert.match(ui, /const secondaryNavGroups = \[/);
   assert.match(ui, /'工作台': \[/);
@@ -92,27 +92,18 @@ test('framework directory has a single source of 14 Admin modules and does not p
 
 test('ecommerce workbench is action-oriented and unfinished capabilities stay explicit', () => {
   const workspace = read('./ecommerce-admin-workspace.tsx');
-  const styles = read('./design-system.css');
-  assert.match(workspace, /ALSVID COMMERCE OPERATIONS/);
-  assert.match(workspace, /av-commerce-shortcut-grid/);
-  assert.match(workspace, /可售库存 ATP/);
-  assert.match(workspace, /公开结账与 PSP 支付/);
-  assert.match(workspace, /促销与优惠券/);
-  assert.match(workspace, /待开发/);
-  assert.match(workspace, /台账可用量不等于商城可售量/);
-  assert.match(styles, /\.av-commerce-shortcut-grid/);
-  assert.match(styles, /\.av-commerce-roadmap-compact/);
-  assert.match(styles, /@media\(max-width:720px\)/);
-  assert.doesNotMatch(workspace, /fake|mock KPI|模拟订单数量/i);
+  const workbench = read('./ecommerce-workbench.tsx');
+  assert.match(workspace, /if \(view === 'overview'\) return <EcommerceWorkbench \/>/);
+  assert.match(workbench, /失败来源不会按零计算/);
+  assert.doesNotMatch(workspace + workbench, /fake|mock KPI|模拟订单数量/i);
 });
 
 test('embedded ecommerce sections inherit the Admin theme and use consistent responsive spacing', () => {
   const styles = read('./design-system.css');
   const publication = read('../product/catalog-publication-panel.module.css');
-  const homepage = read('../product/homepage-product-binding-panel.module.css');
   const commerce = read('../commerce/commerce.module.css');
   const publicationPanel = read('../product/catalog-publication-panel.tsx');
-  const homepagePanel = read('../product/homepage-product-binding-panel.tsx');
+  const homepagePanel = read('./ecommerce-homepage-workspace.tsx');
   assert.match(styles, /\.av \.av-commerce-workspace\s*\{[\s\S]*?--alsvid-panel:\s*var\(--av-panel\)/);
   assert.match(styles, /--alsvid-text:\s*var\(--av-text\)/);
   assert.match(styles, /--alsvid-input:\s*var\(--av-panel\)/);
@@ -122,13 +113,10 @@ test('embedded ecommerce sections inherit the Admin theme and use consistent res
   assert.match(styles, /\.av-body--ecommerce \.av-railitem\[data-active="true"\]/);
   assert.match(styles, /@media\(max-width:720px\)/);
   assert.match(publication, /margin:22px 0/);
-  assert.match(homepage, /margin:24px 0/);
-  assert.match(commerce, /margin:24px 0/);
   assert.match(publicationPanel, /符合基础筛选/);
   assert.match(publicationPanel, /models\.length/);
   assert.match(publicationPanel, /检查产品型号与类型/);
-  assert.match(homepagePanel, /检查型号状态与产品类型/);
-  assert.match(homepagePanel, /前往产品研发检查型号/);
+  assert.match(homepagePanel, /首页商品编排/);
 });
 
 
@@ -138,25 +126,29 @@ test('product sidebar links to live sections without permanently highlighting mo
   const ui = read('./renderer.tsx');
   const styles = read('./design-system.css');
   const product = read('../product/product-client.tsx');
-  for (const anchor of ['product-types', 'series', 'model-register', 'models', 'engineering', 'parts']) {
+  for (const anchor of ['product-types', 'series', 'vehicle-models', 'vehicle-details', 'models', 'engineering', 'parts']) {
     assert.ok(product.includes('id="' + anchor + '"'), 'product section exists: ' + anchor);
   }
   assert.ok(ui.includes("'产品类型': '/admin/product#product-types'"));
-  assert.ok(ui.includes("{ group: '商品档案', items: ['整车产品', '零配件', '技术平台'] }"));
+  assert.ok(ui.includes("'整车产品（车辆明细）'"));
+  assert.match(ui, /vehicleModelMenu\.map\(model => model\.label\)/);
+  assert.ok(ui.includes("'零配件'"));
+  assert.ok(ui.includes("'技术平台'"));
   assert.ok(!ui.includes("{ group: '商城联动'"));
   assert.ok(!styles.includes('.av-body--product .av-railitem[href="/admin/product#model-register"]'));
 });
 
 
-test('all business modules and independent comparison are directly visible', () => {
+test('all business modules are directly visible and the comparison module is removed', () => {
   const ui = read('./renderer.tsx');
   const registry = read('./business-module-registry.ts');
   const styles = read('./design-system.css');
   const labels = [...registry.matchAll(/\{ label: '([^']+)', href: '(\/admin[^']*)'/g)];
-  assert.equal(labels.length, 14);
-  for (const label of ['商城运营', '商城方案对比', '库存管理', '跨境物流', '经销商管理', '采购管理', '客户与车主', '财务管理', '经营分析']) {
+  assert.equal(labels.length, 13);
+  for (const label of ['商城运营', '库存管理', '跨境物流', '经销商管理', '采购管理', '客户与车主', '财务管理', '经营分析']) {
     assert.ok(labels.some(match => match[1] === label), label);
   }
+  assert.ok(!labels.some(match => match[1] === '商城方案对比'));
   assert.match(ui, /const PRIMARY_AREAS = AREAS;/);
   assert.match(ui, /PRIMARY_AREAS\.map/);
   assert.doesNotMatch(ui, /AdminMoreModules|MORE_AREAS/);

@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import type { ProtectedPortalId } from './portal-routing';
@@ -71,15 +71,19 @@ const lookupPortalSession = cache(async (portal: ProtectedPortalId): Promise<Ses
 });
 
 export async function requirePortalSession(portal: ProtectedPortalId, returnTo: string): Promise<PortalSession> {
+  const requestReturnTo = (await headers()).get('x-alsvid-return-to');
+  const effectiveReturnTo = requestReturnTo && requestReturnTo.startsWith('/') && !requestReturnTo.startsWith('//') && !requestReturnTo.startsWith('/api/')
+    ? requestReturnTo
+    : returnTo;
   if (ownerPreviewAllowed(portal, process.env.NODE_ENV, process.env.ALSVID_DEV_OPEN_PORTAL)) return DEV_SESSION;
 
   const result = await lookupPortalSession(portal);
-  if (result.kind === 'missing') loginRedirect(portal, returnTo);
-  if (result.kind === 'expired') loginRedirect(portal, returnTo, 'session-expired');
+  if (result.kind === 'missing') loginRedirect(portal, effectiveReturnTo);
+  if (result.kind === 'expired') loginRedirect(portal, effectiveReturnTo, 'session-expired');
   if (result.kind === 'unavailable') throw new Error('Unable to validate ALSVID session');
 
   const session = result.session;
-  if (session.passwordSetupRequired) loginRedirect(portal, returnTo, 'password-setup-required');
+  if (session.passwordSetupRequired) loginRedirect(portal, effectiveReturnTo, 'password-setup-required');
   if (!canAccessPortal(portal, session)) loginRedirect(portal, returnTo, 'portal-access-denied');
   return session;
 }

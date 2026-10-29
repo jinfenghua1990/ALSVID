@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import styles from './commerce.module.css';
 import { OrderOperationsPanel } from './order-operations-panel';
-import { StorefrontOrderDraftPanel } from './storefront-orders-panel';
+import { EcommerceOrdersWorkspace } from '../_design/ecommerce-orders-workspace';
 import { adminRecordHref, queryRecordId } from '../_design/record-links';
 
 type Partner = { id: string; partnerCode: string; displayName: string; roles: string[] };
@@ -291,7 +291,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
         <a href="#exceptions">异常与对账</a>
         <a href="/admin/product">进入产品中心</a>
       </nav>
-      <StorefrontOrderDraftPanel />
+      <EcommerceOrdersWorkspace />
 
       <OrderOperationsPanel />
 

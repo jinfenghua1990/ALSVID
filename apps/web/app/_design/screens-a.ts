@@ -131,63 +131,12 @@ export const screensA: Screen[] = [
     area: '生产',
     route: '/admin/production',
     title: '生产管理',
-    subtitle: '计划 · 工单 · VIN 与出厂追溯',
-    actions: ['导出', '新建生产计划'],
+    subtitle: '真实生产订单、装配、质检与车辆出生',
+    actions: [],
     secondary: [
-      { group: '生产计划', items: ['生产计划', '排产管理'] },
-      { group: '生产执行', items: ['生产工单', '装配流程', '生产进度'] },
-      { group: '质量管理', items: ['来料检验', '装配质检', '出厂检测'] },
-      { group: '车辆追溯', items: ['VIN 管理', '出厂记录', '车辆档案'] },
+      { group: '生产制造', items: ['生产工作台', '生产订单', '装配与质检', '车辆档案'] },
     ],
-    blocks: [
-      {
-        kind: 'kpis',
-        items: [
-          { value: '128 台', label: '今日生产' },
-          { value: '1,200 台', label: '本月计划' },
-          { value: '68.4%', label: '完成率', tone: 'brand' },
-          { value: '3 起', label: '生产异常', tone: 'warn' },
-          { value: '98.6%', label: '质检通过率', tone: 'good' },
-          { value: '42 台', label: '待入库车辆' },
-        ],
-      },
-      {
-        kind: 'table',
-        title: '生产计划',
-        search: '搜索计划、工单或 VIN',
-        filters: ['全部', '进行中', '待开始', '已完成'],
-        columns: ['计划编号', '型号', 'BOM 版本', '数量', '生产线', 'VIN 范围', '周期', '状态'],
-        rows: [
-          ['PL-2026-014', 'FC1', 'BOM V1.2', '120 台', 'A 线', 'AL0001-AL0120', '02-20 ~ 03-02', { text: '进行中', tone: 'brand' }],
-          ['PL-2026-013', 'CT1', 'BOM V1.0', '80 台', 'B 线', 'CT0001-CT0080', '02-18 ~ 02-26', { text: '进行中', tone: 'brand' }],
-          ['PL-2026-012', 'FT1', 'BOM V1.0', '60 台', 'A 线', 'FT0001-FT0060', '02-15 ~ 02-22', { text: '已完成', tone: 'good' }],
-          ['PL-2026-011', 'GT1', { text: '待建立', tone: 'warn' }, '40 台', 'C 线', 'GT0001-GT0040', '02-25 ~ 03-05', { text: '待开始', tone: 'warn' }],
-        ],
-      },
-      {
-        kind: 'table',
-        title: '生产任务 / 工单',
-        columns: ['工单号', '型号', 'BOM', '数量', '当前工序', '完成率', '负责人'],
-        rows: [
-          ['WO-001', 'FC1', 'V1.2', '50 台', '车架装配', '70%', '张工'],
-          ['WO-002', 'FC1', 'V1.2', '70 台', '电气测试', '85%', '李工'],
-          ['WO-003', 'CT1', 'V1.0', '80 台', '物料准备', '15%', '王工'],
-        ],
-      },
-      {
-        kind: 'flow',
-        title: '装配流程',
-        hint: 'FC1 · A 线当前工序进度',
-        steps: [
-          { label: '车架组装', state: '完成' },
-          { label: '电机安装', state: '完成' },
-          { label: '电池安装', state: '进行中' },
-          { label: '电气测试', state: '未开始' },
-          { label: '整车检测', state: '未开始' },
-          { label: '包装入库', state: '未开始' },
-        ],
-      },
-    ],
+    blocks: [],
   },
 
   {

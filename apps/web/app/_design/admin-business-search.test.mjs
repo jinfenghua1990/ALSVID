@@ -69,8 +69,8 @@ const sources = {
 test('search real accessible model and SKU; return working prefiltered Admin links', () => {
   const items = searchAuthorizedBusinessRecords(catalog, orders, 'fc1');
   assert.deepEqual(items.map(i => i.type), ['model', 'sku', 'order']);
-  assert.equal(items[0].href, '/admin/product?search=FC1#model-register');
-  assert.equal(items[1].href, '/admin/product?search=FC1-PRO-GRAY#model-register');
+  assert.equal(items[0].href, '/admin/product?type=BIKE&search=FC1#vehicle-models');
+  assert.equal(items[1].href, '/admin/product?type=BIKE&search=FC1-PRO-GRAY#vehicle-models');
   assert.equal(items[2].href, '/admin/ecommerce/orders?orderId=' + orderId);
 });
 
