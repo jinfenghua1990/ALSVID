@@ -37,9 +37,9 @@ try {
   const expectedModules = [
     '/admin', '/admin/product', '/admin/ecommerce', '/admin/dealers', '/admin/production',
     '/admin/inventory', '/admin/logistics', '/admin/supply', '/admin/customers',
-    '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings', '/admin/partners',
+    '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings',
   ];
-  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 14 modules appear in top navigation');
+  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 13 modules appear in top navigation');
   for (const href of expectedModules) {
     const link = primary.locator('a[href="' + href + '"]');
     assert.equal(await link.count(), 1, 'direct visible module: ' + href);
