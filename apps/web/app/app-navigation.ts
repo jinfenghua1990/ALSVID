@@ -18,6 +18,7 @@ const configuredNavigation: readonly AppNavItem[] = [
   { label: '商城运营', href: '/admin/ecommerce', area: '商城运营', section: '商城运营' },
   { label: '商城商品列表', href: '/admin/ecommerce/products', area: '商城运营', section: '商品管理' },
   { label: '首页商品编排', href: '/admin/ecommerce/homepage', area: '商城运营', section: '商品管理' },
+  { label: '商城装修', href: '/admin/ecommerce/page-builder', area: '商城运营', section: '页面装修' },
   { label: '电商库存', href: '/admin/ecommerce/inventory', area: '商城运营', section: '库存查询' },
   { label: 'DE / AT 售价', href: '/admin/ecommerce/pricing', area: '商城运营', section: '商城交易' },
   { label: 'B2C 商城订单', href: '/admin/ecommerce/orders', area: '商城运营', section: '商城交易' },

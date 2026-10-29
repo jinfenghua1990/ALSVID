@@ -86,6 +86,7 @@ type WorkspaceTab = { path: string; label: string; icon: string };
 
 const WORKSPACE_TAB_ROUTES: readonly { path: string; label: string; icon: string }[] = [
   { path: '/admin/production/vin', label: 'VIN / 车辆查询', icon: '🔎' },
+  { path: '/admin/ecommerce/page-builder', label: '商城装修', icon: '🎨' },
   { path: '/admin/ecommerce/pricing', label: '商城价格管理', icon: '💶' },
   { path: '/admin/ecommerce/orders', label: 'B2C 订单管理', icon: '🧾' },
   { path: '/admin/orders/detail', label: '订单详情', icon: '🧾' },
