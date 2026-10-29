@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import type { RegisterAssetInput } from '@alsvid/assets';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
-import { throwHttpDomainError } from './domain-errors.js';
 import { assetService } from './runtime.js';
 
 interface AssetLinkBody { entityType: string; entityId: string; purpose?: string; sortOrder?: number }
@@ -11,20 +10,17 @@ interface AssetLinkBody { entityType: string; entityId: string; purpose?: string
 export class AssetsController {
   @Post()
   async register(@Req() request: AuthenticatedRequest, @Body() input: RegisterAssetInput) {
-    try { return { data: await assetService.register(requireAuth(request), input) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await assetService.register(requireAuth(request), input) };
   }
 
   @Post(':id/links')
   async link(@Req() request: AuthenticatedRequest, @Param('id') id: string, @Body() input: AssetLinkBody) {
-    try { return { data: await assetService.link(requireAuth(request), id, input) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    return { data: await assetService.link(requireAuth(request), id, input) };
   }
 
   @Get()
   async forEntity(@Req() request: AuthenticatedRequest, @Query('entityType') entityType?: string, @Query('entityId') entityId?: string) {
-    if (!entityType || !entityId) return throwHttpDomainError(new Error('entityType and entityId are required'));
-    try { return { data: await assetService.forEntity(requireAuth(request), entityType, entityId) }; }
-    catch (error) { return throwHttpDomainError(error); }
+    if (!entityType || !entityId) throw new BadRequestException('entityType and entityId are required');
+    return { data: await assetService.forEntity(requireAuth(request), entityType, entityId) };
   }
 }

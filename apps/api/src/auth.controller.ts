@@ -1,7 +1,6 @@
 import { Body, Controller, ForbiddenException, Get, Param, Post, Put, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
-import { IdentityValidationError, InvalidCredentialsError, InvalidPasswordResetTokenError } from '@alsvid/identity';
+import { IdentityValidationError, InvalidCredentialsError } from '@alsvid/identity';
 import { bearerToken, requireAuth, type AuthenticatedRequest } from './auth.guard.js';
-import { throwHttpDomainError } from './domain-errors.js';
 import { PasswordSetupAllowed } from './password-setup.decorator.js';
 import { Public } from './public.decorator.js';
 import { identityService } from './runtime.js';
@@ -18,22 +17,14 @@ export class AuthController {
   @Post('email/start')
   async startEmail(@Body() body: { email?: string; portal?: string }) {
     if (!body?.email) throw new UnauthorizedException('Email is required');
-    try {
-      return { data: await identityService.startEmailVerification(body.email, body.portal === 'my' ? 'customer' : 'internal') };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    return { data: await identityService.startEmailVerification(body.email, body.portal === 'my' ? 'customer' : 'internal') };
   }
 
   @Public()
   @Post('email/complete')
   async completeEmail(@Body() body: { email?: string; code?: string; displayName?: string; portal?: string }) {
     if (!body?.email || !body.code) throw new UnauthorizedException('Email and verification code are required');
-    try {
-      return { data: await identityService.completeEmailVerification(body.email, body.code, body.displayName, body.portal === 'my' ? 'customer' : 'internal') };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    return { data: await identityService.completeEmailVerification(body.email, body.code, body.displayName, body.portal === 'my' ? 'customer' : 'internal') };
   }
 
   @Public()
@@ -53,7 +44,7 @@ export class AuthController {
       return { data: await identityService.login(identifier, body.password) };
     } catch (error) {
       if (error instanceof InvalidCredentialsError) throw new UnauthorizedException(error.message);
-      return throwHttpDomainError(error);
+      throw error;
     }
   }
 
@@ -81,13 +72,8 @@ export class AuthController {
   @Post('password-reset/confirm')
   async confirmPasswordReset(@Body() body: { token?: string; password?: string }) {
     if (!body?.token || !body.password) throw new UnauthorizedException('Reset token and new password are required');
-    try {
-      await identityService.resetPassword(body.token, body.password);
-      return { data: { ok: true } };
-    } catch (error) {
-      if (error instanceof InvalidPasswordResetTokenError || error instanceof IdentityValidationError) throw error;
-      throwHttpDomainError(error);
-    }
+    await identityService.resetPassword(body.token, body.password);
+    return { data: { ok: true } };
   }
 
   @PasswordSetupAllowed()
@@ -108,12 +94,8 @@ export class AuthController {
   @Post('password')
   async setPassword(@Req() request: AuthenticatedRequest, @Body() body: { password?: string }) {
     if (!body?.password) throw new UnauthorizedException('Password is required');
-    try {
-      await identityService.setPassword(requireAuth(request), body.password);
-      return { data: { ok: true } };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    await identityService.setPassword(requireAuth(request), body.password);
+    return { data: { ok: true } };
   }
 
   @Get('supplier-memberships/:userId/:partnerId')
@@ -131,11 +113,7 @@ export class AuthController {
 
   @Get('security-policy')
   async securityPolicy(@Req() request: AuthenticatedRequest) {
-    try {
-      return { data: await identityService.securityPolicy(requireAuth(request)) };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    return { data: await identityService.securityPolicy(requireAuth(request)) };
   }
 
   @Put('security-policy')
@@ -143,39 +121,23 @@ export class AuthController {
     @Req() request: AuthenticatedRequest,
     @Body() body: { sessionTtlDays?: number; forcePasswordSetup?: boolean; riskStepUpEnabled?: boolean },
   ) {
-    try {
-      return { data: await identityService.updateSecurityPolicy(requireAuth(request), body ?? {}) };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    return { data: await identityService.updateSecurityPolicy(requireAuth(request), body ?? {}) };
   }
 
   @Post('invites')
   async createInvite(@Req() request: AuthenticatedRequest, @Body() body: { email?: string; expiresInDays?: number }) {
     if (!body?.email) throw new UnauthorizedException('Email is required');
-    try {
-      return { data: await identityService.createRegistrationInvite(requireAuth(request), body.email, body.expiresInDays ?? 7) };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    return { data: await identityService.createRegistrationInvite(requireAuth(request), body.email, body.expiresInDays ?? 7) };
   }
 
   @Get('users')
   async users(@Req() request: AuthenticatedRequest) {
-    try {
-      return { data: await identityService.listUsers(requireAuth(request)) };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    return { data: await identityService.listUsers(requireAuth(request)) };
   }
 
   @Put('users/:id/roles')
   async setRoles(@Req() request: AuthenticatedRequest, @Param('id') userId: string, @Body() body: { roles?: string[] }) {
-    try {
-      await identityService.setUserRoles(requireAuth(request), userId, Array.isArray(body?.roles) ? body.roles : []);
-      return { data: { ok: true } };
-    } catch (error) {
-      return throwHttpDomainError(error);
-    }
+    await identityService.setUserRoles(requireAuth(request), userId, Array.isArray(body?.roles) ? body.roles : []);
+    return { data: { ok: true } };
   }
 }
