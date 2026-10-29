@@ -9,7 +9,7 @@ function pathnameOf(location: string): string {
   try {
     return new URL(location, 'https://alsvid.invalid').pathname;
   } catch {
-    return location.split(/[?#]/, 1)[0];
+    return location.split(/[?#]/, 1)[0] ?? '';
   }
 }
 
