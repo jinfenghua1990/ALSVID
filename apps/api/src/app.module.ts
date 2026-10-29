@@ -31,6 +31,7 @@ import { ServiceCasesController } from './service-cases.controller.js';
 import { MyOwnerServiceController } from './my-owner-service.controller.js';
 import { WarehouseController } from './warehouse.controller.js';
 import { DomainExceptionFilter } from './platform/domain-exception.filter.js';
+import { PublicRateLimitGuard } from './platform/public-rate-limit.guard.js';
 import { RequestContextInterceptor } from './platform/request-context.interceptor.js';
 
 @Module({
@@ -68,6 +69,7 @@ import { RequestContextInterceptor } from './platform/request-context.intercepto
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: PublicRateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor },
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
   ],

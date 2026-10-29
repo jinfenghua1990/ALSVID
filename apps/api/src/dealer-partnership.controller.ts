@@ -3,12 +3,16 @@ import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCod
 import type { AuthenticatedRequest } from './auth.guard.js';
 import { requireAuth } from './auth.guard.js';
 import { Public } from './public.decorator.js';
+import { PublicRateLimit } from './platform/public-rate-limit.decorator.js';
 import { database } from './runtime.js';
 import { normalizeDealerApplication, publicDealerLocation } from './dealer-partnership-input.js';
 
 @Controller('v1')
 export class DealerPartnershipController {
  @Public()
+ // The 24-hour per-address rule lives in the database; this stops one client
+ // from cycling through many addresses to probe or fill the review queue.
+ @PublicRateLimit({ perClient: 20, windowMs: 60 * 60 * 1000 })
  @Post('public/dealer-applications')
  @HttpCode(HttpStatus.CREATED)
  async apply(@Body() body:unknown) {

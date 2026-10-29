@@ -1,5 +1,6 @@
 import { BadRequestException, Controller, Post, Body, ServiceUnavailableException } from '@nestjs/common';
 import { Public } from './public.decorator.js';
+import { PublicRateLimit } from './platform/public-rate-limit.decorator.js';
 import { sendResendEmail } from './identity-email-delivery.js';
 import { normalizeReservationEnquiry, reservationNotification } from './fc1-reservation-input.js';
 import { testRideService } from './runtime.js';
@@ -7,6 +8,9 @@ import { testRideService } from './runtime.js';
 @Controller('v1/public/fc1-reservations')
 export class Fc1ReservationController {
   @Public()
+  // Every accepted enquiry sends mail to a fixed internal recipient, so an
+  // unthrottled form is a direct path to flooding that inbox and the provider quota.
+  @PublicRateLimit({ perClient: 20, perEmail: 3, perInstance: 300, windowMs: 60 * 60 * 1000 })
   @Post()
   async create(@Body() body: unknown) {
     const enquiry = normalizeReservationEnquiry(body);
