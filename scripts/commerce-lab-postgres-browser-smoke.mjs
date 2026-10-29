@@ -24,6 +24,9 @@ const mediaServer=createSecureServer({key:await readFile(privateKey),cert:await 
 });
 await new Promise((resolve,reject)=>{mediaServer.once('error',reject);mediaServer.listen(4443,'127.0.0.1',resolve);});
 const records=new Map();let writes=0;
+let releaseCreate,releaseOldSearch,markCreateStarted,markOldSearchStarted;
+const createStarted=new Promise(resolve=>{markCreateStarted=resolve;});
+const oldSearchStarted=new Promise(resolve=>{markOldSearchStarted=resolve;});
 const id='00000000-0000-4000-8000-000000000001';
 const server=createServer(async(req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1:4000');
@@ -63,12 +66,14 @@ const server=createServer(async(req,res)=>{
     }
     if(req.method==='GET'){
       const q=(url.searchParams.get('query')||'').toLowerCase();
+      if(q==='race-old'){markOldSearchStarted();await new Promise(resolve=>{releaseOldSearch=resolve;});}
       const items=[...records.values()].filter(row=>(row.code+' '+row.title.zh).toLowerCase().includes(q));
       return send(200,{data:{items,total:items.length,page:1,limit:20}});
     }
     let raw='';for await(const chunk of req)raw+=chunk;
     const body=JSON.parse(raw||'{}');
     if(req.method==='POST'){
+      markCreateStarted();await new Promise(resolve=>{releaseCreate=resolve;});
       const row={...body,id,status:'DRAFT',currency:'EUR',version:1,hasCustomImage:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
       records.set(id,row);writes++;return send(201,{data:row});
     }
@@ -119,10 +124,10 @@ try{
   await admin.addCookies([{name:'alsvid_session',value:token,domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   const page=await admin.newPage();page.on('pageerror',error=>errors.push(error.message));
   await page.goto(base+'/admin/commerce-lab');
-  // The experimental comparison route remains bookmark-compatible but is no longer a top-level module.
+  // The comparison catalog has a dedicated primary menu, distinct from ecommerce.
   const primaryNav=page.getByRole('navigation',{name:'一级导航',exact:true});
   await primaryNav.getByRole('link',{name:'商城运营',exact:true}).waitFor();
-  assert.equal(await primaryNav.getByRole('link',{name:'商城方案对比',exact:true}).count(),0,'comparison has no primary entry');
+  assert.equal(await primaryNav.getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page','comparison has its own active primary entry');
   await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).click();
   await page.waitForURL(url=>url.pathname==='/admin/commerce-lab/catalog'&&url.searchParams.get('alsvidMenuLabel')==='独立商品管理');
   const frame=page.frameLocator('iframe[title="CRMEB 商品管理适配版"]');
@@ -178,7 +183,45 @@ try{
   await fillSpecification(1,{zh:'扭矩',de:'Drehmoment',en:'Torque'},'90 Nm');
   await page.screenshot({path:path.join(output,'postgres-commerce-parameters-editor-desktop.png'),fullPage:true});
 
-  await expectWrite('保存','POST',201);
+  const createResponse=page.waitForResponse(response=>new URL(response.url()).pathname==='/admin/commerce-lab/api/products'&&response.request().method()==='POST');
+  await frame.getByRole('button',{name:'保存',exact:true}).click();
+  await createStarted;
+  const dialog=frame.locator('.el-dialog__wrapper');
+  const titleInput=dialog.locator('.el-form-item').filter({hasText:'中文名称（必填）'}).getByRole('textbox');
+  assert.equal(await titleInput.isDisabled(),true,'title cannot change while its save is pending');
+  assert.equal(await dialog.locator('[data-spec-index="0"] [data-locale="zh"] input').nth(1).isDisabled(),true,'parameter cannot change while saving');
+  assert.equal(await dialog.locator('.el-checkbox__original').first().isDisabled(),true,'featured flag cannot change while saving');
+  assert.equal(await dialog.getByRole('button',{name:'复制相同数值到德/英空白栏',exact:true}).first().isDisabled(),true,'copy action cannot change a parameter while saving');
+  assert.equal(await frame.getByRole('button',{name:'取消',exact:true}).isDisabled(),true,'cancel cannot close an in-flight save');
+  assert.equal(await dialog.locator('.el-dialog__headerbtn').count(),0,'close button is unavailable while saving');
+  await page.keyboard.press('Escape');
+  assert.equal(await dialog.isVisible(),true,'Escape cannot discard an in-flight save');
+  releaseCreate();
+  assert.equal((await createResponse).status(),201);
+  await dialog.waitFor({state:'hidden'});
+  await frame.getByText('ALSVID FC1 原生联动',{exact:true}).waitFor();
+  report.checks.push('pending save disables form controls and dialog closing until the write finishes');
+
+  await frame.locator('.article-manager').evaluate(element=>{
+    const vm=element.__vue__,originalLoad=vm.load;
+    vm.load=function(){const work=originalLoad.apply(this,arguments);this._lastTestLoad=work;return work;};
+  });
+  const searchInput=frame.getByPlaceholder('名称或实验编码');
+  await searchInput.fill('race-old');
+  const oldResponse=page.waitForResponse(response=>response.request().method()==='GET'&&new URL(response.url()).searchParams.get('query')==='race-old');
+  await frame.getByRole('button',{name:'查询',exact:true}).click();
+  await oldSearchStarted;
+  await frame.locator('.article-manager').evaluate(element=>{window.__alsvidOldLoad=element.__vue__._lastTestLoad;});
+  const resetResponse=page.waitForResponse(response=>response.request().method()==='GET'&&new URL(response.url()).pathname==='/admin/commerce-lab/api/products'&&new URL(response.url()).searchParams.get('query')==='');
+  await frame.getByRole('button',{name:'重置',exact:true}).click();
+  assert.equal((await resetResponse).status(),200);
+  await frame.getByText('ALSVID FC1 原生联动',{exact:true}).waitFor();
+  releaseOldSearch();
+  assert.equal((await oldResponse).status(),200);
+  await frame.locator('.article-manager').evaluate(()=>window.__alsvidOldLoad);
+  assert.equal(await frame.getByText('ALSVID FC1 原生联动',{exact:true}).count(),1,'older response cannot overwrite a later reset');
+  report.checks.push('a delayed older search cannot overwrite the latest reset results');
+
   assert.equal(records.get(id).status,'DRAFT');
   assert.equal(records.get(id).proposedPriceMinor,259900);
   assert.deepEqual(records.get(id).specifications.map(row=>row.value.zh),['768 Wh','90 Nm']);
@@ -222,7 +265,7 @@ try{
   assert.equal(records.get(id).version,3);
   await page.reload();
   await frame.getByText('ALSVID FC1 已更新',{exact:true}).waitFor();
-  assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).count(),0,'comparison is not restored to the main nav on reload');
+  assert.equal(await page.getByRole('navigation',{name:'一级导航',exact:true}).getByRole('link',{name:'商城方案对比',exact:true}).getAttribute('aria-current'),'page','comparison remains active after reload');
   assert.equal(await page.getByRole('complementary',{name:'二级导航',exact:true}).getByRole('link',{name:'独立商品管理',exact:true}).getAttribute('aria-current'),'page');
   await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
   await page.screenshot({path:path.join(output,'postgres-commerce-admin-desktop.png'),fullPage:true});

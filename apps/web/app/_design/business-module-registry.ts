@@ -18,6 +18,7 @@ export const ADMIN_MODULES: readonly BusinessModule[] = [
   { label: '工作台', href: '/admin', description: '跨模块运营概览、待办与异常', legacyAreas: ['工作台'], readiness: 'core', focus: '跨模块待办、业务异常与模块入口' },
   { label: '产品研发', href: '/admin/product', description: '整车产品、零配件与技术平台档案', legacyAreas: ['产品'], readiness: 'partial', focus: '商品信息由业务人员自行建档，不预设型号' },
   { label: '商城运营', href: '/admin/ecommerce', description: '自建商城商品发布、首页展示、DE/AT 价格与 B2C 订单', legacyAreas: ['电商'], readiness: 'partial', focus: '商城可售判定、结账支付与真实交易闭环' },
+  { label: '商城方案对比', href: '/admin/commerce-lab', description: '独立商品管理和产品页面方案比较', legacyAreas: ['商城方案对比'], readiness: 'partial', focus: '商品展示、参数和布局比较' },
   { label: '经销商管理', href: '/admin/dealers', description: '经销商档案、授权、报价与 B2B 订单协同', legacyAreas: ['经销商'], readiness: 'partial', focus: '经销商授权、阶梯价格、B2B 下单与交付' },
   { label: '生产制造', href: '/admin/production', description: '工厂生产计划、工单、装配、质检和 VIN 出生', legacyAreas: ['生产'], readiness: 'partial', focus: '工厂生产进度、质检与 VIN 完整追踪' },
   { label: '库存管理', href: '/admin/inventory', description: '仓库、库位、整车与零配件库存、预留及盘点', legacyAreas: ['库存'], readiness: 'partial', focus: '真实仓库与库存余额一行一条' },

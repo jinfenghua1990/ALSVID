@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const read = (name) => readFileSync(join(here, name), 'utf8');
 const time = '2026-10-23 18:00:00';
 
-test('P0 stays within five priority areas of the stable thirteen-module Admin', () => {
+test('P0 stays within five priority areas while comparison is a separate primary menu', () => {
   assert.deepEqual(P0_AREAS.map(item => item.key), ['product', 'orders', 'inventory', 'production', 'settings']);
   assert.equal(new Set(P0_AREAS.map(item => item.key)).size, 5);
   const allowed = new Set(P0_READ_SOURCES.map(source => source.key));
@@ -24,7 +24,13 @@ test('P0 stays within five priority areas of the stable thirteen-module Admin', 
     assert.ok(area.gates.every(gate => ['pending', 'external', 'verify'].includes(gate.state)));
   }
   const registry = read('business-module-registry.ts');
-  assert.equal([...registry.matchAll(/\{ label: '[^']+', href: '\/admin[^']*'/g)].length, 13);
+  const entries = [...registry.matchAll(/\{ label: '([^']+)', href: '(\/admin[^']*)'/g)];
+  assert.equal(entries.length, 14);
+  assert.equal(entries.filter(([, label, href]) => label === '商城方案对比' && href === '/admin/commerce-lab').length, 1);
+  assert.deepEqual(new Set(entries.map(([, label]) => label)), new Set([
+    '工作台', '产品研发', '商城运营', '商城方案对比', '经销商管理', '生产制造', '库存管理',
+    '跨境物流', '采购管理', '客户与车主', '售后服务', '财务管理', '经营分析', '设置',
+  ]));
 });
 
 test('P0 authorized data sources point to existing bounded business controllers', () => {

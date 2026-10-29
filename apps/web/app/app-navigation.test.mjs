@@ -3,6 +3,18 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { appNavigation, navigationFor } from './app-navigation.ts';
 
+
+test('comparison catalog keeps an independent primary area and its three destinations', () => {
+  const comparison=appNavigation.filter(item=>item.area==='商城方案对比');
+  assert.deepEqual(comparison.map(item=>item.href),[
+    '/admin/commerce-lab','/admin/commerce-lab/catalog','/admin/commerce-lab/reference',
+  ]);
+  assert.ok(comparison.every(item=>!item.disabled));
+  assert.ok(navigationFor('/admin/commerce-lab/catalog').some(item=>
+    item.area==='商城方案对比'&&item.label==='独立商品管理'&&item.active));
+  assert.ok(!appNavigation.some(item=>item.area==='商城运营'&&item.href.startsWith('/admin/commerce-lab')));
+});
+
 test('unfinished secondary navigation entries are visible but not clickable', () => {
   const unfinished = appNavigation.filter((item) => item.status === '建设中');
   assert.equal(unfinished.length, 25, 'current unfinished menu inventory stays explicit');
