@@ -152,7 +152,7 @@ export class PostgresProductRepository implements ProductRepository {
     const result = await this.database.query<PublicationRow>(
       this.publicationProjection + `
         WHERE p.status='PUBLISHED' AND m.status='ACTIVE'
-        AND m.product_type_code='BIKE' AND m.code IN ('FC1','FC2')
+        AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
         ORDER BY p.published_at DESC`);
     return result.rows;
   }
@@ -183,7 +183,8 @@ export class PostgresProductRepository implements ProductRepository {
     const result=await this.database.query(`
       INSERT INTO product.catalog_publications(model_id,created_by,updated_by)
       SELECT m.id,$2,$2 FROM product.models m
-      WHERE m.id=$1 AND m.status='ACTIVE' AND m.product_type_code='BIKE'
+      WHERE m.id=$1 AND m.status='ACTIVE'
+        AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
         AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
           WHERE a.model_code=m.code AND a.enabled)
       ON CONFLICT (model_id) DO NOTHING RETURNING model_id`,
@@ -200,7 +201,8 @@ export class PostgresProductRepository implements ProductRepository {
         submitted_at=NULL,withdrawn_at=NULL
       WHERE p.model_id=$1 AND p.version=$2 AND p.status IN ('DRAFT','WITHDRAWN')
         AND EXISTS(SELECT 1 FROM product.models m WHERE m.id=p.model_id
-        AND m.status='ACTIVE' AND m.product_type_code='BIKE'
+        AND m.status='ACTIVE'
+        AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
         AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
           WHERE a.model_code=m.code AND a.enabled AND a.image_path=$6))
       RETURNING model_id`,
@@ -221,7 +223,7 @@ export class PostgresProductRepository implements ProductRepository {
       WHERE p.model_id=$1 AND p.version=$2 AND p.status=$3
         AND ($4='WITHDRAWN' OR EXISTS(
           SELECT 1 FROM product.models m WHERE m.id=p.model_id AND m.status='ACTIVE'
-          AND m.product_type_code='BIKE'
+          AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
           AND (($4='PUBLISHED' AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
             WHERE a.model_code=m.code AND a.enabled AND a.image_path=p.image_path))
           OR $4='IN_REVIEW')))
