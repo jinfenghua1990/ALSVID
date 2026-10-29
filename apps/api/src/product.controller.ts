@@ -12,13 +12,13 @@ interface CreateModelFieldBody {
   fieldType:'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'; options?:string[]; required?:boolean;
 }
 interface UpdateModelFieldBody { expectedVersion:number; label?:string; status?:'ACTIVE'|'RETIRED'; required?:boolean }
-interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown> }
+interface CreateModelBody { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown>; technicalSpecs?: Record<string,unknown> }
 interface UpdateHomepageBindingBody { slot: HomepageSlotCode; mode: HomepageBindingMode; modelId?: string | null; expectedVersion: number }
 interface CreateVariantBody { modelId: string; code: string; name: string; description?: string; attributes?: Record<string, unknown> }
 interface CreateSkuBody { variantId: string; sku: string; name: string; marketCode?: string; colorCode?: string; sizeCode?: string; attributes?: Record<string, unknown> }
 interface PublicationDraftBody { expectedVersion: number; titleZh: string; titleDe: string; titleEn: string; evidenceNote: string }
 interface PublicationActionBody { action: PublicationAction; expectedVersion: number }
-interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?:Record<string,unknown> }
+interface UpdateEntityBody { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?:Record<string,unknown>; technicalSpecs?: Record<string,unknown> }
 
 @Controller('v1/product')
 export class ProductController {
