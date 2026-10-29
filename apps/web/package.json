@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@alsvid/ui": "workspace:*",
-    "next": "^16.3.0",
+    "geoip-country": "5.0.202610240156",
+    "next": "^16.4.1",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "geoip-country": "5.0.202610240156"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
