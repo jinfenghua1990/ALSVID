@@ -35,23 +35,23 @@ try {
   assert.equal(await page.getByText('设计页面 / 流程预览 · 0', { exact: true }).count(), 0, 'empty design groups stay hidden');
   const primary = page.getByRole('navigation', { name: '一级导航', exact: true });
   const expectedModules = [
-    '/admin', '/admin/product', '/admin/ecommerce', '/admin/dealers', '/admin/production',
+    '/admin', '/admin/product', '/admin/ecommerce', '/admin/commerce-lab', '/admin/dealers', '/admin/production',
     '/admin/inventory', '/admin/logistics', '/admin/supply', '/admin/customers',
     '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings',
   ];
-  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 13 modules appear in top navigation');
+  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 14 modules appear in top navigation');
   for (const href of expectedModules) {
     const link = primary.locator('a[href="' + href + '"]');
     assert.equal(await link.count(), 1, 'direct visible module: ' + href);
     assert.equal(await link.isVisible(), true, 'link is not hidden: ' + href);
   }
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0, 'unused commerce comparison removed from navigation');
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 1, 'independent comparison catalog remains in navigation');
   assert.equal(await primary.getByRole('button', { name: '更多模块' }).count(), 0, 'no hidden More drawer');
   await primary.locator('a[href="/admin/finance"]').click();
   await page.waitForURL(base + '/admin/finance');
   await page.goto(base + '/admin/commerce-lab');
   await page.locator('[data-commerce-lab-overview]').waitFor();
-  report.checks.push('all 13 modules directly visible, legacy comparison has no primary entry');
+  report.checks.push('all 14 modules directly visible, including the independent comparison catalog');
 
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
   const catalogLink = secondary.getByRole('link', { name: '独立商品管理', exact: true });
@@ -59,13 +59,13 @@ try {
   assert.equal(catalogHref.pathname, '/admin/commerce-lab/catalog');
   assert.equal(catalogHref.searchParams.get('alsvidMenuLabel'), '独立商品管理');
   assert.ok(catalogHref.searchParams.get('alsvidMenu'), 'secondary menu identity is preserved for a distinct workspace tab');
-  report.checks.push('legacy comparison deep links remain compatible, but navigation is no longer promoted');
+  report.checks.push('comparison catalog deep links preserve secondary navigation identity');
   await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
   await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
   await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference' && url.searchParams.get('alsvidMenuLabel') === '旧版交互样机');
   const lab = page.locator('[data-commerce-lab]');
   await lab.waitFor();
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 0);
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 1);
   report.checks.push('legacy demo remains reachable under its own protected reference route');
   const mutations = [];
   page.on('request', request => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) mutations.push(request.url()); });
@@ -211,6 +211,112 @@ try {
   assert.equal(new URL(page.url()).pathname, '/admin/inventory', 'the isolated inventory page must not redirect to login');
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
   report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
+
+  // Admin dealer center: the full workspace must be within one Admin shell,
+  // show only real API facts and never turn an API outage into a fabricated 0.
+  const dealerRows = [
+    { id: 'dealer-ci', partner_id: 'partner-ci', partner_code: 'PARTNER-CI',
+      display_name: 'CI 德国经销商', country_code: 'DE', status: 'ACTIVE',
+      market_countries: ['DE'], sales_enabled: true, service_enabled: false,
+      note: '', version: 1, default_shipping_line1: null,
+      default_shipping_city: null, default_shipping_country: null,
+      default_contact_type: null, default_contact_value: null,
+      default_inventory_location_code: null, default_inventory_warehouse_code: null },
+    { id: 'dealer-ci-2', partner_id: 'partner-ci-2', partner_code: 'PARTNER-CI-2',
+      display_name: 'CI 奥地利经销商', country_code: 'AT', status: 'PROSPECT',
+      market_countries: ['AT'], sales_enabled: false, service_enabled: true,
+      note: '', version: 1, default_shipping_line1: null,
+      default_shipping_city: null, default_shipping_country: null,
+      default_contact_type: null, default_contact_value: null,
+      default_inventory_location_code: null, default_inventory_warehouse_code: null },
+  ];
+  const partnerRows = [
+    { id: 'partner-ci', partnerCode: 'PARTNER-CI', displayName: 'CI 德国经销商', countryCode: 'DE', roles: ['DEALER'] },
+    { id: 'partner-ci-2', partnerCode: 'PARTNER-CI-2', displayName: 'CI 奥地利经销商', countryCode: 'AT', roles: ['DEALER'] },
+    { id: 'partner-ci-3', partnerCode: 'PARTNER-CI-3', displayName: 'CI 合作伙伴', countryCode: 'DE', roles: ['DEALER'] },
+  ];
+  await page.route('**/api/control/v1/dealers', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ data: { dealers: dealerRows, history: [] } }),
+  }));
+  await page.route('**/api/control/v1/partners', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ data: partnerRows }),
+  }));
+  await page.goto(base + '/admin/dealers');
+  const dealerCenter = page.locator('[data-area="dealers"]');
+  await dealerCenter.getByRole('heading', { name: '经销商管理', exact: true }).waitFor();
+  assert.equal(await page.locator('body > div[style*="background"]').count(), 0,
+    'dealer module must not render detached top banners');
+  const dealerNav = page.getByRole('complementary', { name: '二级导航', exact: true });
+  assert.equal(await dealerNav.getByRole('link', { name: '合作申请', exact: true }).count(), 1);
+  assert.equal(await dealerNav.getByRole('link', { name: '客户试骑与合作网点', exact: true }).count(), 1);
+  assert.equal(await dealerNav.getByRole('link', { name: /B2B订单/ }).count(), 0,
+    'unimplemented B2B capability must not be an active link');
+  const metricValues = dealerCenter.locator('[class*="metrics"] b');
+  await page.waitForFunction(() =>
+    document.querySelector('[data-area="dealers"] [class*="metrics"] b')?.textContent === '2');
+  assert.deepEqual(await metricValues.allTextContents(), ['2', '1', '1', '2']);
+  await dealerCenter.getByRole('searchbox', { name: '搜索经销商' }).fill('奥地利');
+  assert.equal(await dealerCenter.getByRole('button', { name: /CI 奥地利经销商/ }).count(), 1);
+  assert.equal(await dealerCenter.getByRole('button', { name: /CI 德国经销商/ }).count(), 0);
+  await dealerCenter.getByRole('searchbox', { name: '搜索经销商' }).clear();
+  await dealerCenter.getByRole('combobox', { name: '合作状态' }).selectOption('ACTIVE');
+  assert.equal(await dealerCenter.getByRole('button', { name: /CI 奥地利经销商/ }).count(), 0);
+  await dealerCenter.getByRole('combobox', { name: '合作状态' }).selectOption('ALL');
+  await dealerCenter.getByRole('button', { name: '＋ 新建经销商' }).click();
+  const createDealer = dealerCenter.getByRole('form', { name: '新建经销商档案' });
+  await createDealer.waitFor();
+  assert.equal(await createDealer.getByRole('combobox', { name: '已存在的合作伙伴（必填）' })
+    .locator('option').count(), 2, 'create form only lists unassigned DEALER partners');
+  await page.screenshot({ path: path.join(output, 'admin-dealers-operations-desktop.png'), fullPage: true });
+  await page.unroute('**/api/control/v1/dealers');
+  await page.route('**/api/control/v1/dealers', route => route.fulfill({
+    status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Dealer API unavailable' }),
+  }));
+  await page.reload();
+  await dealerCenter.getByRole('alert').filter({ hasText: 'Dealer API unavailable' }).waitFor();
+  assert.deepEqual(await metricValues.allTextContents(), ['—', '—', '—', '—'],
+    'failed API reads must not be displayed as zero dealers');
+  // A new dealer must first have an existing Partner legal entity; keep that
+  // workflow inside the authenticated Admin shell, using the one Partner API.
+  await page.route('**/api/partners*', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }),
+  }));
+  await page.goto(base + '/admin/partners');
+  await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
+  await page.locator('[data-area="partners"]').waitFor();
+  const partnerNav = page.getByRole('complementary', { name: '二级导航', exact: true });
+  assert.equal(await partnerNav.getByRole('link', { name: '合作伙伴主体', exact: true }).count(), 1);
+  assert.equal(await page.locator('.partnerWorkspace').count(), 1,
+    'Partner master is embedded once; the legacy AppShell is not nested');
+  await page.getByRole('button', { name: '新建合作伙伴', exact: true }).click();
+  assert.equal(await page.locator('.modalCard input[name="DEALER"]').isChecked(), true,
+    'Dealer-origin Partner creation preselects the DEALER role');
+  assert.equal(await page.locator('[data-area="partners"] a[href="/admin/dealers"]').count(), 1,
+    'guided onboarding returns to Dealer setup');
+  await page.unroute('**/api/partners*');
+  await page.route('**/api/partners*', route => route.fulfill({
+    status: 503, contentType: 'application/json',
+    body: JSON.stringify({ message: 'Partner API unavailable' }),
+  }));
+  await page.reload();
+  await page.locator('[data-area="partners"]').getByRole('alert', {
+    name: '',
+  }).filter({ hasText: 'Partner API unavailable' }).waitFor();
+  assert.deepEqual(await page.locator('[data-area="partners"] .metricRow .metric b').allTextContents(),
+    ['—', '—', '—', '—', '—', '—'],
+    'unavailable Partner API must not pretend there are zero companies');
+  report.checks.push('Dealer onboarding: existing Partner master opens inside Admin, preselects DEALER, and fails honestly when API is unavailable');
+  // Real intake and test-ride modules must retain the same Admin shell when opened.
+  await page.goto(base + '/admin/dealers/applications');
+  await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
+  await page.getByRole('heading', { name: '经销商合作申请', exact: true }).waitFor();
+  assert.equal(await page.getByRole('complementary', { name: '二级导航', exact: true }).count(), 1);
+  await page.goto(base + '/admin/dealers/test-rides');
+  await page.getByRole('navigation', { name: '一级导航', exact: true }).waitFor();
+  await page.getByRole('heading', { name: '客户试骑申请', exact: true }).waitFor();
+  assert.equal(await page.getByRole('complementary', { name: '二级导航', exact: true }).count(), 1);
+  report.checks.push('Admin dealer center: real fixture totals, filter, linked menu, existing Partner-only creation, API outage does not show 0, same shell on subpages');
 
   // The official B2C Admin inventory workspace now shows a SERVER-SIDE join
   // of approved Product, active Commerce price, and Inventory balances.
