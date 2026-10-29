@@ -23,7 +23,7 @@ const AREAS = ADMIN_MODULES;
 // Keep all business modules directly accessible; no hidden More dropdown.
 const PRIMARY_AREAS = AREAS;
 const PRIMARY_AREA_ICONS: Record<string, string> = {
-  '工作台': '🏠', '产品研发': '🧩', '商城运营': '🛒', '商城方案对比': '📊', '经销商管理': '🏢',
+  '工作台': '🏠', '产品研发': '🧩', '商城运营': '🛒', '经销商管理': '🏢',
   '生产制造': '🏭', '库存管理': '📦', '跨境物流': '🚢', '采购管理': '📋',
   '客户与车主': '👤', '售后服务': '🛠️', '财务管理': '💳', '经营分析': '📈', '设置': '⚙️',
 };
@@ -66,7 +66,8 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
     { group: '仓库操作', items: ['仓库与库位维护', '库存流水', '库存盘点'] },
   ],
   '经销商': [
-    { group: '经销商业务', items: ['经销商列表', 'B2B订单（待接入）', '区域授权（待接入）'] },
+    { group: '经销商运营', items: ['经销商列表', '合作伙伴主体', '合作申请', '客户试骑与合作网点'] },
+    { group: '计划接入', items: ['B2B订单（待接入）', '区域授权（待接入）', '经销商库存（待接入）'] },
   ],
   '生产': [
     { group: '生产计划', items: ['生产计划', '排产管理'] },
@@ -121,6 +122,15 @@ function secondaryMenuIcon(label: string): string {
 }
 
 function menuDestination(screen: Screen, label: string): string | undefined {
+  if (screen.area === '经销商') {
+    const dealerDestinations: Readonly<Record<string, string>> = {
+      '经销商列表': '/admin/dealers',
+      '合作伙伴主体': '/admin/partners',
+      '合作申请': '/admin/dealers/applications',
+      '客户试骑与合作网点': '/admin/dealers/test-rides',
+    };
+    if (dealerDestinations[label]) return dealerDestinations[label];
+  }
   if (screen.area === '商城方案对比') {
     if (label === '方案总览与布局比较') return '/admin/commerce-lab';
     if (label === '独立商品管理') return '/admin/commerce-lab/catalog';

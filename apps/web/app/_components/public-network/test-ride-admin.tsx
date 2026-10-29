@@ -56,7 +56,7 @@ export function TestRideAdmin({
   }catch{setError("网点状态没有保存。请确认该网点已获得正式授权并允许公开展示。");}
   finally{setBusy(null);}
  }
- return <main className={styles.main}>
+ return <section className={styles.main}>
   <div className={styles.top}>
    <div><p className={styles.kicker}>ALSVID ADMIN / DEALERS</p>
     <h1>客户试骑申请</h1>
@@ -114,5 +114,5 @@ export function TestRideAdmin({
     </article>)}</div>}
    <p className={styles.notice}>网点启用仅代表可接收人工分配的试骑意向，不代表已经排班、有现车或可向客户确认试骑时间。</p>
   </section>
- </main>;
+ </section>;
 }

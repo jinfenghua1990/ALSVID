@@ -20,7 +20,7 @@ export function DealerApplicationsAdmin({initial,available}:{initial:Application
   }catch{setError('状态未保存，请稍后重试。');}
   finally{setPending(null);}
  }
- return <main style={{margin:'0 auto',maxWidth:1320,padding:'48px 24px',color:'#172322',fontFamily:'Arial, sans-serif'}}>
+ return <section style={{margin:'0 auto',maxWidth:1320,padding:'48px 24px',color:'#172322',fontFamily:'Arial, sans-serif'}}>
   <p style={{color:'#74857d',fontSize:13}}>ALSVID ADMIN / DEALERS</p>
   <h1 style={{fontSize:32,fontWeight:650,marginBottom:8}}>经销商合作申请</h1>
   <p style={{color:'#61716a',fontSize:14,marginBottom:24}}>官网申请线索 · 保存为待审核申请，不会自动创建经销商账户或授权门店。</p>
@@ -51,5 +51,5 @@ export function DealerApplicationsAdmin({initial,available}:{initial:Application
     </table>
    </div>}
   {error&&<p role="alert" style={{color:'#a12819'}}>{error}</p>}
- </main>;
+ </section>;
 }
