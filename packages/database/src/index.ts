@@ -17,12 +17,28 @@ export interface DatabasePort extends QueryExecutor, TransactionManager {
   close(): Promise<void>;
 }
 
+function positiveInt(value: string | undefined, fallback: number): number {
+  if (!value?.trim()) return fallback;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`Invalid database pool setting: ${value}`);
+  return parsed;
+}
+
+// pg's defaults wait forever for a free connection and keep an unbounded number
+// of sockets open per instance, so one slow query turns into a request pile-up.
 export class Database implements DatabasePort {
   readonly pool: Pool;
 
   constructor(connectionString = process.env.DATABASE_URL) {
     if (!connectionString) throw new Error('DATABASE_URL is required');
-    this.pool = new Pool({ connectionString });
+    this.pool = new Pool({
+      connectionString,
+      max: positiveInt(process.env.DATABASE_POOL_MAX, 10),
+      idleTimeoutMillis: positiveInt(process.env.DATABASE_IDLE_TIMEOUT_MS, 30_000),
+      connectionTimeoutMillis: positiveInt(process.env.DATABASE_CONNECT_TIMEOUT_MS, 10_000),
+      keepAlive: true,
+      application_name: `alsvid-${process.env.K_SERVICE ?? process.env.SERVICE_NAME ?? 'local'}`,
+    });
     // Serverless providers such as Neon drop idle connections; pg surfaces
     // these as 'error' events which terminate the process when unhandled.
     // Log them and let pg replace the connection on the next checkout.
