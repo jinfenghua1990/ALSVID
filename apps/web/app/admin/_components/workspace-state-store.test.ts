@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAdminWorkspaceDraftStore, isAdminPath } from './workspace-state-store';
+import { createAdminWorkspaceDraftStore, isAdminPath } from './workspace-state-store.ts';
 
 test('admin drafts are isolated by query string', () => {
   const store = createAdminWorkspaceDraftStore();
