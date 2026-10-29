@@ -11,15 +11,16 @@ export type PublicationRow = {
   image_path: string; evidence_note: string; version: number;
   submitted_at: string | null; published_at: string | null; withdrawn_at: string | null;
 };
+export type PublicCatalogProductType = 'BIKE' | 'ACCESSORY' | 'SERVICE_PART';
 export type PublicCatalogItem = {
-  modelId: string; code: string; type: 'BIKE'; image: string;
+  modelId: string; code: string; type: PublicCatalogProductType; image: string;
   title: {zh: string; de: string; en: string};
 };
 
 /** Only these two approved website detail routes have an existing bike image contract.
  * Curated artwork remains subject to an explicit media provenance review before publish.
  *
- * This constant is now a FALLBACK FLOOR, not the runtime authority: rows in
+ * This constant is now a FALLBACK FLOOR for the already approved bike artwork, not the runtime authority: rows in
  * product.catalog_publish_assets override it (enabled=false removes a model). Keeping
  * the floor means a deployment that lands before its migration still publishes exactly
  * the previously approved artwork instead of silently emptying the public catalogue.
@@ -52,8 +53,8 @@ export function curatedCatalogImage(
   assets: Readonly<Record<string,string>> = approvedCatalogAssets,
 ): string {
   const image = assets[modelCode];
-  if (modelStatus !== 'ACTIVE' || type !== 'BIKE' || !image) {
-    throw new ProductValidationError('Only ACTIVE bike models with confirmed detail routes are eligible');
+  if (modelStatus !== 'ACTIVE' || !['BIKE','ACCESSORY','SERVICE_PART'].includes(type) || !image) {
+    throw new ProductValidationError('Only ACTIVE published product models with confirmed artwork are eligible');
   }
   return image;
 }
@@ -89,9 +90,9 @@ export function toPublicCatalogItem(
   row: PublicationRow,
   assets: Readonly<Record<string,string>> = approvedCatalogAssets,
 ): PublicCatalogItem | null {
-  if(row.status!=='PUBLISHED'||row.model_status!=='ACTIVE'||row.product_type_code!=='BIKE'||!assets[row.model_code])return null;
+  if(row.status!=='PUBLISHED'||row.model_status!=='ACTIVE'||!['BIKE','ACCESSORY','SERVICE_PART'].includes(row.product_type_code)||!assets[row.model_code])return null;
   const image=curatedCatalogImage(row.model_code,row.model_status,row.product_type_code,assets);
   if(row.image_path!==image || !row.title_zh || !row.title_de || !row.title_en)return null;
-  return {modelId:row.model_id,code:row.model_code,type:'BIKE',image,
+  return {modelId:row.model_id,code:row.model_code,type:row.product_type_code as PublicCatalogProductType,image,
     title:{zh:row.title_zh,de:row.title_de,en:row.title_en}};
 }
