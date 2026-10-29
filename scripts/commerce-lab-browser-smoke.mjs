@@ -106,6 +106,27 @@ try {
   assert.deepEqual(mutations, [], 'lab interactions must not issue backend writes');
   assert.equal(await page.evaluate(() => JSON.stringify({ ...localStorage })), before, 'original browser storage is unchanged');
 
+  // The Admin client draft store must survive an actual route change (not just
+  // a label-only tab switch). No writes to backend or browser storage.
+  await page.evaluate(() => { window.__alsvidTabNavigationProof = 'same-document'; });
+  await primary.locator('a[href="/admin/finance"]').click();
+  await page.waitForURL(base + '/admin/finance');
+  const resume = page.locator('.workspaceTabs a.workspaceTabLink[href*="/admin/commerce-lab/reference"]');
+  await resume.waitFor();
+  await resume.click();
+  await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference');
+  await lab.waitFor();
+  assert.equal(await page.evaluate(() => window.__alsvidTabNavigationProof),
+    'same-document', 'Admin tab switching must not reload the browser document');
+  assert.equal(await lab.count(), 1, 'only one Commerce Lab instance is mounted');
+  await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
+  await lab.getByRole('button', { name: '商品管理', exact: true }).click();
+  assert.equal(await lab.getByRole('textbox', { name: 'demo-fc1 名称', exact: true }).inputValue(),
+    'FC1 CI 示例', 'unsaved product name must survive a workspace tab switch');
+  assert.equal(await lab.getByRole('spinbutton', { name: 'demo-fc1 示例售价', exact: true }).inputValue(),
+    '3199', 'unsaved product price must survive a workspace tab switch');
+  report.checks.push('Admin tab switch retains unsaved product name and price in memory');
+
   await page.reload(); await lab.waitFor();
   await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
   await lab.getByRole('button', { name: '订单管理 (0)', exact: true }).click();
@@ -219,6 +240,14 @@ try {
   assert.equal(new URL(page.url()).pathname, '/admin/inventory', 'the isolated inventory page must not redirect to login');
   await page.screenshot({ path: path.join(output, 'admin-inventory-archive-desktop.png'), fullPage: true });
   report.checks.push('warehouse and stock balances render from fixture API, advanced forms collapsed');
+
+  // A soft Admin tab transition must not bypass session validation after the
+  // session cookie has disappeared while the authenticated layout is mounted.
+  await context.clearCookies();
+  await page.getByRole('navigation', { name: '一级导航', exact: true })
+    .locator('a[href="/admin/finance"]').click();
+  await page.waitForURL(/\/login\?/);
+  report.checks.push('Admin soft navigation refuses an expired session');
 
   assert.deepEqual(errors, [], 'no browser runtime errors');
   await writeFile(path.join(output, 'commerce-lab-report.json'), JSON.stringify(report, null, 2));
