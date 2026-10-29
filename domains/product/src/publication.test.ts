@@ -11,7 +11,8 @@ test('publications are reviewed separately from ACTIVE internal product status',
  assert.equal(curatedCatalogImage('FC2','ACTIVE','BIKE'),approvedCatalogAssets.FC2);
  assert.throws(()=>curatedCatalogImage('CT1','ACTIVE','BIKE'),ProductValidationError);
  assert.throws(()=>curatedCatalogImage('FC1','RETIRED','BIKE'),ProductValidationError);
- assert.throws(()=>curatedCatalogImage('FC1','ACTIVE','ACCESSORY'),ProductValidationError);
+ assert.equal(curatedCatalogImage('BASKET','ACTIVE','ACCESSORY',{BASKET:'/products/accessories/basket.webp'}),'/products/accessories/basket.webp');
+ assert.throws(()=>curatedCatalogImage('BASKET','ACTIVE','ACCESSORY'),ProductValidationError);
 });
 
 test('draft requires complete zh/de/en review and material provenance evidence',()=>{
