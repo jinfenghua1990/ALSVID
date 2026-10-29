@@ -9,6 +9,22 @@ test('comparison catalog is removed from primary navigation', () => {
   assert.ok(!appNavigation.some(item=>item.href.startsWith('/admin/commerce-lab')));
 });
 
+test('storefront visual editor has a dedicated enabled Admin route', () => {
+  const item = appNavigation.find((entry) => entry.label === '商城装修');
+  assert.ok(item, '商城装修 entry exists');
+  assert.equal(item.href, '/admin/ecommerce/page-builder');
+  assert.equal(item.area, '商城运营');
+  assert.equal(item.disabled, undefined, 'the dedicated editor route is enabled');
+
+  const route = readFileSync(new URL('./admin/ecommerce/page-builder/page.tsx', import.meta.url), 'utf8');
+  const editor = readFileSync(new URL('./admin/ecommerce/page-builder/storefront-builder-client.tsx', import.meta.url), 'utf8');
+  assert.match(route, /StorefrontBuilderClient/);
+  assert.match(editor, /locale: 'zh'/, 'GrapesJS locale is configured for Chinese');
+  assert.match(editor, /导出装修方案/);
+  assert.match(editor, /不会修改正式商城首页/);
+  assert.match(editor, /https:\/\/cdn\.jsdelivr\.net\/npm\/grapesjs@0\.23\.8/);
+});
+
 test('unfinished secondary navigation entries are visible but not clickable', () => {
   const unfinished = appNavigation.filter((item) => item.status === '建设中');
   assert.equal(unfinished.length, 26, 'current unfinished menu inventory stays explicit');

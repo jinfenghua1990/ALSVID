@@ -25,88 +25,23 @@ try {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto(base + '/admin/commerce-lab');
+  // The retired commerce comparison UI is no longer a primary Admin module.
+  // Keep testing the current Admin shell and the downstream business screens.
+  await page.goto(base + '/admin/ecommerce/page-builder');
   await page.waitForURL(/\/login\?/);
-  report.checks.push('unauthenticated route remains protected');
+  report.checks.push('unauthenticated editor redirects to login');
   await context.addCookies([{ name: 'alsvid_session', value: 'commerce-lab-ci', url: base, httpOnly: true }]);
-  await page.goto(base + '/admin/commerce-lab');
-  await page.locator('[data-commerce-lab-overview]').waitFor();
-  assert.equal(await page.locator('[data-commerce-lab]').count(), 0, 'overview does not mount the in-memory demo');
-  assert.equal(await page.getByText('设计页面 / 流程预览 · 0', { exact: true }).count(), 0, 'empty design groups stay hidden');
+  await page.goto(base + '/admin/ecommerce/page-builder');
+  await page.getByRole('heading', { name: '商城首页装修' }).waitFor();
   const primary = page.getByRole('navigation', { name: '一级导航', exact: true });
-  const expectedModules = [
-    '/admin', '/admin/product', '/admin/ecommerce', '/admin/commerce-lab', '/admin/dealers', '/admin/production',
-    '/admin/inventory', '/admin/logistics', '/admin/supply', '/admin/customers',
-    '/admin/after-sales', '/admin/finance', '/admin/analytics', '/admin/settings',
-  ];
-  assert.equal(await primary.getByRole('link').count(), expectedModules.length, 'all 14 modules appear in top navigation');
-  for (const href of expectedModules) {
-    const link = primary.locator('a[href="' + href + '"]');
-    assert.equal(await link.count(), 1, 'direct visible module: ' + href);
-    assert.equal(await link.isVisible(), true, 'link is not hidden: ' + href);
-  }
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 1, 'independent comparison catalog remains in navigation');
-  assert.equal(await primary.getByRole('button', { name: '更多模块' }).count(), 0, 'no hidden More drawer');
-  await primary.locator('a[href="/admin/finance"]').click();
-  await page.waitForURL(base + '/admin/finance');
-  await page.goto(base + '/admin/commerce-lab');
-  await page.locator('[data-commerce-lab-overview]').waitFor();
-  report.checks.push('all 14 modules directly visible, including the independent comparison catalog');
-
+  assert.equal(await primary.getByRole('link', { name: '商城方案对比', exact: true }).count(), 0,
+    'retired comparison entry must not be visible');
   const secondary = page.getByRole('complementary', { name: '二级导航', exact: true });
-  const catalogLink = secondary.getByRole('link', { name: '独立商品管理', exact: true });
-  const catalogHref = new URL(await catalogLink.getAttribute('href'), base);
-  assert.equal(catalogHref.pathname, '/admin/commerce-lab/catalog');
-  assert.equal(catalogHref.searchParams.get('alsvidMenuLabel'), '独立商品管理');
-  assert.ok(catalogHref.searchParams.get('alsvidMenu'), 'secondary menu identity is preserved for a distinct workspace tab');
-  report.checks.push('comparison catalog deep links preserve secondary navigation identity');
-  await page.screenshot({ path: path.join(output, 'commerce-lab-overview-desktop.png'), fullPage: true });
-  await secondary.getByRole('link', { name: '旧版交互样机', exact: true }).click();
-  await page.waitForURL(url => url.pathname === '/admin/commerce-lab/reference' && url.searchParams.get('alsvidMenuLabel') === '旧版交互样机');
-  const lab = page.locator('[data-commerce-lab]');
-  await lab.waitFor();
-  assert.equal(await primary.getByRole('link', { name: '商城方案对比' }).count(), 1);
-  report.checks.push('legacy demo remains reachable under its own protected reference route');
-  const mutations = [];
-  page.on('request', request => { if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) mutations.push(request.url()); });
-  const before = await page.evaluate(() => JSON.stringify({ ...localStorage }));
-  await lab.getByRole('button', { name: '购买页面预览', exact: true }).click();
-  await lab.getByRole('button', { name: '加入演示购物袋', exact: true }).first().click();
-  await lab.getByRole('button', { name: '购物袋 (1)', exact: true }).click();
-  await lab.getByRole('button', { name: '生成演示单并查看后台', exact: true }).click();
-  await lab.getByText('DEMO-001', { exact: true }).waitFor();
-  await lab.getByRole('button', { name: '演示标记处理', exact: true }).click();
-  await lab.getByRole('cell', { name: '已标记处理', exact: true }).waitFor();
-  report.checks.push('storefront demo order appears in isolated Chinese admin and can be marked processed');
-
-  await lab.getByRole('button', { name: '商品管理', exact: true }).click();
-  await lab.getByRole('spinbutton', { name: 'demo-fc1 示例售价', exact: true }).fill('3199');
-  await lab.getByRole('textbox', { name: 'demo-fc1 名称', exact: true }).fill('FC1 CI 示例');
-  await lab.getByRole('button', { name: '购买页面预览', exact: true }).click();
-  await lab.getByRole('heading', { name: 'FC1 CI 示例', exact: true }).waitFor();
-  assert.match(await lab.innerText(), /3\.199,00/);
-  await page.screenshot({ path: path.join(output, 'commerce-lab-storefront-desktop.png'), fullPage: true });
-  await lab.getByRole('button', { name: '手机宽度', exact: true }).click();
-  const storeWidth = await lab.locator('[data-mobile="true"]').evaluate(element => element.getBoundingClientRect().width);
-  assert.ok(storeWidth <= 390);
-  await page.screenshot({ path: path.join(output, 'commerce-lab-storefront-phone.png'), fullPage: true });
-  await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
-  await lab.getByRole('button', { name: '下架', exact: true }).first().click();
-  await lab.getByRole('button', { name: '购买页面预览', exact: true }).click();
-  assert.equal(await lab.getByRole('heading', { name: 'FC1 CI 示例', exact: true }).count(), 0);
-  report.checks.push('admin name/price/publication changes update only lab storefront');
-  assert.deepEqual(mutations, [], 'lab interactions must not issue backend writes');
-  assert.equal(await page.evaluate(() => JSON.stringify({ ...localStorage })), before, 'original browser storage is unchanged');
-
-  await page.reload(); await lab.waitFor();
-  await lab.getByRole('button', { name: '中文后台预览', exact: true }).click();
-  await lab.getByRole('button', { name: '订单管理 (0)', exact: true }).click();
-  await lab.getByRole('heading', { name: '还没有演示单', exact: true }).waitFor();
-  await page.screenshot({ path: path.join(output, 'commerce-lab-admin-desktop.png'), fullPage: true });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: path.join(output, 'commerce-lab-admin-mobile.png'), fullPage: true });
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'mobile page fits viewport');
-  report.checks.push('reload clears demo data; desktop/mobile views render');
+  const builderLink = secondary.getByRole('link', { name: '商城装修', exact: true });
+  assert.equal(new URL(await builderLink.getAttribute('href'), base).pathname, '/admin/ecommerce/page-builder');
+  assert.equal(await page.getByRole('button', { name: '导出装修方案' }).count(), 1);
+  await page.screenshot({ path: path.join(output, 'commerce-builder-entry.png'), fullPage: true });
+  report.checks.push('independent visual editor is reachable from current commerce navigation');
   // Deterministic read-only fixtures prove that a real product renders as one table row.
   await page.route('**/api/control/v1/product/catalog', route => route.fulfill({
     status: 200, contentType: 'application/json',
