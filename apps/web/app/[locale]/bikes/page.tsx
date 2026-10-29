@@ -5,7 +5,7 @@ import { BikesModelNavigator } from "../../_components/catalog/bikes-model-navig
 import { BikesModelSideNavigator } from "../../_components/catalog/bikes-model-side-navigator";
 import { BikesDiscovery } from "../../_components/catalog/bikes-discovery";
 import { AccessoriesCatalogSection } from "../../_components/catalog/accessories-catalog-section";
-import { publishedBikeCatalog } from "../../_components/catalog/published-product-catalog";
+import { publishedBikeCatalog, publishedProductCatalog } from "../../_components/catalog/published-product-catalog";
 import { translator, type TranslationKey } from "../../_lib/i18n";
 import { isLocale, locales } from "../../_lib/i18n/routing";
 import styles from "./page.module.css";
@@ -46,6 +46,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
   const sortMode = query.sort === "name" ? "name" : "featured";
   const prefix = "/" + locale;
   const publicCatalog = await publishedBikeCatalog();
+  const publishedProducts = (await publishedProductCatalog()).items.filter(item => item.type === "ACCESSORY" || item.type === "SERVICE_PART");
   // Brand previews remain visibly distinct from an approved public catalogue item.
   // A previously published-and-withdrawn model is excluded when catalogue facts are available.
   const previews = [
@@ -175,7 +176,7 @@ export default async function BikesPage({ params, searchParams }: Props) {
           </details>)}
         </div>
       </section>
-      <AccessoriesCatalogSection locale={locale} selectedCategory={query.category} />
+      <AccessoriesCatalogSection locale={locale} selectedCategory={query.category} publishedProducts={publishedProducts} />
       <aside className={styles.shopPreviewEntry} data-shop-preview-entry>
         <div><strong>{t('shopPreview.linkLabel')}</strong><p>{t('shopPreview.linkBody')}</p></div>
         <a href={prefix + '/shop-preview'}>{t('shopPreview.open')} →</a>
