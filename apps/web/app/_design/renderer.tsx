@@ -4,16 +4,13 @@ import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
-import { LiveWorkbench, LiveOperationEntry, AdminLogout } from './live-operations';
+import { LiveOperationEntry, AdminLogout } from './live-operations';
 import { AdminGlobalSearch } from './admin-global-search';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { VehicleRecordDetail } from './vehicle-record-detail';
 import { portalUrlFor } from '../_lib/portal-routing';
 import { ArchitectureOverview } from './architecture-overview';
 import { ADMIN_MODULES } from './business-module-registry';
-import { AdminModuleDirectory } from './admin-module-directory';
-import { P0OperationsCenter } from './p0-operations-center';
-import { LiveWorkbenchTodos } from './live-workbench-todos';
 import { AdminThemePicker } from './admin-theme-picker';
 import { AdminSecondaryNavigation, WorkspaceTabs } from '@alsvid/ui';
 import ProductClient from '../product/product-client';
@@ -41,9 +38,6 @@ function isAreaActive(area: string, label: string): boolean {
 const scopedMenus: Readonly<Record<string, readonly { group: string; items: string[] }[]>> = {
   '工作台': [
     { group: '工作台', items: ['经营总览', '待办任务', '异常预警', '最近访问'] },
-  ],
-  '商城方案对比': [
-    { group: '独立商城', items: ['方案总览与布局比较', '独立商品管理', '旧版交互样机'] },
   ],
   '数据': [
     { group: '数据分析', items: ['数据总览', '销售分析', '生产与库存分析', '售后与经销商分析'] },
@@ -130,12 +124,6 @@ function menuDestination(screen: Screen, label: string): string | undefined {
       '客户试骑与合作网点': '/admin/dealers/test-rides',
     };
     if (dealerDestinations[label]) return dealerDestinations[label];
-  }
-  if (screen.area === '商城方案对比') {
-    if (label === '方案总览与布局比较') return '/admin/commerce-lab';
-    if (label === '独立商品管理') return '/admin/commerce-lab/catalog';
-    if (label === '旧版交互样机') return '/admin/commerce-lab/reference';
-    return undefined;
   }
   if (screen.area === '经销商' && ['联系信息', '合作状态'].includes(label)) return '/admin/dealers';
   if (screen.area === '供应链' && label === '合作状态') return '/admin/supply';
@@ -229,6 +217,8 @@ function menuDestination(screen: Screen, label: string): string | undefined {
     const destinations: Record<string, string> = {
       'FC Platform': '/admin/product#series', 'CT Platform': '/admin/product#series', 'FT Platform': '/admin/product#series', 'GT Platform': '/admin/product#series',
       '整车产品': '/admin/product?type=BIKE',
+      '整车产品（车辆明细）': '/admin/product?type=BIKE#vehicle-details',
+      '车辆型号': '/admin/product?type=BIKE#vehicle-models',
       '零配件': '/admin/product?type=PARTS#parts',
       '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product#model-register', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
       'BOM': '/admin/product#engineering', '零件库': '/admin/product#parts', '工程文件': '/admin/product#engineering', '版本控制': '/admin/product#engineering',
@@ -611,7 +601,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
   const isLiveProductRoot = screen.id === 'product' && screen.route === '/admin/product';
   const isCustomLiveModule = Boolean(screen.sourceNode?.startsWith('module:'));
   const secondaryNavigation = isLiveProductRoot
-    ? [{ group: '商品档案', items: ['整车产品', '零配件', '技术平台'] }]
+    ? [{ group: '', items: ['整车产品（车辆明细）', '车辆型号', '零配件', '技术平台'] }]
     : [...(scopedMenus[screen.area] ?? screen.secondary ?? [])];
   const menuRouteFor = (item: string) => menuDestination(screen, item) ?? screens.find(candidate => candidate.area === screen.area && candidate.route.endsWith(`#${item}`))?.route;
   const hasSecondaryNavigation = secondaryNavigation.length > 0;
@@ -631,6 +621,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         return {
           key: [screen.area, group.group, item].join('::'),
           label: item,
+          ...(screen.area === '产品' && item === '车辆型号' ? { nested: true } : {}),
           ...(href ? { href } : {}),
           icon: secondaryMenuIcon(item),
           ...(!href ? { status: '待开发' } : {}),
@@ -692,13 +683,12 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
         <main className="av-workspace">
           <WorkspaceTabs />
           {screen.id !== 'workbench' && screen.sourceNode && !isIntegratedOverview && !isLiveProductRoot && !isCustomLiveModule && <p className="av-fixture-note">{screen.area === '数据' ? '分析布局预览 · 除已接入的 FC1 颜色偏好外，经营指标与报表数据源尚未接入。' : '流程布局预览 · 本页内容为设计示例；可保存操作请使用对应模块的真实业务工作台。'}</p>}
-          {!hidePageHeading && !isEcommerceWorkspace && !isIntegratedOverview && !isLiveProductRoot && <div className="av-pagehead">
+          {!hidePageHeading && screen.id !== 'workbench' && !isEcommerceWorkspace && !isIntegratedOverview && !isLiveProductRoot && <div className="av-pagehead">
             <div>
               <p className="av-eyebrow">ALSVID OPERATIONS</p>
               <h1 className="av-pagetitle">{isVehicleDetail ? 'VIN / 车辆档案' : screen.title}</h1>
               <p className="av-pagesub">{isVehicleDetail ? '真实车辆主键查询与售后导航；未确认的客户归属不在这里自动生成。' : screen.subtitle}</p>
             </div>
-            {screen.id === 'workbench' ? <a className="av-btn" href="/admin/architecture">查看系统架构 →</a> : null}
             {actions.length > 0 && !isIntegratedOverview && !isVehicleDetail ? (
               <div className="av-pageactions">
                 {actions.map((action, index) => {
@@ -721,15 +711,7 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
           </div>}
 
           {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
-          {children ?? (screen.id === 'workbench' ? (
-            <>
-              <P0OperationsCenter />
-              <LiveWorkbenchTodos />
-              <details className="av-card av-design-archive"><summary>其他业务数据概览（原有看板）</summary><LiveWorkbench /></details>
-              <AdminModuleDirectory />
-              <Blocks blocks={screen.blocks.filter((block) => block.kind !== 'kpis' && block.kind !== 'tasks')} />
-            </>
-          ) : screen.id === 'system-architecture' ? (
+          {children ?? (screen.id === 'workbench' ? null : screen.id === 'system-architecture' ? (
             <ArchitectureOverview />
           ) : isVehicleDetail ? (
             <>
