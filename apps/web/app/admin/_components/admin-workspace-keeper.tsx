@@ -46,7 +46,9 @@ export function useAdminWorkspaceState<T>(
 ): [T, Dispatch<SetStateAction<T>>] {
   const store = useContext(DraftContext);
   if (!store) throw new Error('useAdminWorkspaceState requires AdminWorkspaceKeeper');
-  const route = usePathname();
+  const pathname = usePathname();
+  const query = useSearchParams().toString();
+  const route = pathname + (query ? '?' + query : '');
   const initialRef = useRef(initial);
   const subscribe = useCallback(
     (listener: () => void) => store.subscribe(route, name, listener),
@@ -78,7 +80,7 @@ export function AdminWorkspaceKeeper({ children, userId }: { children: ReactNode
   const router = useRouter();
   const drafts = currentDraftStore(userId);
 
-  useEffect(() => { drafts.touch(pathname); }, [drafts, pathname]);
+  useEffect(() => { drafts.touch(location); }, [drafts, location]);
 
   const navigate = useCallback((url: string) => {
     if (!isSafeAdminRoute(url)) {
@@ -127,7 +129,7 @@ export function AdminWorkspaceKeeper({ children, userId }: { children: ReactNode
 
   const close = useCallback((url: string) => {
     if (isSafeAdminRoute(url)) {
-      drafts.evict(new URL(url, window.location.origin).pathname);
+      drafts.evict(new URL(url, window.location.origin).pathname + new URL(url, window.location.origin).search);
     }
   }, [drafts]);
 
