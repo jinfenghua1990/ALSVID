@@ -210,7 +210,8 @@ export default function StorefrontBuilderClient() {
   };
 
   const importProject = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     const editor = editorRef.current;
     if (!file || !editor) return;
     try {
@@ -222,7 +223,7 @@ export default function StorefrontBuilderClient() {
     } catch {
       setNotice('导入失败：请选择本装修器导出的有效 JSON 方案文件。');
     } finally {
-      event.currentTarget.value = '';
+      input.value = '';
     }
   };
 
