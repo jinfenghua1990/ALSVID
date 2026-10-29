@@ -61,6 +61,12 @@ const user = (await login.json()).data;
 assert.ok(user.roles.includes('system_admin'), 'login returns the bootstrap admin role');
 const sessionCookie = login.headers.getSetCookie().find(value => value.startsWith('alsvid_session='));
 assert.ok(sessionCookie && /httponly/i.test(sessionCookie), 'login sets an HTTP-only session');
+const passwordSetup = await fetch(origin + '/api/session/password', {
+  method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(15000),
+  headers: { origin, cookie: sessionCookie.split(';')[0], 'content-type': 'application/json' },
+  body: JSON.stringify({ password: 'EphemeralStorefrontUpdated123!', portal: 'admin' }),
+});
+assert.equal(passwordSetup.status, 201, 'bootstrap admin completes mandatory password setup');
 const signedInEditor = await fetch(origin + '/admin/ecommerce/page-builder', {
   redirect: 'manual', signal: AbortSignal.timeout(15000), headers: { cookie: sessionCookie.split(';')[0] },
 });
