@@ -8,13 +8,14 @@ import styles from './product.module.css';
 import { adminSkuPricingHref } from '../_lib/admin-sku-pricing-navigation';
 import { findActiveSkuCombinationDuplicates } from './sku-combination-audit';
 import { matchesModelRegisterSearch } from './model-register';
+import { emptyTechnicalSpecs, technicalSpecModules, technicalSpecProgress, technicalSpecValue, type TechnicalSpecs } from './technical-specs';
 
 type CustomFieldDefinition = { id:string; product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART'; code:string;
   label:string; field_type:'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'; options:string[]; required:boolean;
   status:'ACTIVE'|'RETIRED'; version:number };
 type CustomFieldValues = Record<string,string|number|boolean>;
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
-type Model = { custom_fields?: CustomFieldValues; id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
+type Model = { custom_fields?: Record<string, unknown>; id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
 type Variant = { id: string; model_id: string; code: string; name: string; description: string; status: string; version: number };
 type Sku = { id: string; variant_id: string; sku: string; name: string; market_code: string | null; color_code: string | null; size_code: string | null; status: string; version: number };
 type Catalog = { modelFieldDefinitions:CustomFieldDefinition[]; productTypes: {code:string;name:string;description:string;status:string}[]; platforms: Platform[]; models: Model[]; variants: Variant[]; skus: Sku[] };
@@ -44,6 +45,25 @@ function statusLabel(status: string | null | undefined) {
   return labels[status] ?? status;
 }
 
+function modelShortName(model: Pick<Model, 'name' | 'code'>) {
+  const match = model.name.match(/\bALSVID\s+([A-Z0-9]+)\b/i);
+  return match?.[1] ?? model.code;
+}
+
+function modelCustomFields(value: Record<string, unknown> | undefined): CustomFieldValues {
+  return Object.fromEntries(Object.entries(value ?? {}).filter(([key, item]) => key !== '__technical_specs' && (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'))) as CustomFieldValues;
+}
+
+function modelTechnicalSpecs(value: Record<string, unknown> | undefined): TechnicalSpecs {
+  const specs = value?.__technical_specs;
+  if (!specs || typeof specs !== 'object' || Array.isArray(specs)) return emptyTechnicalSpecs();
+  return { ...emptyTechnicalSpecs(), ...(specs as TechnicalSpecs) };
+}
+
+function modelSpecSummary(model: Model, moduleCode: string, fieldCode: string) {
+  return technicalSpecValue(modelTechnicalSpecs(model.custom_fields), moduleCode, fieldCode);
+}
+
 /** Schema-driven inputs do not become SKU dimensions, price, inventory or a public catalogue. */
 function ModelFieldInputs({definitions,values={}}:{definitions:CustomFieldDefinition[];values?:CustomFieldValues}) {
   const active=definitions.filter(def=>def.status==='ACTIVE');
@@ -63,6 +83,61 @@ function ModelFieldInputs({definitions,values={}}:{definitions:CustomFieldDefini
         defaultValue={String(values[def.code]??'')} required={def.required}/>}
     </label>)}
   </fieldset>;
+}
+
+function TechnicalSpecEditor({
+  model, platform, specs, engineering, saving, onChange, onSave, onClose,
+}: {
+  model: Model; platform?: Platform | undefined; specs: TechnicalSpecs; engineering: Engineering; saving: boolean;
+  onChange: (moduleCode: string, fieldCode: string, value: string | number | boolean | string[]) => void;
+  onSave: (status?: 'ACTIVE') => void; onClose: () => void;
+}) {
+  const [open, setOpen] = useState<Set<string>>(() => new Set(['basic']));
+  const toggleAll = (value: boolean) => setOpen(value ? new Set(technicalSpecModules.map(module => module.code)) : new Set());
+  const setPart = (partId: string, checked: boolean) => {
+    const current = Array.isArray(specs.bomMapping?.partIds) ? specs.bomMapping.partIds : [];
+    onChange('bomMapping', 'partIds', checked ? [...current, partId] : current.filter(item => item !== partId));
+  };
+  return <div className={styles.modal} role="presentation">
+    <section className={styles.specEditor} role="dialog" aria-modal="true" aria-label={`编辑 ${modelShortName(model)} 技术规格`}>
+      <header className={styles.specEditorHeader}>
+        <div><span className={styles.specKicker}>产品研发 / 车辆型号</span><h2>{modelShortName(model)}</h2>
+          <p>{model.name} · {model.code} · {platform?.name ?? '未关联平台'}</p></div>
+        <div className={styles.specEditorMeta}><span className={styles.archiveStatus} data-status={model.status}>{statusLabel(model.status)}</span><span>版本 {model.version}</span></div>
+      </header>
+      <div className={styles.specEditorToolbar}><span>型号技术规格</span><span className={styles.specToolbarHint}>草稿允许不完整；启用时校验基本信息</span>
+        <div><button type="button" className={styles.archiveSecondaryButton} onClick={() => toggleAll(true)}>全部展开</button><button type="button" className={styles.archiveSecondaryButton} onClick={() => toggleAll(false)}>全部收起</button></div>
+      </div>
+      <div className={styles.specModules}>
+        {technicalSpecModules.map(module => {
+          const progress = technicalSpecProgress(specs, module);
+          const summary = module.summaryFields.map(field => technicalSpecValue(specs, module.code, field)).filter(Boolean).join(' · ');
+          const isOpen = open.has(module.code);
+          return <article className={styles.specModule} key={module.code}>
+            <button type="button" className={styles.specModuleHeader} aria-expanded={isOpen} onClick={() => setOpen(current => { const next = new Set(current); if (next.has(module.code)) next.delete(module.code); else next.add(module.code); return next; })}>
+              <span><b>{module.title}</b><small>{summary || '暂无摘要'}</small></span><span className={styles.specProgress}>{progress.filled}/{progress.total} 项 <i aria-hidden="true">{isOpen ? '⌃' : '⌄'}</i></span>
+            </button>
+            {isOpen ? <div className={styles.specModuleBody}>
+              <div className={styles.specFieldGrid}>{module.fields.filter(field => module.code !== 'bomMapping' || !['bomRevisionId', 'partIds'].includes(field.code)).map(field => {
+                const raw = specs[module.code]?.[field.code];
+                const value = Array.isArray(raw) ? raw.join(', ') : raw ?? '';
+                return <label key={field.code}>{field.label}
+                  {field.type === 'boolean' ? <select value={raw === true ? 'true' : raw === false ? 'false' : ''} onChange={event => onChange(module.code, field.code, event.target.value === '' ? '' : event.target.value === 'true')}><option value="">未填写</option><option value="true">是</option><option value="false">否</option></select>
+                    : field.type === 'select' ? <select value={String(value)} onChange={event => onChange(module.code, field.code, event.target.value)}><option value="">请选择</option>{field.options?.map(option => <option key={option} value={option}>{option}</option>)}</select>
+                    : <input type={field.type === 'number' ? 'number' : 'text'} step={field.type === 'number' ? 'any' : undefined} value={String(value)} placeholder={field.placeholder} onChange={event => onChange(module.code, field.code, field.type === 'number' ? (event.target.value === '' ? '' : Number(event.target.value)) : event.target.value)} />}
+                </label>;
+              })}</div>
+              {module.code === 'bomMapping' ? <div className={styles.specReferences}>
+                <label>BOM Revision<select value={String(specs.bomMapping?.bomRevisionId ?? '')} onChange={event => onChange('bomMapping', 'bomRevisionId', event.target.value)}><option value="">未关联</option>{engineering.boms.filter(row => row.revision_id).map(row => <option key={row.revision_id!} value={row.revision_id!}>{row.code} / {row.revision_code} · {statusLabel(row.revision_status)}</option>)}</select></label>
+                <fieldset><legend>关键零件引用（来自现有零件档案）</legend><div className={styles.specPartList}>{engineering.parts.map(part => <label key={part.id}><input type="checkbox" checked={Array.isArray(specs.bomMapping?.partIds) && specs.bomMapping.partIds.includes(part.id)} onChange={event => setPart(part.id, event.target.checked)} />{part.part_number} · {part.name}</label>)}{!engineering.parts.length ? <small>当前没有可引用零件；不会在此重复创建。</small> : null}</div></fieldset>
+              </div> : null}
+            </div> : null}
+          </article>;
+        })}
+      </div>
+      <footer className={styles.specEditorFooter}><span>规格保存在当前车型记录中；Variant、SKU 和 BOM 仍由各自业务模块维护。</span><div><button type="button" className={styles.archiveSecondaryButton} disabled={saving} onClick={onClose}>返回列表</button><button type="button" className={styles.archiveSecondaryButton} disabled={saving} onClick={() => onSave()}>保存草稿</button><button type="button" className={styles.archivePrimaryButton} disabled={saving} onClick={() => onSave('ACTIVE')}>{saving ? '正在保存…' : '保存并启用'}</button></div></footer>
+    </section>
+  </div>;
 }
 function readModelFields(form:FormData,definitions:CustomFieldDefinition[]):CustomFieldValues {
   const values:CustomFieldValues={};
@@ -84,6 +159,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   const [loading, setLoading] = useState(true);
   const [modelSearch, setModelSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [platformFilter, setPlatformFilter] = useState('ALL');
+  const [marketFilter, setMarketFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [newModelType, setNewModelType] = useState('BIKE');
   const [edit, setEdit] = useState<EditTarget | null>(null);
@@ -95,9 +172,12 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   const [fieldScope, setFieldScope] = useState<'BIKE'|'ACCESSORY'|'SERVICE_PART'>('BIKE');
   const [fieldType, setFieldType] = useState<'TEXT'|'NUMBER'|'BOOLEAN'|'SELECT'>('TEXT');
   const [savingField, setSavingField] = useState(false);
-  const [workspace, setWorkspace] = useState<'bikes' | 'parts' | 'platforms'>('bikes');
+  const [workspace, setWorkspace] = useState<'bikes' | 'models' | 'parts' | 'platforms'>('bikes');
   const [partTab, setPartTab] = useState<'manufacturing' | 'retail'>('manufacturing');
   const [createKind, setCreateKind] = useState<'bike' | 'part' | 'accessory' | null>(null);
+  const [specModel, setSpecModel] = useState<Model | null>(null);
+  const [specDraft, setSpecDraft] = useState<TechnicalSpecs>(emptyTechnicalSpecs);
+  const [savingSpecs, setSavingSpecs] = useState(false);
 
   useEffect(() => {
     const revealLinkedPanel = () => {
@@ -105,9 +185,10 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
       if (view === 'archive') {
         const requestedType = new URLSearchParams(window.location.search).get('type');
         const nextWorkspace = id === 'series' || id === 'product-types' ? 'platforms'
+          : id === 'models' || id === 'vehicle-models' ? 'models'
           : id === 'parts' || requestedType === 'PARTS' ? 'parts' : 'bikes';
         setWorkspace(nextWorkspace);
-        setTypeFilter(nextWorkspace === 'bikes' ? 'BIKE' : requestedType === 'PARTS' ? 'PARTS' : 'ALL');
+        setTypeFilter(nextWorkspace === 'bikes' || nextWorkspace === 'models' ? 'BIKE' : requestedType === 'PARTS' ? 'PARTS' : 'ALL');
         if (id === 'configuration') setCreateKind('bike');
       }
       // Preserve old bookmarks without offering a second BOM editor in product research.
@@ -188,6 +269,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
   const duplicateSkuDimensions = useMemo(() => findActiveSkuCombinationDuplicates(catalog.skus), [catalog.skus]);
   const filteredModels = useMemo(() => hierarchyRows.filter(({ model, platform }) =>
     (statusFilter === 'ALL' || model.status === statusFilter)
+    && (platformFilter === 'ALL' || model.platform_id === platformFilter)
+    && (marketFilter === 'ALL' || modelSpecSummary(model, 'basic', 'markets').toLocaleUpperCase().includes(marketFilter))
     && (typeFilter === 'PARTS' ? model.product_type_code !== 'BIKE' : typeFilter === 'ALL' || model.product_type_code === typeFilter)
     && matchesModelRegisterSearch(
       model,
@@ -197,7 +280,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
       modelSearch,
       !loading && !engineeringError,
     ),
-  ), [hierarchyRows, catalog, engineering, modelSearch, statusFilter, typeFilter, engineeringError, loading]);
+  ), [hierarchyRows, catalog, engineering, modelSearch, statusFilter, platformFilter, marketFilter, typeFilter, engineeringError, loading]);
 
   const filteredParts = useMemo(() => engineering.parts.filter(part =>
     [part.part_number, part.name, part.category].some(value => (value || '').toLocaleLowerCase().includes(modelSearch.toLocaleLowerCase()))
@@ -332,15 +415,39 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
     }
   }
 
+  function openTechnicalSpecs(model: Model) {
+    setSpecModel(model);
+    setSpecDraft(modelTechnicalSpecs(model.custom_fields));
+  }
+
+  function updateTechnicalSpec(moduleCode: string, fieldCode: string, value: string | number | boolean | string[]) {
+    setSpecDraft(current => ({ ...current, [moduleCode]: { ...(current[moduleCode] ?? {}), [fieldCode]: value } }));
+  }
+
+  async function saveTechnicalSpecs(status?: 'ACTIVE') {
+    if (!specModel || savingSpecs) return;
+    setSavingSpecs(true);
+    try {
+      await api(`/v1/product/model/${specModel.id}`, { method: 'PATCH', body: JSON.stringify({ expectedVersion: specModel.version, technicalSpecs: specDraft, ...(status ? { status } : {}) }) });
+      const verified = await reload();
+      if (!verified) throw new Error('规格已写入，但列表回读失败，请先核对版本，不要重复提交。');
+      setMessage(status ? '技术规格已保存并启用。' : '技术规格草稿已保存。');
+      if (status) setSpecModel(null);
+      else setSpecModel(current => current ? { ...current, version: current.version + 1, custom_fields: { ...(current.custom_fields ?? {}), __technical_specs: specDraft } } : current);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '技术规格保存失败');
+    } finally {
+      setSavingSpecs(false);
+    }
+  }
+
   return (
-    <OperationsFrame embedded={embedded} area={view === "engineering" ? "production" : "product"} footer={view === "engineering" ? "生产制造 / BOM" : "产品研发 / 商品档案"}>
+    <OperationsFrame embedded={embedded} area={view === "engineering" ? "production" : "product"} footer={view === "engineering" ? "生产制造 / BOM" : "产品研发"}>
       {view === "archive" ? <>
       <main className={styles.archiveWorkspace}>
         <header className={styles.archiveHeading}>
           <div className={styles.archiveHeadingCopy}>
-            <span className={styles.archiveKicker}>产品研发 / 商品档案</span>
-            <h1>{workspace === 'bikes' ? '整车产品' : workspace === 'parts' ? '零配件' : '技术平台'}</h1>
-            <p>{workspace === 'bikes' ? '建立和维护整车档案。每个商品只保留一条主记录，版本与 SKU 按需管理。' : workspace === 'parts' ? '零件与可售配件分开查看，档案只录入一次，不重复建立商城绑定。' : '按真实平台记录查看整车技术分类，不预设型号或平台。'}</p>
+            <h1>{workspace === 'bikes' ? '整车产品' : workspace === 'models' ? '车辆型号' : workspace === 'parts' ? '零配件' : '技术平台'}</h1>
           </div>
           <div className={styles.archiveHeadingActions}>
             <button type="button" className={styles.archiveSecondaryButton} onClick={() => void reload()} disabled={loading}>刷新</button>
@@ -349,7 +456,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                 onClick={()=>{setFieldScope(workspace==='bikes'?'BIKE':'ACCESSORY');setFieldManager(true);}}>
                 自定义字段管理
               </button> : null}
-            {workspace === 'bikes' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建整车</button> : null}
+            {workspace === 'bikes' || workspace === 'models' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建型号</button> : null}
             {workspace === 'platforms' ? <button type="button" className={styles.archivePrimaryButton} disabled={loading || !!catalogError} onClick={() => setPlatformDraft('new')}>＋ 新建技术平台</button> : null}
             {workspace === 'parts' ? <button type="button" className={styles.archivePrimaryButton} onClick={() => { if (partTab === 'manufacturing') setCreateKind('part'); else {setNewModelType('ACCESSORY');setCreateKind('accessory');} }}>＋ {partTab === 'manufacturing' ? '新建零件' : '新建可售配件'}</button> : null}
           </div>
@@ -371,10 +478,57 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           <div className={styles.archiveError} role="alert">数据读取失败：{workspace === 'parts' && partTab === 'manufacturing' ? engineeringError : catalogError}。读取异常不代表记录为零。</div>
         ) : null}
 
-        {workspace === 'bikes' ? (
-          <section className={styles.archivePanel} id="model-register" aria-label="整车产品列表">
+        {workspace === 'models' ? (
+          <section className={styles.archivePanel} id="vehicle-models" aria-label="车辆型号列表">
             <div className={styles.archivePanelTitle}>
-              <div><h2>整车列表</h2><p>商品主数据</p></div>
+              <div><h2>车辆型号</h2><p>型号来自已新建的整车，使用型号简称归类，不预设型号。</p></div>
+              <span>{loading || catalogError ? '—' : catalog.models.filter(model => model.product_type_code === 'BIKE').length} 条记录</span>
+            </div>
+            <div className={styles.archiveFilters}>
+              <label className={styles.archiveSearch}>
+                <span className={styles.srOnly}>搜索车辆型号</span>
+                <input aria-label="搜索车辆型号" value={modelSearch} onChange={event => setModelSearch(event.target.value)} placeholder="搜索型号简称、整车名称或编码" />
+              </label>
+              <select aria-label="按型号状态筛选" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+                <option value="ALL">全部状态</option><option value="DRAFT">草稿</option><option value="ACTIVE">启用</option><option value="RETIRED">已退役</option>
+              </select>
+              <select aria-label="按技术平台筛选" value={platformFilter} onChange={event => setPlatformFilter(event.target.value)}><option value="ALL">全部技术平台</option>{catalog.platforms.map(platform => <option key={platform.id} value={platform.id}>{platform.code} · {platform.name}</option>)}</select>
+              <select aria-label="按目标市场筛选" value={marketFilter} onChange={event => setMarketFilter(event.target.value)}><option value="ALL">全部目标市场</option><option value="DE">DE</option><option value="AT">AT</option><option value="GB">英国 / GB</option><option value="US">美国 / US</option></select>
+            </div>
+            {loading ? <div className={styles.archiveLoading}>正在读取车辆型号…</div> :
+              catalogError ? <div className={styles.archiveEmpty}><strong>暂时无法读取车辆型号</strong><p>请检查数据接口，避免重复创建。</p></div> :
+              filteredModels.length ? (
+                <div className={styles.archiveTableWrap}>
+                  <table className={styles.archiveTable} aria-label="车辆型号档案">
+                    <thead><tr><th>型号简称</th><th>整车名称 / 编码</th><th>技术平台</th><th>类型 / 驱动 / 轮径</th><th>基本信息</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>{filteredModels.map(({ model, platform }) => (
+                      <tr key={model.id}>
+                        <td><strong>{modelShortName(model)}</strong></td>
+                        <td>{model.name}<span>{model.code}</span></td>
+                        <td>{platform ? `${platformName(platform)} · ${platform.code}` : '未关联'}</td>
+                        <td>{modelSpecSummary(model, 'basic', 'productType') || '未填写'}<span>{modelSpecSummary(model, 'drivetrain', 'type') || '未填写'} · {modelSpecSummary(model, 'wheels', 'wheelSize') || '未填写'}</span></td>
+                        <td><span>{technicalSpecProgress(modelTechnicalSpecs(model.custom_fields), technicalSpecModules[0]!).filled}/{technicalSpecModules[0]!.fields.length}</span></td>
+                        <td><span className={styles.archiveStatus} data-status={model.status}>{statusLabel(model.status)}</span></td>
+                        <td><div className={styles.tableActionGroup}><button type="button" className={styles.archiveEdit} onClick={() => openTechnicalSpecs(model)}>技术规格</button><button type="button" className={styles.archiveEdit} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: modelCustomFields(model.custom_fields) })}>编辑</button></div></td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.archiveEmpty}>
+                  <span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span>
+                  <strong>{modelSearch || statusFilter !== 'ALL' || platformFilter !== 'ALL' || marketFilter !== 'ALL' ? '没有符合条件的车辆型号' : '还没有车辆型号'}</strong>
+                  <p>{modelSearch || statusFilter !== 'ALL' || platformFilter !== 'ALL' || marketFilter !== 'ALL' ? '可以调整搜索词或筛选条件。' : '新建型号并保存后，系统会自动按型号简称归档到这里。'}</p>
+                  {!(modelSearch || statusFilter !== 'ALL' || platformFilter !== 'ALL' || marketFilter !== 'ALL') ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('BIKE');setCreateKind('bike');}}>＋ 新建型号</button> : null}
+                </div>
+              )}
+          </section>
+        ) : null}
+
+        {workspace === 'bikes' ? (
+          <section className={styles.archivePanel} id="vehicle-details" aria-label="整车产品列表">
+            <div className={styles.archivePanelTitle}>
+              <div><h2>车辆型号</h2><p>型号基础资料、17 个技术规格模块与已有零件 / BOM 引用。</p></div>
               <span>{loading || catalogError ? '—' : catalog.models.filter(model => model.product_type_code === 'BIKE').length} 条记录</span>
             </div>
             <div className={styles.archiveFilters}>
@@ -391,14 +545,15 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
               filteredModels.length ? (
                 <div className={styles.archiveTableWrap}>
                   <table className={styles.archiveTable} aria-label="整车产品档案">
-                    <thead><tr><th>整车名称 / 商品编码</th><th>技术平台</th><th>配置版本</th><th>状态</th><th>操作</th></tr></thead>
+                    <thead><tr><th>型号名称 / 编码</th><th>技术平台</th><th>类型 / 驱动 / 轮径</th><th>基本信息</th><th>状态</th><th>操作</th></tr></thead>
                     <tbody>{filteredModels.map(({ model, platform, variants }) => (
                       <tr key={model.id}>
-                        <td><strong>{model.name}</strong><span>{model.code}</span></td>
+                        <td title={model.name}><strong>{modelShortName(model)}</strong><span>{model.code} · {model.name}</span></td>
                         <td>{platform ? platformName(platform) : '未关联'}<span>{platform?.code ?? ''}</span></td>
-                        <td>{variants.length ? variants.map(v => v.name || v.code).join(' / ') : '尚未配置'}</td>
+                        <td>{modelSpecSummary(model, 'basic', 'productType') || '未填写'}<span>{modelSpecSummary(model, 'drivetrain', 'type') || '未填写'} · {modelSpecSummary(model, 'wheels', 'wheelSize') || '未填写'}</span></td>
+                        <td><span>{technicalSpecProgress(modelTechnicalSpecs(model.custom_fields), technicalSpecModules[0]!).filled}/{technicalSpecModules[0]!.fields.length}</span></td>
                         <td><span className={styles.archiveStatus} data-status={model.status}>{statusLabel(model.status)}</span></td>
-                        <td><button type="button" className={styles.archiveEdit} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: model.custom_fields ?? {} })}>编辑</button></td>
+                        <td><div className={styles.tableActionGroup}><button type="button" className={styles.archiveEdit} onClick={() => openTechnicalSpecs(model)}>技术规格</button><button type="button" className={styles.archiveEdit} onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: modelCustomFields(model.custom_fields) })}>编辑</button></div></td>
                       </tr>
                     ))}</tbody>
                   </table>
@@ -442,7 +597,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                 filteredAccessories.length ? (
                   <div className={styles.archiveTableWrap}><table className={styles.archiveTable} aria-label="可售配件档案">
                     <thead><tr><th>商品名称 / 编码</th><th>类型</th><th>状态</th><th>操作</th></tr></thead>
-                    <tbody>{filteredAccessories.map(({ model }) => <tr key={model.id}><td><strong>{model.name}</strong><span>{model.code}</span></td><td>{catalog.productTypes.find(type => type.code === model.product_type_code)?.name ?? model.product_type_code}</td><td>{statusLabel(model.status)}</td><td><button className={styles.archiveEdit} type="button" onClick={() => setEdit({entity:'model',id:model.id,version:model.version,name:model.name,status:model.status,description:model.description, productTypeCode: model.product_type_code, customFields: model.custom_fields ?? {}})}>编辑</button></td></tr>)}</tbody>
+                    <tbody>{filteredAccessories.map(({ model }) => <tr key={model.id}><td><strong>{model.name}</strong><span>{model.code}</span></td><td>{catalog.productTypes.find(type => type.code === model.product_type_code)?.name ?? model.product_type_code}</td><td>{statusLabel(model.status)}</td><td><button className={styles.archiveEdit} type="button" onClick={() => setEdit({entity:'model',id:model.id,version:model.version,name:model.name,status:model.status,description:model.description, productTypeCode: model.product_type_code, customFields: modelCustomFields(model.custom_fields) })}>编辑</button></td></tr>)}</tbody>
                   </table></div>
                 ) : <div className={styles.archiveEmpty}><span className={styles.archiveEmptyIcon} aria-hidden="true">◇</span><strong>{modelSearch ? '没有找到匹配配件' : '暂无可售配件'}</strong><p>可售配件在这里建档，商城上架与定价仍在商城运营管理。</p>{!modelSearch ? <button type="button" className={styles.archivePrimaryButton} onClick={() => {setNewModelType('ACCESSORY');setCreateKind('accessory');}}>＋ 新建可售配件</button> : null}</div>
               )}
@@ -482,8 +637,8 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           {hierarchyRows.filter(({ model }) => model.product_type_code === 'BIKE').map(({ model, platform, variants }) => (
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
-                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{model.code}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
-                <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: model.custom_fields ?? {} })}>编辑</button>
+                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{modelShortName(model)}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
+                <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: modelCustomFields(model.custom_fields) })}>编辑</button>
               </div>
               {variants.map((variant) => (
                 <div className={styles.variantBlock} key={variant.id}>
@@ -572,7 +727,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                 )}
                 {createKind === 'bike' && !catalog.platforms.some(platform => platform.status === 'ACTIVE') ? <p className={styles.archiveError}>目前没有已启用的技术平台。请先在技术平台中建档并启用。</p> : null}
                 {createKind === 'accessory' && !selectableProductTypes.some(type => type.code !== 'BIKE') ? <p className={styles.archiveError}>当前商品类型接口尚未提供可售配件类型，无法创建。</p> : null}
-                <label>商品编码 <input name="code" autoFocus required maxLength={80} placeholder="输入唯一商品编码" /></label>
+                <label>{createKind === 'bike' ? '型号简称' : '商品编码'} <input name="code" autoFocus required maxLength={80} placeholder={createKind === 'bike' ? '例如 F8、FC1' : '输入唯一商品编码'} /></label>
                 <label>商品名称 <input name="name" required maxLength={160} placeholder="输入商品名称" /></label>
                 <label>说明（可选） <textarea name="description" rows={3} placeholder="简要描述商品" /></label>
                 <ModelFieldInputs key={createKind==='bike'?'BIKE':newModelType} definitions={(catalog.modelFieldDefinitions??[])
@@ -686,6 +841,16 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           </form>
         </div>
       ):null}
+      {view === 'archive' && specModel ? <TechnicalSpecEditor
+        model={specModel}
+        platform={catalog.platforms.find(item => item.id === specModel.platform_id)}
+        specs={specDraft}
+        engineering={engineering}
+        saving={savingSpecs}
+        onChange={updateTechnicalSpec}
+        onSave={status => void saveTechnicalSpecs(status)}
+        onClose={() => setSpecModel(null)}
+      /> : null}
       {view === "engineering" ? <>
       {message ? <div className={styles.notice} role="status">{message}</div> : null}
       {catalogError || engineeringError ? <div className={styles.notice} role="alert">生产用料数据读取失败：{[catalogError, engineeringError].filter(Boolean).join('；')}。读取失败不等于没有记录。</div> : null}
