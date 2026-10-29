@@ -35,6 +35,7 @@ export interface UpdatePlatformRecord {
 
 export interface CreateModelRecord {
   customFields?: Record<string, CustomFieldValue>;
+  technicalSpecs?: Record<string, unknown>;
   platformId: string | null;
   productTypeCode: ProductTypeCode;
   code: string;
@@ -66,6 +67,8 @@ export interface CreateSkuRecord {
 export interface UpdateProductRecord {
   customFieldsProvided: boolean;
   customFields: Record<string, CustomFieldValue>;
+  technicalSpecsProvided: boolean;
+  technicalSpecs: Record<string, unknown>;
   entity: ProductEntityKind;
   id: string;
   expectedVersion: number;
@@ -107,7 +110,7 @@ export interface ProductRepository {
     required: boolean | null; actorUserId: string;
   }): Promise<ModelFieldDefinition | null>;
   modelFieldExists(id: string): Promise<boolean>;
-  modelFieldTarget(id: string): Promise<{ product_type_code: ProductTypeCode; custom_fields: Record<string, CustomFieldValue> } | null>;
+  modelFieldTarget(id: string): Promise<{ product_type_code: ProductTypeCode; custom_fields: Record<string, unknown> } | null>;
   createPlatform(input: CreatePlatformRecord): Promise<PlatformRow>;
   updatePlatform(input: UpdatePlatformRecord): Promise<PlatformRow | null>;
   platformExists(id: string): Promise<boolean>;
