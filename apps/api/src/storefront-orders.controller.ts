@@ -15,42 +15,42 @@ export class StorefrontOrdersController{
   @Query('marketCountry') marketCountry?:string,@Query('query') query?:string){
   if(marketCountry!=='DE'&&marketCountry!=='AT')
    throw new BadRequestException('marketCountry must be DE or AT');
-  return{data:await storefrontReadinessService.summary(requireAuth(request),marketCountry,query??'');}
+  return{data:await storefrontReadinessService.summary(requireAuth(request),marketCountry,query??'');
  }
  @Get('summary')
  async summary(@Req() request:AuthenticatedRequest,@Query() query:StorefrontOrderQuery){
-  return{data:await storefrontOrderService.summary(requireAuth(request),query??{});}
+  return{data:await storefrontOrderService.summary(requireAuth(request),query??{});
  }
  @Post('prices')
  async createPrice(@Req() request:AuthenticatedRequest,@Body() input:CreateStorefrontPriceInput){
-  return{data:await storefrontOrderService.createPrice(requireAuth(request),input);}
+  return{data:await storefrontOrderService.createPrice(requireAuth(request),input);
  }
  @Post('prices/:id/activate')
  async activatePrice(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:ExpectedVersionBody){
-  return{data:await storefrontOrderService.activatePrice(requireAuth(request),id,Number(input?.expectedVersion));}
+  return{data:await storefrontOrderService.activatePrice(requireAuth(request),id,Number(input?.expectedVersion));
  }
  @Post('prices/:id/retire')
  async retirePrice(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:ExpectedVersionBody){
-  return{data:await storefrontOrderService.retirePrice(requireAuth(request),id,Number(input?.expectedVersion));}
+  return{data:await storefrontOrderService.retirePrice(requireAuth(request),id,Number(input?.expectedVersion));
  }
  @Post('orders')
  async createDraftOrder(@Req() request:AuthenticatedRequest,@Body() input:CreateStorefrontOrderInput){
-  return{data:await storefrontOrderService.createDraftOrder(requireAuth(request),input);}
+  return{data:await storefrontOrderService.createDraftOrder(requireAuth(request),input);
  }
  @Post('orders/:id/cancel')
  async cancelDraftOrder(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:CancelDraftBody){
-  return{data:await storefrontOrderService.cancelDraftOrder(requireAuth(request),id,Number(input?.expectedVersion),input?.reason??'');}
+  return{data:await storefrontOrderService.cancelDraftOrder(requireAuth(request),id,Number(input?.expectedVersion),input?.reason??'');
  }
  @Get('orders/:id')
  async orderDetail(@Req() request:AuthenticatedRequest,@Param('id') id:string){
-  return{data:await storefrontOrderService.loadOrderDetail(requireAuth(request),id);}
+  return{data:await storefrontOrderService.loadOrderDetail(requireAuth(request),id);
  }
  @Get('orders/:id/events')
  async orderEvents(@Req() request:AuthenticatedRequest,@Param('id') id:string){
-  return{data:(await storefrontOrderService.loadOrderDetail(requireAuth(request),id)).events;}
+  return{data:(await storefrontOrderService.loadOrderDetail(requireAuth(request),id)).events;
  }
  @Post('orders/:id/submit')
  async submitDraftOrder(@Req() request:AuthenticatedRequest,@Param('id') id:string,@Body() input:ExpectedVersionBody){
-  return{data:await storefrontOrderService.submitOrder(requireAuth(request),id,Number(input?.expectedVersion));}
+  return{data:await storefrontOrderService.submitOrder(requireAuth(request),id,Number(input?.expectedVersion));
  }
 }
