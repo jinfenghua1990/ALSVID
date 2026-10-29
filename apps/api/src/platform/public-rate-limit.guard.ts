@@ -29,9 +29,12 @@ function bodyEmail(body: unknown): string | null {
 
 function clientAddress(request: LimitedRequest): string {
   if (request.ip?.trim()) return request.ip.trim();
+  // Fallback only: the nearest proxy's entry (the rightmost one) is appended by
+  // infrastructure, while the leftmost entry is whatever the caller sent.
   const forwarded = request.headers?.['x-forwarded-for'];
-  const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-  return first?.split(',')[0]?.trim() || 'unknown';
+  const value = Array.isArray(forwarded) ? forwarded.join(',') : forwarded;
+  const entries = value?.split(',') ?? [];
+  return entries[entries.length - 1]?.trim() || 'unknown';
 }
 
 /**

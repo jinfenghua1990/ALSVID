@@ -8,8 +8,10 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     // The service is only reachable through the gateway/Cloud Run front end, so the
-    // forwarded client address is what public rate limiting must key on.
-    new FastifyAdapter({ logger: true, trustProxy: true }),
+    // forwarded client address is what public rate limiting must key on. Exactly one
+    // hop is trusted: `true` would take the leftmost X-Forwarded-For entry, which the
+    // caller can forge to get a fresh rate-limit bucket on every request.
+    new FastifyAdapter({ logger: true, trustProxy: 1 }),
   );
 
   app.getHttpAdapter().getInstance().addContentTypeParser([...comparisonImageTypes],
