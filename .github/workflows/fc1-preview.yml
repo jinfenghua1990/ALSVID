@@ -10,6 +10,7 @@ on:
       - 'scripts/new-products-browser-smoke.mjs'
       - 'scripts/dealer-browser-smoke.mjs'
       - 'scripts/commerce-lab-browser-smoke.mjs'
+      - 'scripts/storefront-builder-browser-smoke.mjs'
       - 'scripts/shop-preview-browser-smoke.mjs'
       - 'scripts/commerce-lab-postgres-browser-smoke.mjs'
       - 'scripts/commerce-lab-pagination-browser-smoke.mjs'
@@ -60,6 +61,7 @@ jobs:
           node scripts/dealer-browser-smoke.mjs
           node scripts/l8-browser-smoke.mjs
           node scripts/new-products-browser-smoke.mjs
+          node scripts/storefront-builder-browser-smoke.mjs
           node scripts/commerce-lab-browser-smoke.mjs
           node scripts/shop-preview-browser-smoke.mjs
           node scripts/commerce-lab-postgres-browser-smoke.mjs
