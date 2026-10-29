@@ -5,8 +5,17 @@
  */
 export const MAX_DRAFT_WORKSPACES = 4;
 
+function pathnameOf(location: string): string {
+  try {
+    return new URL(location, 'https://alsvid.invalid').pathname;
+  } catch {
+    return location.split(/[?#]/, 1)[0] ?? '';
+  }
+}
+
 export function isAdminPath(path: string): boolean {
-  return path === '/admin' || path.startsWith('/admin/');
+  const pathname = pathnameOf(path);
+  return pathname === '/admin' || pathname.startsWith('/admin/');
 }
 
 export function isSafeAdminRoute(raw: string): boolean {
@@ -21,46 +30,46 @@ export function isSafeAdminRoute(raw: string): boolean {
 
 export function createAdminWorkspaceDraftStore(limit = MAX_DRAFT_WORKSPACES) {
   const capacity = Math.max(1, Math.min(MAX_DRAFT_WORKSPACES, Math.trunc(limit)));
-  const routes = new Map<string, Map<string, unknown>>();
+  const locations = new Map<string, Map<string, unknown>>();
   const listeners = new Map<string, Set<() => void>>();
-  const channel = (path: string, key: string) => path + '\u0000' + key;
+  const channel = (location: string, key: string) => location + '\\u0000' + key;
 
-  function emitRoute(path: string) {
+  function emitLocation(location: string) {
     for (const [name, callbacks] of listeners) {
-      if (name.startsWith(path + '\u0000')) {
+      if (name.startsWith(location + '\\u0000')) {
         for (const callback of callbacks) callback();
       }
     }
   }
 
-  function touch(path: string) {
-    if (!isAdminPath(path)) throw new Error('Admin drafts must be scoped to /admin');
-    const values = routes.get(path) ?? new Map<string, unknown>();
-    routes.delete(path);
-    routes.set(path, values);
-    while (routes.size > capacity) {
-      const oldest = routes.keys().next().value as string;
-      routes.delete(oldest);
-      emitRoute(oldest);
+  function touch(location: string) {
+    if (!isAdminPath(location)) throw new Error('Admin drafts must be scoped to /admin');
+    const values = locations.get(location) ?? new Map<string, unknown>();
+    locations.delete(location);
+    locations.set(location, values);
+    while (locations.size > capacity) {
+      const oldest = locations.keys().next().value as string;
+      locations.delete(oldest);
+      emitLocation(oldest);
     }
   }
 
-  function read<T>(path: string, key: string, initial: T): T {
-    const values = routes.get(path);
+  function read<T>(location: string, key: string, initial: T): T {
+    const values = locations.get(location);
     return values?.has(key) ? values.get(key) as T : initial;
   }
 
-  function write<T>(path: string, key: string, value: T) {
-    if (!isAdminPath(path)) throw new Error('Admin drafts must be scoped to /admin');
-    touch(path);
-    const values = routes.get(path)!;
+  function write<T>(location: string, key: string, value: T) {
+    if (!isAdminPath(location)) throw new Error('Admin drafts must be scoped to /admin');
+    touch(location);
+    const values = locations.get(location)!;
     if (values.has(key) && Object.is(values.get(key), value)) return;
     values.set(key, value);
-    for (const listener of listeners.get(channel(path, key)) ?? []) listener();
+    for (const listener of listeners.get(channel(location, key)) ?? []) listener();
   }
 
-  function subscribe(path: string, key: string, listener: () => void) {
-    const name = channel(path, key);
+  function subscribe(location: string, key: string, listener: () => void) {
+    const name = channel(location, key);
     const callbacks = listeners.get(name) ?? new Set<() => void>();
     callbacks.add(listener);
     listeners.set(name, callbacks);
@@ -70,15 +79,15 @@ export function createAdminWorkspaceDraftStore(limit = MAX_DRAFT_WORKSPACES) {
     };
   }
 
-  function evict(path: string) {
-    if (routes.delete(path)) emitRoute(path);
+  function evict(location: string) {
+    if (locations.delete(location)) emitLocation(location);
   }
 
   function clear() {
-    for (const path of [...routes.keys()]) evict(path);
+    for (const location of [...locations.keys()]) evict(location);
   }
 
-  return { read, write, subscribe, touch, evict, clear, size: () => routes.size };
+  return { read, write, subscribe, touch, evict, clear, size: () => locations.size };
 }
 
 export type AdminWorkspaceDraftStore = ReturnType<typeof createAdminWorkspaceDraftStore>;
