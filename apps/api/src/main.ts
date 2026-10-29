@@ -1,13 +1,15 @@
-import {comparisonImageLimit,comparisonImageTypes} from './comparison-media.js';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module.js';
+import {comparisonImageLimit,comparisonImageTypes} from './comparison-media.js';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true }),
+    // The service is only reachable through the gateway/Cloud Run front end, so the
+    // forwarded client address is what public rate limiting must key on.
+    new FastifyAdapter({ logger: true, trustProxy: true }),
   );
 
   app.getHttpAdapter().getInstance().addContentTypeParser([...comparisonImageTypes],
