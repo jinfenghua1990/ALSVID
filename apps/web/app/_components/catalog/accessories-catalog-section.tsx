@@ -20,7 +20,13 @@ export function AccessoriesCatalogSection({locale,selectedCategory,publishedProd
       <a href={base+"/bikes#accessories"} aria-current={!selected ? "page" : undefined}>{t("catalog.accessories.categories.all")}</a>
       {categories.map(id=><a key={id} href={base+"/bikes?category="+id+"#accessories"} aria-current={selected===id ? "page" : undefined}>{t(`accessories.${id}.title` as TranslationKey)}</a>)}
     </nav>
-    {publishedProducts.length > 0 && <div className={styles.product} data-accessory-published-products>\n      {publishedProducts.map(product => <article key={product.modelId}>\n        <img src={product.image} width={800} height={800} alt={product.title[locale]} loading="lazy" />\n        <div><p className={styles.kicker}>{product.type === "SERVICE_PART" ? "ALSVID / SERVICE PART" : "ALSVID / ACCESSORY"}</p><h3>{product.title[locale]}</h3><p>{product.code}</p></div>\n      </article>)}\n    </div>}\n    {(!selected || selected === "parts") && <div className={styles.product} data-accessory-product="cup-holder">
+    {publishedProducts.length > 0 && <div className={styles.product} data-accessory-published-products>
+      {publishedProducts.map(product => <article key={product.modelId}>
+        <img src={product.image} width={800} height={800} alt={product.title[locale]} loading="lazy" />
+        <div><p className={styles.kicker}>{product.type === "SERVICE_PART" ? "ALSVID / SERVICE PART" : "ALSVID / ACCESSORY"}</p><h3>{product.title[locale]}</h3><p>{product.code}</p></div>
+      </article>)}
+    </div>}
+    {(!selected || selected === "parts") && <div className={styles.product} data-accessory-product="cup-holder">
       <a href={base + "/explore/accessory-cup-holder"} aria-label={t("cup.explore")}><img src="/products/accessories/cup-holder/retouched/cup-holder-black.webp" width={800} height={800} alt={t("cup.black.alt")} loading="lazy" /></a>
       <div><p className={styles.kicker}>{t("cup.eyebrow")}</p><h3>{t("cup.name")}</h3><p>{t("cup.home.body")}</p><a href={base + "/explore/accessory-cup-holder"}>{t("cup.explore")}</a></div>
     </div>}
