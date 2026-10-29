@@ -29,7 +29,7 @@ declare global {
 
 const INITIAL_HTML = [
   '<main class="alsvid-storefront">',
-  '  <header class="storefront-nav"><a class="brand" href="#">ALSVID</a><nav>整车　车型　配件　品牌故事</nav><span class="bag">购物袋 ↗</span></header>',
+  '  <header class="storefront-nav"><a class="brand" href="#">ALSVID</a><nav>整车　车型　配件　品牌故事</nav><span class="bag">购物袋</span></header>',
   '  <section class="hero" data-alsvid-block="hero"><div class="hero-copy"><p class="eyebrow">ALSVID ELECTRIC MOBILITY</p><h1>为每一段旅程<br>重新定义自由。</h1><p class="hero-subtitle">轻量设计，城市灵感，开启属于你的骑行方式。</p><a class="button" href="#">探索整车　→</a></div><div class="hero-visual"><div class="bike-placeholder">在此替换为整车主视觉图片</div><span class="visual-note">首页主视觉 · 可自由替换</span></div><span class="hero-index">01 / 04</span></section>',
   '  <section class="intro"><p class="eyebrow">CHOOSE YOUR RIDE</p><h2>找到适合你的骑行方式</h2><p>拖动左侧模块，自由组合你的商城首页。当前是独立预览，不会修改正式官网。</p></section>',
   '  <section class="model-grid" data-alsvid-block="product-grid"><article class="model-card"><div class="product-image">车型图片区域</div><p class="eyebrow">FOLDING SERIES</p><h3>ALSVID F8</h3><p>示例车型 · 尚未关联真实商品</p><a class="text-link" href="#">查看车型　→</a></article><article class="model-card"><div class="product-image product-image-alt">车型图片区域</div><p class="eyebrow">CITY SERIES</p><h3>城市通勤系列</h3><p>示例分类 · 尚未关联商品数据</p><a class="text-link" href="#">探索系列　→</a></article><article class="model-card"><div class="product-image product-image-third">车型图片区域</div><p class="eyebrow">TOURING SERIES</p><h3>探索旅行系列</h3><p>示例分类 · 尚未关联商品数据</p><a class="text-link" href="#">探索系列　→</a></article></section>',
