@@ -241,7 +241,7 @@ export class ProductService {
     return row;
   }
 
-  async createModel(actor: ProductActor, input: { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown> }): Promise<any> {
+  async createModel(actor: ProductActor, input: { platformId?: string | null; productTypeCode?: ProductTypeCode; code: string; name: string; description?: string; customFields?: Record<string,unknown>; technicalSpecs?: Record<string,unknown> }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
     const code = normalizeProductCode(input.code);
     const productTypeCode = input.productTypeCode ?? 'BIKE';
@@ -251,8 +251,9 @@ export class ProductService {
     if (!input.name?.trim()) throw new ProductValidationError('Model name is required');
     const customFields = validateModelFields(await this.repository.modelFieldDefinitions(),
       productTypeCode,input.customFields ?? {},{});
+    const technicalSpecs = normalizeTechnicalSpecs(input.technicalSpecs);
     try {
-      const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', customFields, actorUserId: actor.userId });
+      const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', customFields, technicalSpecs, actorUserId: actor.userId });
       if (!row) throw new ProductValidationError('Selected technical platform is missing or not active');
       await this.audit.record({ actorUserId: actor.userId, action: 'product.model_created', targetType: 'product.model', targetId: row.id, metadata: { code } });
       return row;
@@ -298,15 +299,20 @@ export class ProductService {
     }
   }
 
-  async updateEntity(actor: ProductActor, entity: ProductEntityKind, id: string, input: { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?: Record<string,unknown> }): Promise<any> {
+  async updateEntity(actor: ProductActor, entity: ProductEntityKind, id: string, input: { expectedVersion: number; name?: string; description?: string; status?: ProductStatus; marketCode?: string | null; colorCode?: string | null; sizeCode?: string | null; customFields?: Record<string,unknown>; technicalSpecs?: Record<string,unknown> }): Promise<any> {
     requireCapability(actor, ProductCapability.Write);
     let customFields:Record<string,CustomFieldValue>={};
-    if (input.customFields!==undefined) {
-      if (entity!=='model')throw new ProductValidationError('Custom model fields belong only to model records');
+    let technicalSpecs:Record<string,unknown>={};
+    let technicalSpecsProvided=false;
+    if (input.customFields!==undefined || input.technicalSpecs!==undefined || (entity==='model' && input.status==='ACTIVE')) {
+      if (entity!=='model')throw new ProductValidationError('Model technical fields belong only to model records');
       const target=await this.repository.modelFieldTarget(id);
       if (!target)throw new ProductNotFoundError('Model not found');
       customFields=validateModelFields(await this.repository.modelFieldDefinitions(),
-        target.product_type_code,input.customFields,target.custom_fields);
+        target.product_type_code,input.customFields ?? {},withoutTechnicalSpecs(target.custom_fields));
+      technicalSpecsProvided=input.technicalSpecs!==undefined;
+      technicalSpecs=technicalSpecsProvided ? normalizeTechnicalSpecs(input.technicalSpecs) : extractTechnicalSpecs(target.custom_fields);
+      if (input.status==='ACTIVE') validateTechnicalSpecsForActivation(technicalSpecs);
     }
     if (!Number.isInteger(input.expectedVersion) || input.expectedVersion < 1) throw new ProductValidationError('expectedVersion is required');
     let row: any;
@@ -326,6 +332,8 @@ export class ProductService {
       sizeCode: normalizeSkuDimension(input.sizeCode,'sizeCode'),
       customFieldsProvided: input.customFields!==undefined,
       customFields,
+      technicalSpecsProvided,
+      technicalSpecs,
       actorUserId: actor.userId,
     }); } catch(error) {
       if (entity === 'sku' && postgresErrorCode(error) === '23505')
@@ -425,4 +433,37 @@ function validateProductAttributes(value: unknown): void {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     throw new ProductValidationError('Product attributes must be a JSON object');
   }
+}
+
+const TECHNICAL_SPECS_KEY = '__technical_specs';
+
+function extractTechnicalSpecs(value: Record<string, unknown>): Record<string, unknown> {
+  const specs = value[TECHNICAL_SPECS_KEY];
+  return specs && typeof specs === 'object' && !Array.isArray(specs) ? specs as Record<string, unknown> : {};
+}
+
+function withoutTechnicalSpecs(value: Record<string, unknown>): Record<string, CustomFieldValue> {
+  const result: Record<string, CustomFieldValue> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (key === TECHNICAL_SPECS_KEY) continue;
+    if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') result[key] = item;
+  }
+  return result;
+}
+
+function normalizeTechnicalSpecs(value: unknown): Record<string, unknown> {
+  if (value === undefined) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new ProductValidationError('Technical specs must be an object');
+  const encoded = JSON.stringify(value);
+  if (!encoded || encoded.length > 500_000) throw new ProductValidationError('Technical specs are too large');
+  return value as Record<string, unknown>;
+}
+
+function validateTechnicalSpecsForActivation(specs: Record<string, unknown>): void {
+  const basic = specs.basic;
+  if (!basic || typeof basic !== 'object' || Array.isArray(basic))
+    throw new ProductValidationError('启用型号前必须填写型号基本信息');
+  const required = ['productType', 'structureType', 'foldable', 'electricAssist'];
+  if (required.some(key => (basic as Record<string, unknown>)[key] === undefined || (basic as Record<string, unknown>)[key] === ''))
+    throw new ProductValidationError('启用型号前必须补齐基本信息中的产品类型、结构类型、折叠属性和助力属性');
 }
