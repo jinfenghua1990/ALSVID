@@ -261,7 +261,9 @@ jobs:
 
       - name: Verify active storefront Web/API boundaries
         if: steps.scope.outputs.docs_only != 'true'
-        run: node scripts/storefront-current-acceptance.mjs
+        run: |
+          docker compose -p alsvid-ci -f infra/docker-compose.test.yml -f infra/docker-compose.commerce-acceptance.yml up -d --no-build api web
+          node scripts/storefront-current-acceptance.mjs
       - name: Upload real catalog acceptance report
         if: always() && steps.scope.outputs.docs_only != 'true'
         uses: actions/upload-artifact@v7
