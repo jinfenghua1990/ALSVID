@@ -1,5 +1,5 @@
 import type { DatabasePort } from '@alsvid/database';
-import type { HomepageBinding, ModelFieldDefinition, CustomFieldValue, PlatformRow, ProductCatalog, ProductEntityKind } from '../core/model.js';
+import type { HomepageBinding, ModelFieldDefinition, PlatformRow, ProductCatalog, ProductEntityKind } from '../core/model.js';
 import type { CatalogPublishAssetRow,PublicationRow, PublicationDraft, PublicationStatus } from '../core/publication.js';
 import type { CreateModelRecord, CreatePlatformRecord, CreateSkuRecord, CreateVariantRecord, ProductRepository, UpdatePlatformRecord, UpdateProductRecord } from '../application/ports.js';
 
@@ -57,8 +57,8 @@ export class PostgresProductRepository implements ProductRepository {
     return result.rows.length>0;
   }
 
-  async modelFieldTarget(id:string):Promise<{product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART';custom_fields:Record<string,CustomFieldValue>}|null> {
-    const result=await this.database.query<{product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART';custom_fields:Record<string,CustomFieldValue>}>(
+  async modelFieldTarget(id:string):Promise<{product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART';custom_fields:Record<string,unknown>}|null> {
+    const result=await this.database.query<{product_type_code:'BIKE'|'ACCESSORY'|'SERVICE_PART';custom_fields:Record<string,unknown>}>(
       'SELECT product_type_code,custom_fields FROM product.models WHERE id=$1',[id]);
     return result.rows[0]??null;
   }
@@ -237,12 +237,12 @@ export class PostgresProductRepository implements ProductRepository {
     // Lock the ACTIVE platform row while creating a bike to serialize archive/create.
     const sql = input.productTypeCode === 'BIKE'
       ? `INSERT INTO product.models(platform_id,product_type_code,code,name,description,custom_fields,created_by,updated_by)
-         SELECT p.id,$2,$3,$4,$5,$7::jsonb,$6,$6 FROM product.platforms p
+         SELECT p.id,$2,$3,$4,$5,jsonb_set($7::jsonb,'{__technical_specs}',$8::jsonb,true),$6,$6 FROM product.platforms p
          WHERE p.id=$1 AND p.status='ACTIVE' FOR UPDATE OF p RETURNING *`
       : `INSERT INTO product.models(platform_id,product_type_code,code,name,description,custom_fields,created_by,updated_by)
-         VALUES ($1,$2,$3,$4,$5,$7::jsonb,$6,$6) RETURNING *`;
+         VALUES ($1,$2,$3,$4,$5,jsonb_set($7::jsonb,'{__technical_specs}',$8::jsonb,true),$6,$6) RETURNING *`;
     const result = await this.database.query<any>(sql,
-      [input.platformId,input.productTypeCode,input.code,input.name,input.description,input.actorUserId,JSON.stringify(input.customFields ?? {})]);
+      [input.platformId,input.productTypeCode,input.code,input.name,input.description,input.actorUserId,JSON.stringify(input.customFields ?? {}),JSON.stringify(input.technicalSpecs ?? {})]);
     return result.rows[0] ?? null;
   }
 
@@ -278,11 +278,16 @@ export class PostgresProductRepository implements ProductRepository {
       const result=await this.database.query<any>(
         `UPDATE product.models SET name=COALESCE($3,name),status=COALESCE($4,status),
          description=CASE WHEN $5::boolean THEN $6 ELSE description END,
-         custom_fields=CASE WHEN $8::boolean THEN $9::jsonb ELSE custom_fields END,
+         custom_fields=CASE WHEN $8::boolean OR $10::boolean THEN
+           jsonb_set(CASE WHEN $8::boolean THEN $9::jsonb ELSE custom_fields END,
+             '{__technical_specs}',
+             CASE WHEN $10::boolean THEN $11::jsonb ELSE COALESCE(custom_fields->'__technical_specs','{}'::jsonb) END,
+             true)
+           ELSE custom_fields END,
          version=version+1,updated_by=$7,updated_at=now()
          WHERE id=$1 AND version=$2 RETURNING *`,
         [input.id,input.expectedVersion,input.name,input.status,input.descriptionProvided,input.description,
-          input.actorUserId,input.customFieldsProvided,JSON.stringify(input.customFields)],
+          input.actorUserId,input.customFieldsProvided,JSON.stringify(input.customFields),input.technicalSpecsProvided,JSON.stringify(input.technicalSpecs)],
       );
       return result.rows[0]??null;
     }
