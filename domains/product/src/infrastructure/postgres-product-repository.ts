@@ -152,7 +152,7 @@ export class PostgresProductRepository implements ProductRepository {
     const result = await this.database.query<PublicationRow>(
       this.publicationProjection + `
         WHERE p.status='PUBLISHED' AND m.status='ACTIVE'
-        AND m.product_type_code='BIKE' AND m.code IN ('FC1','FC2')
+        AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
         ORDER BY p.published_at DESC`);
     return result.rows;
   }
