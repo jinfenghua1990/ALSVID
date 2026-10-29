@@ -18,8 +18,10 @@ class PostgresComparisonCatalogRepository implements ComparisonCatalogRepository
   transaction<T>(work:(e:QueryExecutor)=>Promise<T>):Promise<T>{return this.database.transaction(work);}
   async list(query:ComparisonListQuery,publishedOnly:boolean):Promise<ComparisonProductPage> {
     const where=publishedOnly ? "status='PUBLISHED' AND " : '';
-    const search='%'+query.query+'%';
-    const filter=where+"(code ILIKE $1 OR title->>'zh' ILIKE $1 OR title->>'de' ILIKE $1 OR title->>'en' ILIKE $1)";
+    // ILIKE uses %, _ and \ as pattern syntax; user-entered search is literal.
+    const search='%'+query.query.replace(/[\\%_]/g,'\\$&')+'%';
+    const literalMatch=" ILIKE $1 ESCAPE E'\\\\'";
+    const filter=where+'(code'+literalMatch+" OR title->>'zh'"+literalMatch+" OR title->>'de'"+literalMatch+" OR title->>'en'"+literalMatch+')';
     const rows=await this.database.query<Row>('SELECT * FROM commerce_lab.catalog_products WHERE '+filter+
       ' ORDER BY created_at DESC,id LIMIT $2 OFFSET $3',[search,query.limit,(query.page-1)*query.limit]);
     const count=await this.database.query<{count:string}>('SELECT count(*)::text AS count FROM commerce_lab.catalog_products WHERE '+filter,[search]);
