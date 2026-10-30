@@ -112,7 +112,7 @@ jobs:
           curl --fail --silent --show-error --retry 4 --retry-delay 3 "$api_url/api/health" >/dev/null
           echo "api_url=$api_url" >> "$GITHUB_OUTPUT"
           echo "previous_revision=$previous_revision" >> "$GITHUB_OUTPUT"
-          echo "Preserving existing API, database, identity base URL, email sender and worker pool."
+          echo "Leaving API, database, identity base URL and email sender unchanged; this workflow does not manage workers."
 
       - name: Verify public Dealer API before Web-only rollout
         env:
@@ -242,7 +242,7 @@ jobs:
           echo "Admin login exposes email-code and password methods: $admin_login_url" >> "$GITHUB_STEP_SUMMARY"
           echo "WWW live: $PUBLIC_SITE_URL" >> "$GITHUB_STEP_SUMMARY"
           echo "Verified public release: $RELEASE_SHA" >> "$GITHUB_STEP_SUMMARY"
-          echo "API, database, worker and transactional sender: unchanged" >> "$GITHUB_STEP_SUMMARY"
+          echo "API, database and transactional sender: unchanged; no worker pool is managed by this workflow" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Restore previous Web revision if post-deploy verification fails
         if: ${{ failure() && steps.deploy.outcome == 'success' }}
