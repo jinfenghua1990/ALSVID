@@ -36,6 +36,12 @@ Real R2 access is intentionally **not** faked as part of the core Docker smoke c
 
 Web and API use zero minimum instances for the initial low-traffic profile. Production does not deploy a Worker Pool: the worker has no registered business handlers, and the queue was empty at cutover.
 
+### Product pages are not separate services
+
+All customer-facing product pages are served as routes by `alsvid-web`; shared backend requests go to `alsvid-api`. FC1, FC2 (based on the Pilot X5 reference), L7, L8 and future models do not receive individual Cloud Run services. The full production workflow deploys only the shared API and Web services; the WWW-only workflow deploys only the shared Web service.
+
+`alsvid-fc1` and `alsvid-pilot-x5` are not current deployment targets in this repository. Before deleting any existing instance, check Cloud Run domain mappings, traffic tags and external integrations for dependencies. Once those checks are clear, deleting the standalone service will not delete the product route hosted by `alsvid-web`.
+
 Neon and R2 are selected providers, not Domain dependencies. PostgreSQL and S3-compatible ports remain the application boundaries.
 
 ## 3. First-time Google Cloud bootstrap
