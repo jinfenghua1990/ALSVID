@@ -102,6 +102,8 @@ export default function StorefrontBuilderClient() {
   const [activeDevice, setActiveDevice] = useState('桌面端');
   const [previewing, setPreviewing] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [draftVersion, setDraftVersion] = useState<number | null>(null);
+  const [draftBusy, setDraftBusy] = useState(false);
   const [notice, setNotice] = useState('装修预览已准备就绪。当前不会修改正式商城。');
 
   useEffect(() => {
@@ -193,11 +195,56 @@ export default function StorefrontBuilderClient() {
     };
   }, []);
 
+  const loadDraft = async () => {
+    const editor = editorRef.current;
+    if (!editor || draftBusy) return;
+    if (dirty && !window.confirm('读取云端草稿会替换当前未保存的编辑内容，是否继续？')) return;
+    setDraftBusy(true);
+    try {
+      const snapshot = JSON.stringify(editor.getProjectData());
+      const response = await fetch('/api/control/v1/commerce/storefront/layout-draft', { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.message ?? '草稿读取失败');
+      if (JSON.stringify(editor.getProjectData()) !== snapshot) throw new Error('读取期间页面有新修改，请先导出当前方案再重新读取。');
+      if (payload.data) {
+        editor.loadProjectData(payload.data.project);
+        setDraftVersion(payload.data.version);
+        setDirty(false);
+        setNotice('已读取云端草稿。');
+      } else {
+        setDraftVersion(0);
+        setNotice('云端尚无草稿，可以保存当前方案。');
+      }
+    } catch (reason) {
+      setDraftVersion(null);
+      setNotice(reason instanceof Error ? reason.message : '草稿读取失败');
+    } finally { setDraftBusy(false); }
+  };
+
+  const saveDraft = async () => {
+    const editor = editorRef.current;
+    if (!editor || draftBusy || draftVersion === null) return;
+    setDraftBusy(true);
+    try {
+      const project = editor.getProjectData();
+      const snapshot = JSON.stringify(project);
+      const response = await fetch('/api/control/v1/commerce/storefront/layout-draft', {
+        method: 'PUT', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ project, expectedVersion: draftVersion }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(response.status === 409 ? '云端草稿已被修改，请先导出当前方案，再重新读取。' : payload?.message ?? '草稿保存失败');
+      setDraftVersion(payload.data.version);
+      setDirty(JSON.stringify(editor.getProjectData()) !== snapshot);
+      setNotice('云端草稿已保存；正式商城尚未发布。');
+    } catch (reason) { setNotice(reason instanceof Error ? reason.message : '草稿保存失败'); }
+    finally { setDraftBusy(false); }
+  };
+
   const exportProject = () => {
     const editor = editorRef.current;
     if (!editor) return;
     downloadText('alsvid-storefront-layout.json', JSON.stringify(editor.getProjectData(), null, 2), 'application/json;charset=utf-8');
-    setDirty(false);
     setNotice('装修方案已导出为 JSON 文件。正式商城未发生任何变化。');
   };
 
@@ -264,6 +311,8 @@ export default function StorefrontBuilderClient() {
           <p className={styles.subtitle}>自由拖拽模块，直接编辑文字、图片和样式；独立于正式商城运行。</p>
         </div>
         <div className={styles.actions}>
+          <button type="button" className={styles.secondaryButton} onClick={() => void loadDraft()} disabled={!ready || draftBusy}>读取云端草稿</button>
+          <button type="button" className={styles.secondaryButton} onClick={() => void saveDraft()} disabled={!ready || draftBusy || draftVersion === null}>保存云端草稿</button>
           <button type="button" className={styles.secondaryButton} onClick={() => fileRef.current?.click()} disabled={!ready}>导入方案</button>
           <input ref={fileRef} className={styles.hiddenInput} type="file" accept=".json,application/json" onChange={importProject} />
           <button type="button" className={styles.secondaryButton} onClick={exportHtml} disabled={!ready}>导出 HTML</button>
@@ -275,7 +324,7 @@ export default function StorefrontBuilderClient() {
         <span className={styles.noticeIcon}>i</span>
         <div>
           <strong>独立装修窗口</strong>
-          <p>当前只编辑预览内容，不会修改正式商城首页、商品、价格、库存或订单。请在离开页面前导出方案；服务器草稿保存和正式发布尚未接入。</p>
+          <p>先读取云端草稿，再保存修改。本地和云端后台使用同一份草稿；保存不会发布正式商城。</p>
         </div>
         <span className={styles.noticeStatus}>{dirty ? '有未导出的修改' : '方案未修改'}</span>
       </div>

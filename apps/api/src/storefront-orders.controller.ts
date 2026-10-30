@@ -1,8 +1,8 @@
-import {BadRequestException,Body,Controller,Get,Param,Post,Query,Req} from '@nestjs/common';
+import {BadRequestException,Body,Controller,Get,Param,Post,Put,Query,Req} from '@nestjs/common';
 import type {CreateStorefrontOrderInput,CreateStorefrontPriceInput,StorefrontOrderQuery} from '@alsvid/commerce';
 import type {AuthenticatedRequest} from './auth.guard.js';
 import {requireAuth} from './auth.guard.js';
-import {storefrontOrderService,storefrontReadinessService} from './runtime.js';
+import {storefrontOrderService,storefrontReadinessService,storefrontLayoutService} from './runtime.js';
 
 interface ExpectedVersionBody{expectedVersion:number}
 interface CancelDraftBody extends ExpectedVersionBody{reason:string}
@@ -10,6 +10,14 @@ interface CancelDraftBody extends ExpectedVersionBody{reason:string}
 /** Internal draft, submission and price-book operations only. Submitting an order records customer intent; it does not start a payment attempt. No public checkout or payment endpoint is exposed. */
 @Controller('v1/commerce/storefront')
 export class StorefrontOrdersController{
+ @Get('layout-draft')
+ async layoutDraft(@Req() request:AuthenticatedRequest){
+  return {data:await storefrontLayoutService.read(requireAuth(request))};
+ }
+ @Put('layout-draft')
+ async saveLayoutDraft(@Req() request:AuthenticatedRequest,@Body() input:{project:unknown;expectedVersion:unknown}){
+  return {data:await storefrontLayoutService.save(requireAuth(request),input)};
+ }
  @Get('readiness')
  async readiness(@Req() request:AuthenticatedRequest,
   @Query('marketCountry') marketCountry?:string,@Query('query') query?:string){
