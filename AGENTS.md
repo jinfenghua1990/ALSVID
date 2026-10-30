@@ -76,6 +76,7 @@ Production has been deployed. Never assume a target has no business data based o
 ## Architecture rules
 
 - ALSVID remains a modular monolith unless an ADR proves a real need for service separation.
+- Public product pages (FC1, FC2/Pilot X5, L7, L8 and accessories) are routes in the shared Next.js Web application deployed as Cloud Run Service `alsvid-web`; shared backend requests use `alsvid-api`. Product models are not deployment units. Never create one Cloud Run service per product/model without a new owner-approved ADR.
 - Follow `docs/DOMAIN_STRUCTURE.md`.
 - `domains/<domain>/src/index.ts` is a public facade only once a domain is encapsulated.
 - Core/application code cannot import provider SDKs or framework transport code.
