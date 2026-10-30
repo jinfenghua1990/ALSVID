@@ -24,7 +24,9 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin', '/api', '/login', '/my', '/dealer', '/supplier', '/settings', '/reset-password'],
+      // /login on the public WWW redirects to the homepage; keep it crawlable
+      // so Google can observe the redirect from legacy/admin entry URLs.
+      disallow: ['/admin', '/api', '/my', '/dealer', '/supplier', '/settings', '/reset-password'],
     },
     sitemap: 'https://www.alsvidbike.com/sitemap.xml',
   };
