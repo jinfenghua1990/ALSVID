@@ -45,6 +45,12 @@ The production architecture is fixed by ADR 0003:
 | Runtime logs | Google Cloud Logging |
 | Offline backup layer | Q4 plus independent database/object copies |
 
+### Product hosting boundary
+
+All public storefront and product-detail routes run inside the single Next.js Web application deployed as Cloud Run Service `alsvid-web`. This includes FC1, FC2 (the ALSVID model based on the Pilot X5 reference), L7, L8 and future catalogue products. Shared backend requests use `alsvid-api`. Adding a product or model must not create another Cloud Run service.
+
+The production workflows manage `alsvid-web` and `alsvid-api`; neither deploys `alsvid-fc1` nor `alsvid-pilot-x5`. Those names are not part of the repository's current production topology. Before deleting an existing service with either name, verify in Google Cloud that no custom domain mapping, traffic tag, or external integration still points to it. Removing either service does not remove the corresponding product route from `alsvid-web`.
+
 Selecting these providers does not mean the live resources already exist. Issue #34 remains open until real account resources are provisioned, the first production release succeeds and backup/restore evidence exists.
 
 ## Provider boundaries
