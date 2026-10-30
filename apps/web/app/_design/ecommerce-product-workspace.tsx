@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
+import styles from './ecommerce-product-workspace.module.css';
 
-type Model = { id: string; code: string; name: string; description: string; status: string; updated_at: string; platform_id: string | null; product_type_code: string };
+type Model = { id: string; code: string; name: string; description: string; status: string; created_at: string; updated_at: string; platform_id: string | null; product_type_code: string };
 type Variant = { id: string; model_id: string; code: string; name: string; status: string };
 type Sku = { id: string; variant_id: string; sku: string; name: string; status: string; market_code: string | null; color_code: string | null; size_code: string | null };
 type Platform = { id: string; code: string; name: string };
@@ -12,10 +13,13 @@ type Publication = { model_id: string; model_code: string; status: string; title
 type Price = { id: string; skuId: string; sku: string; skuName: string; marketCountry: string; currency: string; unitPriceGross: string; status: string; effectiveFrom: string | null };
 type Summary = { skus: { id: string; sku: string; name: string; modelCode: string; variantCode: string }[]; prices: Price[]; orders: { id: string; orderNumber: string; status: string; marketCountry: string; totalGrossAmount: string; createdAt: string }[]; orderTotal: number; orderStatusCounts: Record<string, number> };
 type Stock = { item_kind: string; sku_id: string | null; sku: string | null; sku_name: string | null; warehouse_code: string; warehouse_name: string; location_code: string; on_hand: string; reserved: string; available: string; frame_number: string | null };
-type ProductData = { catalog: Catalog; publications: Publication[]; summary: Summary; inventory: Stock[] };
+type ProductData = { catalog: Catalog; publications: Publication[]; summary: Summary; inventory: Stock[]; permissions: string[] | null };
+type ProductRowData = { model: Model; publication: Publication | undefined; platform: Platform | undefined; skus: Sku[]; prices: Price[]; stock: Stock[] };
+type Filters = { id: string; code: string; sku: string; name: string; type: string; market: string; platform: string; stock: string; from: string; to: string };
 
-const publicationLabel: Record<string, string> = { DRAFT: '草稿', IN_REVIEW: '待审核', PUBLISHED: '已上架', WITHDRAWN: '已下架' };
+const publicationLabel: Record<string, string> = { UNLISTED: '未建立发布记录', DRAFT: '草稿', IN_REVIEW: '待审核', PUBLISHED: '已上架', WITHDRAWN: '已下架' };
 const productTypeLabel: Record<string, string> = { BIKE: '整车', ACCESSORY: '零配件', SERVICE_PART: '服务件' };
+const emptyFilters: Filters = { id: '', code: '', sku: '', name: '', type: 'ALL', market: 'ALL', platform: 'ALL', stock: 'ALL', from: '', to: '' };
 
 async function readApi<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: 'no-store' });
@@ -23,6 +27,15 @@ async function readApi<T>(path: string): Promise<T> {
   if (!response.ok) throw new Error(response.status === 401 ? '登录已失效，请重新登录' : response.status === 403 ? '当前账号没有商城数据读取权限' : payload?.message ?? '商城数据读取失败');
   if (!payload || !('data' in payload)) throw new Error('商城接口返回格式异常');
   return payload.data as T;
+}
+
+async function transitionPublication(modelId: string, action: 'PUBLISH' | 'WITHDRAW', version: number) {
+  const response = await fetch(`/api/control/v1/product/publications/${encodeURIComponent(modelId)}/transition`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action, expectedVersion: version }),
+  });
+  const payload = await response.json().catch(() => null) as { data?: unknown; message?: string } | null;
+  if (!response.ok) throw new Error(response.status === 403 ? '没有商品发布权限' : payload?.message ?? '操作失败，请刷新后重试');
+  if (!payload || !('data' in payload)) throw new Error('发布接口返回资料异常');
 }
 
 function money(value: string | undefined, currency = 'EUR') {
@@ -34,27 +47,50 @@ function date(value: string | null | undefined) {
   return value ? new Date(value).toLocaleString('zh-CN') : '—';
 }
 
+function day(value: string | undefined) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function contains(value: string | null | undefined, term: string) {
+  return !term.trim() || (value ?? '').toLocaleLowerCase().includes(term.trim().toLocaleLowerCase());
+}
+
+function stockTotal(stock: Stock[]) {
+  if (!stock.length) return null;
+  const values = stock.map(item => typeof item.available === 'string' && item.available.trim() ? Number(item.available) : NaN);
+  return values.every(Number.isFinite) ? values.reduce((total, value) => total + value, 0) : null;
+}
+
 export function EcommerceProductWorkspace() {
   const [data, setData] = useState<ProductData | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
-  const [type, setType] = useState('ALL');
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [draft, setDraft] = useState<Filters>(emptyFilters);
   const [status, setStatus] = useState('ALL');
-  const [market, setMarket] = useState('ALL');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedId, setSelectedId] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [failures, setFailures] = useState<string[]>([]);
 
   async function load() {
     setState('loading');
     setError('');
     try {
-      const [catalog, publications, summary, inventory] = await Promise.all([
+      const [catalog, publications, summary, inventory, identity] = await Promise.all([
         readApi<Catalog>('/api/control/v1/product/catalog'),
         readApi<Publication[]>('/api/control/v1/product/publications'),
         readApi<Summary>('/api/control/v1/commerce/storefront/summary'),
         readApi<{ balances: Stock[] }>('/api/control/v1/inventory'),
+        readApi<{ permissions: string[] }>('/api/control/v1/auth/me').catch(() => null),
       ]);
-      setData({ catalog, publications, summary, inventory: inventory.balances });
+      setData({ catalog, publications, summary, inventory: inventory.balances, permissions: Array.isArray(identity?.permissions) ? identity.permissions : null });
+      setSelectedIds(new Set());
       setState('ready');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '商城数据读取失败');
@@ -68,65 +104,208 @@ export function EcommerceProductWorkspace() {
     void load();
   }, []);
 
-  const rows = useMemo(() => {
+  const allRows = useMemo<ProductRowData[]>(() => {
     if (!data) return [];
-    const term = query.trim().toLocaleLowerCase();
-    return data.catalog.models.filter(model => {
-      const publication = data.publications.find(item => item.model_id === model.id);
-      const modelSkus = data.catalog.skus.filter(sku => data.catalog.variants.find(variant => variant.id === sku.variant_id)?.model_id === model.id);
-      const modelPrices = data.summary.prices.filter(price => modelSkus.some(sku => sku.id === price.skuId));
-      const matchesSearch = !term || [model.code, model.name, model.description, ...modelSkus.flatMap(sku => [sku.sku, sku.name])].some(value => value.toLocaleLowerCase().includes(term));
-      const matchesType = type === 'ALL' || model.product_type_code === type;
-      const matchesStatus = status === 'ALL' || (publication?.status ?? 'UNLISTED') === status;
-      const matchesMarket = market === 'ALL' || modelPrices.some(price => price.marketCountry === market);
-      return matchesSearch && matchesType && matchesStatus && matchesMarket;
-    });
-  }, [data, market, query, status, type]);
+    const publicationByModel = new Map(data.publications.map(item => [item.model_id, item]));
+    const platformById = new Map(data.catalog.platforms.map(item => [item.id, item]));
+    const modelByVariant = new Map(data.catalog.variants.map(item => [item.id, item.model_id]));
+    const skuByModel = new Map<string, Sku[]>();
+    const modelBySku = new Map<string, string>();
+    for (const sku of data.catalog.skus) {
+      const modelId = modelByVariant.get(sku.variant_id);
+      if (!modelId) continue;
+      modelBySku.set(sku.id, modelId);
+      const items = skuByModel.get(modelId) ?? [];
+      items.push(sku); skuByModel.set(modelId, items);
+    }
+    const pricesByModel = new Map<string, Price[]>();
+    for (const price of data.summary.prices) {
+      const modelId = modelBySku.get(price.skuId);
+      if (!modelId || price.status !== 'ACTIVE') continue;
+      const items = pricesByModel.get(modelId) ?? [];
+      items.push(price); pricesByModel.set(modelId, items);
+    }
+    const stockByModel = new Map<string, Stock[]>();
+    for (const stock of data.inventory) {
+      const modelId = stock.item_kind === 'SKU' && stock.sku_id ? modelBySku.get(stock.sku_id) : undefined;
+      if (!modelId) continue;
+      const items = stockByModel.get(modelId) ?? [];
+      items.push(stock); stockByModel.set(modelId, items);
+    }
+    return data.catalog.models.map(model => ({
+      model, publication: publicationByModel.get(model.id), platform: model.platform_id ? platformById.get(model.platform_id) : undefined,
+      skus: skuByModel.get(model.id) ?? [], prices: pricesByModel.get(model.id) ?? [], stock: stockByModel.get(model.id) ?? [],
+    }));
+  }, [data]);
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: allRows.length };
+    for (const row of allRows) {
+      const key = row.publication?.status ?? 'UNLISTED';
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [allRows]);
+
+  const rows = useMemo(() => allRows.filter(row => {
+    const { model, publication, skus, prices, stock } = row;
+    const total = stockTotal(stock);
+    const created = day(model.created_at);
+    return contains(model.id, filters.id)
+      && contains(model.code, filters.code)
+      && (!filters.sku.trim() || skus.some(sku => contains(sku.sku, filters.sku)))
+      && (!filters.name.trim() || [model.name, publication?.title_zh, publication?.title_de, publication?.title_en].some(value => contains(value, filters.name)))
+      && (filters.type === 'ALL' || model.product_type_code === filters.type)
+      && (filters.market === 'ALL' || prices.some(price => price.marketCountry === filters.market))
+      && (filters.platform === 'ALL' || model.platform_id === filters.platform)
+      && (filters.stock === 'ALL' || (filters.stock === 'MISSING' ? !stock.length : total !== null && (filters.stock === 'AVAILABLE' ? total > 0 : total <= 0)))
+      && (!filters.from || (!!created && created >= filters.from))
+      && (!filters.to || (!!created && created <= filters.to))
+      && (status === 'ALL' || (publication?.status ?? 'UNLISTED') === status);
+  }), [allRows, filters, status]);
 
   const selected = data?.catalog.models.find(model => model.id === selectedId) ?? null;
+  const selectedRows = rows.filter(row => selectedIds.has(row.model.id));
+  const allSelected = rows.length > 0 && rows.every(row => selectedIds.has(row.model.id));
+  const canPublish = data?.permissions?.includes('product.publish') ?? false;
+  const publishable = selectedRows.filter(row => row.publication?.status === 'IN_REVIEW');
+  const withdrawable = selectedRows.filter(row => row.publication?.status === 'PUBLISHED');
 
   function selectModel(id: string) {
     setSelectedId(id);
     window.history.replaceState({}, '', `/admin/ecommerce/products?modelId=${encodeURIComponent(id)}`);
   }
 
-  if (state === 'loading') return <section className="av-card av-commerce-load-state" role="status"><strong>正在读取商城商品资料…</strong><p>正在合并产品中心、商城价格、库存台账和发布审核数据。</p></section>;
+  function toggle(id: string) {
+    setSelectedIds(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelectedIds(current => {
+      const next = new Set(current);
+      for (const row of rows) {
+        if (allSelected) next.delete(row.model.id); else next.add(row.model.id);
+      }
+      return next;
+    });
+  }
+
+  function applyFilters(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFilters(draft);
+    setSelectedIds(new Set());
+  }
+
+  function resetFilters() {
+    setFilters(emptyFilters); setDraft(emptyFilters); setStatus('ALL'); setSelectedIds(new Set());
+  }
+
+  async function batch(action: 'PUBLISH' | 'WITHDRAW') {
+    if (busy || !canPublish) return;
+    const targets = action === 'PUBLISH' ? publishable : withdrawable;
+    if (!targets.length) return;
+    const prompt = action === 'PUBLISH'
+      ? `确认已核验车型、图片及三语标题，审核并公开发布 ${targets.length} 个待审核商品？其他状态的已选商品将跳过。`
+      : `确认从公开目录撤回 ${targets.length} 个已上架商品？其他状态的已选商品将跳过。`;
+    if (!window.confirm(prompt)) return;
+    setBusy(true); setFeedback(''); setFailures([]);
+    const failed: string[] = [];
+    let succeeded = 0;
+    for (const row of targets) {
+      try {
+        await transitionPublication(row.model.id, action, row.publication!.version);
+        succeeded++;
+      } catch (reason) {
+        failed.push(`${row.model.code}：${reason instanceof Error ? reason.message : '操作失败'}`);
+      }
+    }
+    await load();
+    setFeedback(`已${action === 'PUBLISH' ? '审核上架' : '下架'} ${succeeded} 个商品${failed.length ? `，失败 ${failed.length} 个` : ''}。`);
+    setFailures(failed);
+    setBusy(false);
+  }
+
+  if (state === 'loading') return <section className="av-card av-commerce-load-state" role="status"><strong>正在读取商城商品资料…</strong></section>;
   if (state === 'error') return <section className="av-card av-commerce-load-state" role="alert"><strong>商城商品资料暂不可用</strong><p>{error}。读取失败不代表没有商品或库存。</p><button className="av-btn" type="button" onClick={() => void load()}>重新读取</button></section>;
   if (!data) return null;
 
   return <div className="av-ecommerce-products">
-    <section className="av-card av-ecommerce-list-card" aria-label="商城商品列表">
-      <div className="av-cardhead"><div><p className="av-eyebrow">PRODUCT CATALOGUE · STOREFRONT</p><h2 className="av-cardtitle">商城商品列表</h2><p className="av-cardhint">商品主数据来自产品研发；价格、库存和发布状态分别来自各自业务域。</p></div><div className="av-pageactions"><button className="av-btn" type="button" onClick={() => void load()}>刷新</button><a className="av-btn" data-variant="primary" href="/admin/product?type=BIKE#vehicle-models">从产品中心新增</a></div></div>
-      <div className="av-toolbar av-ecommerce-filterbar"><input className="av-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索商品名称、车型编码、商品编码或 SKU" type="search" /><select className="av-search av-ecommerce-select" value={type} onChange={event => setType(event.target.value)}><option value="ALL">全部商品类型</option><option value="BIKE">整车</option><option value="ACCESSORY">零配件</option><option value="SERVICE_PART">服务件</option></select><select className="av-search av-ecommerce-select" value={status} onChange={event => setStatus(event.target.value)}><option value="ALL">全部销售状态</option><option value="UNLISTED">未建立发布记录</option><option value="DRAFT">草稿</option><option value="IN_REVIEW">待审核</option><option value="PUBLISHED">已上架</option><option value="WITHDRAWN">已下架</option></select><select className="av-search av-ecommerce-select" value={market} onChange={event => setMarket(event.target.value)}><option value="ALL">全部市场</option><option value="DE">DE</option><option value="AT">AT</option></select></div>
-      <div className="av-ecommerce-list-meta">真实产品 {data.catalog.models.length} 条 · 当前显示 {rows.length} 条</div>
-      <div className="av-tablewrap"><table className="av-table av-ecommerce-product-table"><thead><tr><th>商品</th><th>产品类型</th><th>SKU</th><th>销售市场 / 价格</th><th>可用库存</th><th>销售状态</th><th>最近更新</th><th>操作</th></tr></thead><tbody>{rows.map(model => <ProductRow key={model.id} model={model} data={data} onSelect={selectModel} selected={model.id === selectedId} />)}</tbody></table></div>
-      {!rows.length ? <p className="av-empty-state">没有匹配的商品。筛选结果为零不代表真实商品数量为零。</p> : null}
+    <header className={styles.header}>
+      <h1>商城商品列表</h1>
+      <div className={styles.actions}>
+        <button className="av-btn" type="button" onClick={() => void load()} disabled={busy}>刷新</button>
+        <a className="av-btn" data-variant="primary" href="/admin/product?type=BIKE#vehicle-models">从产品中心新增</a>
+      </div>
+    </header>
+    {feedback ? <p className="av-card av-inline-notice" role="status">{feedback}</p> : null}
+    {failures.length ? <div className="av-card av-inline-alert" role="alert">{failures.map(item => <div key={item}>{item}</div>)}</div> : null}
+
+    <section className={styles.list} aria-label="商城商品列表">
+      <nav className={styles.tabs} aria-label="按商品状态筛选">
+        {['ALL', 'PUBLISHED', 'WITHDRAWN', 'IN_REVIEW', 'DRAFT', 'UNLISTED'].map(key => <button key={key} type="button" className={styles.tab} aria-pressed={status === key} onClick={() => { setStatus(key); setSelectedIds(new Set()); }}>{key === 'ALL' ? '全部' : publicationLabel[key]} <strong>{statusCounts[key] ?? 0}</strong></button>)}
+      </nav>
+      <form className={styles.filters} onSubmit={applyFilters}>
+        <label>商品ID<input className="av-search" value={draft.id} onChange={event => setDraft({ ...draft, id: event.target.value })} placeholder="输入商品 ID" /></label>
+        <label>商品编码<input className="av-search" value={draft.code} onChange={event => setDraft({ ...draft, code: event.target.value })} placeholder="输入商品编码" /></label>
+        <label>SKU 编码<input className="av-search" value={draft.sku} onChange={event => setDraft({ ...draft, sku: event.target.value })} placeholder="输入 SKU 编码" /></label>
+        <label>商品名称<input className="av-search" value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} placeholder="输入商品名称" /></label>
+        <label>创建时间从<input className="av-search" type="date" value={draft.from} onChange={event => setDraft({ ...draft, from: event.target.value })} /></label>
+        <label>创建时间至<input className="av-search" type="date" value={draft.to} onChange={event => setDraft({ ...draft, to: event.target.value })} /></label>
+        <div className={styles.filterActions}><button className="av-btn" data-variant="primary" type="submit">查询</button><button className="av-btn" type="button" onClick={resetFilters}>重置</button><button className="av-btn" type="button" aria-expanded={showAdvanced} onClick={() => setShowAdvanced(value => !value)}>{showAdvanced ? '收起筛选' : '更多筛选'}</button></div>
+        {showAdvanced ? <>
+        <label>商品类型<select className="av-search" value={draft.type} onChange={event => setDraft({ ...draft, type: event.target.value })}><option value="ALL">全部类型</option><option value="BIKE">整车</option><option value="ACCESSORY">零配件</option><option value="SERVICE_PART">服务件</option></select></label>
+        <label>销售市场<select className="av-search" value={draft.market} onChange={event => setDraft({ ...draft, market: event.target.value })}><option value="ALL">全部市场</option><option value="DE">德国 DE</option><option value="AT">奥地利 AT</option></select></label>
+        <label>技术平台<select className="av-search" value={draft.platform} onChange={event => setDraft({ ...draft, platform: event.target.value })}><option value="ALL">全部平台</option>{data.catalog.platforms.map(platform => <option key={platform.id} value={platform.id}>{platform.name || platform.code}</option>)}</select></label>
+        <label>库存台账<select className="av-search" value={draft.stock} onChange={event => setDraft({ ...draft, stock: event.target.value })}><option value="ALL">全部库存</option><option value="AVAILABLE">台账有可用量</option><option value="EMPTY">台账无可用量</option><option value="MISSING">无库存记录</option></select></label>
+        </> : null}
+      </form>
+
+      <div className={styles.toolbar}>
+        <span>已选 {selectedRows.length} 条</span>
+        <button className="av-btn" type="button" onClick={() => void batch('PUBLISH')} disabled={busy || !canPublish || !publishable.length} title={!canPublish ? '需要商品发布权限' : '仅处理已选的待审核商品'}>批量审核并上架</button>
+        <button className="av-btn" type="button" onClick={() => void batch('WITHDRAW')} disabled={busy || !canPublish || !withdrawable.length} title={!canPublish ? '需要商品发布权限' : '仅处理已选的已上架商品'}>批量下架</button>
+        <span className={styles.count}>显示 {rows.length} / {allRows.length} 条</span>
+      </div>
+      {data.permissions === null ? <p className={styles.hint}>发布权限暂无法确认，批量操作已停用。</p> : null}
+      {data.summary.prices.length >= 500 ? <p className={styles.hint}>价格接口最多返回最近 500 条价格版本。</p> : null}
+      <div className={`av-tablewrap ${styles.tableWrap}`}>
+        <table className={`av-table ${styles.table}`}>
+          <thead><tr><th><input type="checkbox" aria-label="选择当前全部商品" checked={allSelected} onChange={toggleAll} disabled={!rows.length || busy} /></th><th>商品信息</th><th>类型 / 技术平台</th><th>SKU</th><th>市场 / 启用价格</th><th>库存台账可用</th><th>发布状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody>{rows.length ? rows.map(row => <ProductRow key={row.model.id} row={row} market={filters.market} onSelect={selectModel} chosen={row.model.id === selectedId} checked={selectedIds.has(row.model.id)} toggle={toggle} busy={busy} />) : <tr><td colSpan={9} className={styles.empty}>没有符合筛选条件的商品</td></tr>}</tbody>
+        </table>
+      </div>
     </section>
-    {selected ? <ProductConfiguration model={selected} data={data} /> : <section className="av-card av-ecommerce-detail-empty"><strong>选择商品查看配置工作区</strong><p>点击列表中的商品名称或“配置”后，在当前页面展开商城展示、SKU、区域价格、库存和发布审核信息。</p></section>}
+    {selected ? <ProductConfiguration model={selected} data={data} onChange={load} /> : null}
   </div>;
 }
 
-function ProductRow({ model, data, onSelect, selected }: { model: Model; data: ProductData; onSelect: (id: string) => void; selected: boolean }) {
-  const publication = data.publications.find(item => item.model_id === model.id);
-  const variants = data.catalog.variants.filter(item => item.model_id === model.id);
-  const skus = data.catalog.skus.filter(item => variants.some(variant => variant.id === item.variant_id));
-  const prices = data.summary.prices.filter(item => skus.some(sku => sku.id === item.skuId));
-  const stock = data.inventory.filter(item => item.item_kind === 'SKU' && skus.some(sku => sku.id === item.sku_id));
-  const available = stock.reduce((total, item) => total + Number(item.available || 0), 0);
+function ProductRow({ row, market, onSelect, chosen, checked, toggle, busy }: { row: ProductRowData; market: string; onSelect: (id: string) => void; chosen: boolean; checked: boolean; toggle: (id: string) => void; busy: boolean }) {
+  const { model, publication, skus, stock, platform } = row;
+  const prices = market === 'ALL' ? row.prices : row.prices.filter(price => price.marketCountry === market);
+  const available = stockTotal(stock);
   const href = `/admin/ecommerce/products?modelId=${encodeURIComponent(model.id)}`;
-  return <tr data-selected={selected}>
-    <td><a className="av-ecommerce-product-link" href={href} onClick={() => onSelect(model.id)}><strong>{publication?.title_zh || model.name || model.code}</strong><span>{model.code} · {model.id}</span></a></td>
-    <td>{productTypeLabel[model.product_type_code] ?? model.product_type_code}</td>
-    <td>{skus.length}<span className="av-table-subtext">{skus.slice(0, 2).map(item => item.sku).join('、') || '尚未建立 SKU'}</span></td>
-    <td>{prices.length ? prices.slice(0, 3).map(price => <span className="av-table-subtext" key={price.id}>{price.marketCountry} · {money(price.unitPriceGross, price.currency)}</span>) : <span className="av-table-subtext">未配置市场价格</span>}</td>
-    <td>{stock.length ? available.toLocaleString('zh-CN') : '未接入'}<span className="av-table-subtext">{stock.length ? '台账可用量' : '无库存记录'}</span></td>
-    <td><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : publication?.status === 'IN_REVIEW' ? 'warn' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : '未建立发布记录'}</span></td>
-    <td>{date(model.updated_at)}</td>
-    <td><button className="av-btn" type="button" onClick={() => onSelect(model.id)}>配置</button></td>
+  const image = publication?.image_path?.startsWith('/') && !publication.image_path.startsWith('//') ? publication.image_path : '';
+  return <tr data-selected={chosen}>
+    <td><input type="checkbox" aria-label={`选择 ${model.code}`} checked={checked} onChange={() => toggle(model.id)} disabled={busy} /></td>
+    <td><div className={styles.product}>
+      <div className={styles.image}><span>暂无图片</span>{image ? <img src={image} alt="" onError={event => { event.currentTarget.hidden = true; }} /> : null}</div>
+      <a href={href} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onSelect(model.id); } }}><strong>{publication?.title_zh || model.name || model.code}</strong><span>商品编码：{model.code}</span><span>商品 ID：{model.id}</span></a>
+    </div></td>
+    <td>{productTypeLabel[model.product_type_code] ?? model.product_type_code}<span className="av-table-subtext">{platform?.name || platform?.code || '未关联技术平台'}</span></td>
+    <td>{skus.length} 个<span className="av-table-subtext">{skus.slice(0, 2).map(item => item.sku).join('、') || '尚未建立 SKU'}{skus.length > 2 ? ` 等 ${skus.length} 个` : ''}</span></td>
+    <td>{prices.length ? prices.slice(0, 3).map(price => <span className="av-table-subtext" key={price.id}>{price.marketCountry} · {price.sku} · {money(price.unitPriceGross, price.currency)}</span>) : <span className="av-table-subtext">未发现启用价格</span>}{prices.length > 3 ? <span className="av-table-subtext">另有 {prices.length - 3} 条</span> : null}</td>
+    <td>{!stock.length ? '无库存记录' : available === null ? '数据异常' : available.toLocaleString('zh-CN')}<span className="av-table-subtext">{stock.length ? '仓库台账' : '—'}</span></td>
+    <td><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : publication?.status === 'IN_REVIEW' ? 'warn' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : publicationLabel.UNLISTED}</span></td>
+    <td>{date(model.created_at)}<span className="av-table-subtext">更新 {date(model.updated_at)}</span></td>
+    <td><div className={styles.rowActions}><button type="button" onClick={() => onSelect(model.id)}>配置</button><a href={`/admin/ecommerce/pricing?skuId=${encodeURIComponent(skus[0]?.id ?? '')}`}>价格管理</a></div></td>
   </tr>;
 }
 
-function ProductConfiguration({ model, data }: { model: Model; data: ProductData }) {
+function ProductConfiguration({ model, data, onChange }: { model: Model; data: ProductData; onChange: () => Promise<void> }) {
   const publication = data.publications.find(item => item.model_id === model.id);
   const variants = data.catalog.variants.filter(item => item.model_id === model.id);
   const skus = data.catalog.skus.filter(item => variants.some(variant => variant.id === item.variant_id));
@@ -136,7 +315,7 @@ function ProductConfiguration({ model, data }: { model: Model; data: ProductData
   return <section className="av-card av-ecommerce-config" aria-label={`${model.code} 商品配置工作区`}>
     <div className="av-cardhead"><div><p className="av-eyebrow">商品配置工作区 · {model.code}</p><h2 className="av-cardtitle">{publication?.title_zh || model.name}</h2><p className="av-cardhint">{model.code} · {productTypeLabel[model.product_type_code] ?? model.product_type_code} · {platform?.name || platform?.code || '未关联技术平台'}</p></div><div className="av-pageactions"><a className="av-btn" href="/admin/ecommerce/publications">发布与审核</a><a className="av-btn" href={`/admin/ecommerce/pricing?skuId=${encodeURIComponent(skus[0]?.id ?? '')}`}>价格管理</a><a className="av-btn" href="/admin/ecommerce/inventory">库存查询</a></div></div>
     <div className="av-ecommerce-config-grid">
-      <ConfigSection number="01" title="商城展示信息" hint="商品标题、素材和审核动作直接复用现有商品发布流程。"><dl className="av-ecommerce-facts"><div><dt>中文展示名称</dt><dd>{publication?.title_zh || '尚未建立发布记录'}</dd></div><div><dt>德语 / 英文标题</dt><dd>{publication ? `${publication.title_de || '未填写'} / ${publication.title_en || '未填写'}` : '—'}</dd></div><div><dt>主图</dt><dd>{publication?.image_path || '未核对素材'}</dd></div><div><dt>发布状态</dt><dd><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : '未建立发布记录'}</span></dd></div></dl><div className="av-ecommerce-embedded-publication"><CatalogPublicationPanel models={[model]} /></div></ConfigSection>
+      <ConfigSection number="01" title="商城展示信息" hint="商品标题、素材和审核动作直接复用现有商品发布流程。"><dl className="av-ecommerce-facts"><div><dt>中文展示名称</dt><dd>{publication?.title_zh || '尚未建立发布记录'}</dd></div><div><dt>德语 / 英文标题</dt><dd>{publication ? `${publication.title_de || '未填写'} / ${publication.title_en || '未填写'}` : '—'}</dd></div><div><dt>主图</dt><dd>{publication?.image_path || '未核对素材'}</dd></div><div><dt>发布状态</dt><dd><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : '未建立发布记录'}</span></dd></div></dl><div className="av-ecommerce-embedded-publication"><CatalogPublicationPanel models={[model]} onChange={onChange} /></div></ConfigSection>
       <ConfigSection number="02" title="产品与 SKU" hint="车型、技术参数和正式 SKU 只读自产品研发。"><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>名称</th><th>Variant</th><th>市场 / 颜色 / 尺寸</th></tr></thead><tbody>{skus.map(sku => <tr key={sku.id}><td><strong>{sku.sku}</strong></td><td>{sku.name}</td><td>{variants.find(variant => variant.id === sku.variant_id)?.code || '—'}</td><td>{[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '—'}</td></tr>)}</tbody></table></div>{!skus.length ? <p className="av-cardhint">该商品尚未建立 SKU。</p> : null}</ConfigSection>
       <ConfigSection number="03" title="区域与价格" hint="每个国家市场独立读取价格版本，不跨市场覆盖。"><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>市场</th><th>商城售价</th><th>状态</th><th>生效时间</th></tr></thead><tbody>{prices.map(price => <tr key={price.id}><td>{price.sku}</td><td>{price.marketCountry}</td><td>{money(price.unitPriceGross, price.currency)}</td><td>{price.status}</td><td>{date(price.effectiveFrom)}</td></tr>)}</tbody></table></div>{!prices.length ? <p className="av-cardhint">尚未配置商城价格。</p> : null}</ConfigSection>
       <ConfigSection number="04" title="库存与销售状态" hint="库存只读自库存台账；商城不直接修改仓库实物库存。"><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>仓库 / 库位</th><th>现存</th><th>已预留</th><th>台账可用</th></tr></thead><tbody>{stock.map((item, index) => <tr key={`${item.sku_id}-${item.warehouse_code}-${item.location_code}-${index}`}><td>{item.sku || item.sku_name || '—'}</td><td>{item.warehouse_name || item.warehouse_code} / {item.location_code}</td><td>{item.on_hand}</td><td>{item.reserved}</td><td>{item.available}</td></tr>)}</tbody></table></div>{!stock.length ? <p className="av-cardhint">当前没有匹配的 SKU 库存记录；这不等于商城缺货。</p> : null}<p className="av-cardhint">正式商城可售量还需要 ATP、市场和履约规则，当前不在此处推断。</p></ConfigSection>
