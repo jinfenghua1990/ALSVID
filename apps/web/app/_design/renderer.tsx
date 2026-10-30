@@ -47,7 +47,6 @@ const scopedMenus: Readonly<Record<string, readonly { group: string; items: stri
   '电商': [
     { group: '电商工作台', items: ['电商工作台'] },
     { group: '商品管理', items: ['商城商品列表', '首页商品编排', '商城装修', '商品分类'] },
-    { group: '价格管理', items: ['商城价格管理'] },
     { group: '订单与库存', items: ['B2C 订单管理', '电商库存查询'] },
     { group: '后续能力', items: ['营销运营（后续开发）', '支付配置（后续开发）'] },
   ],
