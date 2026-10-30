@@ -11,6 +11,7 @@ on:
       - 'scripts/dealer-browser-smoke.mjs'
       - 'scripts/storefront-builder-browser-smoke.mjs'
       - 'scripts/ecommerce-orders-browser-smoke.mjs'
+      - 'scripts/ecommerce-products-browser-smoke.mjs'
       - 'scripts/shop-preview-browser-smoke.mjs'
       - 'scripts/commerce-lab-postgres-browser-smoke.mjs'
       - 'scripts/commerce-lab-pagination-browser-smoke.mjs'
@@ -63,6 +64,7 @@ jobs:
           node scripts/new-products-browser-smoke.mjs
           node scripts/storefront-builder-browser-smoke.mjs
           node scripts/ecommerce-orders-browser-smoke.mjs
+          node scripts/ecommerce-products-browser-smoke.mjs
           node scripts/shop-preview-browser-smoke.mjs
           # The retired /admin/commerce-lab/catalog UI is no longer reachable.
           # The current editor is checked by storefront-builder-browser-smoke.

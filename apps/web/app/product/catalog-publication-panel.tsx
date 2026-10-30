@@ -25,7 +25,7 @@ const statuses:Record<Publication['status'],string>={
  DRAFT:'草稿',IN_REVIEW:'待审核',PUBLISHED:'已公开发布',WITHDRAWN:'已撤回',
 };
 
-export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
+export function CatalogPublicationPanel({models,onChange}:{models:readonly Model[];onChange?:()=>void|Promise<void>}){
   const [rows,setRows]=useState<Publication[]>([]);
   const [allowed,setAllowed]=useState<string[]>([]);
   const [loading,setLoading]=useState(true);
@@ -51,6 +51,7 @@ export function CatalogPublicationPanel({models}:{models:readonly Model[]}){
       await action();
       setMessage('操作已保存并记录审核日志；公开目录只展示正式发布的商品。');
       await refresh();
+      await onChange?.();
     }catch(e){
       setError(e instanceof Error?e.message:'保存失败，请刷新后重试');
     }finally{setBusy('');}
