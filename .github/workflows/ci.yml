@@ -110,6 +110,8 @@ jobs:
         if: steps.scope.outputs.docs_only != 'true'
       - run: pnpm test
         if: steps.scope.outputs.docs_only != 'true'
+        env:
+          ALSVID_LAYOUT_TEST_ISOLATED: '1'
       - run: pnpm build
         if: steps.scope.outputs.docs_only != 'true'
 

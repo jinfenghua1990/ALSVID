@@ -23,6 +23,8 @@ const auth = createServer((request, response) => {
         permissions: [],
       },
     }));
+  } else if (request.url === '/api/v1/commerce/storefront/layout-draft' && request.headers.authorization === 'Bearer storefront-builder-ci') {
+    response.end(JSON.stringify({ data: null }));
   } else {
     response.statusCode = 401;
     response.end('{}');
@@ -55,6 +57,9 @@ try {
   }]);
 
   await page.goto(base + '/admin/ecommerce/page-builder');
+  await page.getByRole('heading', { name: '商城装修记录' }).waitFor({ timeout: 30000 });
+  await page.getByRole('link', { name: '新建首页装修' }).click();
+  await page.waitForURL(/\/page-builder\/edit/);
   await page.getByRole('heading', { name: '商城首页装修' }).waitFor({ timeout: 30000 });
   await page.getByRole('button', { name: '导出装修方案' }).waitFor();
   await page.getByRole('button', { name: '桌面端' }).waitFor();

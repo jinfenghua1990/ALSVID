@@ -1,4 +1,4 @@
-import StorefrontBuilderClient from './storefront-builder-client';
+import StorefrontDraftList from './storefront-draft-list';
 import AdminScreen from '../../../_design/renderer';
 import type { Screen } from '../../../_design';
 
@@ -15,5 +15,5 @@ const screen: Screen = {
 };
 
 export default function StorefrontPageBuilderPage() {
-  return <AdminScreen screen={screen}><StorefrontBuilderClient /></AdminScreen>;
+  return <AdminScreen screen={screen}><StorefrontDraftList /></AdminScreen>;
 }

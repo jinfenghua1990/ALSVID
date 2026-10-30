@@ -8,6 +8,16 @@ async function proxy(request: Request, context: RouteContext): Promise<NextRespo
   const sourceUrl = new URL(request.url);
   const targetPath = `/${path.map(encodeURIComponent).join('/')}${sourceUrl.search}`;
   const method = request.method;
+  if (method === 'PUT' && path.join('/') === 'v1/commerce/storefront/layout-draft') {
+    const origin = request.headers.get('origin');
+    try {
+      if (!origin || new URL(origin).host !== sourceUrl.host) {
+        return NextResponse.json({ message: 'Origin rejected' }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ message: 'Origin rejected' }, { status: 403 });
+    }
+  }
   const init: RequestInit = { method };
   if (method !== 'GET' && method !== 'HEAD') {
     init.body = await request.text();
