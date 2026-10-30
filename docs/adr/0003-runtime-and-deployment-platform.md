@@ -44,6 +44,10 @@ environment file, or a database kept on a workstation can each become permanent 
    depend on ports, never vendor SDKs. AI output is assistance rather than authoritative business truth.
 10. **Shopify or another external OMS remains external.** ALSVID does not own storefront order,
     payment, split-order, warehouse allocation or fulfillment orchestration.
+11. **Public product pages share one Web runtime.** Product/model pages are routes and content in the
+    Next.js Web application deployed as Cloud Run Service `alsvid-web`; they are not separate runtime
+    services. Shared application APIs use `alsvid-api`. A per-product Cloud Run service requires a
+    new owner-approved ADR and a demonstrated operational need.
 
 Selecting a provider in this ADR records architecture intent; it does not assert that the provider's
 live account resources have already been provisioned. Live Neon, R2 and Google Cloud resources require
