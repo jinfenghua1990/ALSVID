@@ -15,8 +15,9 @@
 # Checks:
 #   1. Cloud Run service alsvid-api exists and /api/health responds
 #   2. Cloud Run service alsvid-web exists
-#   3. Migration job alsvid-migrate exists; show latest executions
-#   4. Release SHA match (optional, --release-sha)
+#   3. Warn about unmanaged per-product Cloud Run services
+#   4. Migration job alsvid-migrate exists; show latest executions
+#   5. Release SHA match (optional, --release-sha)
 #
 # Exit code: 0 when no FAIL, 1 otherwise.
 #
@@ -88,7 +89,21 @@ else
   fail "$WEB_SERVICE not found in $REGION"
 fi
 
-# --- 3. Migration job ---
+# --- 3. Unmanaged per-product services ---
+echo "== Product-specific Cloud Run services =="
+if SERVICE_LIST="$(gcloud run services list --project="$PROJECT_ID" --region="$REGION" --format='value(metadata.name)' 2>/dev/null)"; then
+  for LEGACY_SERVICE in alsvid-fc1 alsvid-pilot-x5; do
+    if grep -Fxq "$LEGACY_SERVICE" <<< "$SERVICE_LIST"; then
+      warn "$LEGACY_SERVICE exists but is not managed by the current deployment workflows; check domain mappings, traffic tags and external integrations before deleting"
+    else
+      pass "$LEGACY_SERVICE is absent"
+    fi
+  done
+else
+  warn "could not list Cloud Run services; skipped product-specific service check"
+fi
+
+# --- 4. Migration job ---
 echo "== Migration job =="
 if gcloud run jobs describe "$MIGRATION_JOB" --project="$PROJECT_ID" --region="$REGION" >/dev/null 2>&1; then
   pass "$MIGRATION_JOB exists"
@@ -100,7 +115,7 @@ else
   warn "$MIGRATION_JOB not found (may have been cleaned up)"
 fi
 
-# --- 4. Release SHA (optional) ---
+# --- 5. Release SHA (optional) ---
 if [[ -n "$RELEASE_SHA" ]]; then
   echo "== Release SHA =="
   DEPLOYED_SHA="$(gcloud run services describe "$API_SERVICE" --project="$PROJECT_ID" --region="$REGION" \
