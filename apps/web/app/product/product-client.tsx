@@ -92,8 +92,8 @@ function TechnicalSpecEditor({
   onChange: (moduleCode: string, fieldCode: string, value: string | number | boolean | string[]) => void;
   onSave: (status?: 'ACTIVE') => void; onClose: () => void; inline?: boolean;
 }) {
-  const [open, setOpen] = useState<Set<string>>(() => new Set(['basic']));
-  const toggleAll = (value: boolean) => setOpen(value ? new Set(technicalSpecModules.map(module => module.code)) : new Set());
+  const [activeModuleCode, setActiveModuleCode] = useState(technicalSpecModules[0]?.code ?? 'basic');
+  const activeModule = technicalSpecModules.find(module => module.code === activeModuleCode) ?? technicalSpecModules[0]!;
   const setPart = (partId: string, checked: boolean) => {
     const current = Array.isArray(specs.bomMapping?.partIds) ? specs.bomMapping.partIds : [];
     onChange('bomMapping', 'partIds', checked ? [...current, partId] : current.filter(item => item !== partId));
@@ -105,35 +105,35 @@ function TechnicalSpecEditor({
           <p>{model.name} · {model.code} · {platform?.name ?? '未关联平台'}</p></div>
         <div className={styles.specEditorMeta}><span className={styles.archiveStatus} data-status={model.status}>{statusLabel(model.status)}</span><span>版本 {model.version}</span></div>
       </header>
-      <div className={styles.specEditorToolbar}><span>型号技术规格</span><span className={styles.specToolbarHint}>草稿允许不完整；启用时校验基本信息</span>
-        <div><button type="button" className={styles.archiveSecondaryButton} onClick={() => toggleAll(true)}>全部展开</button><button type="button" className={styles.archiveSecondaryButton} onClick={() => toggleAll(false)}>全部收起</button></div>
+      <div className={styles.specEditorToolbar}>
+        <label className={styles.specSelector}>参数类别
+          <select aria-label="选择技术参数类别" value={activeModule.code} onChange={event=>setActiveModuleCode(event.target.value)}>
+            {technicalSpecModules.map(module=><option key={module.code} value={module.code}>{module.title} · {technicalSpecProgress(specs,module).filled}/{technicalSpecProgress(specs,module).total}</option>)}
+          </select>
+        </label>
+        <span className={styles.specToolbarHint}>直接在表格填写并保存，切换类别不会丢失当前输入。</span>
       </div>
-      <div className={styles.specModules}>
-        {technicalSpecModules.map(module => {
-          const progress = technicalSpecProgress(specs, module);
-          const summary = module.summaryFields.map(field => technicalSpecValue(specs, module.code, field)).filter(Boolean).join(' · ');
-          const isOpen = open.has(module.code);
-          return <article className={styles.specModule} key={module.code}>
-            <button type="button" className={styles.specModuleHeader} aria-expanded={isOpen} onClick={() => setOpen(current => { const next = new Set(current); if (next.has(module.code)) next.delete(module.code); else next.add(module.code); return next; })}>
-              <span><b>{module.title}</b><small>{summary || '暂无摘要'}</small></span><span className={styles.specProgress}>{progress.filled}/{progress.total} 项 <i aria-hidden="true">{isOpen ? '⌃' : '⌄'}</i></span>
-            </button>
-            {isOpen ? <div className={styles.specModuleBody}>
-              <div className={styles.specFieldGrid}>{module.fields.filter(field => module.code !== 'bomMapping' || !['bomRevisionId', 'partIds'].includes(field.code)).map(field => {
-                const raw = specs[module.code]?.[field.code];
-                const value = Array.isArray(raw) ? raw.join(', ') : raw ?? '';
-                return <label key={field.code}>{field.label}
-                  {field.type === 'boolean' ? <select value={raw === true ? 'true' : raw === false ? 'false' : ''} onChange={event => onChange(module.code, field.code, event.target.value === '' ? '' : event.target.value === 'true')}><option value="">未填写</option><option value="true">是</option><option value="false">否</option></select>
-                    : field.type === 'select' ? <select value={String(value)} onChange={event => onChange(module.code, field.code, event.target.value)}><option value="">请选择</option>{field.options?.map(option => <option key={option} value={option}>{option}</option>)}</select>
-                    : <input type={field.type === 'number' ? 'number' : 'text'} step={field.type === 'number' ? 'any' : undefined} value={String(value)} placeholder={field.placeholder} onChange={event => onChange(module.code, field.code, field.type === 'number' ? (event.target.value === '' ? '' : Number(event.target.value)) : event.target.value)} />}
-                </label>;
-              })}</div>
-              {module.code === 'bomMapping' ? <div className={styles.specReferences}>
-                <label>BOM Revision<select value={String(specs.bomMapping?.bomRevisionId ?? '')} onChange={event => onChange('bomMapping', 'bomRevisionId', event.target.value)}><option value="">未关联</option>{engineering.boms.filter(row => row.revision_id).map(row => <option key={row.revision_id!} value={row.revision_id!}>{row.code} / {row.revision_code} · {statusLabel(row.revision_status)}</option>)}</select></label>
-                <fieldset><legend>关键零件引用（来自现有零件档案）</legend><div className={styles.specPartList}>{engineering.parts.map(part => <label key={part.id}><input type="checkbox" checked={Array.isArray(specs.bomMapping?.partIds) && specs.bomMapping.partIds.includes(part.id)} onChange={event => setPart(part.id, event.target.checked)} />{part.part_number} · {part.name}</label>)}{!engineering.parts.length ? <small>当前没有可引用零件；不会在此重复创建。</small> : null}</div></fieldset>
-              </div> : null}
-            </div> : null}
-          </article>;
-        })}
+      <div className={styles.specSheetWrap}>
+        <table className={styles.specSheet} aria-label="车辆型号技术参数编辑表">
+          <thead><tr><th scope="col">参数字段</th><th scope="col">参数值</th></tr></thead>
+          <tbody>
+            {activeModule.fields.filter(field=>activeModule.code!=='bomMapping'||!['bomRevisionId','partIds'].includes(field.code)).map(field=>{
+              const raw=specs[activeModule.code]?.[field.code];
+              const value=Array.isArray(raw)?raw.join(', '):raw??'';
+              return <tr key={field.code}><th scope="row">{field.label}</th><td>
+                {field.type==='boolean'
+                  ?<select aria-label={field.label} value={raw===true?'true':raw===false?'false':''} onChange={event=>onChange(activeModule.code,field.code,event.target.value===''?'':event.target.value==='true')}><option value="">未填写</option><option value="true">是</option><option value="false">否</option></select>
+                  :field.type==='select'
+                    ?<select aria-label={field.label} value={String(value)} onChange={event=>onChange(activeModule.code,field.code,event.target.value)}><option value="">请选择</option>{field.options?.map(option=><option key={option} value={option}>{option}</option>)}</select>
+                    :<input aria-label={field.label} type={field.type==='number'?'number':'text'} step={field.type==='number'?'any':undefined} value={String(value)} placeholder={field.placeholder} onChange={event=>onChange(activeModule.code,field.code,field.type==='number'?(event.target.value===''?'':Number(event.target.value)):event.target.value)}/>}
+              </td></tr>;
+            })}
+            {activeModule.code==='bomMapping'?<>
+              <tr><th scope="row">BOM Revision</th><td><select aria-label="BOM Revision" value={String(specs.bomMapping?.bomRevisionId??'')} onChange={event=>onChange('bomMapping','bomRevisionId',event.target.value)}><option value="">未关联</option>{engineering.boms.filter(row=>row.revision_id).map(row=><option key={row.revision_id!} value={row.revision_id!}>{row.code} / {row.revision_code} · {statusLabel(row.revision_status)}</option>)}</select></td></tr>
+              <tr><th scope="row">关键零件引用</th><td><div className={styles.specPartList}>{engineering.parts.map(part=><label key={part.id}><input type="checkbox" checked={Array.isArray(specs.bomMapping?.partIds)&&specs.bomMapping.partIds.includes(part.id)} onChange={event=>setPart(part.id,event.target.checked)}/>{part.part_number} · {part.name}</label>)}{!engineering.parts.length?<small>没有可引用零件；不会重复创建</small>:null}</div></td></tr>
+            </>:null}
+          </tbody>
+        </table>
       </div>
       <footer className={styles.specEditorFooter}><span>规格保存在当前车型记录中；Variant、SKU 和 BOM 仍由各自业务模块维护。</span><div><button type="button" className={styles.archiveSecondaryButton} disabled={saving} onClick={onClose}>返回列表</button><button type="button" className={styles.archiveSecondaryButton} disabled={saving} onClick={() => onSave()}>保存草稿</button><button type="button" className={styles.archivePrimaryButton} disabled={saving} onClick={() => onSave('ACTIVE')}>{saving ? '正在保存…' : '保存并启用'}</button></div></footer>
     </section>
