@@ -27,13 +27,13 @@ test('service case API tables enforce history and permission invariants',()=>{
  assert.match(sql,/service\.write/);
  assert.match(sql,/service_cases_guard_update/);
 });
-test('canonical after-sales screen uses real internal workflow and preserves Ardot preview',()=>{
+test('canonical after-sales screen uses real internal workflow without obsolete Ardot preview',()=>{
  const integrated=read('./integrated-operations.tsx');
  const renderer=read('./renderer.tsx');
  const ui=read('./service-cases.tsx');
  assert.match(integrated,/case '售后': return <ServiceCaseClient \/>/);
  assert.match(renderer,/<IntegratedOperations area=\{screen\.area\} route=\{screen\.route\} \/>/);
- assert.match(renderer,/av-design-archive/);
+ assert.doesNotMatch(renderer,/av-design-archive/);
  assert.match(ui,/\/v1\/service\/cases/);
  assert.match(ui,/expectedVersion:detail\.case\.version/);
  assert.match(ui,/不自动判定保修/);
