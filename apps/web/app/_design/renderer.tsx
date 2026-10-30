@@ -4,7 +4,7 @@ import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
-import { LiveOperationEntry, AdminLogout } from './live-operations';
+import { AdminLogout } from './live-operations';
 import { AdminGlobalSearch } from './admin-global-search';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { VehicleRecordDetail } from './vehicle-record-detail';
