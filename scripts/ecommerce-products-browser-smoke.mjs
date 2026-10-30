@@ -64,6 +64,7 @@ try {
   await page.goto(base + '/admin/ecommerce/products');
   const list = page.getByRole('region', { name: '商城商品列表' });
   await list.getByText('F8 城市电单车').waitFor({ timeout: 30000 });
+  await page.getByRole('navigation', { name: '工作区标签页' }).getByRole('link', { name: '商城商品列表' }).waitFor();
   assert.equal(await list.locator('table thead th').count(), 9);
   assert.equal(await list.getByRole('button', { name: '待审核 1' }).count(), 1);
   assert.equal(await list.getByRole('button', { name: '已上架 1' }).count(), 1);
@@ -72,7 +73,16 @@ try {
   assert.doesNotMatch(await f8.innerText(), /999.00 EUR/, 'draft price must not appear as active');
   assert.match(await f8.innerText(), /仓库台账/);
   assert.match(await list.innerText(), /无库存记录/);
+  async function assertActionsInView() {
+    const viewport = await list.locator('table').locator('..').boundingBox();
+    const action = await f8.getByRole('button', { name: '配置' }).boundingBox();
+    assert.ok(viewport && action && action.x >= viewport.x && action.x + action.width <= viewport.x + viewport.width + 1, 'product actions remain visible in the table viewport');
+  }
+  await assertActionsInView();
   await page.screenshot({ path: path.join(output, 'ecommerce-products-table.png'), fullPage: true });
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await assertActionsInView();
+  await page.setViewportSize({ width: 1440, height: 1000 });
 
   await list.getByLabel('SKU 编码').fill('F8-BLK');
   await list.getByRole('button', { name: '查询', exact: true }).click();
