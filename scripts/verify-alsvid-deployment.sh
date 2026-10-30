@@ -115,7 +115,7 @@ else
   warn "$MIGRATION_JOB not found (may have been cleaned up)"
 fi
 
-# --- 4. Release SHA (optional) ---
+# --- 5. Release SHA (optional) ---
 if [[ -n "$RELEASE_SHA" ]]; then
   echo "== Release SHA =="
   DEPLOYED_SHA="$(gcloud run services describe "$API_SERVICE" --project="$PROJECT_ID" --region="$REGION" \
