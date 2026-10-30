@@ -14,7 +14,7 @@ type Price = { id: string; skuId: string; sku: string; skuName: string; marketCo
 type Summary = { skus: { id: string; sku: string; name: string; modelCode: string; variantCode: string }[]; prices: Price[]; orders: { id: string; orderNumber: string; status: string; marketCountry: string; totalGrossAmount: string; createdAt: string }[]; orderTotal: number; orderStatusCounts: Record<string, number> };
 type Stock = { item_kind: string; sku_id: string | null; sku: string | null; sku_name: string | null; warehouse_code: string; warehouse_name: string; location_code: string; on_hand: string; reserved: string; available: string; frame_number: string | null };
 type ProductData = { catalog: Catalog; publications: Publication[]; summary: Summary; inventory: Stock[]; permissions: string[] | null };
-type ProductRowData = { model: Model; publication?: Publication; platform?: Platform; skus: Sku[]; prices: Price[]; stock: Stock[] };
+type ProductRowData = { model: Model; publication: Publication | undefined; platform: Platform | undefined; skus: Sku[]; prices: Price[]; stock: Stock[] };
 type Filters = { id: string; code: string; sku: string; name: string; type: string; market: string; platform: string; stock: string; from: string; to: string };
 
 const publicationLabel: Record<string, string> = { UNLISTED: '未建立发布记录', DRAFT: '草稿', IN_REVIEW: '待审核', PUBLISHED: '已上架', WITHDRAWN: '已下架' };
