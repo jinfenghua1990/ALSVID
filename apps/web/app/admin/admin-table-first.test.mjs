@@ -53,3 +53,11 @@ test('admin route renderer avoids obsolete fixture card and simulated VIN detail
   assert.doesNotMatch(renderer, /av-screen-links"/);
   assert.doesNotMatch(renderer, /<Blocks blocks=\{screen\.blocks\} stacked=/);
 });
+
+test('dealer detail facts and status history are record tables', () => {
+  const client = source('../dealers/dealers-client.tsx');
+  assert.match(client, /aria-label="经销商业务档案明细"/);
+  assert.match(client, /aria-label="经销商合作状态历史"/);
+  assert.doesNotMatch(client, /styles\.factGrid/);
+  assert.match(client, /toggle\('salesEnabled'\)/);
+});
