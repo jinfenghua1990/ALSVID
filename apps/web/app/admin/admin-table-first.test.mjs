@@ -34,3 +34,13 @@ test('finance keeps write operations while rendering searchable record tables', 
     assert.ok(client.includes(endpoint), endpoint + ' write contract must remain');
   }
 });
+
+test('warehouse reservations, stocktakes and counted quantities are table records', () => {
+  const client = source('../inventory/inventory-client.tsx');
+  for (const label of ['有效库存预留', '库存盘点记录', '盘点实盘明细']) {
+    assert.ok(client.includes('aria-label="' + label + '"'), label + ' should be a table');
+  }
+  assert.match(client, /\/v1\/inventory\/reservations\/\$\{row\.id\}\/issue/);
+  assert.match(client, /\/v1\/warehouse\/stocktakes\/\$\{selectedStocktake\.id\}\/counts/);
+  assert.doesNotMatch(client, /styles\.stocktakeList/);
+});
