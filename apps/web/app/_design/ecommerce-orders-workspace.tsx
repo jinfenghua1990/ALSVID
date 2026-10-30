@@ -12,7 +12,7 @@ type Factory = { id: string; code: string; name: string };
 type Summary = { checkoutEnabled: false; skus: Sku[]; prices: Price[]; orders: Order[]; factories: Factory[]; orderTotal: number; orderLimit: number; orderStatusCounts: Record<string, number> };
 type Item = { skuId: string; quantity: string };
 
-const statusLabel: Record<string, string> = { DRAFT: '内部草稿', SUBMITTED: '待支付', PAYMENT_PENDING: '支付处理中', PAYMENT_VERIFIED: '已核验付款', FULFILLMENT_PENDING: '待履约', IN_PRODUCTION: '生产中', FULFILLED: '已交付', CANCELLED: '已取消' };
+const statusLabel: Record<string, string> = { DRAFT: '内部草稿', SUBMITTED: '已提交', AWAITING_PAYMENT: '待支付', PAYMENT_PENDING: '支付处理中', PAYMENT_VERIFIED: '已核验付款', FULFILLMENT_PENDING: '待履约', IN_PRODUCTION: '生产中', FULFILLED: '已交付', CLOSED: '已关闭', CANCELLED: '已取消' };
 
 async function storefrontApi<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`/api/control/v1/commerce/storefront/${path}`, { cache: 'no-store', method: body === undefined ? 'GET' : 'POST', ...(body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) });
