@@ -37,8 +37,9 @@ test('all six existing live workspaces share the embedded / legacy frame without
   const renderer = read('_design/renderer.tsx');
   assert.match(renderer, /isIntegratedOverview/);
   assert.match(renderer, /<IntegratedOperations area=\{screen\.area\} route=\{screen\.route\} \/>/);
-  assert.match(renderer, /<details className="av-card av-design-archive">/);
-  assert.match(renderer, /<Blocks blocks=\{screen\.blocks\} stacked \/>/);
+  assert.match(renderer, /<VehicleRecordDetail \/>/);
+  assert.doesNotMatch(renderer, /av-design-archive/);
+  assert.doesNotMatch(renderer, /<Blocks blocks=\{screen\.blocks\} stacked \/>/);
 
   for (const [label, area, component, file] of connected) {
     const source = read(area + '/' + file);
