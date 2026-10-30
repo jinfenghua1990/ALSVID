@@ -67,7 +67,7 @@ try {
   assert.equal(await list.locator('table thead th').count(), 9);
   assert.equal(await list.getByRole('button', { name: '待审核 1' }).count(), 1);
   assert.equal(await list.getByRole('button', { name: '已上架 1' }).count(), 1);
-  const f8 = list.locator('tr').filter({ has: list.getByRole('checkbox', { name: '选择 F8' }) });
+  const f8 = list.getByRole('checkbox', { name: '选择 F8' }).locator('xpath=ancestor::tr');
   assert.match(await f8.innerText(), /1200.00 EUR/);
   assert.doesNotMatch(await f8.innerText(), /999.00 EUR/, 'draft price must not appear as active');
   assert.match(await f8.innerText(), /仓库台账/);
@@ -104,7 +104,7 @@ try {
   await list.getByRole('checkbox', { name: '选择 X9' }).check();
   assert.equal(await list.getByRole('button', { name: '批量下架' }).isDisabled(), true, 'publish permission is required');
 
-  const x9 = list.locator('tr').filter({ has: list.getByRole('checkbox', { name: '选择 X9' }) });
+  const x9 = list.getByRole('checkbox', { name: '选择 X9' }).locator('xpath=ancestor::tr');
   await x9.getByRole('button', { name: '配置' }).click();
   await page.getByRole('region', { name: 'X9 商品配置工作区' }).waitFor();
   assert.deepEqual(errors, [], 'product workspace must not produce browser runtime errors');

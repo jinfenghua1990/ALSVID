@@ -57,6 +57,7 @@ jobs:
             if [[ "$attempt" == "60" ]]; then cat "$RUNNER_TEMP/fc1-next.log"; exit 1; fi
             sleep 2
           done
+          node scripts/ecommerce-products-browser-smoke.mjs
           node scripts/fc1-browser-review.mjs
           node scripts/official-browser-smoke.mjs
           node scripts/dealer-browser-smoke.mjs
@@ -64,7 +65,6 @@ jobs:
           node scripts/new-products-browser-smoke.mjs
           node scripts/storefront-builder-browser-smoke.mjs
           node scripts/ecommerce-orders-browser-smoke.mjs
-          node scripts/ecommerce-products-browser-smoke.mjs
           node scripts/shop-preview-browser-smoke.mjs
           # The retired /admin/commerce-lab/catalog UI is no longer reachable.
           # The current editor is checked by storefront-builder-browser-smoke.
