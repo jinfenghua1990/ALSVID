@@ -56,7 +56,7 @@ try {
     if (id === 'model-x9' && body.action === 'WITHDRAW') return route.fulfill({ status: 409, json: { message: '版本冲突' } });
     const current = publications.find(item => item.model_id === id);
     assert.equal(body.expectedVersion, current.version);
-    current.status = body.action === 'PUBLISH' ? 'PUBLISHED' : 'WITHDRAWN';
+    current.status = body.action === 'PUBLISH' ? 'PUBLISHED' : body.action === 'SUBMIT' ? 'IN_REVIEW' : 'WITHDRAWN';
     current.version++;
     return route.fulfill({ json: { data: current } });
   });
@@ -89,6 +89,30 @@ try {
   await list.getByText('F8 城市电单车').waitFor();
   assert.equal(await list.getByText('X9 零配件').count(), 0);
   await list.getByRole('button', { name: '重置' }).click();
+  await list.getByLabel('商品ID', { exact: true }).fill('model-f8');
+  await list.getByRole('button', { name: '查询', exact: true }).click();
+  assert.equal(await list.getByText('X9 零配件').count(), 0, 'product ID filter');
+  await list.getByRole('button', { name: '重置' }).click();
+  await list.getByLabel('商品编码', { exact: true }).fill('X9');
+  await list.getByRole('button', { name: '查询', exact: true }).click();
+  assert.equal(await list.getByText('F8 城市电单车').count(), 0, 'product code filter');
+  await list.getByRole('button', { name: '重置' }).click();
+  await list.getByLabel('商品名称', { exact: true }).fill('城市');
+  await list.getByRole('button', { name: '查询', exact: true }).click();
+  assert.equal(await list.getByText('X9 零配件').count(), 0, 'publication title filter');
+  await list.getByRole('button', { name: '重置' }).click();
+  await list.getByLabel('创建时间从').fill('2026-10-15');
+  await list.getByLabel('创建时间至').fill('2026-10-25');
+  await list.getByRole('button', { name: '查询', exact: true }).click();
+  assert.equal(await list.getByText('F8 城市电单车').count(), 0, 'creation date range filter');
+  await list.getByText('X9 零配件').waitFor();
+  await list.getByRole('button', { name: '重置' }).click();
+  await list.getByRole('button', { name: '更多筛选' }).click();
+  await list.getByLabel('销售市场').selectOption('DE');
+  await list.getByLabel('库存台账').selectOption('AVAILABLE');
+  await list.getByRole('button', { name: '查询', exact: true }).click();
+  assert.equal(await list.getByText('X9 零配件').count(), 0, 'market and inventory filters');
+  await list.getByRole('button', { name: '重置' }).click();
   await list.getByRole('button', { name: '待审核 1' }).click();
   assert.equal(await list.getByRole('checkbox', { name: '选择 X9' }).count(), 0);
   await list.getByRole('button', { name: '全部 2' }).click();
@@ -107,6 +131,12 @@ try {
     { id: 'model-f8', action: 'WITHDRAW', expectedVersion: 2 },
     { id: 'model-x9', action: 'WITHDRAW', expectedVersion: 1 },
   ], 'batch reports individual stale or permission failures');
+
+  await list.getByRole('checkbox', { name: '选择 F8' }).locator('xpath=ancestor::tr').getByRole('button', { name: '配置' }).click();
+  const f8config = page.getByRole('region', { name: 'F8 商品配置工作区' });
+  await f8config.getByRole('button', { name: '提交审核' }).click();
+  await list.getByRole('button', { name: '待审核 1' }).waitFor();
+  assert.deepEqual(transitions.at(-1), { id: 'model-f8', action: 'SUBMIT', expectedVersion: 3 }, 'editing refreshes publication status');
 
   canPublish = false;
   await page.getByRole('button', { name: '刷新', exact: true }).click();
