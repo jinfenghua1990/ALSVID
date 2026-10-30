@@ -563,34 +563,32 @@
 .specEditorToolbar { display: flex; align-items: center; gap: 14px; padding: 16px 0 12px; color: var(--alsvid-text); font-size: 15px; font-weight: 700; }
 .specEditorToolbar > div { display: flex; gap: 7px; margin-left: auto; }
 .specToolbarHint { color: var(--alsvid-muted); font-size: 11px; font-weight: 400; }
-.specModules { display: grid; gap: 8px; }
-.specModule { border: 1px solid var(--alsvid-line); border-radius: 9px; background: var(--alsvid-panel); }
-.specModuleHeader { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 15px; border: 0; background: transparent; color: var(--alsvid-text); text-align: left; cursor: pointer; }
-.specModuleHeader:hover { background: var(--alsvid-bg-soft); }
-.specModuleHeader > span:first-child { min-width: 0; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.specModuleHeader b { font-size: 13px; }
-.specModuleHeader small { color: var(--alsvid-muted); font-size: 11px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 680px; }
-.specProgress { flex: 0 0 auto; color: var(--alsvid-accent); font-size: 11px; font-weight: 650; white-space: nowrap; }
-.specProgress i { display: inline-block; margin-left: 8px; color: var(--alsvid-muted); font-style: normal; font-size: 14px; }
-.specModuleBody { padding: 0 15px 16px; border-top: 1px solid var(--alsvid-line); }
-.specFieldGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; padding-top: 15px; }
-.specFieldGrid label, .specReferences > label { display: grid; gap: 6px; color: var(--alsvid-text-2); font-size: 12px; font-weight: 620; }
-.specFieldGrid input, .specFieldGrid select, .specReferences input, .specReferences select { width: 100%; min-height: 38px; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--alsvid-line-strong); border-radius: 6px; background: var(--alsvid-input); color: var(--alsvid-text); font: inherit; font-size: 12px; font-weight: 400; }
-.specFieldGrid input:focus, .specFieldGrid select:focus, .specReferences input:focus, .specReferences select:focus { outline: 3px solid var(--alsvid-accent-soft); border-color: var(--alsvid-accent); }
-.specReferences { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 14px; margin-top: 14px; }
-.specReferences fieldset { min-width: 0; margin: 0; padding: 11px 12px; border: 1px solid var(--alsvid-line); border-radius: 7px; }
-.specReferences legend { padding: 0 5px; color: var(--alsvid-text-2); font-size: 12px; font-weight: 620; }
-.specPartList { max-height: 190px; overflow: auto; display: grid; gap: 7px; }
-.specPartList label { display: flex; align-items: center; gap: 7px; color: var(--alsvid-text-2); font-size: 11px; font-weight: 400; }
-.specPartList input { width: 15px; min-height: 15px; flex: 0 0 15px; }
-.specPartList small { color: var(--alsvid-muted); font-size: 11px; }
+/* Spreadsheet-style vehicle specification editing: one table, one selected category. */
+.specSelector{display:flex;gap:9px;align-items:center;font-size:12px;font-weight:650;color:var(--alsvid-text)}
+.specSelector select{min-width:230px;max-width:100%;height:36px;padding:6px 10px;border:1px solid var(--alsvid-line-strong);border-radius:4px;background:var(--alsvid-input);color:var(--alsvid-text);font:inherit}
+.specSheetWrap{width:100%;overflow:auto;max-height:min(58vh,700px);border:1px solid var(--alsvid-line)}
+.specSheet{width:100%;min-width:460px;border-collapse:collapse;text-align:left;font-size:12px}
+.specSheet thead{position:sticky;top:0;background:var(--alsvid-panel);z-index:1}
+.specSheet th,.specSheet td{padding:7px 11px;border-bottom:1px solid var(--alsvid-line);vertical-align:middle}
+.specSheet thead th{font-size:11px;color:var(--alsvid-muted);font-weight:700;background:var(--alsvid-bg-soft)}
+.specSheet tbody th{width:34%;font-weight:600;color:var(--alsvid-text-2);white-space:normal}
+.specSheet tbody tr:last-child th,.specSheet tbody tr:last-child td{border-bottom:0}
+.specSheet tbody tr:hover{background:var(--alsvid-bg-soft)}
+.specSheet td>input,.specSheet td>select{width:100%;min-height:35px;box-sizing:border-box;padding:7px 10px;border:1px solid var(--alsvid-line-strong);border-radius:4px;background:var(--alsvid-input);color:var(--alsvid-text);font:inherit}
+.specSheet input:focus-visible,.specSheet select:focus-visible,.specSelector select:focus-visible{outline:2px solid var(--alsvid-accent);outline-offset:1px}
+.specPartList{max-height:150px;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.specPartList label{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--alsvid-text-2)}
+.specPartList input{width:15px;height:15px;flex:0 0 15px}
+.specPartList small{font-size:11px;color:var(--alsvid-muted)}
 .specEditorFooter { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 17px; margin-top: 15px; border-top: 1px solid var(--alsvid-line); color: var(--alsvid-muted); font-size: 11px; line-height: 1.5; }
 .specEditorFooter > div { display: flex; flex-shrink: 0; gap: 8px; }
 @media (max-width: 780px) {
   .specEditor { padding: 16px; }
   .specEditorHeader, .specEditorToolbar, .specEditorFooter { align-items: flex-start; flex-direction: column; }
   .specEditorToolbar > div { margin-left: 0; }
-  .specFieldGrid, .specReferences { grid-template-columns: 1fr; }
+  .specPartList { grid-template-columns: 1fr; }
+  .specSelector { align-items:stretch;flex-direction:column; }
+  .specSelector select { min-width:0;width:100%; }
   .specEditorFooter > div { width: 100%; }
   .specEditorFooter > div button { flex: 1; }
 }
