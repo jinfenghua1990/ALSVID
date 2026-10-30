@@ -7,8 +7,9 @@
 # .github/workflows/production-deploy.yml) requires.
 #
 # This provisions ONLY the "self-boot" layer so a fresh robot / new GCP
-# project can clone and deploy. It does NOT create Cloud Run services or
-# the worker pool — those are created by the workflow itself.
+# project can clone and deploy. It does NOT create Cloud Run services; the
+# production workflow deploys Web, API and the one-off migration job only.
+# The Worker scaffold is retained for local/CI use, not production.
 #
 # SAFE BY DEFAULT: dry-run. Pass --apply to actually create resources.
 # Secrets (DB url, R2 keys, mail key) are NEVER generated; they must be
@@ -194,4 +195,4 @@ echo "=== Done ($( $APPLY && echo applied || echo dry-run )) ==="
 echo "Next: add the production environment secret RESEND_DOMAIN_AUDIT_API_KEY via"
 echo "      GitHub UI (Settings > Environments > production > secrets)."
 echo "Then any runner/bot can trigger .github/workflows/production-deploy.yml with"
-echo "      confirm=deploy to build and deploy ALSVID (web + api + worker pool)."
+echo "      confirm=deploy to build and deploy ALSVID (web + api + migration job)."
