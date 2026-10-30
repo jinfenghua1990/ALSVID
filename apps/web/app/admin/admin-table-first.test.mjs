@@ -44,3 +44,12 @@ test('warehouse reservations, stocktakes and counted quantities are table record
   assert.match(client, /\/v1\/warehouse\/stocktakes\/\$\{selectedStocktake\.id\}\/counts/);
   assert.doesNotMatch(client, /styles\.stocktakeList/);
 });
+
+test('admin route renderer avoids obsolete fixture card and simulated VIN detail panels', () => {
+  const renderer = source('../_design/renderer.tsx');
+  assert.match(renderer, /尚未接入真实业务/);
+  assert.match(renderer, /<VehicleRecordDetail \/>/);
+  assert.doesNotMatch(renderer, /原 VIN 详情设计图/);
+  assert.doesNotMatch(renderer, /av-screen-links"/);
+  assert.doesNotMatch(renderer, /<Blocks blocks=\{screen\.blocks\} stacked=/);
+});
