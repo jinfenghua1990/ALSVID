@@ -49,6 +49,9 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
   const router = useRouter();
   const [summary, setSummary] = useState<FinanceSummary>(emptySummary);
   const [message, setMessage] = useState('');
+  const [recordQuery, setRecordQuery] = useState('');
+  const search = recordQuery.trim().toLowerCase();
+  const matches = (row: FinanceRow) => !search || ['document_number','obligation_number','payment_number','partner_name','partner_code','external_reference','document_type','currency','direction','status','settlement_status','allocation_status'].some(key => String(row[key] ?? '').toLowerCase().includes(search));
 
   async function api(path: string, init?: RequestInit) {
     const headers = new Headers(init?.headers);
@@ -135,7 +138,7 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
   return <OperationsFrame embedded={embedded} area="finance" footer="商业财务 · 证据账本" classNames={{ workspace: `workspace ${styles.workspace}` }}>
     <header className={styles.header}>
       <div className={styles.eyebrow}>财务控制 / FINANCE</div>
-      <h1>资金跟随业务事实，而不是替代业务事实。</h1>
+      <h1>财务管理</h1>
       <p>发票形成应收 / 应付义务，付款作为独立证据存在，分配动作完成结算；汇率必须显式记录，到岸成本读取物流事实但不修改库存数量。</p>
     </header>
     {message ? <div className={styles.notice}>{message}</div> : null}
@@ -144,6 +147,7 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
       <div><span>未结应收</span><b>{metrics.ar}</b></div><div><span>未结应付</span><b>{metrics.ap}</b></div><div><span>未分配资金</span><b>{metrics.unmatched}</b></div><div><span>到岸成本草稿</span><b>{metrics.landed}</b></div>
     </div>
 
+    <details className={styles.operationDrawer}><summary>＋ 录入财务单据 / 收付款</summary>
     <section className={styles.grid}>
       <form className={`${styles.card} ${styles.compact}`} onSubmit={createDocument}>
         <span className={styles.label}>财务单据</span><h2>记录发票 / 商业单据</h2><div className={styles.stack}>
@@ -164,16 +168,42 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
       </form>
     </section>
 
-    <section className={`${styles.panel} ${styles.wide}`}>
-      <div className={styles.sectionHead}><div><span className={styles.label}>单据</span><h2>单据 → 应收 / 应付义务</h2></div><p>入账后的证据进入不可变状态。</p></div>
-      <div className={styles.table}>{summary.documents.slice(0, 40).map((item) => <div className={styles.row} key={item.id}><span><b>{item.document_number}</b><br/><small>{item.partner_name} · {item.document_type}</small></span><span>{money(item.total_amount, item.currency)}<br/><small>{item.external_reference ?? '无外部参考号'}</small></span><span><i className={styles.badge}>{statusLabel(item.status)}</i><br/><small>v{item.version}</small></span><span className={styles.actions}>{item.status === 'DRAFT' ? <button onClick={() => void action(`/v1/finance/documents/${item.id}/verify`, { expectedVersion: item.version })}>核验</button> : null}{item.status === 'VERIFIED' ? <><button onClick={() => void action(`/v1/finance/documents/${item.id}/post`, { expectedVersion: item.version })}>入账</button><button className={styles.secondary} onClick={() => void action(`/v1/finance/documents/${item.id}/draft`, { expectedVersion: item.version })}>退回草稿</button></> : null}</span></div>)}{!summary.documents.length ? <p className={styles.empty}>暂无财务单据。</p> : null}</div>
+    </details>
+    <section className={styles.panel} aria-label="财务记录查询">
+      <div className={styles.sectionHead}><div><h2>财务业务记录</h2><p>单据、应收应付和资金凭证按一行一条展示；操作仍受后端授权与状态校验约束。</p></div>
+        <input className={styles.recordSearch} type="search" aria-label="搜索财务记录" placeholder="搜索单号、合作伙伴、状态、币种" value={recordQuery} onChange={event=>setRecordQuery(event.target.value)}/>
+      </div>
+      <h3 className={styles.tableTitle}>财务单据 · {summary.documents.filter(matches).length}</h3>
+      <div className={styles.tableWrap}><table className={styles.recordsTable} aria-label="财务单据">
+        <thead><tr><th>单据编号</th><th>合作伙伴</th><th>单据类型</th><th>金额</th><th>状态</th><th>外部参考号</th><th>操作</th></tr></thead>
+        <tbody>{summary.documents.filter(matches).slice(0,100).map(item=><tr key={item.id}>
+          <td><strong>{item.document_number}</strong><small>版本 {item.version}</small></td><td>{item.partner_name}</td><td>{item.document_type}</td>
+          <td>{money(item.total_amount,item.currency)}</td><td><span className={styles.badge}>{statusLabel(item.status)}</span></td>
+          <td>{item.external_reference??'—'}</td><td className={styles.actions}>
+            {item.status==='DRAFT'?<button onClick={()=>void action(`/v1/finance/documents/${item.id}/verify`,{expectedVersion:item.version})}>核验</button>:null}
+            {item.status==='VERIFIED'?<><button onClick={()=>void action(`/v1/finance/documents/${item.id}/post`,{expectedVersion:item.version})}>入账</button><button className={styles.secondary} onClick={()=>void action(`/v1/finance/documents/${item.id}/draft`,{expectedVersion:item.version})}>退回草稿</button></>:null}
+          </td></tr>)}{!summary.documents.filter(matches).length?<tr><td colSpan={7} className={styles.empty}>没有匹配的财务单据</td></tr>:null}</tbody>
+      </table></div>
+      <h3 className={styles.tableTitle}>应收 / 应付义务 · {summary.obligations.filter(matches).length}</h3>
+      <div className={styles.tableWrap}><table className={styles.recordsTable} aria-label="应收应付义务">
+        <thead><tr><th>义务单号</th><th>合作伙伴</th><th>方向</th><th>未结清金额</th><th>结算状态</th><th>逾期</th></tr></thead>
+        <tbody>{summary.obligations.filter(matches).slice(0,100).map(item=><tr key={item.id}>
+          <td><strong>{item.obligation_number}</strong></td><td>{item.partner_name}</td><td>{statusLabel(item.direction)}</td>
+          <td>{money(item.outstanding_amount,item.currency)}</td><td><span className={styles.badge}>{statusLabel(item.settlement_status)}</span></td>
+          <td>{number(item.days_overdue)>0?`逾期 ${item.days_overdue} 天`:'未逾期'}</td>
+        </tr>)}{!summary.obligations.filter(matches).length?<tr><td colSpan={6} className={styles.empty}>没有匹配的应收应付记录</td></tr>:null}</tbody>
+      </table></div>
+      <h3 className={styles.tableTitle}>资金流水 · {summary.payments.filter(matches).length}</h3>
+      <div className={styles.tableWrap}><table className={styles.recordsTable} aria-label="收付款流水">
+        <thead><tr><th>资金编号</th><th>合作伙伴</th><th>方向</th><th>金额</th><th>分配状态</th><th>未分配金额</th></tr></thead>
+        <tbody>{summary.payments.filter(matches).slice(0,100).map(item=><tr key={item.id}>
+          <td><strong>{item.payment_number}</strong></td><td>{item.partner_name??'暂未匹配'}</td><td>{statusLabel(item.direction)}</td>
+          <td>{money(item.amount,item.currency)}</td><td><span className={styles.badge}>{statusLabel(item.allocation_status)}</span></td><td>{money(item.unallocated_amount,item.currency)}</td>
+        </tr>)}{!summary.payments.filter(matches).length?<tr><td colSpan={6} className={styles.empty}>没有匹配的资金记录</td></tr>:null}</tbody>
+      </table></div>
     </section>
 
-    <section className={styles.grid}>
-      <div className={styles.panel}><div className={styles.sectionHead}><div><span className={styles.label}>应收 / 应付</span><h2>未结清义务</h2></div></div><div className={styles.table}>{summary.obligations.slice(0, 50).map((item) => <div className={styles.row} key={item.id}><span><b>{item.obligation_number}</b><br/><small>{item.partner_name}</small></span><span>{statusLabel(item.direction)} · {money(item.outstanding_amount, item.currency)}</span><span><i className={styles.badge}>{statusLabel(item.settlement_status)}</i></span><span><small>{number(item.days_overdue) > 0 ? `逾期 ${item.days_overdue} 天` : '未逾期'}</small></span></div>)}{!summary.obligations.length ? <p className={styles.empty}>暂无应收 / 应付义务。</p> : null}</div></div>
-      <div className={styles.panel}><div className={styles.sectionHead}><div><span className={styles.label}>资金流水</span><h2>未分配资金</h2></div></div><div className={styles.table}>{summary.payments.slice(0, 50).map((item) => <div className={styles.row} key={item.id}><span><b>{item.payment_number}</b><br/><small>{item.partner_name ?? '暂未匹配'}</small></span><span>{statusLabel(item.direction)} · {money(item.amount, item.currency)}</span><span><i className={styles.badge}>{statusLabel(item.allocation_status)}</i></span><span>{money(item.unallocated_amount, item.currency)}</span></div>)}{!summary.payments.length ? <p className={styles.empty}>暂无资金记录。</p> : null}</div></div>
-    </section>
-
+    <details className={styles.operationDrawer}><summary>＋ 资金分配 / 记录汇率</summary>
     <section className={styles.grid}>
       <form className={`${styles.card} ${styles.compact}`} onSubmit={allocate}>
         <span className={styles.label}>结算</span><h2>资金 → 应收 / 应付义务</h2><div className={styles.stack}>
@@ -188,10 +218,19 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
       </form>
     </section>
 
-    <section className={`${styles.panel} ${styles.wide}`}>
-      <div className={styles.sectionHead}><div><span className={styles.label}>合作伙伴余额</span><h2>不同币种余额保持分离。</h2></div><p>不会把 EUR 与 USD 相加成没有意义的合计。</p></div><div className={styles.table}>{summary.partnerBalances.map((item, index) => <div className={styles.row} key={`${item.partner_id}-${item.currency}-${item.direction}-${index}`}><span><b>{item.partner_name}</b><br/><small>{item.partner_code}</small></span><span>{statusLabel(item.direction)} · {item.currency}</span><span>原始金额 {money(item.original_amount)}</span><span className={number(item.outstanding_amount) > 0 ? styles.danger : styles.positive}>未结金额 {money(item.outstanding_amount)}</span></div>)}{!summary.partnerBalances.length ? <p className={styles.empty}>暂无合作伙伴余额。</p> : null}</div>
+    </details>
+    <section className={styles.panel}>
+      <div className={styles.sectionHead}><div><h2>合作伙伴余额 · {summary.partnerBalances.length}</h2><p>同币种、同方向分别显示，不跨币种合计。</p></div></div>
+      <div className={styles.tableWrap}><table className={styles.recordsTable} aria-label="合作伙伴余额">
+        <thead><tr><th>合作伙伴</th><th>编号</th><th>方向</th><th>币种</th><th>原始金额</th><th>未结金额</th></tr></thead>
+        <tbody>{summary.partnerBalances.filter(matches).map((item,index)=><tr key={`${item.partner_id}-${item.currency}-${item.direction}-${index}`}>
+          <td>{item.partner_name}</td><td>{item.partner_code}</td><td>{statusLabel(item.direction)}</td><td>{item.currency}</td>
+          <td>{money(item.original_amount)}</td><td className={number(item.outstanding_amount)>0?styles.danger:styles.positive}>{money(item.outstanding_amount)}</td>
+        </tr>)}{!summary.partnerBalances.filter(matches).length?<tr><td colSpan={6} className={styles.empty}>暂无匹配的合作伙伴余额</td></tr>:null}</tbody>
+      </table></div>
     </section>
 
+    <details className={styles.operationDrawer}><summary>＋ 到岸成本处理 / 冻结</summary>
     <section className={styles.grid}>
       <form className={`${styles.card} ${styles.compact}`} onSubmit={createLandedBatch}><span className={styles.label}>到岸成本</span><h2>创建 Shipment 成本批次</h2><div className={styles.stack}><select name="shipmentId" required defaultValue=""><option value="" disabled>选择 Shipment</option>{summary.references.shipments.map((item) => <option key={item.id} value={item.id}>{item.shipment_number} · {statusLabel(item.status)}</option>)}</select><div className={styles.split}><input name="currency" defaultValue="EUR"/><select name="allocationBasis" defaultValue="QUANTITY"><option value="QUANTITY">按数量</option><option value="VALUE">按货值</option><option value="WEIGHT">按重量</option><option value="MANUAL">手工</option></select></div><button>创建批次</button></div></form>
       <form className={`${styles.card} ${styles.compact}`} onSubmit={addLandedComponent}><span className={styles.label}>成本组成</span><h2>添加运费 / 关税 / VAT 事实</h2><div className={styles.stack}><select name="batchId" required defaultValue=""><option value="" disabled>选择草稿批次</option>{draftLanded.map((item) => <option key={item.id} value={item.id}>{item.batch_number} · {item.shipment_number}</option>)}</select><select name="category" defaultValue="FREIGHT"><option value="FREIGHT">运费</option><option value="INSURANCE">保险</option><option value="DUTY">关税</option><option value="IMPORT_VAT">进口增值税</option><option value="ANTI_DUMPING">反倾销税</option><option value="COUNTERVAILING">反补贴税</option><option value="OPERATIONAL_FEE">运营费用</option><option value="OTHER">其他</option></select><div className={styles.split}><input name="amount" placeholder="原币金额" required/><input name="currency" defaultValue="EUR"/></div><input name="batchCurrencyAmount" placeholder="批次币种金额" required/><select name="sourceCustomsLineId" defaultValue=""><option value="">不关联报关税费来源</option>{summary.references.customsLines.map((item) => <option key={item.id} value={item.id}>{item.declaration_code} · {item.hs_code}</option>)}</select><label><input name="capitalizable" type="checkbox" defaultChecked style={{width:'auto',marginRight:8}}/>计入到岸成本</label><button>添加成本组成</button></div></form>
@@ -201,5 +240,6 @@ export default function FinanceClient({ embedded = false }: { embedded?: boolean
       <form className={`${styles.card} ${styles.compact}`} onSubmit={allocateLanded}><span className={styles.label}>成本分配</span><h2>成本组成 → Shipment 货物</h2><div className={styles.stack}><select name="componentId" required defaultValue=""><option value="" disabled>选择成本组成</option>{summary.landedComponents.filter((item) => draftLanded.some((batch) => batch.id === item.batch_id)).map((item) => <option key={item.id} value={item.id}>{item.category} · {money(item.batch_currency_amount, item.currency)}</option>)}</select><select name="cargoId" required defaultValue=""><option value="" disabled>选择货物</option>{summary.references.cargo.map((item) => <option key={item.id} value={item.id}>{item.sku ?? item.frame_number ?? item.item_kind} · 数量 {item.quantity}</option>)}</select><div className={styles.split}><input name="allocatedAmount" placeholder="分配金额" required/><input name="basisValue" placeholder="分配依据值"/></div><button>分配成本</button></div></form>
       <div className={styles.panel}><span className={styles.label}>冻结</span><h2>冻结到岸成本证据</h2><p className={styles.hint}>所有需要资本化的成本组成必须完成分配后才能冻结。进口 VAT 可以明确保留为不资本化项目。</p><div className={styles.stack}>{draftLanded.map((item) => <div className={styles.row} key={item.id}><span><b>{item.batch_number}</b><br/><small>{item.shipment_number}</small></span><span>{statusLabel(item.allocation_basis)}</span><span>{item.currency}</span><span className={styles.actions}><button onClick={() => void action(`/v1/finance/landed-cost/${item.id}/finalize`)}>冻结</button></span></div>)}{!draftLanded.length ? <p className={styles.empty}>暂无到岸成本草稿批次。</p> : null}</div></div>
     </section>
+    </details>
   </OperationsFrame>;
 }
