@@ -59,3 +59,9 @@
 - 通用 AI 入口：根目录 `AGENTS.md`；Claude 入口：`CLAUDE.md`；GitHub Copilot 入口：`.github/copilot-instructions.md`。三个入口必须指向本文件，并提示先读取当前主干。
 - PR 模板必须要求填写跨模块联动影响与验证结果；`scripts/check-single-system-contract.mjs` 在 CI 的 `verify` 作结构性守门；原有 `pnpm arch:check` 和容器验收继续有效。
 - **限制声明**：GitHub 文件无法强制未读取仓库的所有外部机器人自动接收，静态检查也无法证明所有业务流程正确。保障依靠入口规则 + PR 流程 + 分支保护/必需 CI + 真正的跨模块测试；不能把文字约束当成联动已实现的证明。
+
+## 8. Admin 业务列表设计基线
+
+- 订单、商品、库存等多条业务记录的管理列表默认采用紧凑表格；筛选条件和可用操作放在表格上方，空列表仍保留表头。
+- 复用 Admin 共享的 `av-tablewrap`、`av-table`，分组记录标题复用 `av-table-record-meta`；不将每条记录设计成独立卡片，除非负责人明确要求。
+- 保留原有业务数据、权限和操作；不以虚构数据或未接通的按钮填充界面。

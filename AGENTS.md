@@ -73,6 +73,12 @@ Production has been deployed. Never assume a target has no business data based o
 - Local/CI databases and storage are isolated and temporary. Do not assume Neon/R2 Test resources exist, and never use Production credentials for validation.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
+## Admin record-list design
+
+- For business record lists (orders, products, inventory and similar), use a compact table by default. Reuse the shared `av-tablewrap` / `av-table` styles and `av-table-record-meta` for grouped record headings.
+- Place status filters, search and available actions above the table; keep table headings visible even when there are no records. Do not replace individual rows with cards unless the owner explicitly requests that presentation.
+- Show only real data and supported actions. Keep existing permissions, workflows and domain-owned records intact.
+
 ## Architecture rules
 
 - ALSVID remains a modular monolith unless an ADR proves a real need for service separation.

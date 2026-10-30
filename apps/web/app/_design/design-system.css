@@ -628,6 +628,19 @@
   color: var(--av-text-soft);
   white-space: nowrap;
 }
+.av-table .av-table-record-meta td {
+  padding: 9px 12px;
+  background: var(--av-panel-soft);
+  color: var(--av-muted);
+  font-size: 12px;
+}
+.av-table .av-table-record-meta strong {
+  margin-left: 4px;
+  color: var(--av-text-soft);
+}
+.av-table .av-table-record-meta span {
+  margin-left: 24px;
+}
 .av-table tbody tr:hover td {
   background: var(--av-panel-soft);
 }
