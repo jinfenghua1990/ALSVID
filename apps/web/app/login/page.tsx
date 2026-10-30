@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { PortalLoginGate } from '../_components/portal-login';
@@ -5,6 +6,15 @@ import { canAccessPortal, readPortalSession } from '../_lib/portal-access';
 import { portalDefinitions, portalFromHost, type ProtectedPortalId } from '../_lib/portal-routing';
 import { isLocale, localeCookie } from '../_lib/i18n/routing';
 import { requestLocale } from '../_lib/i18n/request-locale';
+
+// Login entry points are functional portal routes, not public search landing pages.
+// Keep them crawlable so search engines can see this directive, but never index them.
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
