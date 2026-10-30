@@ -241,6 +241,12 @@ export default function StorefrontBuilderClient() {
     finally { setDraftBusy(false); }
   };
 
+  useEffect(() => {
+    if (ready) void loadDraft();
+    // Read once when the editor is initialized. Manual reload remains available.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
   const exportProject = () => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -311,6 +317,7 @@ export default function StorefrontBuilderClient() {
           <p className={styles.subtitle}>自由拖拽模块，直接编辑文字、图片和样式；独立于正式商城运行。</p>
         </div>
         <div className={styles.actions}>
+          <a className={styles.secondaryButton} href="/admin/ecommerce/page-builder" onClick={event => { if (dirty && !window.confirm('当前修改尚未保存到云端，确定返回？')) event.preventDefault(); }}>返回记录</a>
           <button type="button" className={styles.secondaryButton} onClick={() => void loadDraft()} disabled={!ready || draftBusy}>读取云端草稿</button>
           <button type="button" className={styles.secondaryButton} onClick={() => void saveDraft()} disabled={!ready || draftBusy || draftVersion === null}>保存云端草稿</button>
           <button type="button" className={styles.secondaryButton} onClick={() => fileRef.current?.click()} disabled={!ready}>导入方案</button>

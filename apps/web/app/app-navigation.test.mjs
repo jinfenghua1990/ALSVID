@@ -17,11 +17,13 @@ test('storefront visual editor has a dedicated enabled Admin route', () => {
   assert.equal(item.disabled, undefined, 'the dedicated editor route is enabled');
 
   const route = readFileSync(new URL('./admin/ecommerce/page-builder/page.tsx', import.meta.url), 'utf8');
+  const editRoute = readFileSync(new URL('./admin/ecommerce/page-builder/edit/page.tsx', import.meta.url), 'utf8');
   const editor = readFileSync(new URL('./admin/ecommerce/page-builder/storefront-builder-client.tsx', import.meta.url), 'utf8');
-  assert.match(route, /StorefrontBuilderClient/);
+  assert.match(route, /StorefrontDraftList/);
+  assert.match(editRoute, /StorefrontBuilderClient/);
   assert.match(editor, /locale: 'zh'/, 'GrapesJS locale is configured for Chinese');
   assert.match(editor, /导出装修方案/);
-  assert.match(editor, /不会修改正式商城首页/);
+  assert.match(editor, /保存不会发布正式商城/);
   assert.match(editor, /https:\/\/cdn\.jsdelivr\.net\/npm\/grapesjs@0\.23\.8/);
 });
 

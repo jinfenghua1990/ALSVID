@@ -71,7 +71,12 @@ const signedInEditor = await fetch(origin + '/admin/ecommerce/page-builder', {
   redirect: 'manual', signal: AbortSignal.timeout(15000), headers: { cookie: sessionCookie.split(';')[0] },
 });
 assert.equal(signedInEditor.status, 200, 'authenticated admin can open the editor');
-assert.match(await signedInEditor.text(), /商城首页装修/, 'editor content is rendered');
+assert.match(await signedInEditor.text(), /商城装修记录/, 'record list is rendered');
+const signedInEditPage = await fetch(origin + '/admin/ecommerce/page-builder/edit', {
+  redirect: 'manual', signal: AbortSignal.timeout(15000), headers: { cookie: sessionCookie.split(';')[0] },
+});
+assert.equal(signedInEditPage.status, 200, 'authenticated admin can open the edit page');
+assert.match(await signedInEditPage.text(), /商城首页装修/, 'editor content is rendered');
 checks.push('guarded disposable PostgreSQL admin bootstrap, real password login and authenticated editor access');
 
 await mkdir('.tmp', { recursive: true });
