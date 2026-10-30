@@ -288,14 +288,17 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
                 <h2>{selected.display_name}</h2>
                 <p>{selected.partner_code} · {selected.country_code ?? '—'} · v{selected.version}</p>
               </div>
-              <div className={styles.factGrid}>
-                <div><span>状态</span><b>{statusLabel(selected.status)}</b></div>
-                <div><span>市场</span><b>{selected.market_countries.join(', ') || '—'}</b></div>
-                <div><span>业务能力</span><b>{capabilityLabel}</b></div>
-                <div><span>默认联系人</span><b>{selected.default_contact_value ?? '—'}</b></div>
-                <div><span>默认收货城市</span><b>{selected.default_shipping_city ?? '—'}</b></div>
-                <div><span>默认库存位置</span><b>{selected.default_inventory_warehouse_code ? `${selected.default_inventory_warehouse_code}/${selected.default_inventory_location_code}` : '—'}</b></div>
-              </div>
+              <div className={styles.tableWrap}><table className={styles.detailTable} aria-label="经销商业务档案明细">
+                <thead><tr><th>字段</th><th>当前值</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">合作状态</th><td>{statusLabel(selected.status)}</td></tr>
+                  <tr><th scope="row">销售市场</th><td>{selected.market_countries.join(', ') || '—'}</td></tr>
+                  <tr><th scope="row">业务能力</th><td>{capabilityLabel}</td></tr>
+                  <tr><th scope="row">默认联系人</th><td>{selected.default_contact_value ?? '—'}</td></tr>
+                  <tr><th scope="row">收货城市</th><td>{selected.default_shipping_city ?? '—'}</td></tr>
+                  <tr><th scope="row">库存位置</th><td>{selected.default_inventory_warehouse_code ? `${selected.default_inventory_warehouse_code}/${selected.default_inventory_location_code}` : '—'}</td></tr>
+                </tbody>
+              </table></div>
               <div className={styles.actions}>
                 {selected.status === 'PROSPECT' ? <button onClick={() => void status('ACTIVE')}>启用合作</button> : null}
                 {selected.status === 'ACTIVE' ? <button onClick={() => void status('SUSPENDED')}>暂停合作</button> : null}
@@ -305,20 +308,15 @@ export default function DealersClient({ embedded = false }: { embedded?: boolean
                 <button className={styles.secondary} onClick={() => void toggle('serviceEnabled')}>{selected.service_enabled ? '停用售后能力' : '启用售后能力'}</button>
               </div>
               <div className={styles.timeline}>
-                <span>状态历史</span>
-                {history.map((item) => (
-                  <article key={item.id}>
-                    <time>{new Date(item.occurred_at).toLocaleString()}</time>
-                    <b>{statusLabel(item.from_status)} → {statusLabel(item.to_status)}</b>
-                    <p>{item.reason || '未记录原因'}</p>
-                  </article>
-                ))}
-                {!history.length ? <p className={styles.empty}>暂无状态变更记录。</p> : null}
+                <h3>状态历史</h3>
+                <div className={styles.tableWrap}><table className={styles.detailTable} aria-label="经销商合作状态历史">
+                  <thead><tr><th>时间</th><th>状态变化</th><th>原因</th></tr></thead>
+                  <tbody>{history.map(item=><tr key={item.id}><td>{new Date(item.occurred_at).toLocaleString('zh-CN')}</td><td>{statusLabel(item.from_status)} → {statusLabel(item.to_status)}</td><td>{item.reason||'未记录原因'}</td></tr>)}
+                  {!history.length?<tr><td colSpan={3} className={styles.empty}>暂无状态变更记录</td></tr>:null}</tbody>
+                </table></div>
               </div>
             </div>
-          ) : (
-            <div className={styles.detail}><p className={styles.empty}>请选择一个经销商。</p></div>
-          )}
+          ) : null}
         </section>
 
 

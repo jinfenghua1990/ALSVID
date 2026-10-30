@@ -368,11 +368,15 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
 
           <div className={styles.panel}>
             <div className={styles.sectionHead}><span>有效预留</span><h2>已锁定需求</h2></div>
-            {activeReservations.map((row) => <article className={styles.row} key={row.id}>
-              <div><b>{row.part_number ?? row.sku ?? row.frame_number}</b><span>{row.warehouse_code}/{row.location_code} · {row.quantity} {row.unit}</span><small>{row.reference_type ?? '无外部引用'}</small></div>
-              <div className={styles.rowActions}><button onClick={() => void action(`/v1/inventory/reservations/${row.id}/issue`, { idempotencyKey: crypto.randomUUID(), reason: '预留库存出库' })}>确认出库</button><button className={styles.secondary} onClick={() => void action(`/v1/inventory/reservations/${row.id}/release`)}>释放预留</button></div>
-            </article>)}
-            {!activeReservations.length ? <p className={styles.empty}>{sourceStatus.inventory === 'loading' ? '正在读取库存预留…' : sourceStatus.inventory === 'error' || sourceErrors.inventory ? '库存数据不可用，无法确认当前预留记录。' : '暂无有效库存预留。'}</p> : null}
+            <div className={styles.tableWrap}><table aria-label="有效库存预留">
+              <thead><tr><th>预留对象</th><th>仓库 / 库位</th><th>数量</th><th>业务引用</th><th>操作</th></tr></thead>
+              <tbody>{activeReservations.map(row=><tr key={row.id}>
+                <td><strong>{row.part_number??row.sku??row.frame_number}</strong></td>
+                <td>{row.warehouse_code}/{row.location_code}</td><td>{row.quantity} {row.unit}</td><td>{row.reference_type??'—'}</td>
+                <td><div className={styles.rowActions}><button onClick={()=>void action(`/v1/inventory/reservations/${row.id}/issue`,{idempotencyKey:crypto.randomUUID(),reason:'预留库存出库'})}>确认出库</button><button className={styles.secondary} onClick={()=>void action(`/v1/inventory/reservations/${row.id}/release`)}>释放</button></div></td>
+              </tr>)}
+              {!activeReservations.length?<tr><td colSpan={5} className={styles.empty}>{sourceStatus.inventory==='loading'?'正在读取库存预留…':sourceStatus.inventory==='error'||sourceErrors.inventory?'库存数据不可用，无法确认预留记录':'暂无有效库存预留'}</td></tr>:null}</tbody>
+            </table></div>
           </div>
         </section>
 
@@ -389,9 +393,14 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
               <button>开始盘点</button>
             </form>
 
-            <div className={styles.stocktakeList}>
-              {warehouse.stocktakes.map((item) => <button key={item.id} className={selectedStocktakeId === item.id ? styles.selected : ''} onClick={() => setSelectedStocktakeId(item.id)}><b>{item.stocktake_number}</b><span>{item.warehouse_code} · {displayStocktakeStatus(item.status)}</span><small>{new Date(item.opened_at).toLocaleString()}</small></button>)}
-              {!warehouse.stocktakes.length ? <p className={styles.empty}>{sourceStatus.warehouse === 'loading' ? '正在读取盘点记录…' : sourceStatus.warehouse === 'error' || sourceErrors.warehouse ? '仓库数据不可用，无法确认当前盘点记录。' : '暂无盘点会话。'}</p> : null}
+            <div className={styles.tableWrap}>
+              <table aria-label="库存盘点记录"><thead><tr><th>盘点单号</th><th>仓库</th><th>状态</th><th>开始时间</th><th>操作</th></tr></thead>
+                <tbody>{warehouse.stocktakes.map(item=><tr key={item.id} data-selected={selectedStocktakeId===item.id}>
+                  <td><strong>{item.stocktake_number}</strong></td><td>{item.warehouse_code}</td><td>{displayStocktakeStatus(item.status)}</td><td>{new Date(item.opened_at).toLocaleString('zh-CN')}</td>
+                  <td><button type="button" className={styles.textAction} onClick={()=>setSelectedStocktakeId(selectedStocktakeId===item.id?'':item.id)}>{selectedStocktakeId===item.id?'收起':'处理'}</button></td>
+                </tr>)}
+                {!warehouse.stocktakes.length?<tr><td colSpan={5} className={styles.empty}>{sourceStatus.warehouse==='loading'?'正在读取盘点记录…':sourceStatus.warehouse==='error'||sourceErrors.warehouse?'仓库数据不可用，无法确认盘点记录':'暂无盘点会话'}</td></tr>:null}</tbody>
+              </table>
             </div>
 
             {selectedStocktake ? (
@@ -415,7 +424,10 @@ export default function InventoryClient({ embedded = false }: { embedded?: boole
             <div className={styles.rowActions}>{selectedStocktake.status === 'OPEN' ? <><button onClick={() => void action(`/v1/warehouse/stocktakes/${selectedStocktake.id}/close`)}>关闭并对账</button><button className={styles.secondary} onClick={() => void action(`/v1/warehouse/stocktakes/${selectedStocktake.id}/cancel`)}>取消盘点</button></> : null}</div>
           </div> : null}
 
-          {stocktakeCounts.length ? <div className={styles.counts}>{stocktakeCounts.map((row) => <div key={row.id}><b>{row.part_number ?? row.sku ?? row.frame_number}</b><span>{row.location_code} · {row.counted_quantity} {row.unit}</span><small>{new Date(row.counted_at).toLocaleString()}</small></div>)}</div> : null}
+          {stocktakeCounts.length?<div className={styles.tableWrap}><table aria-label="盘点实盘明细">
+            <thead><tr><th>库存对象</th><th>库位</th><th>实盘数量</th><th>盘点时间</th></tr></thead>
+            <tbody>{stocktakeCounts.map(row=><tr key={row.id}><td>{row.part_number??row.sku??row.frame_number}</td><td>{row.location_code}</td><td>{row.counted_quantity} {row.unit}</td><td>{new Date(row.counted_at).toLocaleString('zh-CN')}</td></tr>)}</tbody>
+          </table></div>:null}
         </section>
 
         <section className={styles.panel} id="movement-history">

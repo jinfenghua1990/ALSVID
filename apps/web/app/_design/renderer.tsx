@@ -4,7 +4,7 @@ import type { Block, Screen } from './types';
 import { screens } from './index';
 import { DesignTable } from './design-table';
 import { DesignForm } from './design-form';
-import { LiveOperationEntry, AdminLogout } from './live-operations';
+import { AdminLogout } from './live-operations';
 import { AdminGlobalSearch } from './admin-global-search';
 import { IntegratedOperations, hasIntegratedOperations } from './integrated-operations';
 import { VehicleRecordDetail } from './vehicle-record-detail';
@@ -621,7 +621,6 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
     href: isLocal ? link.localHref : portalUrlFor(requestHost, link.portal),
   }));
   const actions = screen.actions ?? [];
-  const moduleScreens = screens.filter(item => item.area === screen.area && item.sourceNode);
   const isLiveProductRoot = screen.id === 'product' && screen.route === '/admin/product';
   const vehicleModelMenu = isLiveProductRoot ? await readVehicleModelMenu() : [];
   const vehicleModelRoutes = new Map(vehicleModelMenu.map(model => [model.label, `/admin/product?type=BIKE&model=${encodeURIComponent(model.shortName)}#vehicle-models`]));
@@ -737,19 +736,13 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
             ) : null}
           </div>}
 
-          {screen.steps && !isVehicleDetail && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
+          {screen.steps && !isVehicleDetail && !screen.sourceNode && <nav className="av-workflow-pages" aria-label="流程画面">{screen.steps.map((step,i) => <a key={step.href} href={step.href} className="av-chip" aria-current={step.href===screen.route?'step':undefined} data-active={step.href===screen.route}>{i+1}. {step.label}</a>)}</nav>}
           {children ?? (screen.id === 'workbench' ? (
             <Blocks blocks={screen.blocks.filter((block) => block.kind === 'shortcuts')} />
           ) : screen.id === 'system-architecture' ? (
             <ArchitectureOverview />
           ) : isVehicleDetail ? (
-            <>
-              <VehicleRecordDetail />
-              <details className="av-card av-design-archive">
-                <summary>原 VIN 详情设计图（仅设计预览）</summary>
-                <Blocks blocks={screen.blocks} stacked />
-              </details>
-            </>
+            <VehicleRecordDetail />
           ) : isLiveProductRoot ? (
             <ProductClient embedded />
           ) : isIntegratedOverview ? (
@@ -771,14 +764,12 @@ export async function AdminScreen({ screen, theme, children, hidePageHeading = f
           ) : screen.area === '数据' ? (
             <BusinessAnalyticsOverview />
           ) : (
-            <>
-              {screen.sourceNode && screen.route.split('/').length === 3
-                ? <LiveOperationEntry area={screen.area} />
-                : null}
-              <Blocks blocks={screen.blocks} stacked={Boolean(screen.sourceNode)} />
-            </>
+            <section className="av-fixture-note" role="status" aria-label="尚未接入的业务页面">
+              <strong>{screen.title} · 尚未接入真实业务</strong>
+              <p>旧设计流程的演示卡片和虚构记录已从内部后台隐藏。请返回业务主列表处理真实数据。</p>
+              <a href={AREAS.find(area=>area.legacyAreas.includes(screen.area))?.href??'/admin'}>返回{moduleLabel}业务列表</a>
+            </section>
           ))}
-          {!isIntegratedOverview && !isLiveProductRoot && moduleScreens.length > 1 && <nav className="av-card av-screen-links" aria-label="相关页面与流程状态"><h2 className="av-cardtitle">相关页面与流程</h2>{moduleScreens.filter(item => item.route !== screen.route).map(item => <a className="av-chip" key={item.route} href={item.route}>{item.title}</a>)}</nav>}
         </main>
       </div>
     </div>
