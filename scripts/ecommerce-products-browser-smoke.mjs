@@ -65,7 +65,7 @@ try {
   const list = page.getByRole('region', { name: '商城商品列表' });
   await list.getByText('F8 城市电单车').waitFor({ timeout: 30000 });
   await page.getByRole('navigation', { name: '工作区标签页' }).getByRole('link', { name: '商城商品列表' }).waitFor();
-  assert.equal(await list.locator('table thead th').count(), 9);
+  assert.equal(await list.locator('table thead th').count(), 10);
   assert.equal(await list.getByRole('button', { name: '待审核 1' }).count(), 1);
   assert.equal(await list.getByRole('button', { name: '已上架 1' }).count(), 1);
   const f8 = list.getByRole('checkbox', { name: '选择 F8' }).locator('xpath=ancestor::tr');

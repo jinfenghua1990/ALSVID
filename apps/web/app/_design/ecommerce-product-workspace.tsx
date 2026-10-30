@@ -58,9 +58,9 @@ function contains(value: string | null | undefined, term: string) {
   return !term.trim() || (value ?? '').toLocaleLowerCase().includes(term.trim().toLocaleLowerCase());
 }
 
-function stockTotal(stock: Stock[]) {
+function stockTotal(stock: Stock[], field: 'on_hand' | 'available' = 'available') {
   if (!stock.length) return null;
-  const values = stock.map(item => typeof item.available === 'string' && item.available.trim() ? Number(item.available) : NaN);
+  const values = stock.map(item => typeof item[field] === 'string' && item[field].trim() ? Number(item[field]) : NaN);
   return values.every(Number.isFinite) ? values.reduce((total, value) => total + value, 0) : null;
 }
 
@@ -274,8 +274,8 @@ export function EcommerceProductWorkspace() {
       {data.summary.prices.length >= 500 ? <p className={styles.hint}>价格接口最多返回最近 500 条价格版本。</p> : null}
       <div className={`av-tablewrap ${styles.tableWrap}`}>
         <table className={`av-table ${styles.table}`}>
-          <thead><tr><th><input type="checkbox" aria-label="选择当前全部商品" checked={allSelected} onChange={toggleAll} disabled={!rows.length || busy} /></th><th>商品信息</th><th>类型 / 技术平台</th><th>SKU</th><th>市场 / 启用价格</th><th>库存台账可用</th><th>发布状态</th><th>创建时间</th><th>操作</th></tr></thead>
-          <tbody>{rows.length ? rows.map(row => <ProductRow key={row.model.id} row={row} market={filters.market} onSelect={selectModel} chosen={row.model.id === selectedId} checked={selectedIds.has(row.model.id)} toggle={toggle} busy={busy} />) : <tr><td colSpan={9} className={styles.empty}>没有符合筛选条件的商品</td></tr>}</tbody>
+          <thead><tr><th><input type="checkbox" aria-label="选择当前全部商品" checked={allSelected} onChange={toggleAll} disabled={!rows.length || busy} /></th><th>商品信息</th><th>类型 / 技术平台</th><th>SKU</th><th>市场 / 启用价格</th><th>仓内总库存</th><th>B2C 可用库存</th><th>发布状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody>{rows.length ? rows.map(row => <ProductRow key={row.model.id} row={row} market={filters.market} onSelect={selectModel} chosen={row.model.id === selectedId} checked={selectedIds.has(row.model.id)} toggle={toggle} busy={busy} />) : <tr><td colSpan={10} className={styles.empty}>没有符合筛选条件的商品</td></tr>}</tbody>
         </table>
       </div>
     </section>
@@ -287,6 +287,7 @@ function ProductRow({ row, market, onSelect, chosen, checked, toggle, busy }: { 
   const { model, publication, skus, stock, platform } = row;
   const prices = market === 'ALL' ? row.prices : row.prices.filter(price => price.marketCountry === market);
   const available = stockTotal(stock);
+  const onHand = stockTotal(stock, 'on_hand');
   const href = `/admin/ecommerce/products?modelId=${encodeURIComponent(model.id)}`;
   const image = publication?.image_path?.startsWith('/') && !publication.image_path.startsWith('//') ? publication.image_path : '';
   return <tr data-selected={chosen}>
@@ -298,7 +299,8 @@ function ProductRow({ row, market, onSelect, chosen, checked, toggle, busy }: { 
     <td>{productTypeLabel[model.product_type_code] ?? model.product_type_code}<span className="av-table-subtext">{platform?.name || platform?.code || '未关联技术平台'}</span></td>
     <td>{skus.length} 个<span className="av-table-subtext">{skus.slice(0, 2).map(item => item.sku).join('、') || '尚未建立 SKU'}{skus.length > 2 ? ` 等 ${skus.length} 个` : ''}</span></td>
     <td>{prices.length ? prices.slice(0, 3).map(price => <span className="av-table-subtext" key={price.id}>{price.marketCountry} · {price.sku} · {money(price.unitPriceGross, price.currency)}</span>) : <span className="av-table-subtext">未发现启用价格</span>}{prices.length > 3 ? <span className="av-table-subtext">另有 {prices.length - 3} 条</span> : null}</td>
-    <td>{!stock.length ? '无库存记录' : available === null ? '数据异常' : available.toLocaleString('zh-CN')}<span className="av-table-subtext">{stock.length ? '仓库台账' : '—'}</span></td>
+    <td>{!stock.length ? '无库存记录' : onHand === null ? '数据异常' : onHand.toLocaleString('zh-CN')}<span className="av-table-subtext">{stock.length && available !== null ? `仓库台账未预留：${available.toLocaleString('zh-CN')}` : '—'}</span></td>
+    <td>未接入<span className="av-table-subtext">渠道预留尚未核算</span></td>
     <td><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : publication?.status === 'IN_REVIEW' ? 'warn' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : publicationLabel.UNLISTED}</span></td>
     <td>{date(model.created_at)}<span className="av-table-subtext">更新 {date(model.updated_at)}</span></td>
     <td><div className={styles.rowActions}><button type="button" onClick={() => onSelect(model.id)}>配置</button><a href={`/admin/ecommerce/pricing?skuId=${encodeURIComponent(skus[0]?.id ?? '')}`}>价格管理</a></div></td>
