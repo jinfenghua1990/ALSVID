@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
+import { EcommercePricingWorkspace } from './ecommerce-pricing-workspace';
 import styles from './ecommerce-product-workspace.module.css';
 
 type Model = { id: string; code: string; name: string; description: string; status: string; created_at: string; updated_at: string; platform_id: string | null; product_type_code: string };
@@ -58,9 +59,9 @@ function contains(value: string | null | undefined, term: string) {
   return !term.trim() || (value ?? '').toLocaleLowerCase().includes(term.trim().toLocaleLowerCase());
 }
 
-function stockTotal(stock: Stock[]) {
+function stockTotal(stock: Stock[], field: 'on_hand' | 'available' = 'available') {
   if (!stock.length) return null;
-  const values = stock.map(item => typeof item.available === 'string' && item.available.trim() ? Number(item.available) : NaN);
+  const values = stock.map(item => typeof item[field] === 'string' && item[field].trim() ? Number(item[field]) : NaN);
   return values.every(Number.isFinite) ? values.reduce((total, value) => total + value, 0) : null;
 }
 
@@ -171,6 +172,11 @@ export function EcommerceProductWorkspace() {
   const publishable = selectedRows.filter(row => row.publication?.status === 'IN_REVIEW');
   const withdrawable = selectedRows.filter(row => row.publication?.status === 'PUBLISHED');
 
+  async function refreshPrices() {
+    const summary = await readApi<Summary>('/api/control/v1/commerce/storefront/summary');
+    setData(current => current ? { ...current, summary } : current);
+  }
+
   function selectModel(id: string) {
     setSelectedId(id);
     window.history.replaceState({}, '', `/admin/ecommerce/products?modelId=${encodeURIComponent(id)}`);
@@ -274,12 +280,12 @@ export function EcommerceProductWorkspace() {
       {data.summary.prices.length >= 500 ? <p className={styles.hint}>价格接口最多返回最近 500 条价格版本。</p> : null}
       <div className={`av-tablewrap ${styles.tableWrap}`}>
         <table className={`av-table ${styles.table}`}>
-          <thead><tr><th><input type="checkbox" aria-label="选择当前全部商品" checked={allSelected} onChange={toggleAll} disabled={!rows.length || busy} /></th><th>商品信息</th><th>类型 / 技术平台</th><th>SKU</th><th>市场 / 启用价格</th><th>库存台账可用</th><th>发布状态</th><th>创建时间</th><th>操作</th></tr></thead>
-          <tbody>{rows.length ? rows.map(row => <ProductRow key={row.model.id} row={row} market={filters.market} onSelect={selectModel} chosen={row.model.id === selectedId} checked={selectedIds.has(row.model.id)} toggle={toggle} busy={busy} />) : <tr><td colSpan={9} className={styles.empty}>没有符合筛选条件的商品</td></tr>}</tbody>
+          <thead><tr><th><input type="checkbox" aria-label="选择当前全部商品" checked={allSelected} onChange={toggleAll} disabled={!rows.length || busy} /></th><th>商品信息</th><th>类型 / 技术平台</th><th>SKU</th><th>市场 / 启用价格</th><th>仓内总库存</th><th>B2C 可用库存</th><th>发布状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody>{rows.length ? rows.map(row => <ProductRow key={row.model.id} row={row} market={filters.market} onSelect={selectModel} chosen={row.model.id === selectedId} checked={selectedIds.has(row.model.id)} toggle={toggle} busy={busy} />) : <tr><td colSpan={10} className={styles.empty}>没有符合筛选条件的商品</td></tr>}</tbody>
         </table>
       </div>
     </section>
-    {selected ? <ProductConfiguration model={selected} data={data} onChange={load} /> : null}
+    {selected ? <ProductConfiguration model={selected} data={data} onChange={load} onPriceChange={refreshPrices} /> : null}
   </div>;
 }
 
@@ -287,6 +293,7 @@ function ProductRow({ row, market, onSelect, chosen, checked, toggle, busy }: { 
   const { model, publication, skus, stock, platform } = row;
   const prices = market === 'ALL' ? row.prices : row.prices.filter(price => price.marketCountry === market);
   const available = stockTotal(stock);
+  const onHand = stockTotal(stock, 'on_hand');
   const href = `/admin/ecommerce/products?modelId=${encodeURIComponent(model.id)}`;
   const image = publication?.image_path?.startsWith('/') && !publication.image_path.startsWith('//') ? publication.image_path : '';
   return <tr data-selected={chosen}>
@@ -298,14 +305,15 @@ function ProductRow({ row, market, onSelect, chosen, checked, toggle, busy }: { 
     <td>{productTypeLabel[model.product_type_code] ?? model.product_type_code}<span className="av-table-subtext">{platform?.name || platform?.code || '未关联技术平台'}</span></td>
     <td>{skus.length} 个<span className="av-table-subtext">{skus.slice(0, 2).map(item => item.sku).join('、') || '尚未建立 SKU'}{skus.length > 2 ? ` 等 ${skus.length} 个` : ''}</span></td>
     <td>{prices.length ? prices.slice(0, 3).map(price => <span className="av-table-subtext" key={price.id}>{price.marketCountry} · {price.sku} · {money(price.unitPriceGross, price.currency)}</span>) : <span className="av-table-subtext">未发现启用价格</span>}{prices.length > 3 ? <span className="av-table-subtext">另有 {prices.length - 3} 条</span> : null}</td>
-    <td>{!stock.length ? '无库存记录' : available === null ? '数据异常' : available.toLocaleString('zh-CN')}<span className="av-table-subtext">{stock.length ? '仓库台账' : '—'}</span></td>
+    <td>{!stock.length ? '无库存记录' : onHand === null ? '数据异常' : onHand.toLocaleString('zh-CN')}<span className="av-table-subtext">{stock.length && available !== null ? `仓库台账未预留：${available.toLocaleString('zh-CN')}` : '—'}</span></td>
+    <td>未接入<span className="av-table-subtext">渠道预留尚未核算</span></td>
     <td><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : publication?.status === 'IN_REVIEW' ? 'warn' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : publicationLabel.UNLISTED}</span></td>
     <td>{date(model.created_at)}<span className="av-table-subtext">更新 {date(model.updated_at)}</span></td>
-    <td><div className={styles.rowActions}><button type="button" onClick={() => onSelect(model.id)}>配置</button><a href={`/admin/ecommerce/pricing?skuId=${encodeURIComponent(skus[0]?.id ?? '')}`}>价格管理</a></div></td>
+    <td><div className={styles.rowActions}><button type="button" onClick={() => onSelect(model.id)}>配置</button><button type="button" onClick={() => { onSelect(model.id); window.requestAnimationFrame(() => document.getElementById('product-prices')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }}>价格管理</button></div></td>
   </tr>;
 }
 
-function ProductConfiguration({ model, data, onChange }: { model: Model; data: ProductData; onChange: () => Promise<void> }) {
+function ProductConfiguration({ model, data, onChange, onPriceChange }: { model: Model; data: ProductData; onChange: () => Promise<void>; onPriceChange: () => Promise<void> }) {
   const publication = data.publications.find(item => item.model_id === model.id);
   const variants = data.catalog.variants.filter(item => item.model_id === model.id);
   const skus = data.catalog.skus.filter(item => variants.some(variant => variant.id === item.variant_id));
@@ -313,11 +321,11 @@ function ProductConfiguration({ model, data, onChange }: { model: Model; data: P
   const stock = data.inventory.filter(item => item.item_kind === 'SKU' && skus.some(sku => sku.id === item.sku_id));
   const platform = data.catalog.platforms.find(item => item.id === model.platform_id);
   return <section className="av-card av-ecommerce-config" aria-label={`${model.code} 商品配置工作区`}>
-    <div className="av-cardhead"><div><p className="av-eyebrow">商品配置工作区 · {model.code}</p><h2 className="av-cardtitle">{publication?.title_zh || model.name}</h2><p className="av-cardhint">{model.code} · {productTypeLabel[model.product_type_code] ?? model.product_type_code} · {platform?.name || platform?.code || '未关联技术平台'}</p></div><div className="av-pageactions"><a className="av-btn" href="/admin/ecommerce/publications">发布与审核</a><a className="av-btn" href={`/admin/ecommerce/pricing?skuId=${encodeURIComponent(skus[0]?.id ?? '')}`}>价格管理</a><a className="av-btn" href="/admin/ecommerce/inventory">库存查询</a></div></div>
+    <div className="av-cardhead"><div><p className="av-eyebrow">商品配置工作区 · {model.code}</p><h2 className="av-cardtitle">{publication?.title_zh || model.name}</h2><p className="av-cardhint">{model.code} · {productTypeLabel[model.product_type_code] ?? model.product_type_code} · {platform?.name || platform?.code || '未关联技术平台'}</p></div><div className="av-pageactions"><a className="av-btn" href="/admin/ecommerce/publications">发布与审核</a><a className="av-btn" href="#product-prices">价格管理</a><a className="av-btn" href="/admin/ecommerce/inventory">库存查询</a></div></div>
     <div className="av-ecommerce-config-grid">
       <ConfigSection number="01" title="商城展示信息" hint="商品标题、素材和审核动作直接复用现有商品发布流程。"><dl className="av-ecommerce-facts"><div><dt>中文展示名称</dt><dd>{publication?.title_zh || '尚未建立发布记录'}</dd></div><div><dt>德语 / 英文标题</dt><dd>{publication ? `${publication.title_de || '未填写'} / ${publication.title_en || '未填写'}` : '—'}</dd></div><div><dt>主图</dt><dd>{publication?.image_path || '未核对素材'}</dd></div><div><dt>发布状态</dt><dd><span className="av-tag" data-tone={publication?.status === 'PUBLISHED' ? 'good' : undefined}>{publication ? publicationLabel[publication.status] ?? publication.status : '未建立发布记录'}</span></dd></div></dl><div className="av-ecommerce-embedded-publication"><CatalogPublicationPanel models={[model]} onChange={onChange} /></div></ConfigSection>
       <ConfigSection number="02" title="产品与 SKU" hint="车型、技术参数和正式 SKU 只读自产品研发。"><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>名称</th><th>Variant</th><th>市场 / 颜色 / 尺寸</th></tr></thead><tbody>{skus.map(sku => <tr key={sku.id}><td><strong>{sku.sku}</strong></td><td>{sku.name}</td><td>{variants.find(variant => variant.id === sku.variant_id)?.code || '—'}</td><td>{[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '—'}</td></tr>)}</tbody></table></div>{!skus.length ? <p className="av-cardhint">该商品尚未建立 SKU。</p> : null}</ConfigSection>
-      <ConfigSection number="03" title="区域与价格" hint="每个国家市场独立读取价格版本，不跨市场覆盖。"><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>市场</th><th>商城售价</th><th>状态</th><th>生效时间</th></tr></thead><tbody>{prices.map(price => <tr key={price.id}><td>{price.sku}</td><td>{price.marketCountry}</td><td>{money(price.unitPriceGross, price.currency)}</td><td>{price.status}</td><td>{date(price.effectiveFrom)}</td></tr>)}</tbody></table></div>{!prices.length ? <p className="av-cardhint">尚未配置商城价格。</p> : null}</ConfigSection>
+      <div id="product-prices"><ConfigSection number="03" title="区域与价格" hint="按商品 SKU 分别维护德国和奥地利价格。"><EcommercePricingWorkspace key={model.id} skuIds={skus.map(sku => sku.id)} embedded onChanged={onPriceChange} /></ConfigSection></div>
       <ConfigSection number="04" title="库存与销售状态" hint="库存只读自库存台账；商城不直接修改仓库实物库存。"><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>仓库 / 库位</th><th>现存</th><th>已预留</th><th>台账可用</th></tr></thead><tbody>{stock.map((item, index) => <tr key={`${item.sku_id}-${item.warehouse_code}-${item.location_code}-${index}`}><td>{item.sku || item.sku_name || '—'}</td><td>{item.warehouse_name || item.warehouse_code} / {item.location_code}</td><td>{item.on_hand}</td><td>{item.reserved}</td><td>{item.available}</td></tr>)}</tbody></table></div>{!stock.length ? <p className="av-cardhint">当前没有匹配的 SKU 库存记录；这不等于商城缺货。</p> : null}<p className="av-cardhint">正式商城可售量还需要 ATP、市场和履约规则，当前不在此处推断。</p></ConfigSection>
       <ConfigSection number="05" title="发布与审核记录" hint="当前展示授权 API 返回的正式发布状态。"><dl className="av-ecommerce-facts"><div><dt>审核状态</dt><dd>{publication ? publicationLabel[publication.status] ?? publication.status : '未建立发布记录'}</dd></div><div><dt>版本</dt><dd>{publication?.version ?? '—'}</dd></div><div><dt>上架时间</dt><dd>{date(publication?.published_at)}</dd></div><div><dt>撤回时间</dt><dd>{date(publication?.withdrawn_at)}</dd></div></dl><p className="av-cardhint">完整操作审计由产品发布域保留；此处不复制一套审核记录。</p></ConfigSection>
     </div>

@@ -28,7 +28,7 @@ let publications = [
   { model_id: 'model-f8', model_code: 'F8', model_status: 'ACTIVE', status: 'IN_REVIEW', title_zh: 'F8 城市电单车', title_de: 'F8 Stadt', title_en: 'F8 City', image_path: '/home/original/fc1-product.webp', evidence_note: 'CI fixture', version: 1, published_at: null, withdrawn_at: null },
   { model_id: 'model-x9', model_code: 'X9', model_status: 'ACTIVE', status: 'PUBLISHED', title_zh: 'X9 零配件', title_de: 'X9', title_en: 'X9', image_path: '', evidence_note: 'CI fixture', version: 1, published_at: '2026-10-21T10:00:00Z', withdrawn_at: null },
 ];
-const summary = { skus: [], orders: [], orderTotal: 0, orderStatusCounts: {}, prices: [
+const summary = { skus: [{ id: 'sku-f8', sku: 'F8-BLK', name: 'F8 黑色', colorCode: 'BLACK' }, { id: 'sku-x9', sku: 'X9-RED', name: 'X9 红色', colorCode: 'RED' }], orders: [], orderTotal: 0, orderStatusCounts: {}, prices: [
   { id: 'draft-f8', skuId: 'sku-f8', sku: 'F8-BLK', skuName: 'F8', status: 'DRAFT', marketCountry: 'DE', currency: 'EUR', unitPriceGross: '999.00', effectiveFrom: null },
   { id: 'price-f8', skuId: 'sku-f8', sku: 'F8-BLK', skuName: 'F8', status: 'ACTIVE', marketCountry: 'DE', currency: 'EUR', unitPriceGross: '1200.00', effectiveFrom: '2026-10-01T00:00:00Z' },
   { id: 'price-x9', skuId: 'sku-x9', sku: 'X9-RED', skuName: 'X9', status: 'ACTIVE', marketCountry: 'AT', currency: 'EUR', unitPriceGross: '45.00', effectiveFrom: '2026-10-01T00:00:00Z' },
@@ -49,6 +49,13 @@ try {
   await page.route('**/api/control/v1/product/catalog-publish-assets', route => route.fulfill({ json: { data: [{ modelCode: 'F8', imagePath: '/home/original/fc1-product.webp' }] } }));
   await page.route('**/api/control/v1/commerce/storefront/summary', route => route.fulfill({ json: { data: summary } }));
   await page.route('**/api/control/v1/inventory', route => route.fulfill({ json: { data: inventory } }));
+  const priceWrites = [];
+  await page.route('**/api/control/v1/commerce/storefront/prices', async route => {
+    const body = route.request().postDataJSON();
+    priceWrites.push(body);
+    summary.prices.unshift({ id: 'draft-at', skuId: body.skuId, sku: 'F8-BLK', skuName: 'F8', status: 'DRAFT', marketCountry: body.marketCountry, currency: 'EUR', unitPriceGross: body.unitPriceGross, effectiveFrom: null });
+    await route.fulfill({ json: { data: { id: 'draft-at' } } });
+  });
   await page.route('**/api/control/v1/product/publications/*/transition', async route => {
     const body = route.request().postDataJSON();
     const id = new URL(route.request().url()).pathname.split('/').at(-2);
@@ -65,7 +72,7 @@ try {
   const list = page.getByRole('region', { name: '商城商品列表' });
   await list.getByText('F8 城市电单车').waitFor({ timeout: 30000 });
   await page.getByRole('navigation', { name: '工作区标签页' }).getByRole('link', { name: '商城商品列表' }).waitFor();
-  assert.equal(await list.locator('table thead th').count(), 9);
+  assert.equal(await list.locator('table thead th').count(), 10);
   assert.equal(await list.getByRole('button', { name: '待审核 1' }).count(), 1);
   assert.equal(await list.getByRole('button', { name: '已上架 1' }).count(), 1);
   const f8 = list.getByRole('checkbox', { name: '选择 F8' }).locator('xpath=ancestor::tr');
@@ -137,6 +144,15 @@ try {
   await f8config.getByRole('button', { name: '提交审核' }).click();
   await list.getByRole('button', { name: '待审核 1' }).waitFor();
   assert.deepEqual(transitions.at(-1), { id: 'model-f8', action: 'SUBMIT', expectedVersion: 3 }, 'editing refreshes publication status');
+
+  const priceForm = f8config.locator('[aria-label="新增价格版本"]');
+  await priceForm.getByLabel('销售市场').selectOption('AT');
+  await priceForm.getByLabel('EUR 含税单价').fill('1400.00');
+  await priceForm.getByLabel('税率（基点）').fill('2000');
+  await priceForm.getByRole('button', { name: '保存草稿' }).click();
+  await f8config.getByText('价格草稿已保存，请核对后启用。').waitFor();
+  assert.deepEqual(priceWrites, [{ skuId: 'sku-f8', marketCountry: 'AT', unitPriceGross: '1400.00', taxRateBasisPoints: 2000 }], 'price draft stays with its SKU and market');
+  assert.equal(await f8config.getByText('X9-RED').count(), 0, 'other product prices are not included in this product editor');
 
   canPublish = false;
   await page.getByRole('button', { name: '刷新', exact: true }).click();
