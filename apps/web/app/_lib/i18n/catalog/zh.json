@@ -84,7 +84,7 @@
   "catalog.bikes.sort.featured": "推荐排序",
   "catalog.bikes.sort.name": "型号 A–Z",
   "catalog.discovery.search.label": "查找车型",
-  "catalog.discovery.search.placeholder": "搜索 FC1、FC2、L7、L8…",
+  "catalog.discovery.search.placeholder": "搜索 A1 Ultra、L1 Pro、A1、L1…",
   "catalog.discovery.filter.label": "展示状态",
   "catalog.discovery.filter.all": "全部车型",
   "catalog.discovery.filter.reviewed": "已审核展示",
