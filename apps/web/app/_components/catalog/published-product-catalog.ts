@@ -2,23 +2,25 @@
  * No internal SKU, cost, supplier, BOM, payment or inventory information.
  */
 export type PublishedCatalogProduct={
- modelId:string;code:string;type:'BIKE'|'ACCESSORY'|'SERVICE_PART';image:string;
+ modelId:string;productId:string;code:string;type:'BIKE'|'ACCESSORY'|'SERVICE_PART';image:string;
  title:{zh:string;de:string;en:string};
 };
-export type PublishedBike=PublishedCatalogProduct & {code:'FC1'|'FC2';type:'BIKE'};
+export type PublishedBike=PublishedCatalogProduct & {code:'A1-ULTRA'|'L1-PRO'|'A1'|'L1';type:'BIKE'};
 export type PublishedCatalogResult={items:readonly PublishedCatalogProduct[];suppressedCodes:readonly string[];available:boolean};
-export type PublishedBikeResult={items:readonly PublishedBike[];suppressedCodes:readonly ('FC1'|'FC2')[];available:boolean};
+export type PublishedBikeResult={items:readonly PublishedBike[];suppressedCodes:readonly string[];available:boolean};
 const allowedImages:Record<PublishedBike['code'],string>={
- FC1:'/home/original/fc1-product.webp',
- FC2:'/products/fc2/side-studio-1536.webp',
+ 'A1-ULTRA':'/home/original/fc1-product.webp',
+ 'L1-PRO':'/products/fc2/side-studio-1536.webp',
+ A1:'/products/l7/reference-side.jpg',
+ L1:'/products/l8/retouched-side.webp',
 };
 const uuid=/^[a-f\d]{8}-[a-f\d]{4}-[1-8][a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i;
 function validPublishedProduct(value:unknown):value is PublishedCatalogProduct{
  if(!value||typeof value!=='object')return false;
  const p=value as Record<string,unknown>;
  if(p.type!=='BIKE'&&p.type!=='ACCESSORY'&&p.type!=='SERVICE_PART')return false;
- if(typeof p.code!=='string'||!p.code.trim()||typeof p.image!=='string'||!p.image.startsWith('/')||typeof p.modelId!=='string'||!uuid.test(p.modelId))return false;
- if(p.type==='BIKE'&&(p.code!=='FC1'&&p.code!=='FC2'||p.image!==allowedImages[p.code as 'FC1'|'FC2']))return false;
+ if(typeof p.code!=='string'||!p.code.trim()||typeof p.image!=='string'||!p.image.startsWith('/')||typeof p.modelId!=='string'||!uuid.test(p.modelId)||typeof p.productId!=='string'||!/^\d{6}$/.test(p.productId))return false;
+ if(p.type==='BIKE'&&(!(p.code in allowedImages)||p.image!==allowedImages[p.code as PublishedBike['code']]))return false;
  if(!p.title||typeof p.title!=='object')return false;
  const t=p.title as Record<string,unknown>;
  return ['zh','de','en'].every(locale=>typeof t[locale]==='string'&&
@@ -45,8 +47,8 @@ export async function publishedProductCatalog():Promise<PublishedCatalogResult>{
 export async function publishedBikeCatalog():Promise<PublishedBikeResult>{
  const catalog=await publishedProductCatalog();
  return {
-  items:catalog.items.filter((item):item is PublishedBike=>item.type==='BIKE'&&(item.code==='FC1'||item.code==='FC2')),
-  suppressedCodes:catalog.suppressedCodes.filter((code):code is 'FC1'|'FC2'=>code==='FC1'||code==='FC2'),
+  items:catalog.items.filter((item):item is PublishedBike=>item.type==='BIKE'&&['A1-ULTRA','L1-PRO','A1','L1'].includes(item.code)),
+  suppressedCodes:catalog.suppressedCodes,
   available:catalog.available,
  };
 }
