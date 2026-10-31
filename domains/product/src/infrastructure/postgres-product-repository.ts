@@ -188,7 +188,7 @@ export class PostgresProductRepository implements ProductRepository {
       JOIN product.models m ON m.id=p.model_id
       WHERE p.published_at IS NOT NULL
         AND (p.status<>'PUBLISHED' OR m.status<>'ACTIVE')
-        AND m.code IN ('FC1','FC2')`);
+        AND m.code IN ('A1-ULTRA','L1-PRO','A1','L1')`);
     return result.rows.map(row=>row.code);
   }
 
