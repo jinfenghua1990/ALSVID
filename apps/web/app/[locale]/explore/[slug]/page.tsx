@@ -61,6 +61,8 @@ export default async function HomeDetailPage({ params, searchParams }: Props) {
   }
   if (slug === "fc1") {
     if (!isLocale(locale)) notFound();
+    const product = (await publishedProductCatalog()).items.find(item => item.code === "A1-ULTRA");
+    if (product) redirect(`/${locale}/explore/${product.productId}`);
     const host = (await headers()).get("host") ?? "";
     const prefix = host.toLowerCase().split(".")[0];
     if (prefix === "admin" || prefix === "my" || prefix === "dealer") redirect(`/${prefix}`);
