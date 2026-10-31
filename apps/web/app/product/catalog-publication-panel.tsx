@@ -3,7 +3,7 @@
 import {useEffect,useState,type FormEvent} from 'react';
 import styles from './catalog-publication-panel.module.css';
 
-type Model={id:string;code:string;name:string;status:string;product_type_code:string};
+type Model={id:string;product_id:string;code:string;name:string;status:string;product_type_code:string};
 type Publication={
   model_id:string;model_code:string;model_status:string;status:'DRAFT'|'IN_REVIEW'|'PUBLISHED'|'WITHDRAWN';
   title_zh:string;title_de:string;title_en:string;image_path:string;evidence_note:string;version:number;
@@ -58,13 +58,11 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
   }
   const activeModels=models.filter(model=>model.status==='ACTIVE');
   const bikeModels=models.filter(model=>model.product_type_code==='BIKE');
-  // Eligibility comes from the reviewed artwork allowlist, not a hardcoded model list.
-  const eligible=models.filter(model=>model.status==='ACTIVE'&&model.product_type_code==='BIKE'&&
-    allowed.includes(model.code));
+  const eligible=models.filter(model=>['DRAFT','ACTIVE'].includes(model.status)&&model.product_type_code==='BIKE');
   return <section id="catalog-publications" className={styles.section} aria-label="商品发布和审核">
     <header>
       <div><span>OFFICIAL PRODUCT CATALOGUE</span><h2>官网商品发布与审核</h2></div>
-      <p>Product 内部 ACTIVE 与官网 PUBLISHED 分开管理。必须核对真实车图、三语标题及车型后，再提交并由具备发布权限的账号审核。发布不等于允许支付。</p>
+      <p>产品研发中的整车会显示在这里，可先建立商城草稿；商品启用后，再补充并核对真实图片、三语标题和车型，提交审核后发布。</p>
     </header>
     {loading?<p role="status">正在读取真实发布记录…</p>:null}
     {error?<p className={styles.error} role="alert">{error}</p>:null}
@@ -73,18 +71,18 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
       <div><span>产品型号</span><strong>{models.length}</strong></div>
       <div><span>ACTIVE 型号</span><strong>{activeModels.length}</strong></div>
       <div><span>整车型号</span><strong>{bikeModels.length}</strong></div>
-      <div><span>符合基础筛选</span><strong>{eligible.length}</strong></div>
+      <div><span>商城可新建</span><strong>{eligible.length}</strong></div>
     </div>
     <div className={styles.grid}>
       {eligible.map(model=>{
         const publication=rows.find(item=>item.model_id===model.id);
         return <article className={styles.card} key={model.id}>
           <h3>{model.code} · {model.name}</h3>
-          <p>Model ID：{model.id}</p>
+          <p>商品 ID：{model.product_id} · Model ID：{model.id}</p>
           {!publication?
             <div>
-              <p>尚未建立公开发布草稿。此商品不会出现在已发布商品 API 中。</p>
-              <button type="button" disabled={!!busy||loading} onClick={()=>void operate(model.id,()=>publicationApi('publications/'+encodeURIComponent(model.id)+'/start','POST'))}>建立发布草稿</button>
+              <p>尚未建立商城商品草稿。建立后可补充商城资料；未完成图片核验和审核前，不会出现在已发布商品目录中。</p>
+              <button type="button" disabled={!!busy||loading} onClick={()=>void operate(model.id,()=>publicationApi('publications/'+encodeURIComponent(model.id)+'/start','POST'))}>新建商城商品</button>
             </div>:
             <PublicationEditor key={publication.model_id+':'+publication.version} item={publication}
               disabled={!!busy} save={(body)=>operate(model.id,()=>publicationApi('publications/'+encodeURIComponent(model.id)+'/draft','PATCH',body))}
@@ -94,12 +92,12 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
       })}
     </div>
     {!loading&&!eligible.length?<div className={styles.emptyState}>
-      <div><strong>暂无符合条件的发布候选</strong>
-        <p>当前真实产品目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车；已核对素材的商品型号 {allowed.length} 个{allowed.length?'（'+allowed.join('、')+'）':''}。只有状态为 ACTIVE、类型为整车、且已录入官网素材白名单的型号才会进入发布审核。这里不会自动生成虚构商品。</p>
+      <div><strong>暂无可新建的商城商品</strong>
+        <p>产品研发中新建并保存整车后，会显示在这里供你创建商城商品。当前目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车。</p>
       </div>
       <a href="/admin/product?type=BIKE#vehicle-models" className={styles.emptyAction}>检查产品型号与类型 →</a>
     </div>:null}
-    <p className={styles.note}>首批只支持已有真实详情页与已登记车图、并已录入素材白名单的型号。其他整车、配件、图片和适配规则需要独立验证，不会因为类型是 ACTIVE 就自动上架。</p>
+    <p className={styles.note}>建立商城草稿不会自动上架。正式提交审核前，商品必须在产品研发中启用，并完成真实图片、商品资料和车型核验。</p>
   </section>;
 }
 
