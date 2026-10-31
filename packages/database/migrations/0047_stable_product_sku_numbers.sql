@@ -195,7 +195,7 @@ END;
 $$;
 
 CREATE TRIGGER storefront_order_line_capture_product_ids
-BEFORE INSERT ON commerce.storefront_order_lines
+BEFORE INSERT OR UPDATE ON commerce.storefront_order_lines
 FOR EACH ROW EXECUTE FUNCTION commerce.capture_storefront_product_ids();
 
 ALTER TABLE commerce.external_order_lines
@@ -224,5 +224,5 @@ END;
 $$;
 
 CREATE TRIGGER external_order_line_sync_product_ids
-BEFORE INSERT OR UPDATE OF sku_id ON commerce.external_order_lines
+BEFORE INSERT OR UPDATE ON commerce.external_order_lines
 FOR EACH ROW EXECUTE FUNCTION commerce.sync_external_order_line_product_ids();
