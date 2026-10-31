@@ -271,7 +271,7 @@ export function EcommerceProductWorkspace() {
         skus.map(sku => sku.sku).join(' | '),
         prices.map(price => `${price.marketCountry} ${price.unitPriceGross} ${price.currency}`).join(' | '),
         available === null ? '数据异常' : String(available),
-        publication ? publicationLabel[publication.status] ?? publication.status : publicationLabel.UNLISTED,
+        publication ? (publicationLabel[publication.status] ?? publication.status) : (publicationLabel.UNLISTED ?? '未建立发布记录'),
         date(model.updated_at),
       ];
     });
