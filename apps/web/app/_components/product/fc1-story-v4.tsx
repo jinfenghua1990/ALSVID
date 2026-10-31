@@ -67,7 +67,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         </nav>
         <section className={styles.featureOverview} aria-labelledby="feature-overview-title" data-fc1-chapter>
           <div className={styles.sectionHeader}>
-            <p className={styles.eyebrow}>ALSVID FC1</p>
+            <p className={styles.eyebrow}>ALSVID A1 Ultra</p>
             <h2 id="feature-overview-title">{key("fc1.story.overview.title")}</h2>
           </div>
           <p className={styles.featureIntro}>{key("fc1.story.overview.subtitle")}</p>
@@ -75,7 +75,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <a className={`${styles.featureCard} ${styles.featureCardHero}`} href="#entry" data-feature="hero">
               <div className={styles.featurePhoto}><img {...fc1Photos.side} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
-                <span className={styles.featureNumber}>01 / ALSVID FC1</span>
+                <span className={styles.featureNumber}>01 / ALSVID A1 Ultra</span>
                 <h3>{key("fc1.story.feature.ride")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.ride.body")}</p>
               </div>
@@ -83,7 +83,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <a className={`${styles.featureCard} ${styles.featureCardFold}`} href="#folding" data-feature="fold">
               <div className={styles.featurePhoto}><img {...fc1Photos.folded} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
-                <span className={styles.featureNumber}>02 / ALSVID FC1</span>
+                <span className={styles.featureNumber}>02 / ALSVID A1 Ultra</span>
                 <h3>{key("fc1.story.feature.fold")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.fold.body")}</p>
               </div>
@@ -91,7 +91,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <a className={`${styles.featureCard} ${styles.featureCardFrame}`} href="#entry" data-feature="frame">
               <div className={styles.featurePhoto}><img {...fc1Photos["rear-three-quarter"]} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
-                <span className={styles.featureNumber}>03 / ALSVID FC1</span>
+                <span className={styles.featureNumber}>03 / ALSVID A1 Ultra</span>
                 <h3>{key("fc1.story.feature.frame")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.frame.body")}</p>
               </div>
@@ -99,7 +99,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <a className={`${styles.featureCard} ${styles.featureCardComfort}`} href="#details" data-feature="comfort">
               <div className={styles.featurePhoto}><img {...fc1Photos["hidden-carbon-front-suspension"]} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
-                <span className={styles.featureNumber}>04 / ALSVID FC1</span>
+                <span className={styles.featureNumber}>04 / ALSVID A1 Ultra</span>
                 <h3>{key("fc1.story.feature.comfortBrakes")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.comfortBrakes.body")}</p>
               </div>
@@ -107,7 +107,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
             <a className={`${styles.featureCard} ${styles.featureCardDrive}`} href="#drive" data-feature="drive">
               <div className={styles.featurePhoto}><img {...fc1Photos["shimano-chain-drivetrain"]} alt="" loading="lazy" /></div>
               <div className={styles.featureCardCopy}>
-                <span className={styles.featureNumber}>05 / ALSVID FC1</span>
+                <span className={styles.featureNumber}>05 / ALSVID A1 Ultra</span>
                 <h3>{key("fc1.story.feature.driveBattery")}</h3>
                 <p className={styles.featureDescription}>{key("fc1.story.feature.driveBattery.body")}</p>
               </div>
@@ -211,7 +211,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         </section>
         <section data-fc1-chapter id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
           <div className={styles.galleryPin}>
-            <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
+            <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID A1 Ultra</p><h2>{key("fc1.gallery")}</h2></div>
             <ProductGallery locale={locale} />
           </div>
         </section>
@@ -244,7 +244,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
           </div>
         </section>
         <section className={styles.cta}>
-          <p className={styles.eyebrow}>ALSVID FC1</p>
+          <p className={styles.eyebrow}>ALSVID A1 Ultra</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
           <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")}</a>
@@ -252,7 +252,7 @@ export function Fc1StoryPage({ locale, myUrl }: { locale: Locale; myUrl: string 
         </section>
 
         <section data-fc1-chapter className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
-          <div><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
+          <div><p className={styles.eyebrow}>ALSVID A1 Ultra</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
         </section>
         <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
       </div>
