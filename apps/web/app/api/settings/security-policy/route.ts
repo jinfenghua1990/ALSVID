@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
+const apiBase = process.env.ALSVID_API_BASE_URL ?? '';
 
 async function sessionToken(): Promise<string | null> {
   return (await cookies()).get('alsvid_session')?.value ?? null;

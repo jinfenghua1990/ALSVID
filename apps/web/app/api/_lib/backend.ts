@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers';
 import { sessionCookieNameForApiRequest } from '../../_lib/session-cookie';
 
-const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
+const apiBase = process.env.ALSVID_API_BASE_URL ?? '';
 
 export async function backendFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const store = await cookies();

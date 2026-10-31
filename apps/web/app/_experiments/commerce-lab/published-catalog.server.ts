@@ -1,7 +1,7 @@
 import 'server-only';
 import {cache} from 'react';
 import {parseLabProducts,parsePublishedLabProduct,type LabPublishedProduct,type LabCatalogSnapshot} from './catalog-contract';
-const apiBase=process.env.ALSVID_API_BASE_URL??'http://localhost:4000/api';
+const apiBase=process.env.ALSVID_API_BASE_URL??'';
 const comparisonPageSize=20;
 export async function publishedComparisonCatalog(page=1,query=''):Promise<LabCatalogSnapshot>{
   const checkedAt=new Date().toISOString();

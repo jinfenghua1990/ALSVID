@@ -2,7 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { readPortalSession } from '../../_lib/portal-access';
 import { sessionCookieNameForPortal } from '../../_lib/session-cookie';
-const apiBase=process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
+const apiBase=process.env.ALSVID_API_BASE_URL ?? '';
 const json=(body:unknown,status:number)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
 export async function comparisonAdminAuthorization(request:Request,write:boolean):Promise<{token:string}|{response:Response}>{
   const session=await readPortalSession('admin');
