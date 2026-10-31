@@ -3,7 +3,7 @@
 import {useEffect,useState,type FormEvent} from 'react';
 import styles from './catalog-publication-panel.module.css';
 
-type Model={id:string;product_id:string;code:string;name:string;status:string;product_type_code:string};
+type Model={id:string;product_id?:string;code:string;name:string;status:string;product_type_code:string};
 type Publication={
   model_id:string;model_code:string;model_status:string;status:'DRAFT'|'IN_REVIEW'|'PUBLISHED'|'WITHDRAWN';
   title_zh:string;title_de:string;title_en:string;image_path:string;evidence_note:string;version:number;
@@ -78,7 +78,7 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
         const publication=rows.find(item=>item.model_id===model.id);
         return <article className={styles.card} key={model.id}>
           <h3>{model.code} · {model.name}</h3>
-          <p>商品 ID：{model.product_id} · Model ID：{model.id}</p>
+          <p>{model.product_id?`商品 ID：${model.product_id} · `:''}Model ID：{model.id}</p>
           {!publication?
             <div>
               <p>尚未建立商城商品草稿。建立后可补充商城资料；未完成图片核验和审核前，不会出现在已发布商品目录中。</p>
