@@ -7,10 +7,10 @@ import {
 } from './core/publication.js';
 
 test('publications are reviewed separately from ACTIVE internal product status',()=>{
- assert.equal(curatedCatalogImage('FC1','ACTIVE','BIKE'),approvedCatalogAssets['A1-ULTRA']);
- assert.equal(curatedCatalogImage('FC2','ACTIVE','BIKE'),approvedCatalogAssets['L1-PRO']);
+ assert.equal(curatedCatalogImage('A1-ULTRA','ACTIVE','BIKE'),approvedCatalogAssets['A1-ULTRA']);
+ assert.equal(curatedCatalogImage('L1-PRO','ACTIVE','BIKE'),approvedCatalogAssets['L1-PRO']);
  assert.throws(()=>curatedCatalogImage('CT1','ACTIVE','BIKE'),ProductValidationError);
- assert.throws(()=>curatedCatalogImage('FC1','RETIRED','BIKE'),ProductValidationError);
+ assert.throws(()=>curatedCatalogImage('A1-ULTRA','RETIRED','BIKE'),ProductValidationError);
  assert.equal(curatedCatalogImage('BASKET','ACTIVE','ACCESSORY',{BASKET:'/products/accessories/basket.webp'}),'/products/accessories/basket.webp');
  assert.throws(()=>curatedCatalogImage('BASKET','ACTIVE','ACCESSORY'),ProductValidationError);
 });
@@ -60,20 +60,20 @@ test('the reviewed artwork allowlist is data, with the built-in list as a floor'
  assert.deepEqual(mergeCatalogAssets([]),approvedCatalogAssets);
  // A new model becomes publishable without touching code.
  const withFc3=mergeCatalogAssets([{model_code:'A1',image_path:'/products/fc3/side.webp',enabled:true}]);
- assert.equal(withFc3.FC3,'/products/fc3/side.webp');
- assert.equal(withFc3.FC1,approvedCatalogAssets['A1-ULTRA']);
- assert.equal(curatedCatalogImage('FC3','ACTIVE','BIKE',withFc3),'/products/fc3/side.webp');
+ assert.equal(withFc3['A1'],'/products/fc3/side.webp');
+ assert.equal(withFc3['A1-ULTRA'],approvedCatalogAssets['A1-ULTRA']);
+ assert.equal(curatedCatalogImage('A1','ACTIVE','BIKE',withFc3),'/products/fc3/side.webp');
  // Replacing artwork for an existing model overrides the floor rather than appending.
  const replaced=mergeCatalogAssets([{model_code:'A1-ULTRA',image_path:'/products/fc1/v2.webp',enabled:true}]);
- assert.equal(replaced.FC1,'/products/fc1/v2.webp');
+ assert.equal(replaced['A1-ULTRA'],'/products/fc1/v2.webp');
 });
 
 test('disabling a model withdraws it even though the floor still lists it',()=>{
  const withdrawn=mergeCatalogAssets([{model_code:'A1-ULTRA',image_path:approvedCatalogAssets['A1-ULTRA']!,enabled:false}]);
- assert.equal('FC1' in withdrawn,false);
- assert.throws(()=>curatedCatalogImage('FC1','ACTIVE','BIKE',withdrawn),ProductValidationError);
+ assert.equal('A1-ULTRA' in withdrawn,false);
+ assert.throws(()=>curatedCatalogImage('A1-ULTRA','ACTIVE','BIKE',withdrawn),ProductValidationError);
  assert.equal(toPublicCatalogItem(row,withdrawn),null);
- assert.equal(withdrawn.FC2,approvedCatalogAssets['L1-PRO']);
+ assert.equal(withdrawn['L1-PRO'],approvedCatalogAssets['L1-PRO']);
 });
 
 test('the allowlist merge never mutates its inputs and ignores unknown rows',()=>{
@@ -81,8 +81,8 @@ test('the allowlist merge never mutates its inputs and ignores unknown rows',()=
  const snapshot=JSON.stringify({rows,floor:approvedCatalogAssets});
  const merged=mergeCatalogAssets(rows.concat([{model_code:'',image_path:'/x.webp',enabled:true} as never]));
  assert.equal(JSON.stringify({rows,floor:approvedCatalogAssets}),snapshot);
- assert.equal(merged.FC3,'/products/fc3/side.webp');
- assert.equal('FC3' in approvedCatalogAssets,false);
+ assert.equal(merged['A1'],'/products/fc3/side.webp');
+ assert.equal('A1' in approvedCatalogAssets,false);
 });
 
 test('the public projection follows the allowlist, not the hardcoded pair',()=>{
