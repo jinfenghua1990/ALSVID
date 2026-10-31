@@ -1,18 +1,20 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import styles from './ecommerce-orders-workspace.module.css';
 
 type Sku = { id: string; sku: string; name: string; colorCode: string | null; marketCode: string | null; modelCode: string; variantCode: string };
 type Price = { id: string; skuId: string; sku: string; status: 'DRAFT' | 'ACTIVE' | 'RETIRED'; marketCountry: string; unitPriceGross: string; version: number };
-type Line = { id: string; skuId: string; skuCode: string; skuName: string; quantity: number; unitPriceGross: string; lineGrossAmount: string; lineNetAmount: string; lineTaxAmount: string; taxRateBasisPoints: number };
+type Line = { id: string; skuId: string; skuCode: string; skuName: string; quantity: number; lineGrossAmount: string; lineNetAmount: string; lineTaxAmount: string; taxRateBasisPoints: number };
 type Order = { id: string; orderNumber: string; customerEmail: string; marketCountry: string; currency: string; status: string; paymentStatus: string; totalGrossAmount: string; totalTaxAmount: string; totalNetAmount: string; version: number; createdAt: string; lines: Line[]; blockers: string[] };
 type OrderDetail = Order & { events: { id: string; eventType: string; fromStatus: string | null; toStatus: string; toPaymentStatus: string; occurredAt: string }[] };
 type Factory = { id: string; code: string; name: string };
 type Summary = { checkoutEnabled: false; skus: Sku[]; prices: Price[]; orders: Order[]; factories: Factory[]; orderTotal: number; orderLimit: number; orderStatusCounts: Record<string, number> };
 type Item = { skuId: string; quantity: string };
+type Tone = 'good' | 'warn' | 'bad' | 'brand' | 'neutral';
 
-const statusLabel: Record<string, string> = { DRAFT: '内部草稿', SUBMITTED: '已提交', AWAITING_PAYMENT: '待支付', PAYMENT_PENDING: '支付处理中', PAYMENT_VERIFIED: '已核验付款', FULFILLMENT_PENDING: '待履约', IN_PRODUCTION: '生产中', FULFILLED: '已交付', CLOSED: '已关闭', CANCELLED: '已取消' };
+const statusLabel: Record<string, string> = { DRAFT: '内部草稿', SUBMITTED: '待支付', PAYMENT_PENDING: '支付处理中', PAYMENT_VERIFIED: '已核验付款', FULFILLMENT_PENDING: '待履约', IN_PRODUCTION: '生产中', FULFILLED: '已交付', CANCELLED: '已取消' };
+const statusTone: Record<string, Tone> = { DRAFT: 'warn', SUBMITTED: 'brand', PAYMENT_PENDING: 'brand', PAYMENT_VERIFIED: 'good', FULFILLMENT_PENDING: 'brand', IN_PRODUCTION: 'brand', FULFILLED: 'good', CANCELLED: 'bad' };
 
 async function storefrontApi<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`/api/control/v1/commerce/storefront/${path}`, { cache: 'no-store', method: body === undefined ? 'GET' : 'POST', ...(body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) });
@@ -39,6 +41,40 @@ function summaryPath(query: string, status: string, market: string) {
   return `summary${value ? `?${value}` : ''}`;
 }
 
+function colorFromString(value: string): string {
+  let hue = 0;
+  for (const character of value) hue = (hue * 31 + character.charCodeAt(0)) % 360;
+  return `hsl(${hue} 58% 52%)`;
+}
+
+function maskEmail(email: string): string {
+  const [name = '', domain] = email.split('@');
+  if (!domain) return email;
+  return `${name.slice(0, 1)}***@${domain}`;
+}
+
+type ColumnKey = 'goods' | 'customer' | 'amount' | 'status' | 'time';
+const columnLabels: Record<ColumnKey, string> = { goods: '商品明细', customer: '客户与市场', amount: '金额', status: '状态与阻断', time: '下单时间' };
+const defaultColumns: Record<ColumnKey, boolean> = { goods: true, customer: true, amount: true, status: true, time: true };
+const columnStorageKey = 'alsvid.b2c-orders.columns.v1';
+
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function downloadCsv(filename: string, rows: string[][]) {
+  const content = rows.map(row => row.map(cell => csvCell(cell)).join(',')).join('\r\n');
+  const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export function EcommerceOrdersWorkspace() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -46,7 +82,6 @@ export function EcommerceOrdersWorkspace() {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState('');
-  const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
   const [orderMarket, setOrderMarket] = useState('ALL');
   const [market, setMarket] = useState<'DE' | 'AT'>('DE');
@@ -55,8 +90,13 @@ export function EcommerceOrdersWorkspace() {
   const [factoryId, setFactoryId] = useState('');
   const [cancelReason, setCancelReason] = useState('');
   const [detail, setDetail] = useState<OrderDetail | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showCreate, setShowCreate] = useState(false);
+  const [quickFilter, setQuickFilter] = useState<'ALL' | 'BLOCKED'>('ALL');
+  const [columns, setColumns] = useState<Record<ColumnKey, boolean>>(defaultColumns);
+  const [showColumns, setShowColumns] = useState(false);
   const requestKey = useRef<{ fingerprint: string; id: string } | null>(null);
+  const initialised = useRef(false);
   const latestLoad = useRef(0);
 
   const load = useCallback(async (nextQuery = '', nextStatus = 'ALL', nextMarket = 'ALL') => {
@@ -77,13 +117,43 @@ export function EcommerceOrdersWorkspace() {
     }
   }, []);
 
+  useEffect(() => { void load().finally(() => { initialised.current = true; }); }, [load]);
+
   useEffect(() => {
-    void load(query, status, orderMarket);
-  }, [load, orderMarket, query, status]);
+    try {
+      const raw = window.localStorage.getItem(columnStorageKey);
+      if (!raw) return;
+      const stored = JSON.parse(raw) as Partial<Record<ColumnKey, boolean>>;
+      setColumns(current => {
+        const next = { ...current };
+        for (const key of Object.keys(defaultColumns) as ColumnKey[]) {
+          if (typeof stored[key] === 'boolean') next[key] = stored[key] as boolean;
+        }
+        return next;
+      });
+    } catch { /* 本地列配置损坏时回退到默认列，不影响订单数据 */ }
+  }, []);
+
+  useEffect(() => {
+    if (!initialised.current || state !== 'ready') return;
+    const timer = window.setTimeout(() => { void load(query, status, orderMarket); }, 300);
+    return () => window.clearTimeout(timer);
+  }, [load, orderMarket, query, state, status]);
 
   const activePrices = summary?.prices.filter(price => price.status === 'ACTIVE') ?? [];
   const availableSkus = summary?.skus.filter(sku => activePrices.some(price => price.skuId === sku.id && price.marketCountry === market)) ?? [];
   const canAddItem = availableSkus.some(sku => !items.some(item => item.skuId === sku.id));
+
+  const statusCounts = summary?.orderStatusCounts ?? {};
+  const blockedCount = useMemo(() => (summary ? summary.orders.filter(order => order.blockers.length > 0).length : 0), [summary]);
+
+  const visibleOrders = useMemo(() => {
+    if (!summary) return [];
+    if (quickFilter === 'BLOCKED') return summary.orders.filter(order => order.blockers.length > 0);
+    return summary.orders;
+  }, [summary, quickFilter]);
+
+  const allVisibleSelected = visibleOrders.length > 0 && visibleOrders.every(order => selected.has(order.id));
 
   async function run(action: () => Promise<unknown>, message: string) {
     if (busy) return;
@@ -104,78 +174,208 @@ export function EcommerceOrdersWorkspace() {
 
   async function openDetail(order: Order) { setBusy(true); setError(''); try { setDetail(await storefrontApi<OrderDetail>(`orders/${order.id}`)); } catch (reason) { setError(reason instanceof Error ? reason.message : '订单详情读取失败'); } finally { setBusy(false); } }
 
+  function toggleOne(orderId: string) {
+    setSelected(current => {
+      const next = new Set(current);
+      if (next.has(orderId)) next.delete(orderId); else next.add(orderId);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected(current => {
+      if (visibleOrders.length > 0 && visibleOrders.every(order => current.has(order.id))) {
+        const next = new Set(current);
+        for (const order of visibleOrders) next.delete(order.id);
+        return next;
+      }
+      const next = new Set(current);
+      for (const order of visibleOrders) next.add(order.id);
+      return next;
+    });
+  }
+
+  async function batchSubmitDrafts() {
+    if (!summary) return;
+    const ids = [...selected].filter(id => summary.orders.find(order => order.id === id)?.status === 'DRAFT');
+    if (!ids.length) return;
+    await run(async () => {
+      for (const id of ids) {
+        const order = summary.orders.find(candidate => candidate.id === id);
+        if (!order) continue;
+        await storefrontApi(`orders/${id}/submit`, { expectedVersion: order.version });
+      }
+    }, `已批量提交 ${ids.length} 个内部草稿，等待支付通道接入。`);
+    setSelected(new Set());
+  }
+
+  function resetFilters() {
+    setQuery(''); setStatus('ALL'); setOrderMarket('ALL'); setQuickFilter('ALL');
+  }
+
+  function toggleColumn(key: ColumnKey) {
+    setColumns(current => {
+      const next = { ...current, [key]: !current[key] };
+      if (!Object.values(next).some(Boolean)) return current;
+      try { window.localStorage.setItem(columnStorageKey, JSON.stringify(next)); } catch { /* 隐私模式下无法持久化，仅当次生效 */ }
+      return next;
+    });
+  }
+
+  function exportOrders() {
+    const source = selected.size > 0 ? visibleOrders.filter(order => selected.has(order.id)) : visibleOrders;
+    if (!source.length) { setNotice('当前没有可导出的订单。'); return; }
+    const header = ['订单号', '下单时间', '客户邮箱', '市场', '币种', '含税金额', '税额', '净额', '订单状态', '支付状态', '商品明细', '阻断项'];
+    const rows = source.map(order => [
+      order.orderNumber,
+      new Date(order.createdAt).toISOString(),
+      maskEmail(order.customerEmail),
+      order.marketCountry,
+      order.currency,
+      order.totalGrossAmount,
+      order.totalTaxAmount,
+      order.totalNetAmount,
+      statusLabel[order.status] ?? order.status,
+      order.paymentStatus,
+      order.lines.map(line => `${line.skuCode} ${line.skuName} ×${line.quantity}`).join(' | '),
+      order.blockers.join(' | '),
+    ]);
+    downloadCsv(`b2c-orders-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows]);
+    setError('');
+    setNotice(`已导出 ${source.length} 条订单为 CSV（客户邮箱按界面一致脱敏）。`);
+  }
+
   if (state === 'loading' && !summary) return <section className="av-card av-commerce-load-state" role="status"><strong>正在读取 B2C 订单…</strong><p>正在读取真实订单、SKU 和价格版本。</p></section>;
   if (state === 'error' && !summary) return <section className="av-card av-commerce-load-state" role="alert"><strong>B2C 订单暂不可用</strong><p>{error}。读取失败不代表没有订单。</p><button className="av-btn" type="button" onClick={() => void load()}>重新读取</button></section>;
   if (!summary) return null;
 
-
-  const allOrderCount = Object.values(summary.orderStatusCounts).reduce((total, count) => total + count, 0);
-
   return <div className={styles.workspace} id="b2c" aria-label="B2C 订单管理工作区">
-    <header className={styles.header}>
-      <h1>订单管理</h1>
-      <div className={styles.headerActions}>
-        <button className="av-btn" type="button" onClick={() => void load(query, status, orderMarket)} disabled={busy}>刷新</button>
-        <a className="av-btn" href="/admin/ecommerce/products">商品列表</a>
-        <button className="av-btn" data-variant="primary" type="button" onClick={() => setShowCreate(value => !value)} disabled={busy}>{showCreate ? '收起新建' : '新建订单'}</button>
-      </div>
-    </header>
-    {error ? <p className="av-card av-inline-alert" role="alert">{error}</p> : null}
-    {notice ? <p className="av-card av-inline-notice" role="status">{notice}</p> : null}
-    {showCreate ? (
-    <section className="av-card"><div className="av-cardhead"><div><h2 className="av-cardtitle">创建内部订单草稿</h2><p className="av-cardhint">只允许使用已有 SKU 和已启用市场价格；不会发起支付。</p></div></div><form className={styles.form} onSubmit={event => { void createOrder(event); }}><label>客户邮箱<input type="email" value={email} onChange={event => setEmail(event.target.value)} required disabled={busy} /></label><label>销售市场<select value={market} onChange={event => setMarket(event.target.value as 'DE' | 'AT')} disabled={busy}><option value="DE">德国 DE</option><option value="AT">奥地利 AT</option></select></label><label>商品 SKU<select value={items[0]?.skuId ?? ''} onChange={event => setItems(current => [{ ...(current[0] ?? { skuId: '', quantity: '1' }), skuId: event.target.value }])} required disabled={busy || !availableSkus.length}><option value="">选择 SKU</option>{availableSkus.map(sku => <option key={sku.id} value={sku.id}>{sku.sku} · {sku.name}</option>)}</select></label><label>数量<input type="number" min="1" max="1000" step="1" value={items[0]?.quantity ?? '1'} onChange={event => setItems(current => [{ ...(current[0] ?? { skuId: '', quantity: '1' }), quantity: event.target.value }])} required disabled={busy} /></label><button className="av-btn" data-variant="primary" type="submit" disabled={busy || !email.trim() || !availableSkus.length || !items[0]?.skuId}>保存草稿</button></form>{!availableSkus.length ? <p className="av-cardhint">当前市场没有已启用价格的 SKU，请先到商城价格管理配置。</p> : null}</section>
-    ) : null}
-
-    <section className={styles.list} aria-label="订单列表" aria-busy={state === 'loading'}>
-      <nav className={styles.tabs} aria-label="按订单状态筛选">
-        <button type="button" className={styles.tab} aria-pressed={status === 'ALL'} onClick={() => setStatus('ALL')}>全部订单 <strong>{allOrderCount}</strong></button>
-        {Object.entries(statusLabel).map(([key, label]) => <button type="button" key={key} className={styles.tab} aria-pressed={status === key} onClick={() => setStatus(key)}>{label} <strong>{summary.orderStatusCounts[key] ?? 0}</strong></button>)}
-      </nav>
-
-      <form className={styles.filters} onSubmit={event => {
-        event.preventDefault();
-        const next = search.trim();
-        if (next === query) void load(query, status, orderMarket);
-        else setQuery(next);
-      }}>
-        <label className={styles.searchField}><span>搜索订单</span><input className="av-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="订单号 / 客户邮箱 / 商品名称 / SKU" /></label>
-        <label className={styles.marketField}><span>销售市场</span><select className="av-search" value={orderMarket} onChange={event => setOrderMarket(event.target.value)}><option value="ALL">全部市场</option><option value="DE">德国 DE</option><option value="AT">奥地利 AT</option></select></label>
-        <div className={styles.filterActions}>
-          <button className="av-btn" data-variant="primary" type="submit" disabled={busy}>查询</button>
-          <button className="av-btn" type="button" onClick={() => { setSearch(''); setQuery(''); setStatus('ALL'); setOrderMarket('ALL'); }} disabled={busy}>重置</button>
+    <section className="av-card">
+      <div className="av-cardhead">
+        <div>
+          <p className="av-eyebrow">FIRST-PARTY COMMERCE · ORDERS</p>
+          <h1 className="av-cardtitle">B2C 订单管理</h1>
+          <p className="av-cardhint">订单使用商城交易域真实数据；支付、公开结账和自动库存预留仍受上线门禁约束。</p>
         </div>
-      </form>
-
-      <div className={styles.listBar}>
-        <span>匹配 {summary.orderTotal} 条订单{summary.orderTotal > summary.orders.length ? `，当前显示最近 ${summary.orders.length} 条` : ''}</span>
-        {state === 'loading' ? <span role="status">正在更新…</span> : null}
+        <div className="av-pageactions">
+          <button className="av-btn" type="button" onClick={() => void load()} disabled={busy}>刷新</button>
+          <a className="av-btn" href="/admin/ecommerce/products">商品列表</a>
+          <button className="av-btn" data-variant="primary" type="button" onClick={() => setShowCreate(value => !value)} disabled={busy}>{showCreate ? '收起新建' : '新建订单'}</button>
+        </div>
       </div>
-      <div className={`av-tablewrap ${styles.tableWrap}`}>
-        <table className="av-table">
-          <thead><tr><th>商品信息</th><th>单价 / 数量</th><th>订单状态</th><th>订单金额</th><th>客户 / 市场</th><th>操作</th></tr></thead>
-          <tbody>
-            {summary.orders.length === 0 ? <tr><td colSpan={6} className={styles.empty}>当前没有符合筛选条件的订单</td></tr> : summary.orders.map(order => {
-              const lines: (Line | null)[] = order.lines.length ? order.lines : [null];
-              return <Fragment key={order.id}>
-                <tr className="av-table-record-meta"><td colSpan={6}>订单编号 <strong>{order.orderNumber}</strong><span>下单时间 {new Date(order.createdAt).toLocaleString('zh-CN')}</span></td></tr>
-                {lines.map((line, index) => <tr key={line?.id ?? 'empty'}>
-                  <td><div className={styles.goods}>{line ? <><strong>{line.skuName}</strong><span>SKU：{line.skuCode}</span></> : '—'}</div></td>
-                  <td>{line ? <div className={styles.cellStack}><strong>{line.unitPriceGross} {order.currency}</strong><span>× {line.quantity}</span></div> : '—'}</td>
-                  {index === 0 ? <>
-                    <td rowSpan={lines.length}><div className={styles.cellStack}><span>{statusLabel[order.status] ?? order.status}</span>{order.blockers.length ? <span className={styles.blockers}>{order.blockers.length} 项待处理</span> : null}</div></td>
-                    <td rowSpan={lines.length}><strong>{order.totalGrossAmount} {order.currency}</strong></td>
-                    <td rowSpan={lines.length}><div className={styles.cellStack}><span>{order.customerEmail}</span><span>{order.marketCountry}</span></div></td>
-                    <td rowSpan={lines.length}><div className={styles.rowActions}><button type="button" onClick={() => void openDetail(order)} disabled={busy}>订单详情</button>{order.status === 'DRAFT' ? <button type="button" onClick={() => void run(() => storefrontApi(`orders/${order.id}/submit`, { expectedVersion: order.version }), '订单已提交，等待支付通道接入。')} disabled={busy}>提交草稿</button> : null}</div></td>
-                  </> : null}
-                </tr>)}
-              </Fragment>;
-            })}
-          </tbody>
-        </table>
+      <div className={styles.statusTabs} role="tablist" aria-label="订单状态统计">
+        <button type="button" role="tab" aria-selected={status === 'ALL'} className={styles.statTab} data-active={status === 'ALL'} onClick={() => setStatus('ALL')}>
+          <strong>{summary.orderTotal}</strong><span>全部订单</span>
+        </button>
+        {Object.entries(statusCounts).map(([key, count]) => (
+          <button type="button" key={key} role="tab" aria-selected={status === key} className={styles.statTab} data-active={status === key} data-tone={statusTone[key] ?? 'neutral'} onClick={() => setStatus(key)}>
+            <strong>{count}</strong><span>{statusLabel[key] ?? key}</span>
+          </button>
+        ))}
       </div>
     </section>
 
+    {error ? <p className="av-card av-inline-alert" role="alert">{error}</p> : null}
+    {notice ? <p className="av-card av-inline-notice" role="status">{notice}</p> : null}
+
+    {showCreate ? (
+      <section className="av-card">
+        <div className="av-cardhead"><div><h2 className="av-cardtitle">创建内部订单草稿</h2><p className="av-cardhint">只允许使用已有 SKU 和已启用市场价格；不会发起支付。</p></div><button className="av-btn" type="button" onClick={() => setShowCreate(false)}>关闭</button></div>
+        <form className={styles.form} onSubmit={event => { void createOrder(event); }}>
+          <label>客户邮箱<input type="email" value={email} onChange={event => setEmail(event.target.value)} required disabled={busy} /></label>
+          <label>销售市场<select value={market} onChange={event => setMarket(event.target.value as 'DE' | 'AT')} disabled={busy}><option value="DE">德国 DE</option><option value="AT">奥地利 AT</option></select></label>
+          <label>商品 SKU<select value={items[0]?.skuId ?? ''} onChange={event => setItems(current => [{ ...(current[0] ?? { skuId: '', quantity: '1' }), skuId: event.target.value }])} required disabled={busy || !availableSkus.length}><option value="">选择 SKU</option>{availableSkus.map(sku => <option key={sku.id} value={sku.id}>{sku.sku} · {sku.name}</option>)}</select></label>
+          <label>数量<input type="number" min="1" max="1000" step="1" value={items[0]?.quantity ?? '1'} onChange={event => setItems(current => [{ ...(current[0] ?? { skuId: '', quantity: '1' }), quantity: event.target.value }])} required disabled={busy} /></label>
+          <button className="av-btn" data-variant="primary" type="submit" disabled={busy || !email.trim() || !availableSkus.length || !items[0]?.skuId}>保存草稿</button>
+        </form>
+        {!availableSkus.length ? <p className="av-cardhint">当前市场没有已启用价格的 SKU，请先到商城价格管理配置。</p> : null}
+      </section>
+    ) : null}
+
+    <section className="av-card">
+      <div className="av-cardhead">
+        <div>
+          <h2 className="av-cardtitle">订单列表</h2>
+          <p className="av-cardhint">服务端匹配 {summary.orderTotal} 条，本次显示 {visibleOrders.length} 条{quickFilter === 'BLOCKED' ? '（仅含阻断项）' : ''}。</p>
+        </div>
+      </div>
+      <div className={styles.toolbar}>
+        <input className="av-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="订单号 / 客户邮箱 / SKU" type="search" />
+        <select className="av-search av-ecommerce-select" value={orderMarket} onChange={event => setOrderMarket(event.target.value)}>
+          <option value="ALL">全部市场</option>
+          <option value="DE">DE</option>
+          <option value="AT">AT</option>
+        </select>
+        <button className="av-btn" data-variant="primary" type="button" onClick={() => void load(query, status, orderMarket)} disabled={busy}>查询</button>
+        <button className="av-btn" type="button" onClick={resetFilters} disabled={busy}>重置</button>
+        <div className={styles.quickFilters}>
+          <button type="button" className={styles.quickChip} data-active={quickFilter === 'ALL'} onClick={() => setQuickFilter('ALL')}>全部</button>
+          <button type="button" className={styles.quickChip} data-active={quickFilter === 'BLOCKED'} onClick={() => setQuickFilter('BLOCKED')}>有阻断项 · {blockedCount}</button>
+        </div>
+      </div>
+
+      <div className={styles.batchBar}>
+        <label className={styles.batchSelectAll}><input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} disabled={visibleOrders.length === 0} /> 全选</label>
+        <span className={styles.batchCount}>已选 {selected.size} 条</span>
+        <button className="av-btn" type="button" onClick={() => void batchSubmitDrafts()} disabled={busy || selected.size === 0}>批量提交草稿</button>
+        <button className="av-btn" type="button" onClick={exportOrders} disabled={busy || visibleOrders.length === 0} title={selected.size > 0 ? `导出已选 ${selected.size} 条订单` : `导出当前筛选的 ${visibleOrders.length} 条订单`}>批量导出</button>
+        <span className={styles.spacer} />
+        <button className="av-btn" type="button" aria-expanded={showColumns} onClick={() => setShowColumns(value => !value)}>表格配置</button>
+      </div>
+
+      {showColumns ? <div className={styles.columnPanel} role="group" aria-label="订单列显示配置">
+        <span className={styles.columnPanelLabel}>显示字段</span>
+        {(Object.keys(columnLabels) as ColumnKey[]).map(key => (
+          <label key={key} className={styles.columnOption} data-active={columns[key]}>
+            <input type="checkbox" checked={columns[key]} onChange={() => toggleColumn(key)} /> {columnLabels[key]}
+          </label>
+        ))}
+        <button className="av-btn" type="button" onClick={() => { setColumns(defaultColumns); try { window.localStorage.removeItem(columnStorageKey); } catch { /* 忽略 */ } }}>恢复默认</button>
+      </div> : null}
+
+      {visibleOrders.length === 0 ? (
+        <p className="av-empty-state">当前没有符合筛选条件的订单。</p>
+      ) : (
+        <div className={styles.orderGrid}>
+          {visibleOrders.map(order => {
+            const mainLine = order.lines[0];
+            const thumbLabel = (mainLine?.skuName ?? order.orderNumber).slice(0, 2);
+            const thumbColor = colorFromString(order.id);
+            const isSelected = selected.has(order.id);
+            return (
+              <article key={order.id} className={styles.orderCard} data-selected={isSelected}>
+                <label className={styles.orderSelect}><input type="checkbox" checked={isSelected} onChange={() => toggleOne(order.id)} /></label>
+                <div className={styles.thumb} style={{ background: thumbColor }} aria-hidden="true">{thumbLabel}</div>
+                <div className={styles.orderMain}>
+                  <div className={styles.orderTitleRow}>
+                    <strong className={styles.orderNo}>{order.orderNumber}</strong>
+                    {columns.time ? <span className={styles.orderTime}>{new Date(order.createdAt).toLocaleString('zh-CN')}</span> : null}
+                  </div>
+                  {columns.goods ? <div className={styles.orderGoods}>
+                    {order.lines.length ? order.lines.map(line => <span key={line.id} className={styles.goodsItem}>{line.skuName} · {line.skuCode} ×{line.quantity}</span>) : <span className={styles.goodsItem}>—</span>}
+                  </div> : null}
+                  {columns.customer ? <div className={styles.orderShip}>{maskEmail(order.customerEmail)} <span className={styles.orderMarket}>{order.marketCountry}</span></div> : null}
+                </div>
+                {columns.amount ? <div className={styles.orderAmount}>
+                  <strong>{order.totalGrossAmount}</strong>
+                  <span>{order.currency}</span>
+                </div> : null}
+                {columns.status ? <div className={styles.orderStatus}>
+                  <span className="av-tag" data-tone={statusTone[order.status] ?? 'neutral'}>{statusLabel[order.status] ?? order.status}</span>
+                  {order.blockers.length > 0 ? <span className="av-tag" data-tone="bad">{order.blockers.length} 项阻断</span> : null}
+                </div> : null}
+                <div className={styles.orderActions}>
+                  <button className="av-btn" type="button" onClick={() => void openDetail(order)} disabled={busy}>详情</button>
+                  {order.status === 'DRAFT' ? <button className="av-btn" type="button" onClick={() => void run(() => storefrontApi(`orders/${order.id}/submit`, { expectedVersion: order.version }), '订单已提交，等待支付通道接入。')} disabled={busy}>提交</button> : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+
     {detail ? <section className="av-card"><div className="av-cardhead"><div><h2 className="av-cardtitle">订单详情 · {detail.orderNumber}</h2><p className="av-cardhint">版本 V{detail.version} · {statusLabel[detail.status] ?? detail.status} · 支付 {detail.paymentStatus}</p></div><button className="av-btn" type="button" onClick={() => setDetail(null)}>收起</button></div><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>数量</th><th>净额</th><th>税额</th><th>含税</th></tr></thead><tbody>{detail.lines.map(line => <tr key={line.id}><td>{line.skuCode} · {line.skuName}</td><td>{line.quantity}</td><td>{line.lineNetAmount}</td><td>{line.lineTaxAmount}</td><td>{line.lineGrossAmount}</td></tr>)}</tbody></table></div><p className="av-cardhint">创建时间：{new Date(detail.createdAt).toLocaleString('zh-CN')} · 流转记录 {detail.events.length} 条</p></section> : null}
-    <p className="av-cardhint">订单草稿不会自动收款或扣减实物库存。</p>
+    <p className="av-cardhint">安全边界：订单初始为 DRAFT；当前界面不提供手动标记付款，也不会自动扣减仓库实物库存。</p>
   </div>;
 }

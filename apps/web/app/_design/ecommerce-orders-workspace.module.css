@@ -1,36 +1,72 @@
-.workspace{display:grid;gap:12px}
-.header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;background:var(--av-panel);border:1px solid var(--av-line);border-radius:var(--av-radius)}
-.header h1{margin:0;font-size:18px;color:var(--av-text)}
-.headerActions,.filterActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.headerActions a{text-decoration:none}
-.list{min-width:0;padding:0 20px 20px;background:var(--av-panel);border:1px solid var(--av-line);border-radius:var(--av-radius)}
-.tabs{display:flex;gap:24px;overflow-x:auto;border-bottom:1px solid var(--av-line);scrollbar-width:thin}
-.tab{position:relative;flex:none;padding:18px 0 15px;border:0;background:transparent;color:var(--av-text-soft);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
-.tab strong{font-weight:600}
-.tab[aria-pressed='true']{color:var(--av-brand);font-weight:600}
-.tab[aria-pressed='true']::after{position:absolute;right:0;bottom:0;left:0;height:2px;background:var(--av-brand);content:''}
-.tab:focus-visible,.rowActions button:focus-visible{outline:2px solid var(--av-brand);outline-offset:2px}
-.filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:20px 0 12px}
-.filters label{display:grid;gap:6px;color:var(--av-muted);font-size:12px}
-.filters input,.filters select{width:100%;min-height:36px;background:var(--av-panel)}
-.searchField{flex:1 1 340px;min-width:220px}
-.marketField{flex:0 1 200px;min-width:150px}
-.listBar{display:flex;justify-content:space-between;gap:12px;padding:10px 0;color:var(--av-muted);font-size:12px}
-.tableWrap{border:1px solid var(--av-line);border-radius:8px}
-.tableWrap table{min-width:960px}
-.tableWrap td{vertical-align:top}
-.goods,.cellStack{display:grid;gap:4px}
-.goods{min-width:240px;max-width:420px;white-space:normal}
-.goods strong{color:var(--av-text);font-weight:600}
-.goods span,.cellStack span+span{color:var(--av-muted);font-size:12px}
-.cellStack strong{color:var(--av-text)}
-.blockers{color:var(--av-warn)!important}
-.rowActions{display:grid;gap:8px;justify-items:start}
-.rowActions button{padding:0;border:0;background:none;color:var(--av-brand);font:inherit;cursor:pointer}
-.rowActions button:disabled{opacity:.5;cursor:default}
-.tableWrap .empty{padding:48px 12px;text-align:center;color:var(--av-muted)}
-.form{display:grid;grid-template-columns:1.4fr 1fr 1.4fr .7fr auto;gap:10px;align-items:end}
+.workspace{display:grid;gap:16px}
+
+/* 状态统计标签行 */
+.statusTabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.statTab{display:grid;gap:2px;padding:10px 14px;border:1px solid var(--av-line);border-radius:10px;background:var(--av-panel-soft);cursor:pointer;font:inherit;color:inherit;text-align:left}
+.statTab strong{font-size:18px;color:var(--av-text);line-height:1.1}
+.statTab span{font-size:11px;color:var(--av-muted)}
+.statTab[data-active='true']{background:var(--av-panel,#fff);box-shadow:inset 0 0 0 1px var(--av-brand,#2f6fed)}
+.statTab[data-active='true'] strong{color:var(--av-brand,#2f6fed)}
+.statTab[data-tone='bad'] strong{color:#d23b3b}
+.statTab[data-tone='warn'] strong{color:#d9822b}
+.statTab[data-tone='good'] strong{color:#1f9d57}
+.statTab[data-tone='brand'] strong{color:var(--av-brand,#2f6fed)}
+
+/* 筛选 / 搜索工具条 */
+.toolbar{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding:12px;border:1px solid var(--av-line);border-radius:10px;background:var(--av-panel-soft)}
+.toolbar .av-search{flex:1 1 240px;min-height:36px}
+.toolbar .av-ecommerce-select{min-width:120px;min-height:36px;padding:8px 10px;border:1px solid var(--av-line);border-radius:8px;background:var(--av-panel-soft);color:var(--av-text);font:inherit}
+.quickFilters{display:flex;gap:6px;margin-left:auto}
+.quickChip{border:1px solid var(--av-line);background:var(--av-panel,#fff);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--av-text-soft);cursor:pointer;font:inherit}
+.quickChip[data-active='true']{border-color:var(--av-brand,#2f6fed);color:var(--av-brand,#2f6fed);background:var(--av-panel,#fff);box-shadow:inset 0 0 0 1px var(--av-brand,#2f6fed)}
+
+/* 批量操作条 */
+.batchBar{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:10px;border:1px solid var(--av-line);border-radius:10px;background:var(--av-panel-soft)}
+.batchSelectAll{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--av-text-soft);cursor:pointer}
+.batchCount{font-size:12px;color:var(--av-muted)}
+.spacer{flex:1}
+
+/* 表格配置（列显示） */
+.columnPanel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding:10px 12px;border:1px dashed var(--av-line);border-radius:10px;background:var(--av-panel,#fff)}
+.columnPanelLabel{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--av-muted)}
+.columnOption{display:flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--av-line);border-radius:999px;font-size:12px;color:var(--av-text-soft);cursor:pointer}
+.columnOption[data-active='true']{border-color:var(--av-brand,#2f6fed);color:var(--av-brand,#2f6fed);background:var(--av-panel-soft)}
+.columnOption input{width:14px;height:14px}
+
+/* 横向卡片式订单表格 */
+.orderGrid{display:grid;gap:10px;margin-top:12px}
+.orderCard{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-panel,#fff)}
+.orderCard[data-selected='true']{border-color:var(--av-brand,#2f6fed);box-shadow:inset 0 0 0 1px var(--av-brand,#2f6fed)}
+.orderSelect{display:grid;place-items:center}
+.orderSelect input{width:16px;height:16px}
+.thumb{width:46px;height:46px;border-radius:10px;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.orderMain{min-width:0;display:grid;gap:4px}
+.orderTitleRow{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.orderNo{font-size:14px;color:var(--av-text)}
+.orderTime{font-size:11px;color:var(--av-muted)}
+.orderGoods{display:flex;gap:6px;flex-wrap:wrap}
+.goodsItem{font-size:12px;color:var(--av-text-soft);background:var(--av-panel-soft);border:1px solid var(--av-line);border-radius:6px;padding:2px 6px}
+.orderShip{font-size:12px;color:var(--av-text-soft)}
+.orderMarket{color:var(--av-muted);margin-left:6px}
+.orderAmount{text-align:right;white-space:nowrap}
+.orderAmount strong{font-size:15px;color:var(--av-text)}
+.orderAmount span{font-size:11px;color:var(--av-muted);margin-left:3px}
+.orderStatus{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.orderActions{display:flex;gap:6px;flex-wrap:wrap}
+
+@media(max-width:900px){
+  .orderCard{grid-template-columns:auto auto minmax(0,1fr);row-gap:10px}
+  .orderAmount,.orderStatus,.orderActions{grid-column:3 / -1;justify-self:start}
+}
+@media(max-width:600px){
+  .orderCard{grid-template-columns:auto auto 1fr}
+  .orderAmount,.orderStatus,.orderActions{grid-column:1 / -1}
+  .quickFilters{margin-left:0;width:100%}
+}
+
+/* 创建内部订单草稿表单（保留原布局） */
+.form{display:grid;grid-template-columns:1.4fr 1fr 1.4fr .7fr auto;gap:10px;align-items:end;padding:12px}
 .form label{display:grid;gap:5px;color:var(--av-text-soft);font-size:11px}
 .form input,.form select{min-height:36px;padding:8px 10px;border:1px solid var(--av-line);border-radius:8px;background:var(--av-panel-soft);color:var(--av-text);font:inherit}
 @media(max-width:1000px){.form{grid-template-columns:repeat(2,minmax(0,1fr))}.form button{grid-column:1/-1;justify-self:start}}
-@media(max-width:600px){.header{align-items:flex-start;flex-direction:column}.list{padding:0 12px 12px}.searchField,.marketField{flex-basis:100%}.form{grid-template-columns:1fr}}
+@media(max-width:600px){.form{grid-template-columns:1fr}}

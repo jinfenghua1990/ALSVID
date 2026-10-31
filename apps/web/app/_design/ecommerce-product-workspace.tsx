@@ -5,7 +5,7 @@ import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
 import { EcommercePricingWorkspace } from './ecommerce-pricing-workspace';
 import styles from './ecommerce-product-workspace.module.css';
 
-type Model = { id: string; code: string; name: string; description: string; status: string; created_at: string; updated_at: string; platform_id: string | null; product_type_code: string };
+type Model = { id: string; code: string; name: string; description: string; status: string; version: number; created_at: string; updated_at: string; platform_id: string | null; product_type_code: string };
 type Variant = { id: string; model_id: string; code: string; name: string; status: string };
 type Sku = { id: string; variant_id: string; sku: string; name: string; status: string; market_code: string | null; color_code: string | null; size_code: string | null };
 type Platform = { id: string; code: string; name: string };
@@ -16,11 +16,11 @@ type Summary = { skus: { id: string; sku: string; name: string; modelCode: strin
 type Stock = { item_kind: string; sku_id: string | null; sku: string | null; sku_name: string | null; warehouse_code: string; warehouse_name: string; location_code: string; on_hand: string; reserved: string; available: string; frame_number: string | null };
 type ProductData = { catalog: Catalog; publications: Publication[]; summary: Summary; inventory: Stock[]; permissions: string[] | null };
 type ProductRowData = { model: Model; publication: Publication | undefined; platform: Platform | undefined; skus: Sku[]; prices: Price[]; stock: Stock[] };
-type Filters = { id: string; code: string; sku: string; name: string; type: string; market: string; platform: string; stock: string; from: string; to: string };
+type Filters = { id: string; code: string; sku: string; name: string; type: string; market: string; platform: string; stock: string; from: string; to: string; priceState: string; updatedWithin: string };
 
 const publicationLabel: Record<string, string> = { UNLISTED: '未建立发布记录', DRAFT: '草稿', IN_REVIEW: '待审核', PUBLISHED: '已上架', WITHDRAWN: '已下架' };
 const productTypeLabel: Record<string, string> = { BIKE: '整车', ACCESSORY: '零配件', SERVICE_PART: '服务件' };
-const emptyFilters: Filters = { id: '', code: '', sku: '', name: '', type: 'ALL', market: 'ALL', platform: 'ALL', stock: 'ALL', from: '', to: '' };
+const emptyFilters: Filters = { id: '', code: '', sku: '', name: '', type: 'ALL', market: 'ALL', platform: 'ALL', stock: 'ALL', from: '', to: '', priceState: 'ALL', updatedWithin: 'ALL' };
 
 async function readApi<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: 'no-store' });
@@ -46,6 +46,23 @@ function money(value: string | undefined, currency = 'EUR') {
 
 function date(value: string | null | undefined) {
   return value ? new Date(value).toLocaleString('zh-CN') : '—';
+}
+
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function downloadCsv(filename: string, rows: string[][]) {
+  const content = rows.map(row => row.map(cell => csvCell(cell)).join(',')).join('\r\n');
+  const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function day(value: string | undefined) {
@@ -160,6 +177,8 @@ export function EcommerceProductWorkspace() {
       && (filters.market === 'ALL' || prices.some(price => price.marketCountry === filters.market))
       && (filters.platform === 'ALL' || model.platform_id === filters.platform)
       && (filters.stock === 'ALL' || (filters.stock === 'MISSING' ? !stock.length : total !== null && (filters.stock === 'AVAILABLE' ? total > 0 : total <= 0)))
+      && (filters.priceState === 'ALL' || (filters.priceState === 'PRICED' ? prices.length > 0 : prices.length === 0))
+      && (filters.updatedWithin === 'ALL' || new Date(model.updated_at).getTime() >= Date.now() - Number(filters.updatedWithin) * 86400000)
       && (!filters.from || (!!created && created >= filters.from))
       && (!filters.to || (!!created && created <= filters.to))
       && (status === 'ALL' || (publication?.status ?? 'UNLISTED') === status);
@@ -171,6 +190,7 @@ export function EcommerceProductWorkspace() {
   const canPublish = data?.permissions?.includes('product.publish') ?? false;
   const publishable = selectedRows.filter(row => row.publication?.status === 'IN_REVIEW');
   const withdrawable = selectedRows.filter(row => row.publication?.status === 'PUBLISHED');
+  const retireable = selectedRows.filter(row => row.model.status !== 'RETIRED');
 
   async function refreshPrices() {
     const summary = await readApi<Summary>('/api/control/v1/commerce/storefront/summary');
@@ -235,6 +255,64 @@ export function EcommerceProductWorkspace() {
     setBusy(false);
   }
 
+  function exportRows() {
+    if (!data) return;
+    const source = selectedIds.size > 0 ? selectedRows : rows;
+    if (!source.length) { setFeedback('当前没有可导出的商品。'); return; }
+    const header = ['商品编码', '商品名称', '产品类型', 'SKU 数', 'SKU 编码', '市场与售价', '可用库存', '销售状态', '最近更新'];
+    const body = source.map(row => {
+      const { model, publication, skus, prices, stock } = row;
+      const available = stockTotal(stock);
+      return [
+        model.code,
+        publication?.title_zh || model.name,
+        productTypeLabel[model.product_type_code] ?? model.product_type_code,
+        String(skus.length),
+        skus.map(sku => sku.sku).join(' | '),
+        prices.map(price => `${price.marketCountry} ${price.unitPriceGross} ${price.currency}`).join(' | '),
+        available === null ? '数据异常' : String(available),
+        publication ? (publicationLabel[publication.status] ?? publication.status) : (publicationLabel.UNLISTED ?? '未建立发布记录'),
+        date(model.updated_at),
+      ];
+    });
+    downloadCsv(`storefront-products-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...body]);
+    setFeedback(`已导出 ${source.length} 个商品为 CSV。`);
+  }
+
+  async function copySelectedSkus() {
+    if (!data || !selectedRows.length) return;
+    const codes = selectedRows.flatMap(row => row.skus.map(sku => sku.sku));
+    if (!codes.length) { setFeedback('所选商品没有可复制的 SKU 编码。'); return; }
+    try {
+      await navigator.clipboard.writeText(codes.join('\n'));
+      setFeedback(`已复制 ${codes.length} 个 SKU 编码到剪贴板。`);
+    } catch {
+      setFeedback('浏览器拒绝了剪贴板写入，请手动复制。');
+    }
+  }
+
+  async function batchRetire() {
+    if (busy || !retireable.length) return;
+    if (!window.confirm(`确认停用 ${retireable.length} 个商品型号？\n\n停用后该型号不再作为可售商品出现在选品与商城流程中；历史订单、库存与生产记录保留。此操作会写入商品主数据版本，请确认已核对商品编码。`)) return;
+    setBusy(true); setFeedback(''); setFailures([]);
+    const failed: string[] = [];
+    let succeeded = 0;
+    for (const row of retireable) {
+      try {
+        const response = await fetch(`/api/control/v1/product/model/${encodeURIComponent(row.model.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ expectedVersion: row.model.version, status: 'RETIRED' }) });
+        const payload = await response.json().catch(() => null) as { message?: string } | null;
+        if (!response.ok) throw new Error(payload?.message ?? '商品型号停用失败');
+        succeeded++;
+      } catch (reason) {
+        failed.push(`${row.model.code}：${reason instanceof Error ? reason.message : '操作失败'}`);
+      }
+    }
+    await load();
+    setFeedback(`已停用 ${succeeded} 个商品型号${failed.length ? `，失败 ${failed.length} 个` : ''}。`);
+    setFailures(failed);
+    setBusy(false);
+  }
+
   if (state === 'loading') return <section className="av-card av-commerce-load-state" role="status"><strong>正在读取商城商品资料…</strong></section>;
   if (state === 'error') return <section className="av-card av-commerce-load-state" role="alert"><strong>商城商品资料暂不可用</strong><p>{error}。读取失败不代表没有商品或库存。</p><button className="av-btn" type="button" onClick={() => void load()}>重新读取</button></section>;
   if (!data) return null;
@@ -267,6 +345,8 @@ export function EcommerceProductWorkspace() {
         <label>销售市场<select className="av-search" value={draft.market} onChange={event => setDraft({ ...draft, market: event.target.value })}><option value="ALL">全部市场</option><option value="DE">德国 DE</option><option value="AT">奥地利 AT</option></select></label>
         <label>技术平台<select className="av-search" value={draft.platform} onChange={event => setDraft({ ...draft, platform: event.target.value })}><option value="ALL">全部平台</option>{data.catalog.platforms.map(platform => <option key={platform.id} value={platform.id}>{platform.name || platform.code}</option>)}</select></label>
         <label>库存台账<select className="av-search" value={draft.stock} onChange={event => setDraft({ ...draft, stock: event.target.value })}><option value="ALL">全部库存</option><option value="AVAILABLE">台账有可用量</option><option value="EMPTY">台账无可用量</option><option value="MISSING">无库存记录</option></select></label>
+        <label>价格配置<select className="av-search" value={draft.priceState} onChange={event => setDraft({ ...draft, priceState: event.target.value })}><option value="ALL">全部价格</option><option value="PRICED">已配置市场价格</option><option value="UNPRICED">未配置市场价格</option></select></label>
+        <label>最近更新<select className="av-search" value={draft.updatedWithin} onChange={event => setDraft({ ...draft, updatedWithin: event.target.value })}><option value="ALL">全部更新时间</option><option value="7">最近 7 天</option><option value="30">最近 30 天</option></select></label>
         </> : null}
       </form>
 
@@ -274,6 +354,9 @@ export function EcommerceProductWorkspace() {
         <span>已选 {selectedRows.length} 条</span>
         <button className="av-btn" type="button" onClick={() => void batch('PUBLISH')} disabled={busy || !canPublish || !publishable.length} title={!canPublish ? '需要商品发布权限' : '仅处理已选的待审核商品'}>批量审核并上架</button>
         <button className="av-btn" type="button" onClick={() => void batch('WITHDRAW')} disabled={busy || !canPublish || !withdrawable.length} title={!canPublish ? '需要商品发布权限' : '仅处理已选的已上架商品'}>批量下架</button>
+        <button className="av-btn" type="button" onClick={exportRows} disabled={busy || !rows.length}>导出 CSV</button>
+        <button className="av-btn" type="button" onClick={() => void copySelectedSkus()} disabled={busy || !selectedRows.length}>复制 SKU</button>
+        <button className="av-btn" type="button" onClick={() => void batchRetire()} disabled={busy || !retireable.length} title="将所选型号状态改为 RETIRED，不物理删除">批量停用</button>
         <span className={styles.count}>显示 {rows.length} / {allRows.length} 条</span>
       </div>
       {data.permissions === null ? <p className={styles.hint}>发布权限暂无法确认，批量操作已停用。</p> : null}
