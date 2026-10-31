@@ -19,7 +19,7 @@ import styles from "../../../_components/home/original-home.module.css";
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ view?: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  if (/^\\d{6}$/.test(slug)) {
+  if (/^\d{6}$/.test(slug)) {
     const product = (await publishedProductCatalog()).items.find(item => item.productId === slug);
     if (product && isLocale(locale)) return {title:product.title[locale],alternates:{canonical:`https://www.alsvidbike.com/${locale}/explore/${slug}`}};
   }
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function HomeDetailPage({ params, searchParams }: Props) {
   const { locale, slug } = await params;
-  if (/^\\d{6}$/.test(slug)) {
+  if (/^\d{6}$/.test(slug)) {
     if (!isLocale(locale)) notFound();
     const product = (await publishedProductCatalog()).items.find(item => item.productId === slug && item.type === "BIKE");
     if (!product) notFound();
