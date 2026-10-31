@@ -1,3 +1,5 @@
+> **Owner decision (2026-10-31): one live production system for every computer.** All actual deployments and business use must connect to the same production identity, business data and Cloudflare R2. There is no separate test business environment. Never present local or mock data as production; verify the actual bindings and report any missing connection. All code changes are made through GitHub task branches and PRs; the local checkout must not be used to edit code. Compare the current main branch and task branch before changes and preserve existing functionality. Local access may be used for read-only inspection or verification when needed. Protect production data and secrets; use authorized access, never commit credentials, and do not run destructive validation against live data. Temporary automated CI checks are not a business deployment and must not use production data or credentials. This decision supersedes conflicting earlier environment and workstation rules.
+
 > ⛔ **ALSVID ONE-SYSTEM CONTRACT (owner decision 2026-10-26) — mandatory for every AI/agent/developer.**
 >
 > **Read first:** [docs/ONE_SYSTEM_DEVELOPMENT_CONTRACT.md](docs/ONE_SYSTEM_DEVELOPMENT_CONTRACT.md) from the CURRENT main branch, then the architecture and data ownership files below. ALSVID is ONE integrated monorepo and modular-monolith business platform, not separate module systems to join afterward. Web/API/Worker are processes of that system; Official/Admin/Dealer/My/Supplier remain distinct permission-scoped user experiences but SHARE domain contracts and authoritative data. Never fork standalone systems, duplicate identity/orders/stock/business databases, or add an independent deployment/DB without explicit owner approval and an ADR.
@@ -68,9 +70,9 @@ Production has been deployed. Never assume a target has no business data based o
 - Production database primary: Neon PostgreSQL.
 - Database migration alternative: Supabase PostgreSQL.
 - Object storage primary: Cloudflare R2 behind S3-compatible ports/adapters.
-- Development workflow (owner decision, 2026-10-21): edit application code directly through GitHub task branches/PRs; run builds, tests and browser previews on disposable GitHub Actions runners; deploy verified main commits through the existing Cloud Run release workflows. Codespaces is optional, never a prerequisite. Do not clone, install, build or run ALSVID development servers on home/company workstations.
+- Development workflow (owner decision, 2026-10-31): all code edits are made in GitHub task branches and PRs; do not modify code in the local checkout. Compare the current main and task branch before editing and preserve existing functionality. Use existing review, CI and release gates. Every actual deployment and business session must use the shared production services and data; verify the connection rather than relying on labels.
 - Production is the only active cloud runtime; the former shared Cloud Run Development/Test runtime in `alsvid-dev` is retired. **Observed live deployment (2026-10-25, run #40169393607):** `GCP_PROJECT_ID=alsvid-production`, region `europe-west1`. The separately created `alsvid-prod` project is an intended migration target, **not a verified deployed replacement**. Never silently retarget GitHub production variables, credentials, database or DNS; require an audited cutover and rollback plan.
-- Local/CI databases and storage are isolated and temporary. Do not assume Neon/R2 Test resources exist, and never use Production credentials for validation.
+- There is no separate test business environment. Automated CI checks may use ephemeral synthetic fixtures without production credentials; they are not a deployed business environment. Never claim an unverified production database or R2 connection is live.
 - Q4 is not currently part of the Production disaster-recovery architecture; full DR is deferred.
 
 ## Admin record-list design
@@ -138,15 +140,15 @@ At the current stage, optional external-channel/WMS integration does not require
 
 ## 多设备与多 AI 协作规则（2026-10-18）
 
-- 开工先读取当前 main、相关开放 PR 和工作树状态；已有任务优先续接原分支/PR，禁止从过期聊天快照覆盖代码。
-- 一项任务一个短期分支和 PR；不要直接推送 main。代码直接在 GitHub 任务分支修改，独立 AI 通过已推送的提交、分支和 PR 交接；Codespace 为可选工具。
-- 修改前 fetch 最新远端；脏工作树先保留并确认归属，不得 reset --hard、清理未跟踪文件、覆盖他人修改或强推共享分支。发现同文件并行工作先在 PR 说明并协调。
+- 开工先核对 GitHub main 和相关开放 PR；已有任务优先续接原分支/PR，不从过期聊天快照覆盖代码。
+- 一项任务一个短期分支和 PR；不要直接推送 main，也不要在本地仓库修改代码。代码直接在 GitHub 任务分支修改，独立 AI 通过已推送的提交、分支和 PR 交接；Codespace 为可选工具。
+- 修改前确认 GitHub main 和任务分支均为最新；不得覆盖远端已有提交或强推共享分支。发现同文件并行工作先在 PR 说明并协调。
 - 提交前检查 diff、密钥与相关验证；推送前再次检查远端分支，处理冲突并复验。禁止为了过 CI 而弱化检查。
 - 交接写清仓库、分支、基准/当前 SHA、PR、已修改文件、验证结果、未提交内容和下一步。未提交修改不是 GitHub 备份。
 - AGENTS.md 只约束实际读取并遵循它的工具；权限、分支保护和 CI 才能提供服务器侧约束。不得宣称所有机器人会自动读取。
 - 不提交生产凭据或真实业务数据；代码回滚不等于数据库、对象存储和运行数据恢复。
 
-开发入口和恢复操作见 `docs/COLLABORATION.md`。用户于 2026-10-21 确认：直接在 GitHub 开发，GitHub Actions 完成代码检查、构建与浏览器预览，再通过现有流水线发布 Cloud Run 供用户查看；不要求 Codespace。该决定取代 2026-10-18 的 Codespace 前置限制。仍禁止在家里或公司电脑重新克隆仓库、安装项目依赖、构建或启动 localhost 开发服务；不新增共享 Cloud Run Test 环境。
+开发入口和恢复操作见 `docs/COLLABORATION.md`。2026-10-31 负责人决定代码仅通过 GitHub 任务分支和 PR 修改，本地仓库不参与代码编辑；本机可作只读检查或验证。变更前比较 GitHub main 与任务分支并保留现有功能，通过现有 CI 和发布流程；实际业务部署须连接同一正式身份、业务数据与 R2，不得用模拟数据冒充；不新增共享测试业务环境。
 
 ## 可选 AI 工具链（2026-10-19）
 

@@ -15,7 +15,7 @@ export interface PortalSession {
   passwordSetupRequired?: boolean;
 }
 
-const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
+const apiBase = process.env.ALSVID_API_BASE_URL ?? '';
 
 export function canAccessPortal(portal: ProtectedPortalId, session: PortalSession): boolean {
   if (portal === 'admin') return session.roles.includes('system_admin');

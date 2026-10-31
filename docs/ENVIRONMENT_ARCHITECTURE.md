@@ -6,7 +6,7 @@
 
 - **Observed active Production:** Google Cloud project `alsvid-production` in `europe-west1`, confirmed by [successful Production Deploy #40169393607](https://github.com/jinfenghua1990/ALSVID/actions/runs/40169393607), on exact `main` SHA `a9f6a3746ff738a5300d96c465790f3a7f7656b3`.
 - **Migration target, not verified live:** independently created Google Cloud project `alsvid-prod`; no successful cutover, matching runtime inventory, traffic or data bindings have been verified. Do not silently retarget the current production environment.
-- **Development:** GitHub branches and optional remote Codespaces; never use production secrets for development or CI. Do not require workstation-local cloning or Docker.
+- **Development and business access:** work may be done locally or on GitHub. Every actual deployment and business session, on any number of authorized computers, connects to the same Production identity, business data and R2. Verify real bindings before claiming success; a local snapshot or local database is not Production.
 - **CI:** temporary GitHub-hosted runners, PostgreSQL and containers created for a workflow run and removed afterward.
 - **Retired:** the shared cloud Development/Test runtime in `alsvid-dev`. Do not assume it exists or recreate it as part of ordinary development.
 
@@ -14,9 +14,9 @@
 
 ## Resource isolation
 
-- Production runtime, database, object storage and secrets are managed separately from local/CI resources.
-- Local and CI must never receive Production credentials or write to Production data.
-- Tests requiring external providers must use explicitly isolated resources and must not make a CI pass depend on a retired Development deployment.
+- Production is the single business data and storage authority. Do not initialize, overwrite or delete live data as part of setup or validation.
+- Production access must be authorized and secrets kept out of Git and logs. Local business deployments use actual Production services; do not silently substitute local, mock or test data.
+- Automated CI may use ephemeral synthetic fixtures without Production credentials. This is a code check, not a separate business environment; do not create a shared test deployment.
 - Never infer cloud state from a local `.env`, Compose project name, bucket label or historical document.
 
 ## Delivery
