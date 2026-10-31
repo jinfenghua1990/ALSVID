@@ -322,6 +322,22 @@ jobs:
         run: |
           set -euo pipefail
 
+          # The public probe only reads HTTP. Shipping it must not redeploy the platform.
+          if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
+            monitor_only=true
+            while IFS= read -r file; do
+              case "$file" in
+                .github/workflows/public-readonly-monitor.yml|.github/workflows/ci.yml) ;;
+                *) monitor_only=false; break ;;
+              esac
+            done < <(git diff --no-renames --name-only "$RELEASE_SHA^" "$RELEASE_SHA")
+            # ci.yml is included here only with the probe to avoid suppressing a CI-only release.
+            if [[ "$monitor_only" == "true" ]] && git diff --no-renames --name-only "$RELEASE_SHA^" "$RELEASE_SHA" | grep -Fxq '.github/workflows/public-readonly-monitor.yml'; then
+              echo "Public monitor change; production deployment is not needed."
+              exit 0
+            fi
+          fi
+
           if git rev-parse "$RELEASE_SHA^" >/dev/null 2>&1; then
             docs_only=true
             while IFS= read -r file; do
