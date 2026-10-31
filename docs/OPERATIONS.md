@@ -22,8 +22,8 @@ GitHub is the software source of truth.
 | Relational database | Neon PostgreSQL | Supabase PostgreSQL migration alternative |
 | Binary/object storage | Cloudflare R2 | Keep S3-compatible abstraction |
 | Development / CI compute | Local Docker + ephemeral GitHub runners | No active cloud Development runtime |
-| Test database | Local Docker PostgreSQL / ephemeral CI PostgreSQL | No Production credentials |
-| Test object storage | Local or explicitly isolated test bucket when required | Never assume a live Test bucket exists |
+| Automated CI fixtures | Ephemeral synthetic data | Code checks only; no Production data or credentials |
+| Business access on any computer | Shared Production identity, database and R2 | Verify real bindings; no separate test business environment |
 | Commerce/order authority | ALSVID Commerce | Owns its first-party B2C storefront order lifecycle; not a general-purpose OMS |
 | Warehouse execution | WMS | ALSVID consumes necessary status/facts |
 | Disaster recovery | Deferred | Q4 not currently part of Production DR |
@@ -71,9 +71,8 @@ ALSVID may cache/store the external facts needed for Vehicle 360, My ALSVID and 
 ## Secrets
 
 - Never commit credentials, API tokens, database passwords, R2 keys or real customer data.
-- Test and Production credentials must be different.
-- Production secrets belong in the approved cloud secret-management path.
-- Local/Test secrets live outside source control.
+- Production secrets belong in an approved secret-management path and are made available only to authorized runtime access; never commit or log them.
+- CI uses no Production credentials or business data.
 - `.env.example` may document variable names but never real secret values.
 
 ## Domain and provider portability
@@ -92,7 +91,7 @@ The reason is operational freedom:
 ALSVID currently prefers low fixed cost and low operational burden over premature scale.
 
 - Keep Cloud Run configured for the smallest practical footprint at launch.
-- Do not create a second full cloud Test runtime until there is a real need.
+- Do not create a second business or Test runtime.
 - Prefer managed services/free-entry tiers where they reduce maintenance without creating dangerous lock-in.
 - Re-evaluate provider cost only when measured usage or business requirements justify it.
 
