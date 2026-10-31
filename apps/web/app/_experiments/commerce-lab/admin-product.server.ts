@@ -3,7 +3,7 @@ import {cookies} from 'next/headers';
 import {readPortalSession} from '../../_lib/portal-access';
 import {sessionCookieNameForPortal} from '../../_lib/session-cookie';
 import {parseAdminLabProduct,type LabComparisonProduct} from './catalog-contract';
-const apiBase=process.env.ALSVID_API_BASE_URL??'http://localhost:4000/api';
+const apiBase=process.env.ALSVID_API_BASE_URL??'';
 export type AdminProductSnapshot={state:'ready';product:LabComparisonProduct}|{state:'forbidden'|'not-found'|'unavailable'};
 export async function readComparisonAdminProduct(id:string):Promise<AdminProductSnapshot>{
   const session=await readPortalSession('admin');

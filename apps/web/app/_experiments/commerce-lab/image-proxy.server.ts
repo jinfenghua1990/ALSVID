@@ -1,6 +1,6 @@
 import 'server-only';
 import {comparisonAdminAuthorization} from './admin-proxy.server';
-const apiBase=process.env.ALSVID_API_BASE_URL??'http://localhost:4000/api';
+const apiBase=process.env.ALSVID_API_BASE_URL??'';
 const limit=5*1024*1024;
 const types=new Set(['image/jpeg','image/png','image/webp']);
 const validId=(id:string)=>/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id);

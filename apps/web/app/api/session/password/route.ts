@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { sessionCookieName } from '../../../_lib/session-cookie';
 
-const apiBase = process.env.ALSVID_API_BASE_URL ?? 'http://localhost:4000/api';
+const apiBase = process.env.ALSVID_API_BASE_URL ?? '';
 
 export async function POST(request: Request): Promise<NextResponse> {
   const body = await request.text();

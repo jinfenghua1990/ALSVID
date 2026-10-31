@@ -4,7 +4,7 @@ import { requirePortalSession } from '../../_lib/portal-access';
 import { sessionCookieNameForPortal } from '../../_lib/session-cookie';
 import type { OwnerGarage, OwnerVehicle } from './garage';
 
-const apiBase=process.env.ALSVID_API_BASE_URL??'http://localhost:4000/api';
+const apiBase=process.env.ALSVID_API_BASE_URL??'';
 
 type OwnerVehicleRow={id:string;vehicle_code:string;frame_number:string;sku:string;born_at:string};
 type OwnerCaseRow={id:string;caseNumber:string;vehicleId:string;title:string;status:string;createdAt:string;updatedAt:string};
