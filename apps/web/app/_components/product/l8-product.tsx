@@ -14,7 +14,7 @@ export function L8LaunchCard({ locale }: { locale: Locale }) {
       <a className={styles.button} href={`/${locale}/explore/l8`}>{t("l8.explore")}</a>
     </div>
     <a className={styles.launchVisual} href={`/${locale}/explore/l8`} aria-label={t("l8.explore")}>
-      <span className={styles.backdrop} aria-hidden="true">L8</span>
+      <span className={styles.backdrop} aria-hidden="true">L1</span>
       <img src="/products/l8/retouched-side.webp" width={1024} height={1024} alt={t("l8.gallery.side.alt")} loading="lazy" />
     </a>
   </section>;
@@ -93,7 +93,7 @@ export function L8ProductPage({ locale, myUrl }: { locale: Locale; myUrl: string
     <section className={styles.availability} id="availability">
       <div><p className={styles.eyebrow}>{t("l8.available.kicker")}</p><h2>{t("l8.available.title")}</h2><p>{t("l8.available.body")}</p>
         <a className={styles.button} href={`/${locale}/bikes`}>{t("l8.products")}</a></div>
-      <span aria-hidden="true">L8</span>
+      <span aria-hidden="true">L1</span>
     </section>
     <footer className={styles.footer}><a href={`/${locale}/`}>{t("brand.name")}</a><p>{t("l8.footer")}</p><a href={`/${locale}/`}>{t("l8.home")}</a></footer>
   </main>;
