@@ -50,9 +50,9 @@ export default async function BikesPage({ params, searchParams }: Props) {
   // Brand previews remain visibly distinct from an approved public catalogue item.
   // A previously published-and-withdrawn model is excluded when catalogue facts are available.
   const previews = [
-    { id:"fc1",code:"FC1",platform:"fc",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
+    { id:"fc1",code:"A1-ULTRA",platform:"fc",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
       image:"/home/original/fc1-product.webp",alt:t("images.product"),href:prefix+"/explore/fc1" },
-    { id:"fc2",code:"FC2",platform:"fc",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
+    { id:"fc2",code:"L1-PRO",platform:"fc",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
       image:"/products/fc2/side-studio-1536.webp",alt:t("fc2.gallery.alt.side"),href:prefix+"/explore/fc2" },
     { id:"l7",code:"A1",platform:"fc",name:t("l7.model"),status:t("catalog.bikes.models.preview"),
       image:"/products/l7/reference-side.jpg",alt:t("l7.gallery.side.alt"),href:prefix+"/explore/l7" },
@@ -60,15 +60,14 @@ export default async function BikesPage({ params, searchParams }: Props) {
       image:"/products/l8/retouched-side.webp",alt:t("l8.gallery.side.alt"),href:prefix+"/explore/l8" },
   ] as const;
   const models = previews.filter(model=>{
-      if (!publicCatalog.available || (model.code!=="FC1" && model.code!=="FC2")) return true;
+      if (!publicCatalog.available) return true;
       return !publicCatalog.suppressedCodes.includes(model.code);
     }).map(model=>{
-      const reviewed=model.code==="FC1"||model.code==="FC2"
-        ?publicCatalog.items.find(item=>item.code===model.code):undefined;
+      const reviewed=publicCatalog.items.find(item=>item.code===model.code);
       return {id:model.id,code:model.code,platform:model.platform,name:reviewed?.title[locale]??model.name,
         status:reviewed?t("catalog.bikes.models.published"):model.status,
         image:reviewed?.image??model.image,alt:reviewed?.title[locale]??model.alt,
-        href:model.href,modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
+        href:reviewed?prefix+"/explore/"+reviewed.productId:model.href,modelId:reviewed?.modelId,productId:reviewed?.productId,reviewed:Boolean(reviewed)};
     });
   const modelSideLinks = models.map(model => ({ id: "model-" + model.id, label: model.name, href: prefix + "/bikes?platform=" + model.platform + "#model-" + model.id }));
   const filteredModels = models.filter(model => !active || model.platform === active);
