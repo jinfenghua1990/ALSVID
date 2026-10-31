@@ -2,15 +2,9 @@
 
 ## Current model
 
-ALSVID has one live cloud business environment: **Production**. Development is performed locally, and automated validation runs in disposable GitHub CI environments. The former shared cloud Development/Test runtime is retired and must not be treated as an active release gate.
+Owner decision 2026-10-31: ALSVID has one live business environment, **Production**, shared by any number of authorized computers. Every actual deployment and business session uses the same Production identity, business data and Cloudflare R2. No separate test business environment exists. Local or GitHub development is allowed; compare changes before syncing either direction and preserve existing functionality.
 
-| Purpose | Runtime | Data |
-| --- | --- | --- |
-| Development | Local workstation / Docker Compose | Local disposable data |
-| Automated validation | GitHub-hosted CI runners | Ephemeral PostgreSQL and containers |
-| Business operations | Google Cloud Run in `alsvid-prod` | Production Neon, R2 and managed secrets |
-
-Local and CI environments must not use Production credentials. A local Compose project name does not prove cloud resource isolation.
+Automated CI may use ephemeral synthetic fixtures without Production data or credentials. Such checks are not a business deployment. Verify actual service and data bindings rather than relying on environment labels; protect Production secrets and do not initialize, overwrite or delete live data during setup or validation.
 
 ## Release flow
 
