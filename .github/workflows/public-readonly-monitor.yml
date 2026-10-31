@@ -1,0 +1,57 @@
+name: ALSVID Public Read-only Monitor
+
+on:
+  schedule:
+    - cron: '12 * * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/public-readonly-monitor.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-readonly-monitor-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Observe public release and catalog
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo "Observed at (UTC): $(date -u +%FT%TZ)"
+          failed=0
+          for path in release-check zh/bikes zh/accessories; do
+            file="$(mktemp)"
+            echo "::group::Observation /$path"
+            meta="$(curl --silent --show-error --location --max-time 25 --connect-timeout 8 --max-redirs 5 --output "$file" --write-out 'http=%{http_code} seconds=%{time_total} final=%{url_effective}' "https://www.alsvidbike.com/$path")"
+            result=$?
+            echo "curl_exit=$result $meta"
+            if [[ "$result" -ne 0 ]]; then
+              echo "OBSERVATION=network-unconfirmed"
+              failed=1
+            elif [[ ! "$meta" =~ ^http=200[[:space:]] ]]; then
+              echo "OBSERVATION=http-unexpected"
+              failed=1
+            elif [[ ! "$meta" =~ final=https://www\.alsvidbike\.com(/|$) ]]; then
+              echo "OBSERVATION=unexpected-redirect"
+              failed=1
+            elif [[ "$path" == release-check ]]; then
+              if ! node -e 'const fs=require("fs");try {const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(p.service!=="alsvid-web" || !/^[a-f0-9]{40}$/i.test(p.release)) throw Error("invalid release response"); console.log("OBSERVATION=ok service="+p.service+" release="+p.release);} catch(e){console.log("OBSERVATION=invalid-release"); process.exitCode=1;}' "$file"; then
+                failed=1
+              fi
+            elif [[ ! -s "$file" ]]; then
+              echo "OBSERVATION=empty-body"
+              failed=1
+            else
+              echo "OBSERVATION=http-ok nonempty-body (content not fully verified)"
+            fi
+            rm -f "$file"
+            echo "::endgroup::"
+          done
+          exit "$failed"
