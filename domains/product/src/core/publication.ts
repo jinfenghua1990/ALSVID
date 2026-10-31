@@ -26,8 +26,8 @@ export type PublicCatalogItem = {
  * the previously approved artwork instead of silently emptying the public catalogue.
  */
 export const approvedCatalogAssets: Readonly<Record<string,string>> = {
-  FC1: '/home/original/fc1-product.webp',
-  FC2: '/products/fc2/side-studio-1536.webp',
+  'A1-ULTRA': '/home/original/fc1-product.webp',
+  'L1-PRO': '/products/fc2/side-studio-1536.webp',
 };
 
 export type CatalogPublishAssetRow = { model_code:string; image_path:string; enabled:boolean };
