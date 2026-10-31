@@ -148,7 +148,7 @@ At the current stage, optional external-channel/WMS integration does not require
 - AGENTS.md 只约束实际读取并遵循它的工具；权限、分支保护和 CI 才能提供服务器侧约束。不得宣称所有机器人会自动读取。
 - 不提交生产凭据或真实业务数据；代码回滚不等于数据库、对象存储和运行数据恢复。
 
-开发入口和恢复操作见 `docs/COLLABORATION.md`。用户于 2026-10-21 确认：直接在 GitHub 开发，GitHub Actions 完成代码检查、构建与浏览器预览，再通过现有流水线发布 Cloud Run 供用户查看；不要求 Codespace。该决定取代 2026-10-18 的 Codespace 前置限制。仍禁止在家里或公司电脑重新克隆仓库、安装项目依赖、构建或启动 localhost 开发服务；不新增共享 Cloud Run Test 环境。
+开发入口和恢复操作见 `docs/COLLABORATION.md`。2026-10-31 负责人决定允许本地和 GitHub 双向开发与同步；实际业务部署须连接同一正式身份、业务数据与 R2，不得用本地或模拟数据冒充。变更前比较差异并保留功能，通过现有 CI 和发布流程；不新增共享测试业务环境。
 
 ## 可选 AI 工具链（2026-10-19）
 
