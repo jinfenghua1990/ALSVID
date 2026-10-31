@@ -113,7 +113,7 @@ test('embedded ecommerce sections inherit the Admin theme and use consistent res
   assert.match(styles, /\.av-body--ecommerce \.av-railitem\[data-active="true"\]/);
   assert.match(styles, /@media\(max-width:720px\)/);
   assert.match(publication, /margin:22px 0/);
-  assert.match(publicationPanel, /符合基础筛选/);
+  assert.match(publicationPanel, /商城可新建/);
   assert.match(publicationPanel, /models\.length/);
   assert.match(publicationPanel, /检查产品型号与类型/);
   assert.match(homepagePanel, /首页商品编排/);
