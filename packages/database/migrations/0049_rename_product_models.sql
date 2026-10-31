@@ -17,7 +17,7 @@ BEGIN
 
   IF EXISTS (
     SELECT 1
-    FROM (VALUES ('FC1','A1-ULTRA'),('FC2','L1-PRO')) AS mapping(old_code,new_code)
+    FROM (VALUES ('FC1','A1-ULTRA'),('FC2','L1-PRO'),('L7','A1'),('L8','L1')) AS mapping(old_code,new_code)
     JOIN product.catalog_publish_assets old_asset ON old_asset.model_code=mapping.old_code
     JOIN product.catalog_publish_assets new_asset ON new_asset.model_code=mapping.new_code
   ) THEN
@@ -35,15 +35,15 @@ ALTER TABLE marketing.product_colour_preferences
   ADD CONSTRAINT product_colour_preferences_product_code_check CHECK (product_code='A1-ULTRA');
 
 UPDATE product.catalog_publish_assets
-SET model_code=CASE model_code WHEN 'FC1' THEN 'A1-ULTRA' WHEN 'FC2' THEN 'L1-PRO' END,
+SET model_code=CASE model_code WHEN 'FC1' THEN 'A1-ULTRA' WHEN 'FC2' THEN 'L1-PRO' WHEN 'L7' THEN 'A1' WHEN 'L8' THEN 'L1' END,
     updated_at=now()
-WHERE model_code IN ('FC1','FC2');
+WHERE model_code IN ('FC1','FC2','L7','L8');
 
 UPDATE product.homepage_product_bindings
-SET target_model_code=CASE target_model_code WHEN 'FC1' THEN 'A1-ULTRA' WHEN 'FC2' THEN 'L1-PRO' END,
+SET target_model_code=CASE target_model_code WHEN 'FC1' THEN 'A1-ULTRA' WHEN 'FC2' THEN 'L1-PRO' WHEN 'L7' THEN 'A1' WHEN 'L8' THEN 'L1' END,
     version=version+1,
     updated_at=now()
-WHERE target_model_code IN ('FC1','FC2');
+WHERE target_model_code IN ('FC1','FC2','L7','L8');
 
 UPDATE product.catalog_publications
 SET title_zh=regexp_replace(regexp_replace(regexp_replace(regexp_replace(title_zh,'\mFC1\M','A1 Ultra','g'),'\mFC2\M','L1 Pro','g'),'\mL7\M','A1','g'),'\mL8\M','L1','g'),
