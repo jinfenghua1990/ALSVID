@@ -71,6 +71,16 @@ FOR EACH ROW EXECUTE FUNCTION engineering.sync_bom_product_id();
 ALTER TABLE product.skus
   ADD CONSTRAINT product_skus_product_id_number_unique UNIQUE(product_id,sku_number);
 
+ALTER TABLE commerce.storefront_order_lines
+  ADD CONSTRAINT storefront_order_lines_internal_sku_pair_fk
+    FOREIGN KEY(product_id_snapshot,sku_number_snapshot)
+    REFERENCES product.skus(product_id,sku_number) ON DELETE RESTRICT;
+
+ALTER TABLE commerce.external_order_lines
+  ADD CONSTRAINT external_order_lines_internal_sku_pair_fk
+    FOREIGN KEY(product_id,sku_number)
+    REFERENCES product.skus(product_id,sku_number) ON DELETE RESTRICT;
+
 ALTER TABLE commerce.sku_mappings
   ADD COLUMN product_id bigint,
   ADD COLUMN sku_number bigint;
