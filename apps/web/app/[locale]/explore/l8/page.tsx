@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale, locales } from "../../../_lib/i18n/routing";
 import { translator } from "../../../_lib/i18n";
 import { portalUrlFor } from "../../../_lib/portal-routing";
+import { publishedProductCatalog } from "../../../_components/catalog/published-product-catalog";
 import { L8ProductPage } from "../../../_components/product/l8-product";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -26,5 +27,7 @@ export default async function L8Page({ params }: Props) {
   const host = (await headers()).get("host") ?? "";
   const prefix = host.toLowerCase().split(".")[0];
   if (prefix === "admin" || prefix === "my" || prefix === "dealer") redirect(`/${prefix}`);
+  const product = (await publishedProductCatalog()).items.find(item => item.code === "L1");
+  if (product) redirect(`/${locale}/explore/${product.productId}`);
   return <L8ProductPage locale={locale} myUrl={portalUrlFor(host,"my")} />;
 }
