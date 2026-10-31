@@ -87,7 +87,7 @@ export class ProductService {
     const created=await this.repository.createPublication(modelId,actor.userId);
     if(!created){
       if(await this.repository.publication(modelId))throw new ProductConflictError('Publication already exists; reload');
-      throw new ProductValidationError('Only ACTIVE bike models with reviewed catalogue artwork can be prepared for publication');
+      throw new ProductValidationError('Only draft or active catalogue products can be prepared for publication');
     }
     await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_created',
       targetType:'product.model',targetId:modelId});
@@ -104,7 +104,7 @@ export class ProductService {
       throw new ProductValidationError('Published or under-review content must first be withdrawn/rejected');
     const body=validatePublicationDraft(input);
     const assets=await this.effectiveCatalogAssets();
-    const imagePath=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code,assets);
+    const imagePath=assets[existing.model_code] ?? '';
     const saved=await this.repository.savePublication(modelId,input.expectedVersion,body,imagePath,actor.userId);
     if(!saved)throw new ProductConflictError('Publication draft was updated; reload before saving');
     await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_updated',

@@ -15,9 +15,9 @@ type CustomFieldDefinition = { id:string; product_type_code:'BIKE'|'ACCESSORY'|'
   status:'ACTIVE'|'RETIRED'; version:number };
 type CustomFieldValues = Record<string,string|number|boolean>;
 type Platform = { id: string; code: string; name: string; description: string; status: string; version: number };
-type Model = { custom_fields?: Record<string, unknown>; id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
+type Model = { custom_fields?: Record<string, unknown>; id: string; product_id: string; platform_id: string | null; product_type_code: 'BIKE' | 'ACCESSORY' | 'SERVICE_PART'; code: string; name: string; description: string; status: string; version: number };
 type Variant = { id: string; model_id: string; code: string; name: string; description: string; status: string; version: number };
-type Sku = { id: string; variant_id: string; sku: string; name: string; market_code: string | null; color_code: string | null; size_code: string | null; status: string; version: number };
+type Sku = { id: string; product_id: string; sku_number: string; sku_sequence: number; variant_id: string; sku: string; name: string; market_code: string | null; color_code: string | null; size_code: string | null; status: string; version: number };
 type Catalog = { modelFieldDefinitions:CustomFieldDefinition[]; productTypes: {code:string;name:string;description:string;status:string}[]; platforms: Platform[]; models: Model[]; variants: Variant[]; skus: Sku[] };
 type Part = { id: string; part_number: string; name: string; category: string; default_unit: string; status: string };
 type BomRow = { id: string; code: string; name: string; model_id: string; model_code: string; revision_id: string | null; revision_code: string | null; revision_status: string | null; line_count: number | null };
@@ -556,7 +556,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                       <tbody>{filteredModels.map(({ model, platform }) => (
                         <tr key={model.id}>
                           <td><strong>{modelShortName(model)}</strong></td>
-                          <td>{model.name}<span>{model.code}</span></td>
+                          <td>{model.name}<span>{model.code} · 商品 ID {model.product_id}</span></td>
                           <td>{platform ? `${platformName(platform)} · ${platform.code}` : '未关联'}</td>
                           <td>{modelSpecSummary(model, 'basic', 'productType') || '未填写'}<span>{modelSpecSummary(model, 'drivetrain', 'type') || '未填写'} · {modelSpecSummary(model, 'wheels', 'wheelSize') || '未填写'}</span></td>
                           <td><span>{technicalSpecProgress(modelTechnicalSpecs(model.custom_fields), technicalSpecModules[0]!).filled}/{technicalSpecModules[0]!.fields.length}</span></td>
@@ -613,7 +613,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                     <tbody>{filteredModels.map(({ model, platform, variants }) => (
                       <tr key={model.id}>
                         <td title={model.name}><strong>{modelShortName(model)}</strong></td>
-                        <td title={model.name}><strong>{model.name}</strong><span>{model.code}</span></td>
+                        <td title={model.name}><strong>{model.name}</strong><span>{model.code} · 商品 ID {model.product_id}</span></td>
                         <td>{platform ? platformName(platform) : '未关联'}<span>{platform?.code ?? ''}</span></td>
                         <td>{modelSpecSummary(model, 'basic', 'productType') || '未填写'}<span>{modelSpecSummary(model, 'drivetrain', 'type') || '未填写'} · {modelSpecSummary(model, 'wheels', 'wheelSize') || '未填写'}</span></td>
                         <td>{modelSpecSummary(model, 'basic', 'markets') || '未填写'}</td>
@@ -703,7 +703,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
           {hierarchyRows.filter(({ model }) => model.product_type_code === 'BIKE').map(({ model, platform, variants }) => (
             <div className={styles.modelBlock} key={model.id}>
               <div className={styles.modelLine}>
-                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{modelShortName(model)}</b><span>{model.name}</span><small>商品 ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
+                <div><small>{catalog.productTypes.find(t=>t.code===model.product_type_code)?.name ?? (model.product_type_code ?? '待升级')} · {platform?.code ?? '不适用技术平台'}</small><b>{modelShortName(model)}</b><span>{model.name}</span><small>商品 ID：{model.product_id}</small><small>Model ID：{model.id}</small><small>{statusLabel(model.status)}</small></div>
                 <button onClick={() => setEdit({ entity: 'model', id: model.id, version: model.version, name: model.name, status: model.status, description: model.description, productTypeCode: model.product_type_code, customFields: modelCustomFields(model.custom_fields) })}>编辑</button>
               </div>
               {variants.map((variant) => (
@@ -718,7 +718,7 @@ export default function ProductClient({ embedded = false, view = 'archive' }: { 
                         <div>
                           <b>{sku.sku}</b>
                           <span>{sku.name}</span>
-                          <small>SKU 编码 · {[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '基础配置'} · {statusLabel(sku.status)}</small>
+                          <small>SKU ID {sku.sku_number} · SKU 编码 · {[sku.market_code, sku.color_code, sku.size_code].filter(Boolean).join(' · ') || '基础配置'} · {statusLabel(sku.status)}</small>
                         </div>
                         <div className={styles.skuActions}>
                           <a href={adminSkuPricingHref(sku)} className={styles.skuPriceLink} aria-label={`为 ${sku.sku} 配置商城价格`}>管理售价</a>
