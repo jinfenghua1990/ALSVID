@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   browser_preview:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       ALSVID_ENV: production
@@ -45,6 +45,7 @@ jobs:
           "$RUNNER_TEMP/fc1-browser/node_modules/.bin/playwright" install --with-deps chromium
       - name: Preview and review the production build
         env:
+          ALSVID_API_BASE_URL: http://127.0.0.1:4000/api
           FC1_PLAYWRIGHT_ROOT: ${{ runner.temp }}/fc1-browser
           FC1_REVIEW_OUTPUT: .tmp/fc1-v4-review
           FC1_REVIEW_SHA: ${{ github.event.pull_request.head.sha || github.sha }}

@@ -28,7 +28,7 @@ try {
         for (const model of ["l7", "l8"]) {
           const link = header.locator('a[href="/' + locale + '/explore/' + model + '"]:visible').first();
           assert.ok(await link.isVisible(), model + " is visible in the top navigation");
-          assert.equal((await link.innerText()).trim(), model.toUpperCase());
+          assert.equal((await link.innerText()).trim(), model === 'l7' ? 'A1' : 'L1');
         }
         if (device !== "desktop") {
           const models = header.locator('nav[class*="mobileModels"] a');
@@ -43,8 +43,8 @@ try {
         await page.waitForURL("**/" + locale + "/explore/l7");
         const product = page.locator('[data-l7-product="1"]');
         await product.waitFor();
-        assert.equal(await product.locator('header a[aria-current="page"]:visible').first().innerText(), "L7");
-        assert.match(await product.locator("h1").innerText(), /ALSVID\s*L7/);
+        assert.equal(await product.locator('header a[aria-current="page"]:visible').first().innerText(), "A1");
+        assert.match(await product.locator("h1").innerText(), /ALSVID\s*A1/);
         assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://www.alsvidbike.com/" + locale + "/explore/l7");
         const gallery = product.locator("[data-l7-gallery]");
         await gallery.locator("button").nth(1).focus();

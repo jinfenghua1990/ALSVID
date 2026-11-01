@@ -92,7 +92,7 @@ try {
       const configure = page.locator("#configure");
       const sideSpecs = configure.locator('[class*="interestSpecs"]');
       assert.equal(await sideSpecs.count(), 0, "compact metrics stay hidden until a model is opened");
-      const standard = configure.getByRole("button", { name:/FC1 Standard/ });
+      const standard = configure.getByRole("button", { name:/A1 Ultra Standard/ });
       await standard.click();
       assert.equal(await standard.getAttribute("aria-expanded"), "true", "Standard details should expand on selection");
       assert.equal(await sideSpecs.locator(":scope > div").count(), 4, "the four reference figures open directly below Standard");
@@ -157,7 +157,7 @@ try {
       await page.waitForFunction(() => !document.querySelector('#configure [data-fc1-model-viewer]'));
       assert.equal(await configure.locator('[data-fc1-model-viewer]').count(), 0, "3D GLB must not load without a real asset");
       assert.equal(await configure.locator('[class*="interestViewModes"] button').count(), 1, "keep genuine-photo mode while unhosted");
-      const pro = configure.getByRole("button", { name:/FC1 Pro/ });
+      const pro = configure.getByRole("button", { name:/A1 Ultra Pro/ });
       await pro.click();
       assert.equal(await pro.getAttribute("aria-pressed"), "true");
       assert.equal(await pro.getAttribute("aria-expanded"), "true");
@@ -178,7 +178,7 @@ try {
       assert.equal(await testRideDialog.isVisible(), true, "test-ride form opens as a modal");
       const rideCopy = await testRideDialog.innerText();
       assert.ok(rideCopy.includes(copy["fc1.test_ride.availability"]), "unconfirmed test-ride availability must be stated");
-      assert.ok(rideCopy.includes("FC1 Pro"), "selected model must reach test-ride form");
+      assert.ok(rideCopy.includes("A1 Ultra Pro"), "selected model must reach test-ride form");
       assert.ok(rideCopy.includes(copy["fc1.colours.blue"]), "selected colour must reach test-ride form");
       assert.equal(await testRideDialog.locator('input[name="city"][required]').count(), 1);
       assert.equal(await testRideDialog.locator('input[type="email"][required]').count(), 1);
@@ -244,7 +244,7 @@ try {
   const plain = await browser.newContext({ javaScriptEnabled:false, viewport:{ width:390, height:844 } });
   const fallback = await plain.newPage();
   await fallback.goto(base + "/en/explore/fc1");
-  assert.equal(await fallback.locator("h1").innerText(), "ALSVID FC1");
+  assert.equal(await fallback.locator("h1").innerText(), "ALSVID A1 Ultra");
   assert.equal(await fallback.locator('[aria-labelledby="feature-overview-title"] a[data-feature]').count(), 5);
   assert.equal(await fallback.locator("[data-fc1-motion]").count(), 0);
   assert.equal(await fallback.locator("#specifications tbody tr").count(), 20);
@@ -254,7 +254,7 @@ try {
   const classic = await browser.newPage();
   await classic.goto(base + "/en/explore/fc1?view=classic", { waitUntil:"networkidle" });
   assert.equal(await classic.locator('[data-fc1-version="4"]').count(), 0);
-  assert.equal(await classic.locator("h1").innerText(), "ALSVID FC1");
+  assert.equal(await classic.locator("h1").innerText(), "ALSVID A1 Ultra");
   check("classic route retains original page");
   await classic.close();
 } catch (error) {

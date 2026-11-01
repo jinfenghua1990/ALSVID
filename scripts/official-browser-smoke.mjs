@@ -220,16 +220,16 @@ try {
 
         const tray = bicycles.locator('[data-bikes-compare-tray]');
         assert.equal(await tray.count(), 0, 'Comparison starts with the visitor choosing models');
-        for (const code of ['FC1', 'FC2', 'L7']) {
+        for (const code of ['A1-ULTRA', 'L1-PRO', 'A1']) {
           await discovery.locator('[data-bikes-compare-toggle="' + code + '"]').click();
         }
         await tray.waitFor({state:'visible'});
         assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),3,'Tray retains three chosen models');
         assert.ok(await bicycles.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Three selected comparison models do not overflow the page');
-        await discovery.locator('[data-bikes-compare-toggle="L8"]').click();
+        await discovery.locator('[data-bikes-compare-toggle="L1"]').click();
         assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),3,'Fourth model does not exceed comparison limit');
         assert.ok((await tray.locator('[role="status"]').allTextContents()).some(text=>text.trim()),'Comparison feedback is visible near the selected models');
-        await tray.locator('[data-bikes-compare-remove="L7"]').click();
+        await tray.locator('[data-bikes-compare-remove="A1"]').click();
         assert.equal(await discovery.locator('[data-bikes-compare] table thead th').count(),3,'Removing from tray updates table');
         assert.equal(await discovery.locator('[data-bikes-compare] thead img').count(),2,'Comparison includes model photographs');
         await tray.locator('a[href="#bikes-compare"]').click();
@@ -242,7 +242,7 @@ try {
         assert.ok(trayBox && trayBox.x>=0 && trayBox.x+trayBox.width<=viewport.width+1 && trayBox.y>=0 && trayBox.y+trayBox.height<=viewport.height+1,'Comparison tray fits the viewport');
         await bicycles.screenshot({path:output+'/bikes-compare-'+locale+'-'+device+'.png'});
         const bikeSearch = discovery.locator('input[data-bikes-search]');
-        await bikeSearch.fill('FC2');
+        await bikeSearch.fill('L1-PRO');
         assert.equal(await bicycles.locator('#models article').count(),1,'Search filters visible models');
         assert.equal(await tray.locator('[data-bikes-compare-remove]').count(),2,'Search does not silently remove selected models');
         await discovery.locator('[data-bikes-reset]').click();
@@ -475,7 +475,7 @@ try {
         assert.equal(response?.status(),200);
         const product=page.locator('main[data-fc2-product]');
         await product.waitFor({state:'visible'});
-        assert.match(await product.locator('h1').innerText(),/FC2/);
+        assert.match(await product.locator('h1').innerText(),/L1 Pro/);
         await page.waitForFunction(()=>{const image=document.querySelector('[data-fc2-gallery] img');return image?.complete&&image.naturalWidth>0;});
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'FC2 must fit '+device+' viewport');
         assert.ok(await page.locator('link[rel="canonical"]').getAttribute('href')=== 'https://www.alsvidbike.com/'+locale+'/explore/fc2');

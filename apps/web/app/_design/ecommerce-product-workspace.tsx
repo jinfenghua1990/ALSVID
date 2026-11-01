@@ -5,7 +5,7 @@ import { CatalogPublicationPanel } from '../product/catalog-publication-panel';
 import { EcommercePricingWorkspace } from './ecommerce-pricing-workspace';
 import styles from './ecommerce-product-workspace.module.css';
 
-type Model = { id: string; code: string; name: string; description: string; status: string; version: number; created_at: string; updated_at: string; platform_id: string | null; product_type_code: string };
+type Model = { id: string; product_id: string; code: string; name: string; description: string; status: string; version: number; created_at: string; updated_at: string; platform_id: string | null; product_type_code: string };
 type Variant = { id: string; model_id: string; code: string; name: string; status: string };
 type Sku = { id: string; variant_id: string; sku: string; name: string; status: string; market_code: string | null; color_code: string | null; size_code: string | null };
 type Platform = { id: string; code: string; name: string };
@@ -169,7 +169,7 @@ export function EcommerceProductWorkspace() {
     const { model, publication, skus, prices, stock } = row;
     const total = stockTotal(stock);
     const created = day(model.created_at);
-    return contains(model.id, filters.id)
+    return contains(model.product_id, filters.id)
       && contains(model.code, filters.code)
       && (!filters.sku.trim() || skus.some(sku => contains(sku.sku, filters.sku)))
       && (!filters.name.trim() || [model.name, publication?.title_zh, publication?.title_de, publication?.title_en].some(value => contains(value, filters.name)))
@@ -259,11 +259,12 @@ export function EcommerceProductWorkspace() {
     if (!data) return;
     const source = selectedIds.size > 0 ? selectedRows : rows;
     if (!source.length) { setFeedback('当前没有可导出的商品。'); return; }
-    const header = ['商品编码', '商品名称', '产品类型', 'SKU 数', 'SKU 编码', '市场与售价', '可用库存', '销售状态', '最近更新'];
+    const header = ['商品 ID', '商品编码', '商品名称', '产品类型', 'SKU 数', 'SKU 编码', '市场与售价', '可用库存', '销售状态', '最近更新'];
     const body = source.map(row => {
       const { model, publication, skus, prices, stock } = row;
       const available = stockTotal(stock);
       return [
+        model.product_id ?? '',
         model.code,
         publication?.title_zh || model.name,
         productTypeLabel[model.product_type_code] ?? model.product_type_code,
@@ -383,7 +384,7 @@ function ProductRow({ row, market, onSelect, chosen, checked, toggle, busy }: { 
     <td><input type="checkbox" aria-label={`选择 ${model.code}`} checked={checked} onChange={() => toggle(model.id)} disabled={busy} /></td>
     <td><div className={styles.product}>
       <div className={styles.image}><span>暂无图片</span>{image ? <img src={image} alt="" onError={event => { event.currentTarget.hidden = true; }} /> : null}</div>
-      <a href={href} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onSelect(model.id); } }}><strong>{publication?.title_zh || model.name || model.code}</strong><span>商品编码：{model.code}</span><span>商品 ID：{model.id}</span></a>
+      <a href={href} onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onSelect(model.id); } }}><strong>{publication?.title_zh || model.name || model.code}</strong><span>商品编码：{model.code}</span><span>商品 ID：{model.product_id || '未分配'}</span></a>
     </div></td>
     <td>{productTypeLabel[model.product_type_code] ?? model.product_type_code}<span className="av-table-subtext">{platform?.name || platform?.code || '未关联技术平台'}</span></td>
     <td>{skus.length} 个<span className="av-table-subtext">{skus.slice(0, 2).map(item => item.sku).join('、') || '尚未建立 SKU'}{skus.length > 2 ? ` 等 ${skus.length} 个` : ''}</span></td>
