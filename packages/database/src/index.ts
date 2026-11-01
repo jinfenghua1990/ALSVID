@@ -32,7 +32,8 @@ export function assertDatabaseTarget(connectionString: string, env: NodeJS.Proce
   try { target = new URL(connectionString); } catch { throw new Error('Invalid DATABASE_URL'); }
   if (!['postgres:', 'postgresql:'].includes(target.protocol)) throw new Error('Invalid DATABASE_URL protocol');
   const productionHost = 'ep-shy-truth-b9laycln-pooler.c-7.eu-central-1.aws.neon.tech';
-  if (target.hostname === productionHost && target.port !== '5434') return;
+  const overrides = ['host', 'hostaddr', 'port', 'dbname'].some(key => target.searchParams.has(key));
+  if (target.hostname === productionHost && (!target.port || target.port === '5432') && target.pathname === '/ALSVID%20Production' && !overrides) return;
   const testHost = ['localhost', '127.0.0.1', 'postgres'].includes(target.hostname);
   if (env.NODE_ENV === 'test' && env.GITHUB_ACTIONS === 'true' && testHost) return;
   throw new Error('Database target is not the approved production database');
