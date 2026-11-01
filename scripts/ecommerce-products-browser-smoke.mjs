@@ -17,7 +17,7 @@ const auth = createServer((request, response) => {
 await new Promise((resolve, reject) => { auth.once('error', reject); auth.listen(4000, '127.0.0.1', resolve); });
 await mkdir(output, { recursive: true });
 
-const model = (id, code, type, created) => ({ id, code, name: code + ' 产品', description: '', status: 'ACTIVE', product_type_code: type, platform_id: 'platform-1', created_at: created, updated_at: created });
+const model = (id, code, type, created) => ({ id, product_id: id === 'model-f8' ? '100001' : '100002', code, name: code + ' 产品', description: '', status: 'ACTIVE', product_type_code: type, platform_id: 'platform-1', created_at: created, updated_at: created });
 const catalog = {
   models: [model('model-f8', 'F8', 'BIKE', '2026-10-10T10:00:00Z'), model('model-x9', 'X9', 'ACCESSORY', '2026-10-20T10:00:00Z')],
   variants: [{ id: 'var-f8', model_id: 'model-f8', code: 'F8-STD', name: '标准', status: 'ACTIVE' }, { id: 'var-x9', model_id: 'model-x9', code: 'X9-STD', name: '标准', status: 'ACTIVE' }],
@@ -71,6 +71,8 @@ try {
   await page.goto(base + '/admin/ecommerce/products');
   const list = page.getByRole('region', { name: '商城商品列表' });
   await list.getByText('F8 城市电单车').waitFor({ timeout: 30000 });
+  assert.equal(await list.getByText('商品 ID：100001').count(), 1, 'show numeric product ID');
+  assert.equal(await list.getByText('商品 ID：model-f8').count(), 0, 'do not show internal UUID as product ID');
   await page.getByRole('navigation', { name: '工作区标签页' }).getByRole('link', { name: '商城商品列表' }).waitFor();
   assert.equal(await list.locator('table thead th').count(), 10);
   assert.equal(await list.getByRole('button', { name: '待审核 1' }).count(), 1);
@@ -96,7 +98,7 @@ try {
   await list.getByText('F8 城市电单车').waitFor();
   assert.equal(await list.getByText('X9 零配件').count(), 0);
   await list.getByRole('button', { name: '重置' }).click();
-  await list.getByLabel('商品ID', { exact: true }).fill('model-f8');
+  await list.getByLabel('商品ID', { exact: true }).fill('100001');
   await list.getByRole('button', { name: '查询', exact: true }).click();
   assert.equal(await list.getByText('X9 零配件').count(), 0, 'product ID filter');
   await list.getByRole('button', { name: '重置' }).click();
