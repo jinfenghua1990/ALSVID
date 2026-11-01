@@ -475,7 +475,7 @@ try {
         assert.equal(response?.status(),200);
         const product=page.locator('main[data-fc2-product]');
         await product.waitFor({state:'visible'});
-        assert.match(await product.locator('h1').innerText(),/FC2/);
+        assert.match(await product.locator('h1').innerText(),/L1 Pro/);
         await page.waitForFunction(()=>{const image=document.querySelector('[data-fc2-gallery] img');return image?.complete&&image.naturalWidth>0;});
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'FC2 must fit '+device+' viewport');
         assert.ok(await page.locator('link[rel="canonical"]').getAttribute('href')=== 'https://www.alsvidbike.com/'+locale+'/explore/fc2');
