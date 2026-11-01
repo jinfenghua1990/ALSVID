@@ -24,6 +24,20 @@ function positiveInt(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
+
+// Production business processes must use the one approved database. Isolated
+// GitHub Actions databases are permitted only for automated test runs.
+export function assertDatabaseTarget(connectionString: string, env: NodeJS.ProcessEnv = process.env): void {
+  let target: URL;
+  try { target = new URL(connectionString); } catch { throw new Error('Invalid DATABASE_URL'); }
+  if (!['postgres:', 'postgresql:'].includes(target.protocol)) throw new Error('Invalid DATABASE_URL protocol');
+  const productionHost = 'ep-shy-truth-b9laycln-pooler.c-7.eu-central-1.aws.neon.tech';
+  if (target.hostname === productionHost && target.port !== '5434') return;
+  const testHost = ['localhost', '127.0.0.1', 'postgres'].includes(target.hostname);
+  if (env.NODE_ENV === 'test' && env.GITHUB_ACTIONS === 'true' && testHost) return;
+  throw new Error('Database target is not the approved production database');
+}
+
 // pg's defaults wait forever for a free connection and keep an unbounded number
 // of sockets open per instance, so one slow query turns into a request pile-up.
 export class Database implements DatabasePort {
@@ -31,6 +45,7 @@ export class Database implements DatabasePort {
 
   constructor(connectionString = process.env.DATABASE_URL) {
     if (!connectionString) throw new Error('DATABASE_URL is required');
+    assertDatabaseTarget(connectionString);
     this.pool = new Pool({
       connectionString,
       max: positiveInt(process.env.DATABASE_POOL_MAX, 10),
