@@ -39,7 +39,7 @@ try {
         await product.waitFor({ state: "visible" });
         assert.equal(await product.getAttribute("lang"), locale);
         assert.equal(await product.locator("[data-public-site-header]").count(), 1);
-        assert.match(await product.locator("h1").innerText(), /ALSVID\s*L8/);
+        assert.match(await product.locator("h1").innerText(), /ALSVID\s*L1/);
         assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://www.alsvidbike.com/" + locale + "/explore/l8");
         assert.equal(await page.locator('link[rel="alternate"][hreflang]').count(), 4);
         await page.waitForFunction(() => {
