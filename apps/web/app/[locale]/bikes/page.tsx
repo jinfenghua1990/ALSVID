@@ -10,9 +10,13 @@ import { translator, type TranslationKey } from "../../_lib/i18n";
 import { isLocale, locales } from "../../_lib/i18n/routing";
 import styles from "./page.module.css";
 
-type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ platform?: string; category?: string; sort?: string }> };
+type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ category?: string }> };
 const platformIds = ["fc", "ct", "ft", "gt"] as const;
 type PlatformId = typeof platformIds[number];
+function renamedModelTitle(title: string) {
+  return title.replace(/\bFC1\b/g, "A1 Ultra").replace(/\bFC2\b/g, "L1 Pro")
+    .replace(/\bL7\b/g, "A1").replace(/\bL8\b/g, "L1");
+}
 const platformAssets: Record<PlatformId, string> = {
   fc: "/home/original/fc1-product.webp",
   ct: "/home/original/scene-city.webp",
@@ -41,37 +45,33 @@ export default async function BikesPage({ params, searchParams }: Props) {
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
   const query = await searchParams;
-  const requested = query.platform?.toLowerCase();
-  const active: PlatformId | null = platformIds.find(id => id === requested) ?? null;
-  const sortMode = query.sort === "name" ? "name" : "featured";
   const prefix = "/" + locale;
   const publicCatalog = await publishedBikeCatalog();
   const publishedProducts = (await publishedProductCatalog()).items.filter(item => item.type === "ACCESSORY" || item.type === "SERVICE_PART");
   // Brand previews remain visibly distinct from an approved public catalogue item.
   // A previously published-and-withdrawn model is excluded when catalogue facts are available.
   const previews = [
-    { id:"fc1",code:"FC1",platform:"fc",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
+    { id:"fc1",code:"A1-ULTRA",legacyCode:"FC1",platform:"fc",name:t("product.model_fc1"),status:t("catalog.bikes.models.fc1"),
       image:"/home/original/fc1-product.webp",alt:t("images.product"),href:prefix+"/explore/fc1" },
-    { id:"fc2",code:"FC2",platform:"fc",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
+    { id:"fc2",code:"L1-PRO",legacyCode:"FC2",platform:"fc",name:t("fc2.model"),status:t("catalog.bikes.models.fc2"),
       image:"/products/fc2/side-studio-1536.webp",alt:t("fc2.gallery.alt.side"),href:prefix+"/explore/fc2" },
-    { id:"l7",code:"A1",platform:"fc",name:t("l7.model"),status:t("catalog.bikes.models.preview"),
+    { id:"l7",code:"A1",legacyCode:"L7",platform:"fc",name:t("l7.model"),status:t("catalog.bikes.models.preview"),
       image:"/products/l7/reference-side.jpg",alt:t("l7.gallery.side.alt"),href:prefix+"/explore/l7" },
-    { id:"l8",code:"L1",platform:"fc",name:t("l8.model"),status:t("catalog.bikes.models.preview"),
+    { id:"l8",code:"L1",legacyCode:"L8",platform:"fc",name:t("l8.model"),status:t("catalog.bikes.models.preview"),
       image:"/products/l8/retouched-side.webp",alt:t("l8.gallery.side.alt"),href:prefix+"/explore/l8" },
   ] as const;
   const models = previews.filter(model=>{
-      if (!publicCatalog.available || (model.code!=="FC1" && model.code!=="FC2")) return true;
-      return !publicCatalog.suppressedCodes.includes(model.code);
+      if (!publicCatalog.available || (model.code!=="A1-ULTRA" && model.code!=="L1-PRO")) return true;
+      return !publicCatalog.suppressedCodes.includes(model.code) && !publicCatalog.suppressedCodes.includes(model.legacyCode);
     }).map(model=>{
-      const reviewed=model.code==="FC1"||model.code==="FC2"
-        ?publicCatalog.items.find(item=>item.code===model.code):undefined;
-      return {id:model.id,code:model.code,platform:model.platform,name:reviewed?.title[locale]??model.name,
+      const reviewed=model.code==="A1-ULTRA"||model.code==="L1-PRO"
+        ?publicCatalog.items.find(item=>item.code===model.code||item.code===model.legacyCode):undefined;
+      return {id:model.id,code:model.code,platform:model.platform,name:reviewed?renamedModelTitle(reviewed.title[locale]):model.name,
         status:reviewed?t("catalog.bikes.models.published"):model.status,
         image:reviewed?.image??model.image,alt:reviewed?.title[locale]??model.alt,
         href:model.href,modelId:reviewed?.modelId,reviewed:Boolean(reviewed)};
     });
-  const modelSideLinks = models.map(model => ({ id: "model-" + model.id, label: model.name, href: prefix + "/bikes?platform=" + model.platform + "#model-" + model.id }));
-  const filteredModels = models.filter(model => !active || model.platform === active);
+  const modelSideLinks = models.map(model => ({ id: "model-" + model.id, label: model.name, href: "#model-" + model.id }));
   const navLinks = [
     { id: "models", label: t("catalog.product.tabs.bikes"), href: prefix + "/bikes#models" },
     { id: "platforms", label: t("catalog.product.tabs.platforms"), href: prefix + "/bikes#platforms" },
@@ -101,10 +101,10 @@ export default async function BikesPage({ params, searchParams }: Props) {
         </div>
         <div className={styles.quickModelsList}>
           {models.map(model => <a key={model.id}
-            href={prefix + "/bikes?platform=" + model.platform + "#model-" + model.id}
+            href={"#model-" + model.id}
             className={styles.quickModel} data-quick-model={model.id}>
             <img src={model.image} alt="" loading="lazy" width={180} height={120} />
-            <span><strong>{model.code}</strong><small>{model.status}</small></span>
+            <span><strong>{model.name}</strong><small>{model.status}</small></span>
           </a>)}
         </div>
       </nav>
@@ -117,24 +117,8 @@ export default async function BikesPage({ params, searchParams }: Props) {
         <div className={styles.modelLayout}>
           <BikesModelSideNavigator title={t("catalog.bikes.modelNav.series")} links={modelSideLinks} />
           <div className={styles.modelContent}>
-            <div className={styles.catalogToolbar}>
-              <nav className={styles.filters} aria-label={t("catalog.bikes.filter.label")}>
-                <a href={prefix + "/bikes?sort=" + sortMode + "#models"} aria-current={!active ? "page" : undefined}>{t("catalog.bikes.filter.all")}</a>
-                {platformIds.map(id => <a key={id} href={prefix + "/bikes?platform=" + id + "&sort=" + sortMode + "#models"} aria-current={active === id ? "page" : undefined}>{id.toUpperCase()}</a>)}
-              </nav>
-              <div className={styles.sortControl} role="group" aria-label={t("catalog.bikes.sort.label")}>
-                <span><strong>{filteredModels.length}</strong> {t("catalog.bikes.sort.results")}</span>
-                <a href={prefix + "/bikes?sort=featured" + (active ? "&platform=" + active : "") + "#models"} aria-current={sortMode === "featured" ? "page" : undefined}>{t("catalog.bikes.sort.featured")}</a>
-                <a href={prefix + "/bikes?sort=name" + (active ? "&platform=" + active : "") + "#models"} aria-current={sortMode === "name" ? "page" : undefined}>{t("catalog.bikes.sort.name")}</a>
-              </div>
-            </div>
             {!publicCatalog.available?<p className={styles.emptyNotice} role="status">{t("catalog.bikes.models.unavailable")}</p>:null}
-            {(!active || active === "fc") && models.length ? <BikesDiscovery locale={locale} models={filteredModels} sortMode={sortMode} /> : active && active !== 'fc' ? <div className={styles.empty}>
-              <span>{active.toUpperCase()} PLATFORM</span>
-              <h3>{t(`platform.${active}.title` as TranslationKey)}</h3>
-              <p>{t("catalog.bikes.models.none")}</p>
-              <a href={prefix + "/explore/" + active}>{t("catalog.bikes.platforms.link")}</a>
-            </div> : null}
+            <BikesDiscovery locale={locale} models={models} />
           </div>
         </div>
       </section>

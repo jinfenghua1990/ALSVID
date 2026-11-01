@@ -33,8 +33,8 @@ export function StorefrontCartPanel({locale,mode}:{locale:Locale;mode:"cart"|"ch
     </div>:<div className={styles.layout}>
       <div className={styles.lines}>
        {cart.items.map(item=>{
-        const title=item.product==="FC1"?"ALSVID FC1 "+(item.model==="standard"?"Standard":"Pro"):
-          item.product==="FC2"?"ALSVID FC2":t(("accessories."+item.category+".title") as TranslationKey);
+        const title=item.product==="FC1"?"ALSVID A1 Ultra "+(item.model==="standard"?"Standard":"Pro"):
+          item.product==="FC2"?"ALSVID L1 Pro":t(("accessories."+item.category+".title") as TranslationKey);
         const detail=item.product==="FC1"?"/"+locale+"/explore/fc1#configure":
           item.product==="FC2"?"/"+locale+"/explore/fc2#availability":
           "/"+locale+"/explore/accessory-"+item.category;

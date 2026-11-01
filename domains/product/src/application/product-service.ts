@@ -87,7 +87,7 @@ export class ProductService {
     const created=await this.repository.createPublication(modelId,actor.userId);
     if(!created){
       if(await this.repository.publication(modelId))throw new ProductConflictError('Publication already exists; reload');
-      throw new ProductValidationError('Only ACTIVE bike models with reviewed catalogue artwork can be prepared for publication');
+      throw new ProductValidationError('Only DRAFT or ACTIVE product models can be prepared for the mall');
     }
     await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_created',
       targetType:'product.model',targetId:modelId});
@@ -104,7 +104,9 @@ export class ProductService {
       throw new ProductValidationError('Published or under-review content must first be withdrawn/rejected');
     const body=validatePublicationDraft(input);
     const assets=await this.effectiveCatalogAssets();
-    const imagePath=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code,assets);
+    let imagePath='';
+    try { imagePath=curatedCatalogImage(existing.model_code,existing.model_status,existing.product_type_code,assets); }
+    catch { /* Mall drafts may be prepared before artwork is reviewed; submission still requires it. */ }
     const saved=await this.repository.savePublication(modelId,input.expectedVersion,body,imagePath,actor.userId);
     if(!saved)throw new ProductConflictError('Publication draft was updated; reload before saving');
     await this.audit.record({actorUserId:actor.userId,action:'product.catalog_draft_updated',
@@ -274,7 +276,7 @@ export class ProductService {
     try {
       const row = await this.repository.createModel({ platformId: productTypeCode === 'BIKE' ? input.platformId! : null, productTypeCode, code, name: input.name.trim(), description: input.description?.trim() ?? '', customFields, technicalSpecs, actorUserId: actor.userId });
       if (!row) throw new ProductValidationError('Selected technical platform is missing or not active');
-      await this.audit.record({ actorUserId: actor.userId, action: 'product.model_created', targetType: 'product.model', targetId: row.id, metadata: { code } });
+      await this.audit.record({ actorUserId: actor.userId, action: 'product.model_created', targetType: 'product.model', targetId: row.id, metadata: { code,productId:row.product_id,defaultSkuNumber:row.default_sku.sku_number } });
       return row;
     } catch (error) {
       mapCreateError(error, 'Model code already exists', 'Platform not found');
@@ -311,7 +313,7 @@ export class ProductService {
         attributes: input.attributes ?? {},
         actorUserId: actor.userId,
       });
-      await this.audit.record({ actorUserId: actor.userId, action: 'product.sku_created', targetType: 'product.sku', targetId: row.id, metadata: { sku } });
+      await this.audit.record({ actorUserId: actor.userId, action: 'product.sku_created', targetType: 'product.sku', targetId: row.id, metadata: { sku,productId:row.product_id,skuNumber:row.sku_number } });
       return row;
     } catch (error) {
       mapCreateError(error, 'SKU code or variant market/color/size combination already exists', 'Variant not found');

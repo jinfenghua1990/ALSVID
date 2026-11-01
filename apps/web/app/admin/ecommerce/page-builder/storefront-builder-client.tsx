@@ -32,7 +32,7 @@ const INITIAL_HTML = [
   '  <header class="storefront-nav"><a class="brand" href="#">ALSVID</a><nav>整车　车型　配件　品牌故事</nav><span class="bag">购物袋</span></header>',
   '  <section class="hero" data-alsvid-block="hero"><div class="hero-copy"><p class="eyebrow">ALSVID ELECTRIC MOBILITY</p><h1>为每一段旅程<br>重新定义自由。</h1><p class="hero-subtitle">轻量设计，城市灵感，开启属于你的骑行方式。</p><a class="button" href="#">探索整车　→</a></div><div class="hero-visual"><div class="bike-placeholder">在此替换为整车主视觉图片</div><span class="visual-note">首页主视觉 · 可自由替换</span></div><span class="hero-index">01 / 04</span></section>',
   '  <section class="intro"><p class="eyebrow">CHOOSE YOUR RIDE</p><h2>找到适合你的骑行方式</h2><p>拖动左侧模块，自由组合你的商城首页。当前是独立预览，不会修改正式官网。</p></section>',
-  '  <section class="model-grid" data-alsvid-block="product-grid"><article class="model-card"><div class="product-image">车型图片区域</div><p class="eyebrow">FOLDING SERIES</p><h3>ALSVID F8</h3><p>示例车型 · 尚未关联真实商品</p><a class="text-link" href="#">查看车型　→</a></article><article class="model-card"><div class="product-image product-image-alt">车型图片区域</div><p class="eyebrow">CITY SERIES</p><h3>城市通勤系列</h3><p>示例分类 · 尚未关联商品数据</p><a class="text-link" href="#">探索系列　→</a></article><article class="model-card"><div class="product-image product-image-third">车型图片区域</div><p class="eyebrow">TOURING SERIES</p><h3>探索旅行系列</h3><p>示例分类 · 尚未关联商品数据</p><a class="text-link" href="#">探索系列　→</a></article></section>',
+  '  <section class="model-grid" data-alsvid-block="product-grid"><article class="model-card"><div class="product-image">A1 Ultra 商品主视觉</div><p class="eyebrow">FOLDING SERIES</p><h3>A1 Ultra</h3><p>车型示例 · 正式商品资料以产品研发为准</p><a class="text-link" href="#">查看车型　→</a></article><article class="model-card"><div class="product-image product-image-alt">L1 Pro 商品主视觉</div><p class="eyebrow">FOLDING SERIES</p><h3>L1 Pro</h3><p>车型示例 · 正式商品资料以产品研发为准</p><a class="text-link" href="#">查看车型　→</a></article><article class="model-card"><div class="product-image product-image-third">A1 商品主视觉</div><p class="eyebrow">FOLDING SERIES</p><h3>A1</h3><p>预约制 · 无现货 · 预约周期 4 个月</p><a class="text-link" href="#">了解预约　→</a></article><article class="model-card"><div class="product-image product-image-third">L1 商品主视觉</div><p class="eyebrow">FOLDING SERIES</p><h3>L1</h3><p>预约制 · 无现货 · 预约周期 4 个月</p><a class="text-link" href="#">了解预约　→</a></article></section>',
   '  <section class="editorial" data-alsvid-block="image-text"><div><p class="eyebrow">MADE FOR YOUR EVERYDAY</p><h2>把日常骑行<br>变成喜欢的生活。</h2><p>在这里编辑品牌故事、产品优势和骑行场景。图片、文字、布局与按钮都可以调整。</p><a class="text-link" href="#">了解 ALSVID　→</a></div><div class="editorial-image">品牌故事图片区域</div></section>',
   '  <section class="service-row" data-alsvid-block="service"><div><strong>01</strong><h3>欧洲配送</h3><p>配置真实的配送范围与时效。</p></div><div><strong>02</strong><h3>质保支持</h3><p>展示经过确认的质保政策。</p></div><div><strong>03</strong><h3>售后与配件</h3><p>让客户快速找到服务支持。</p></div></section>',
   '  <footer class="storefront-footer"><a class="brand" href="#">ALSVID</a><p>骑行自由，从这里开始。</p><span>帮助中心　配送政策　退货政策　联系我们</span></footer>',
@@ -40,7 +40,7 @@ const INITIAL_HTML = [
 ].join('\n');
 
 const INITIAL_CSS = [
-  '*{box-sizing:border-box}.alsvid-storefront{font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;color:#18201d;background:#fff;max-width:1440px;margin:0 auto}.storefront-nav{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 6%;border-bottom:1px solid #e7eae7;gap:24px}.brand{font-size:20px;font-weight:800;letter-spacing:.28em;color:#18201d;text-decoration:none}.storefront-nav nav{font-size:13px;letter-spacing:.08em;color:#49524d}.bag{font-size:12px;letter-spacing:.05em}.hero{position:relative;min-height:500px;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:70px 8%;gap:42px;background:linear-gradient(120deg,#f1f3ee,#dfe7df)}.hero-copy{max-width:480px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.22em;color:#6d7b70;margin:0 0 18px}.hero h1{font-size:clamp(30px,4vw,54px);line-height:1.18;letter-spacing:-.04em;margin:0 0 22px}.hero-subtitle{font-size:14px;line-height:1.8;color:#58645c;margin:0 0 30px}.button{display:inline-block;padding:13px 22px;background:#18201d;color:#fff;text-decoration:none;font-size:12px;letter-spacing:.08em;border-radius:2px}.hero-visual{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:270px;gap:12px}.bike-placeholder{width:100%;min-height:260px;display:grid;place-items:center;border:1px dashed #9aa79b;background:rgba(255,255,255,.48);color:#657168;text-align:center;padding:24px;font-size:13px}.visual-note{font-size:10px;color:#758078}.hero-index{position:absolute;bottom:22px;right:6%;font-size:10px;letter-spacing:.16em;color:#68756b}.intro{text-align:center;padding:76px 8% 36px}.intro h2,.editorial h2{font-size:clamp(26px,3vw,38px);line-height:1.3;letter-spacing:-.03em;margin:0 0 14px}.intro>p:last-child{font-size:13px;color:#778078;line-height:1.8;max-width:560px;margin:0 auto}.model-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:28px 6% 78px}.model-card{min-width:0}.product-image{height:220px;display:grid;place-items:center;background:#f0f2ee;color:#7c867d;font-size:12px;margin-bottom:22px}.product-image-alt{background:#e9eeeb}.product-image-third{background:#e8ecef}.model-card .eyebrow{margin-bottom:10px}.model-card h3{font-size:22px;margin:0 0 9px}.model-card p:not(.eyebrow){font-size:12px;color:#778078}.text-link{display:inline-block;margin-top:8px;color:#1c2922;font-size:12px;text-decoration:none;border-bottom:1px solid #9aa79b;padding-bottom:5px}.editorial{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center;padding:70px 8%;background:#f6f7f4}.editorial>div:first-child>p:not(.eyebrow){font-size:13px;line-height:1.9;color:#6c766e;max-width:390px}.editorial-image{min-height:280px;background:#e3e8e2;display:grid;place-items:center;border:1px dashed #aeb9ae;color:#6f7c70;font-size:12px}.service-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;padding:62px 8%;border-bottom:1px solid #e7eae7}.service-row>div{border-top:1px solid #cfd6cf;padding-top:18px}.service-row strong{font-size:10px;color:#829084;letter-spacing:.18em}.service-row h3{font-size:17px;margin:14px 0 8px}.service-row p{font-size:12px;line-height:1.8;color:#788179}.storefront-footer{padding:34px 6%;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.storefront-footer p,.storefront-footer span{font-size:11px;color:#7a837c}.storefront-footer .brand{font-size:17px}@media(max-width:680px){.storefront-nav{height:60px;padding:0 5%}.storefront-nav nav{display:none}.hero{grid-template-columns:1fr;padding:50px 7% 64px;gap:24px}.hero-visual{min-height:190px}.bike-placeholder{min-height:180px}.model-grid{grid-template-columns:1fr;padding:20px 7% 50px}.product-image{height:230px}.editorial{grid-template-columns:1fr;padding:50px 7%;gap:24px}.service-row{grid-template-columns:1fr;padding:42px 7%;gap:14px}.intro{padding:52px 7% 26px}.storefront-footer{align-items:flex-start;flex-direction:column}}',
+  '*{box-sizing:border-box}.alsvid-storefront{font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;color:#18201d;background:#fff;max-width:1440px;margin:0 auto}.storefront-nav{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 6%;border-bottom:1px solid #e7eae7;gap:24px}.brand{font-size:20px;font-weight:800;letter-spacing:.28em;color:#18201d;text-decoration:none}.storefront-nav nav{font-size:13px;letter-spacing:.08em;color:#49524d}.bag{font-size:12px;letter-spacing:.05em}.hero{position:relative;min-height:500px;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:70px 8%;gap:42px;background:linear-gradient(120deg,#f1f3ee,#dfe7df)}.hero-copy{max-width:480px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.22em;color:#6d7b70;margin:0 0 18px}.hero h1{font-size:clamp(30px,4vw,54px);line-height:1.18;letter-spacing:-.04em;margin:0 0 22px}.hero-subtitle{font-size:14px;line-height:1.8;color:#58645c;margin:0 0 30px}.button{display:inline-block;padding:13px 22px;background:#18201d;color:#fff;text-decoration:none;font-size:12px;letter-spacing:.08em;border-radius:2px}.hero-visual{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:270px;gap:12px}.bike-placeholder{width:100%;min-height:260px;display:grid;place-items:center;border:1px dashed #9aa79b;background:rgba(255,255,255,.48);color:#657168;text-align:center;padding:24px;font-size:13px}.visual-note{font-size:10px;color:#758078}.hero-index{position:absolute;bottom:22px;right:6%;font-size:10px;letter-spacing:.16em;color:#68756b}.intro{text-align:center;padding:76px 8% 36px}.intro h2,.editorial h2{font-size:clamp(26px,3vw,38px);line-height:1.3;letter-spacing:-.03em;margin:0 0 14px}.intro>p:last-child{font-size:13px;color:#778078;line-height:1.8;max-width:560px;margin:0 auto}.model-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:28px 6% 78px}.model-card{min-width:0}.product-image{height:220px;display:grid;place-items:center;background:#f0f2ee;color:#7c867d;font-size:12px;margin-bottom:22px}.product-image-alt{background:#e9eeeb}.product-image-third{background:#e8ecef}.model-card .eyebrow{margin-bottom:10px}.model-card h3{font-size:22px;margin:0 0 9px}.model-card p:not(.eyebrow){font-size:12px;color:#778078}.text-link{display:inline-block;margin-top:8px;color:#1c2922;font-size:12px;text-decoration:none;border-bottom:1px solid #9aa79b;padding-bottom:5px}.editorial{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center;padding:70px 8%;background:#f6f7f4}.editorial>div:first-child>p:not(.eyebrow){font-size:13px;line-height:1.9;color:#6c766e;max-width:390px}.editorial-image{min-height:280px;background:#e3e8e2;display:grid;place-items:center;border:1px dashed #aeb9ae;color:#6f7c70;font-size:12px}.service-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;padding:62px 8%;border-bottom:1px solid #e7eae7}.service-row>div{border-top:1px solid #cfd6cf;padding-top:18px}.service-row strong{font-size:10px;color:#829084;letter-spacing:.18em}.service-row h3{font-size:17px;margin:14px 0 8px}.service-row p{font-size:12px;line-height:1.8;color:#788179}.storefront-footer{padding:34px 6%;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.storefront-footer p,.storefront-footer span{font-size:11px;color:#7a837c}.storefront-footer .brand{font-size:17px}@media(max-width:960px){.model-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.storefront-nav{height:60px;padding:0 5%}.storefront-nav nav{display:none}.hero{grid-template-columns:1fr;padding:50px 7% 64px;gap:24px}.hero-visual{min-height:190px}.bike-placeholder{min-height:180px}.model-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:20px 7% 50px}.product-image{height:170px}.editorial{grid-template-columns:1fr;padding:50px 7%;gap:24px}.service-row{grid-template-columns:1fr;padding:42px 7%;gap:14px}.intro{padding:52px 7% 26px}.storefront-footer{align-items:flex-start;flex-direction:column}}',
 ].join('\n');
 
 const zhMessages = {
@@ -195,6 +195,16 @@ export default function StorefrontBuilderClient() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!dirty) return;
+    const warnBeforeLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnBeforeLeave);
+    return () => window.removeEventListener('beforeunload', warnBeforeLeave);
+  }, [dirty]);
+
   const loadDraft = async () => {
     const editor = editorRef.current;
     if (!editor || draftBusy) return;
@@ -267,6 +277,10 @@ export default function StorefrontBuilderClient() {
     const file = input.files?.[0];
     const editor = editorRef.current;
     if (!file || !editor) return;
+    if (dirty && !window.confirm('导入方案会替换当前未保存的编辑内容，是否继续？')) {
+      input.value = '';
+      return;
+    }
     try {
       const parsed: unknown = JSON.parse(await file.text());
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('invalid project');
@@ -302,10 +316,11 @@ export default function StorefrontBuilderClient() {
   const resetExample = () => {
     const editor = editorRef.current;
     if (!editor) return;
+    if (dirty && !window.confirm('恢复示例会替换当前未保存的编辑内容，是否继续？')) return;
     editor.setComponents(INITIAL_HTML);
     editor.setStyle(INITIAL_CSS);
     setDirty(true);
-    setNotice('已恢复初始示例布局。之前未导出的修改不会保留。');
+    setNotice('已恢复初始示例布局。');
   };
 
   return (
@@ -333,7 +348,7 @@ export default function StorefrontBuilderClient() {
           <strong>独立装修窗口</strong>
           <p>先读取云端草稿，再保存修改。本地和云端后台使用同一份草稿；保存不会发布正式商城。</p>
         </div>
-        <span className={styles.noticeStatus}>{dirty ? '有未导出的修改' : '方案未修改'}</span>
+        <span className={styles.noticeStatus}>{dirty ? '有未保存的修改' : '方案未修改'}</span>
       </div>
 
       {error ? <div className={styles.error} role="alert">{error}</div> : null}

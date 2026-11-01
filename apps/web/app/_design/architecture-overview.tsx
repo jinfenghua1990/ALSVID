@@ -14,7 +14,7 @@ const portals = [
 ] as const;
 
 const domains = [
-  { name: '产品', href: '/admin/product', details: '平台 → 型号 → 配置 → SKU → BOM' },
+  { name: '产品', href: '/product', details: '平台 → 型号 → 配置 → SKU → BOM' },
   { name: '订单', href: '/admin/orders', details: 'B2C / B2B 订单、支付状态与履约关联' },
   { name: '生产', href: '/admin/production', details: '生产计划、工单、质检、VIN' },
   { name: '库存', href: '/admin/inventory', details: '库存流水、仓库、第三方仓接口预留' },

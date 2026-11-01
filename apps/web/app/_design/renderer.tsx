@@ -238,14 +238,14 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   if (label.includes('（待')) return undefined;
   if (screen.area === '产品') {
     const destinations: Record<string, string> = {
-      'FC Platform': '/admin/product#series', 'CT Platform': '/admin/product#series', 'FT Platform': '/admin/product#series', 'GT Platform': '/admin/product#series',
-      '整车产品': '/admin/product?type=BIKE',
-      '整车产品（车辆明细）': '/admin/product?type=BIKE#vehicle-details',
-      '车辆型号': '/admin/product?type=BIKE#vehicle-models',
-      '零配件': '/admin/product?type=PARTS#parts',
-      '产品类型': '/admin/product#product-types', '产品平台': '/admin/product#series', '技术平台': '/admin/product#series', '型号': '/admin/product?type=BIKE#vehicle-models', '配置': '/admin/product#models', 'SKU': '/admin/product#models',
-      'BOM': '/admin/product#engineering', '零件库': '/admin/product#parts', '工程文件': '/admin/product#engineering', '版本控制': '/admin/product#engineering',
-      '开发中': '/admin/product?type=BIKE#vehicle-models', '量产': '/admin/product?type=BIKE#vehicle-models', '停产': '/admin/product?type=BIKE#vehicle-models', '归档': '/admin/product?type=BIKE#vehicle-models',
+      'FC Platform': '/product#series', 'CT Platform': '/product#series', 'FT Platform': '/product#series', 'GT Platform': '/product#series',
+      '整车产品': '/product?type=BIKE',
+      '整车产品（车辆明细）': '/product?type=BIKE#vehicle-details',
+      '车辆型号': '/product?type=BIKE#vehicle-models',
+      '零配件': '/product?type=PARTS#parts',
+      '产品类型': '/product#product-types', '产品平台': '/product#series', '技术平台': '/product#series', '型号': '/product?type=BIKE#vehicle-models', '配置': '/product#models', 'SKU': '/product#models',
+      'BOM': '/product#engineering', '零件库': '/product#parts', '工程文件': '/product#engineering', '版本控制': '/product#engineering',
+      '开发中': '/product?type=BIKE#vehicle-models', '量产': '/product?type=BIKE#vehicle-models', '停产': '/product?type=BIKE#vehicle-models', '归档': '/product?type=BIKE#vehicle-models',
     };
     if (destinations[label]) return destinations[label];
   }
@@ -263,9 +263,9 @@ function menuDestination(screen: Screen, label: string): string | undefined {
   }
   if (screen.area === '产品') {
     const productRoutes: Record<string, string> = {
-      '新建型号 · 选择产品平台': '/admin/product/new/platform', '新建型号 · 创建型号': '/admin/product/new/model',
-      '新建型号 · 创建配置': '/admin/product/new/configuration', '新建型号 · 生成 SKU': '/admin/product/new/sku',
-      '新建型号 · 绑定 BOM': '/admin/product/new/bom', 'FC1 Pro · 型号追踪详情': '/admin/product/trace',
+      '新建型号 · 选择产品平台': '/product#series', '新建型号 · 创建型号': '/product?type=BIKE#vehicle-models',
+      '新建型号 · 创建配置': '/product#models', '新建型号 · 生成 SKU': '/product#models',
+      '新建型号 · 绑定 BOM': '/product#engineering', 'FC1 Pro · 型号追踪详情': '/product?type=BIKE#vehicle-models',
     };
     if (productRoutes[label]) return productRoutes[label];
   }

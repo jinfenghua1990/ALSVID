@@ -6,9 +6,10 @@ import synced from './synced-screens.json';
 
 const reviewed = synced as Screen[];
 const previous = [...screensA, ...screensB, ...screensC];
+const isLegacyProductRoute = (route: string) => route === '/admin/product' || route.startsWith('/admin/product/');
 export const screens: readonly Screen[] = [
-  ...previous.filter(screen => !reviewed.some(item => item.route === screen.route)),
-  ...reviewed,
+  ...previous.filter(screen => !isLegacyProductRoute(screen.route) && !reviewed.some(item => item.route === screen.route)),
+  ...reviewed.filter(screen => !isLegacyProductRoute(screen.route)),
 ];
 
 export function screenById(id: string): Screen {

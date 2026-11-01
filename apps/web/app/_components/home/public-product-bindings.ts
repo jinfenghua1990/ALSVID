@@ -18,12 +18,12 @@ export async function homepageProductBindings():Promise<HomepageProductBindings>
   if(!payload||typeof payload!=='object'||!('data' in payload)||!Array.isArray(payload.data))
    return {...emptyHomepageProductBindings};
   const values={...emptyHomepageProductBindings};
-  const expected={FC1_HERO:'FC1',FC1_FEATURED:'FC1',FC2_LAUNCH:'FC2'} as const;
+  const expected={FC1_HERO:['FC1','A1-ULTRA'],FC1_FEATURED:['FC1','A1-ULTRA'],FC2_LAUNCH:['FC2','L1-PRO']} as const;
   for(const record of payload.data){
    if(!record||typeof record!=='object')continue;
    const item=record as Record<string,unknown>;
    if(item.slot==='FC1_HERO'||item.slot==='FC1_FEATURED'||item.slot==='FC2_LAUNCH'){
-    if(item.modelCode===expected[item.slot]&&typeof item.modelId==='string'&&
+    if(expected[item.slot].some(code=>code===String(item.modelCode))&&typeof item.modelId==='string'&&
        /^[a-f\d]{8}-[a-f\d]{4}-[1-8][a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i.test(item.modelId))
       values[item.slot]=item.modelId;
    }

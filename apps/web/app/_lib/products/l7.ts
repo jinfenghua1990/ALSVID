@@ -7,7 +7,10 @@ export const l7Reference = {
   batteryVoltageV: 36,
   batteryCapacityAh: 10,
   referenceWeightKg: 14.5,
+  statedRangeKm: "90–100",
+  chargingHours: 3,
+  payloadKg: 100,
   unfoldedMm: [1500, 650, 1100],
   foldedMm: [800, 450, 700],
-  sourceUrl: "https://naicisports.com/de/produkt/pilot-x7-leichtes-carbon-e-faltrad-mit-tiefeinstieg/",
+  sourceUrl: "https://naicisports.com/product/pilot-x7-carbon-fiber-folding-e-bike/",
 } as const;

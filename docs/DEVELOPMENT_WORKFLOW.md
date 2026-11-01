@@ -2,19 +2,19 @@
 
 ## Development workspace
 
-The owner confirmed cloud-only development on 2026-10-18. Reopen the same GitHub Codespace from home and company computers; use a connected cloud AI workspace for independent tasks. Do not clone, install project dependencies, build or start localhost development servers on those workstations. Documentation-only edits can use GitHub branches and PRs directly. If no cloud execution connection is available, report that limitation rather than falling back to local development. See `COLLABORATION.md`.
+Updated 2026-10-31: make day-to-day changes in the existing local checkout and use its Web on port 3000 for preview. Do not create another worktree or project copy. GitHub is secondary for synchronized history, backup, review and CI; compare local and remote changes before syncing and preserve both sides. The existing GitHub CI/review/release gates remain required before Production deployment. See `COLLABORATION.md`.
 
 ## Canonical flow
 
 ```text
-Requirement → GitHub branch → pull request to main → CI → review → merge
+Requirement → existing local checkout → compare/sync to GitHub → CI/review/merge
                                                                     ↓
                                                           Production deploy
 ```
 
 ## 1. Requirement and branch
 
-State the intended outcome and boundaries before implementation. Record architecture decisions in `docs/adr/` when needed. Work on a branch and submit a pull request to `main`; do not edit `main` directly.
+State the intended outcome and boundaries before implementation. Record architecture decisions in `docs/adr/` when needed. Make changes in the existing local checkout. Before syncing to GitHub, compare both sides; integrate through a task branch and pull request to `main`, without force-pushing shared branches.
 
 Suggested names: `feat/<topic>`, `fix/<topic>`, `rebuild/<topic>`, `docs/<topic>`.
 

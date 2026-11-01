@@ -4,7 +4,7 @@ import type { DatabasePort } from '@alsvid/database';
 import { evaluateStorefrontReadiness, StorefrontReadinessService } from './storefront-readiness.js';
 
 const fact = {
-  sku_id:'11111111-1111-4111-8111-111111111111',sku:'FC1-BLK-DE',
+  sku_id:'11111111-1111-4111-8111-111111111111',product_id:'100001',sku_number:'100001001',sku:'FC1-BLK-DE',
   sku_name:'FC1 Black',model_code:'FC1',variant_code:'STANDARD',
   color_code:'BLACK',market_code:'DE',
   model_status:'ACTIVE',variant_status:'ACTIVE',sku_status:'ACTIVE',
@@ -15,6 +15,8 @@ const fact = {
 test('positive warehouse stock and active price NEVER enable checkout or auto reservation',()=>{
   const row=evaluateStorefrontReadiness(fact,'DE');
   assert.equal(row.ledgerAvailable,'3.000000');
+  assert.equal(row.productId,'100001');
+  assert.equal(row.skuNumber,'100001001');
   assert.equal(row.priceGross,'2999.00');
   assert.equal(row.checkoutEnabled,false);
   assert.equal(row.inventoryReservable,false);

@@ -29,7 +29,7 @@ const COPY = {
     proposal: "颜色提案 · 待确认",
     choose: "选择你喜欢的颜色",
     interest: "颜色仅用于外观参考，不代表现货或量产色号。",
-    title: "选择你的 FC1",
+    title: "选择你的 A1 Ultra",
     fineprint: "颜色为基于绿色实拍车的模拟效果，量产色号与可售状态以正式公布为准。",
     summary: "当前预览",
     delivery: "计划从中国发往德国，预计交付 4–6 周；具体时间待物流确认。当前仅收集邮件预约意向。",
@@ -47,7 +47,7 @@ const COPY = {
     proposal: "Colour proposal · unconfirmed",
     choose: "Choose your favourite colour",
     interest: "Colours are appearance proposals, not confirmed stock or production finishes.",
-    title: "Make your FC1 yours",
+    title: "Make your A1 Ultra yours",
     fineprint: "Colours are simulations based on the genuine green sample. Final finishes and availability are not confirmed.",
     summary: "Your preview",
     delivery: "Shipping from China to Germany is planned, with an estimated 4–6 week delivery window subject to logistics confirmation. At this stage, only email reservation enquiries are accepted.",
@@ -65,7 +65,7 @@ const COPY = {
     proposal: "Farbvorschlag · noch offen",
     choose: "Wähle deine Lieblingsfarbe",
     interest: "Farben sind Designvorschläge, keine bestätigten Serienfarben oder Lagerbestände.",
-    title: "Gestalte dein FC1",
+    title: "Gestalte dein A1 Ultra",
     fineprint: "Farbansichten sind Simulationen des echten grünen Musters. Serienfarben und Verfügbarkeit sind noch nicht bestätigt.",
     summary: "Deine Vorschau",
     delivery: "Der Versand aus China nach Deutschland ist mit einer geschätzten Lieferzeit von 4–6 Wochen geplant; die Logistik muss dies noch bestätigen. Derzeit sind nur Reservierungsanfragen per E-Mail vorgesehen.",
@@ -202,7 +202,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
   const current = COLOURS.find(item => item.id === colour) ?? COLOURS[0]!;
   const reservationEmail = process.env.NEXT_PUBLIC_FC1_RESERVATION_EMAIL?.trim() ?? "";
   const reservationEmailConfigured = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationEmail);
-  const modelLabel = model === "standard" ? "FC1 Standard" : "FC1 Pro";
+  const modelLabel = model === "standard" ? "A1 Ultra Standard" : "A1 Ultra Pro";
   const colourLabel = t(current.key as "fc1.colours.sample");
   const submitReservation = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setReservationState("sending"); try { const response = await fetch("/api/public/fc1-reservation", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, model: modelLabel, colour: colourLabel, locale }) }); if (!response.ok) throw new Error("send failed"); setReservationState("sent"); } catch { setReservationState("failed"); } };
 
@@ -217,7 +217,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
     <div className={styles.interestVisual}>
       <div className={styles.interestIntro}>
         <span>FOLDING CARBON / ALSVID</span>
-        <h1>ALSVID FC1</h1>
+        <h1>ALSVID A1 Ultra</h1>
         <p>{t("fc1.heading")}</p>
       </div>
       <div className={styles.interestViewModes} role="group" aria-label={copy.threeDMode}>
@@ -225,15 +225,15 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         {modelAvailable ? <button type="button" aria-pressed={visualMode === "3d"} onClick={() => setVisualMode("3d")}>{copy.threeDMode}</button> : null}
       </div>
       <ColourBike locale={locale} colour={colour} modelUrl={modelAvailable && visualMode === "3d" ? FC1_MODEL_URL : null} onModelFailure={onModelFailure}/>
-      <div className={styles.interestVisualFooter}><span>{visualMode === "3d" ? copy.threeDMode : copy.preview}</span><span>FC1 / {current.key ? t(current.key as "fc1.colours.sample") : ""}</span></div>
+      <div className={styles.interestVisualFooter}><span>{visualMode === "3d" ? copy.threeDMode : copy.preview}</span><span>A1 Ultra / {current.key ? t(current.key as "fc1.colours.sample") : ""}</span></div>
     </div>
     <aside className={styles.interestControls} aria-label={copy.title}>
-      <div className={styles.interestControlsHeading}><span>ALSVID FC1 / CONFIGURE</span><h2>{copy.title}</h2><p>{t("fc1.intro")}</p></div>
+      <div className={styles.interestControlsHeading}><span>ALSVID A1 ULTRA / CONFIGURE</span><h2>{copy.title}</h2><p>{t("fc1.intro")}</p></div>
       <fieldset className={styles.interestFieldset}>
         <legend>{t("fc1.selection.model")}</legend>
         <div className={styles.interestModels}>
           {(["standard","pro"] as const).map(item=><button type="button" key={item} aria-pressed={model===item} aria-expanded={expandedModel===item} aria-controls="fc1-model-details" onClick={()=>chooseModel(item)}>
-            <strong>FC1 {item==="standard"?"Standard":"Pro"}</strong>
+            <strong>A1 Ultra {item==="standard"?"Standard":"Pro"}</strong>
             <small>{item==="standard"?copy.standard:copy.modelUnavailable}</small>
           </button>)}
         </div>
@@ -274,7 +274,7 @@ export function Fc1ColourConfigurator({locale}: {locale: Locale}) {
         <p className={styles.interestHint}>{copy.interest}</p>
       </fieldset>
       <div className={styles.interestSummary}>
-        <small>{copy.summary}</small><strong>FC1 {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
+        <small>{copy.summary}</small><strong>A1 Ultra {model==="standard"?"Standard":"Pro"} / {t(current.key as "fc1.colours.sample")}</strong>
         <div className={styles.cartPurchaseActions} data-product-purchase="fc1">
           <button type="button" className={styles.cartAddButton}
             onClick={()=>setCartStatus(addCartLine({product:"FC1",model,colour,quantity:1})?"added":"failed")}>

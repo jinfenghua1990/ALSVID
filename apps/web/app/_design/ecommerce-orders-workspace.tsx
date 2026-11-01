@@ -5,7 +5,7 @@ import styles from './ecommerce-orders-workspace.module.css';
 
 type Sku = { id: string; sku: string; name: string; colorCode: string | null; marketCode: string | null; modelCode: string; variantCode: string };
 type Price = { id: string; skuId: string; sku: string; status: 'DRAFT' | 'ACTIVE' | 'RETIRED'; marketCountry: string; unitPriceGross: string; version: number };
-type Line = { id: string; skuId: string; skuCode: string; skuName: string; quantity: number; lineGrossAmount: string; lineNetAmount: string; lineTaxAmount: string; taxRateBasisPoints: number };
+type Line = { id: string; skuId: string; productId: string; skuNumber: string; skuCode: string; skuName: string; quantity: number; lineGrossAmount: string; lineNetAmount: string; lineTaxAmount: string; taxRateBasisPoints: number };
 type Order = { id: string; orderNumber: string; customerEmail: string; marketCountry: string; currency: string; status: string; paymentStatus: string; totalGrossAmount: string; totalTaxAmount: string; totalNetAmount: string; version: number; createdAt: string; lines: Line[]; blockers: string[] };
 type OrderDetail = Order & { events: { id: string; eventType: string; fromStatus: string | null; toStatus: string; toPaymentStatus: string; occurredAt: string }[] };
 type Factory = { id: string; code: string; name: string };
@@ -375,7 +375,7 @@ export function EcommerceOrdersWorkspace() {
       )}
     </section>
 
-    {detail ? <section className="av-card"><div className="av-cardhead"><div><h2 className="av-cardtitle">订单详情 · {detail.orderNumber}</h2><p className="av-cardhint">版本 V{detail.version} · {statusLabel[detail.status] ?? detail.status} · 支付 {detail.paymentStatus}</p></div><button className="av-btn" type="button" onClick={() => setDetail(null)}>收起</button></div><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>数量</th><th>净额</th><th>税额</th><th>含税</th></tr></thead><tbody>{detail.lines.map(line => <tr key={line.id}><td>{line.skuCode} · {line.skuName}</td><td>{line.quantity}</td><td>{line.lineNetAmount}</td><td>{line.lineTaxAmount}</td><td>{line.lineGrossAmount}</td></tr>)}</tbody></table></div><p className="av-cardhint">创建时间：{new Date(detail.createdAt).toLocaleString('zh-CN')} · 流转记录 {detail.events.length} 条</p></section> : null}
+    {detail ? <section className="av-card"><div className="av-cardhead"><div><h2 className="av-cardtitle">订单详情 · {detail.orderNumber}</h2><p className="av-cardhint">版本 V{detail.version} · {statusLabel[detail.status] ?? detail.status} · 支付 {detail.paymentStatus}</p></div><button className="av-btn" type="button" onClick={() => setDetail(null)}>收起</button></div><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU ID / 编码</th><th>数量</th><th>净额</th><th>税额</th><th>含税</th></tr></thead><tbody>{detail.lines.map(line => <tr key={line.id}><td>{line.skuNumber} · {line.skuCode} · {line.skuName}<span className="av-table-subtext">Product ID {line.productId}</span></td><td>{line.quantity}</td><td>{line.lineNetAmount}</td><td>{line.lineTaxAmount}</td><td>{line.lineGrossAmount}</td></tr>)}</tbody></table></div><p className="av-cardhint">创建时间：{new Date(detail.createdAt).toLocaleString('zh-CN')} · 流转记录 {detail.events.length} 条</p></section> : null}
     <p className="av-cardhint">安全边界：订单初始为 DRAFT；当前界面不提供手动标记付款，也不会自动扣减仓库实物库存。</p>
   </div>;
 }

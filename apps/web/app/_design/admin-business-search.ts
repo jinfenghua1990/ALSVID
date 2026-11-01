@@ -167,11 +167,11 @@ export function searchAuthorizedBusinessRecords(
   if (catalog) {
     for (const model of cap(catalog.models.filter(item => contains(term, item.code, item.name)))) {
       results.push({ type: 'model', key: 'model:' + model.id, title: model.code, subtitle: model.name,
-        href: '/admin/product?type=BIKE&search=' + encodeURIComponent(model.code) + '#vehicle-models' });
+        href: '/product?type=BIKE#vehicle-models' });
     }
     for (const sku of cap(catalog.skus.filter(item => contains(term, item.sku, item.name)))) {
       results.push({ type: 'sku', key: 'sku:' + sku.id, title: sku.sku, subtitle: sku.name,
-        href: '/admin/product?type=BIKE&search=' + encodeURIComponent(sku.sku) + '#vehicle-models' });
+        href: '/product?type=BIKE#vehicle-models' });
     }
   }
   if (orders) {

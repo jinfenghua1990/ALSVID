@@ -92,7 +92,7 @@
   "catalog.discovery.results": "Showing {count} models",
   "catalog.discovery.fc1.note": "20-inch carbon folding reference bicycle. Final specifications and production configuration remain unverified.",
   "catalog.discovery.other.note": "Explore the existing model story. Specifications, variants, stock and launch plans remain subject to confirmation.",
-  "catalog.discovery.colour.label": "FC1 colour concepts",
+  "catalog.discovery.colour.label": "A1 Ultra colour concepts",
   "catalog.discovery.colour.sample": "Green sample",
   "catalog.discovery.colour.black": "Black proposal",
   "catalog.discovery.colour.blue": "Blue proposal",
@@ -144,7 +144,7 @@
   "catalog.discovery.help.purchase.question": "Can I buy these models online yet?",
   "catalog.discovery.help.purchase.answer": "Online orders and payments are not available yet. The cart saves a non-binding interest selection only; it does not create an order or reserve stock.",
   "catalog.discovery.help.colours.question": "Do the colour swatches show available finishes?",
-  "catalog.discovery.help.colours.answer": "The FC1 swatches represent a green reference sample and unconfirmed colour proposals. The photograph remains the genuine reference bicycle. Saleable colours and variants still require approval.",
+  "catalog.discovery.help.colours.answer": "The A1 Ultra swatches represent a green reference sample and unconfirmed colour proposals. The photograph remains the genuine reference bicycle. Saleable colours and variants still require approval.",
   "catalog.discovery.help.facts.question": "How final are the comparison details?",
   "catalog.discovery.help.facts.answer": "The comparison uses existing public reference information only. Final production specifications, prices and availability are not confirmed. Visit each model page for its existing information."
 }

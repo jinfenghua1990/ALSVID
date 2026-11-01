@@ -4,7 +4,7 @@
 
 此文件是**云端开发工具说明**，不是生产功能，也不是工具已经在 Codespace 中安装/运行的证据。
 
-- **GitHub**：ALSVID 代码、设计归属、决策、协作与版本回滚的唯一权威源。
+- **本地现有仓库**：ALSVID 日常代码修改主位置；**GitHub**：同步后的历史备份、协作审查、CI 与发布入口。同步前比较并保留双方改动；正式发布仍以经过现有门禁的提交为准。
 - **Playwright**：**已存在于** `.github/workflows/fc1-preview.yml`，CI 临时安装 `playwright@1.58.2` 和 Chromium；本次扩展官网多语言与桌面/移动端冒烟测试，复用这一安装，不修改锁文件。
 - **Superpowers**：可选 Codex 等 Agent 技能包，仅安装到 Codespace 用户目录；不将第三方整套仓库复制进产品运行时代码。
 - **Claude-Mem**：可选会话记忆工具；在 Codespace 中显式安装，以本地 observer 为默认建议；不等于跨 AI、跨 Codespace、GitHub 的共享记忆。
@@ -12,7 +12,7 @@
 
 ## 最短操作
 
-在 **ALSVID 共享 GitHub Codespace 的终端**执行下列命令，按需选择，不在家/公司电脑克隆项目：
+在 **ALSVID 现有本地仓库的终端**执行下列命令，按需选择；不需要另建 Codespace 或项目副本：
 
 ```bash
 # 所有三项可选工具（Superpowers / Claude-Mem / HyperFrames）

@@ -14,7 +14,7 @@ test("official homepage keeps the brand hero and shows the collection grid befor
 });
 
 test("homepage product cards use existing ALSVID models and detail routes", () => {
-  for (const code of ["FC1", "FC2", "L7", "L8"]) assert.match(page, new RegExp('code: "' + code + '"'));
+  for (const code of ["A1 Ultra", "L1 Pro", "A1", "L1"]) assert.match(page, new RegExp('code: "' + code + '"'));
   for (const slug of ["fc1", "fc2", "l7", "l8"]) assert.match(page, new RegExp('detail\\("' + slug + '"\\)'));
   assert.match(page, /catalog\.bikes\.models\.details/);
   assert.doesNotMatch(page, /<L8LaunchCard|<L7LaunchCard|<Fc2LaunchCard/);

@@ -17,7 +17,7 @@ export type StorefrontReadinessBlocker =
   | 'PSP_NOT_CONFIGURED';
 
 export type StorefrontReadinessRow = {
-  skuId: string; sku: string; skuName: string; modelCode: string;
+  skuId: string; skuNumber: string; productId: string; sku: string; skuName: string; modelCode: string;
   variantCode: string; colorCode: string | null; marketCode: string | null;
   publicationStatus: string; priceGross: string | null; currency: 'EUR';
   taxRateBasisPoints: number | null; locationCount: number;
@@ -31,7 +31,7 @@ export type StorefrontReadinessSnapshot = {
   truncated: boolean; query: string; rows: StorefrontReadinessRow[];
 };
 type ReadinessFact = {
-  sku_id: string; sku: string; sku_name: string; model_code: string;
+  sku_id: string; sku_number: string; product_id: string; sku: string; sku_name: string; model_code: string;
   variant_code: string; color_code: string | null; market_code: string | null;
   model_status: string; variant_status: string; sku_status: string;
   publication_status: string | null; unit_price_gross: string | null;
@@ -69,7 +69,8 @@ export function evaluateStorefrontReadiness(fact: ReadinessFact, market: Storefr
   // these from positive Inventory ledger rows or a draft price.
   blockers.push('CHANNEL_ALLOCATION_UNVERIFIED', 'TAX_SHIPPING_UNVERIFIED', 'PSP_NOT_CONFIGURED');
   return {
-    skuId: fact.sku_id, sku: fact.sku, skuName: fact.sku_name,
+    skuId: fact.sku_id, skuNumber: fact.sku_number, productId: fact.product_id,
+    sku: fact.sku, skuName: fact.sku_name,
     modelCode: fact.model_code, variantCode: fact.variant_code,
     colorCode: fact.color_code, marketCode: fact.market_code,
     publicationStatus: fact.publication_status ?? 'MISSING',
@@ -99,7 +100,8 @@ export class StorefrontReadinessService {
     const query = search.trim();
     if (query.length > 100) throw new CommerceValidationError('SKU search cannot exceed 100 characters');
     const result = await this.db.query<ReadinessFact>(`
-      SELECT s.id AS sku_id, s.sku, s.name AS sku_name,
+      SELECT s.id AS sku_id, s.sku_number::text AS sku_number,
+        s.product_id::text AS product_id, s.sku, s.name AS sku_name,
         m.code AS model_code, v.code AS variant_code,
         s.color_code, s.market_code,
         m.status AS model_status, v.status AS variant_status, s.status AS sku_status,

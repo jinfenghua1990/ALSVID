@@ -30,7 +30,7 @@ const specs: { id: string; status: "reference" | "option" | "pending" }[] = [
   { id: "battery", status: "reference" }, { id: "range", status: "reference" },
   { id: "charge", status: "reference" }, { id: "front", status: "reference" },
   { id: "rear", status: "reference" }, { id: "brakes", status: "reference" },
-  { id: "tyres", status: "pending" }, { id: "riderweight", status: "reference" },
+  { id: "tyres", status: "reference" }, { id: "riderweight", status: "reference" },
   { id: "bottle", status: "option" }, { id: "colour", status: "pending" },
   { id: "build", status: "pending" }, { id: "compliance", status: "pending" },
 ];
@@ -47,7 +47,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{key("fc1.eyebrow")}</p>
-            <h1>ALSVID FC1</h1>
+            <h1>ALSVID A1 Ultra</h1>
             <p className={styles.heroTagline}>{key("fc1.heading")}</p>
             <p className={styles.heroDescription}>{key("fc1.intro")}</p>
             <p className={styles.heroDelivery}>{key("fc1.selection.delivery")}</p>
@@ -84,7 +84,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <FoldStatePreview locale={locale} />
         </section>
         <section className={styles.sceneBand} aria-label={key("hero.poster_tagline")}>
-          <div><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
+          <div><p className={styles.eyebrow}>ALSVID A1 Ultra</p><h2>{key("hero.poster_title")}</h2><p>{key("hero.poster_tagline")}</p></div>
         </section>
         <section id="details" className={`${styles.section} ${styles.suspensionSection}`}>
           <div className={styles.sectionHeader}>
@@ -146,7 +146,7 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           <ProductConfigurator locale={locale} />
         </section>
         <section id="gallery" className={`${styles.section} ${styles.gallerySection}`}>
-          <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID FC1</p><h2>{key("fc1.gallery")}</h2></div>
+          <div className={styles.sectionHeader}><p className={styles.eyebrow}>ALSVID A1 Ultra</p><h2>{key("fc1.gallery")}</h2></div>
           <ProductGallery locale={locale} />
         </section>
         <section id="specifications" className={`${styles.section} ${styles.specSection}`}>
@@ -178,13 +178,13 @@ export function Fc1ProductPage({ locale, myUrl }: { locale: Locale; myUrl: strin
           </div>
         </section>
         <section className={styles.cta}>
-          <p className={styles.eyebrow}>ALSVID FC1</p>
+          <p className={styles.eyebrow}>ALSVID A1 Ultra</p>
           <h2>{key("fc1.cta.title")}</h2>
           <p>{key("fc1.cta.body")}</p>
           <a className={`${styles.buttonDark} ${styles.button}`} href="#configure">{key("fc1.selection.cta_configure")}</a>
           <p className={styles.smallNote}>{key("fc1.reservation.note")}</p>
         </section>
-        <p className={styles.sourceNote}>{key("fc1.source")} <a href="#specifications">{key("fc1.source.link")}</a></p>
+        <p className={styles.sourceNote}>{key("fc1.source")} <a href="https://naicisports.com/product/pilot-x9-carbon-folding-electric-bike/" target="_blank" rel="noreferrer">{key("fc1.source.link")}</a></p>
       </div>
       <footer className={styles.footer}>
         <a className={styles.logo} href={`/${locale}/`}>ALSVID</a>

@@ -10,7 +10,7 @@ type Blocker =
   | 'CHANNEL_ALLOCATION_UNVERIFIED' | 'TAX_SHIPPING_UNVERIFIED'
   | 'PSP_NOT_CONFIGURED';
 type Row = {
-  skuId: string; sku: string; skuName: string; modelCode: string; variantCode: string;
+  skuId: string; skuNumber: string; productId: string; sku: string; skuName: string; modelCode: string; variantCode: string;
   colorCode: string | null; marketCode: string | null; publicationStatus: string;
   priceGross: string | null; currency: 'EUR'; locationCount: number;
   onHand: string | null; reserved: string | null; ledgerAvailable: string | null;
@@ -153,7 +153,7 @@ export function StorefrontReadinessPanel() {
         <table className="av-commerce-stock-table">
           <thead><tr><th>SKU / 型号</th><th>发布审核</th><th>市场售价（参考）</th><th>对应市场台账</th><th>未达成条件</th></tr></thead>
           <tbody>{rows.map(row => <tr key={row.skuId}>
-            <td><strong>{row.sku}</strong><span>{row.modelCode} / {row.variantCode} · {row.skuName}</span></td>
+            <td><strong>{row.skuNumber} · {row.sku}</strong><span>Product {row.productId} · {row.modelCode} / {row.variantCode} · {row.skuName}</span></td>
             <td>{row.publicationStatus === 'PUBLISHED' ? '已发布' : '未发布 / 未审批'}</td>
             <td>{row.priceGross === null ? '未配置' : row.priceGross + ' EUR'}<span>非正式结账报价</span></td>
             <td>{row.locationCount === 0 ? '未核实库存位置' : amount(row.ledgerAvailable) + ' 台账可用'}

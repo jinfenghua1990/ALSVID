@@ -1,10 +1,10 @@
 import type{DatabasePort,QueryExecutor}from'@alsvid/database';import type{VehicleRepository}from'../application/ports.js';
 export class PostgresVehicleRepository implements VehicleRepository{constructor(private readonly db:DatabasePort){}transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>{return this.db.transaction(work)}
- async list():Promise<any[]>{const r=await this.db.query<any>(`SELECT v.*,po.production_order_number,bs.code AS build_spec_code,s.sku,p.display_name AS factory_name,u.unit_no FROM vehicle.vehicles v JOIN production.production_units u ON u.id=v.production_unit_id JOIN production.production_orders po ON po.id=v.production_order_id JOIN engineering.build_specs bs ON bs.id=v.build_spec_id JOIN product.skus s ON s.id=v.sku_id JOIN partners.partners p ON p.id=v.factory_partner_id ORDER BY v.born_at DESC LIMIT 1000`);return r.rows}
+ async list():Promise<any[]>{const r=await this.db.query<any>(`SELECT v.*,po.production_order_number,bs.code AS build_spec_code,s.sku,s.product_id::text AS product_id,s.sku_number::text AS sku_number,p.display_name AS factory_name,u.unit_no FROM vehicle.vehicles v JOIN production.production_units u ON u.id=v.production_unit_id JOIN production.production_orders po ON po.id=v.production_order_id JOIN engineering.build_specs bs ON bs.id=v.build_spec_id JOIN product.skus s ON s.id=v.sku_id JOIN partners.partners p ON p.id=v.factory_partner_id ORDER BY v.born_at DESC LIMIT 1000`);return r.rows}
  async get(id:string):Promise<any|null>{
   // Targeted primary-key lookup; do not fetch the last 1000 vehicles for a link.
   const r=await this.db.query<any>(
-   `SELECT v.*,po.production_order_number,bs.code AS build_spec_code,s.sku,p.display_name AS factory_name,u.unit_no
+   `SELECT v.*,po.production_order_number,bs.code AS build_spec_code,s.sku,s.product_id::text AS product_id,s.sku_number::text AS sku_number,p.display_name AS factory_name,u.unit_no
    FROM vehicle.vehicles v
    JOIN production.production_units u ON u.id=v.production_unit_id
    JOIN production.production_orders po ON po.id=v.production_order_id
@@ -16,7 +16,7 @@ export class PostgresVehicleRepository implements VehicleRepository{constructor(
  }
  async listOwned(userId:string):Promise<any[]> {
   // Latest immutable event is authoritative. Never infer ownership from email or VIN.
-  const r=await this.db.query<any>(`SELECT v.id,v.vehicle_code,v.frame_number,v.born_at,s.sku
+  const r=await this.db.query<any>(`SELECT v.id,v.vehicle_code,v.frame_number,v.born_at,s.sku,s.product_id::text AS product_id,s.sku_number::text AS sku_number
    FROM vehicle.vehicles v JOIN product.skus s ON s.id=v.sku_id
    JOIN LATERAL (SELECT event_kind,customer_user_id FROM vehicle.owner_access_events
      WHERE vehicle_id=v.id ORDER BY event_no DESC LIMIT 1) owner ON true
@@ -27,7 +27,7 @@ export class PostgresVehicleRepository implements VehicleRepository{constructor(
   return r.rows;
  }
  async getOwned(userId:string,vehicleId:string):Promise<any|null>{
-  const r=await this.db.query<any>(`SELECT v.id,v.vehicle_code,v.frame_number,v.born_at,s.sku
+  const r=await this.db.query<any>(`SELECT v.id,v.vehicle_code,v.frame_number,v.born_at,s.sku,s.product_id::text AS product_id,s.sku_number::text AS sku_number
    FROM vehicle.vehicles v JOIN product.skus s ON s.id=v.sku_id
    JOIN LATERAL (SELECT event_kind,customer_user_id FROM vehicle.owner_access_events
       WHERE vehicle_id=v.id ORDER BY event_no DESC LIMIT 1) owner ON true

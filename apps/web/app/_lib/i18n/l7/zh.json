@@ -64,5 +64,11 @@
   "l7.spec.weight.value": "碳纤维参考车型：{weight} kg",
   "l7.spec.unfolded": "展开尺寸",
   "l7.spec.folded": "折叠尺寸",
+  "l7.spec.range": "助力续航参考",
+  "l7.spec.range.value": "{range} km；依配置、载重、地形与助力条件而异",
+  "l7.spec.charging": "充电时间参考",
+  "l7.spec.charging.value": "约 {hours} 小时；采用 42 V / 2 A 充电器",
+  "l7.spec.load": "参考载重",
+  "l7.spec.load.value": "{load} kg；厂家产品规格，非独立整车载荷测试结果",
   "l7.gallery.carry.alt": "A1 参考车架的一体式提手开口与折叠铰链"
 }

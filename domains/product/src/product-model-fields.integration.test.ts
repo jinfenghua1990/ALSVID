@@ -40,6 +40,11 @@ test('real PostgreSQL persists typed model custom fields, preserves history and 
       });
       const definitions=(await service.catalog(actor)).modelFieldDefinitions;
       assert.ok(definitions.some(item=>item.id===field.id));
+      const activeFields=definitions.filter(item=>item.product_type_code==='SERVICE_PART'&&item.status==='ACTIVE');
+      const completeFields=Object.fromEntries(activeFields.map(item=>[
+        item.code,item.field_type==='NUMBER'?1:item.field_type==='BOOLEAN'?true:
+          item.field_type==='SELECT'?item.options[0]:'test',
+      ]));
       await assert.rejects(()=>service.createModel(actor,{
         code:modelCode,name:'Required field missing',productTypeCode:'SERVICE_PART',
       }),ProductValidationError);
@@ -48,7 +53,7 @@ test('real PostgreSQL persists typed model custom fields, preserves history and 
       }),ProductValidationError);
       const created=await service.createModel(actor,{
         code:modelCode,name:'Model with typed fields',productTypeCode:'SERVICE_PART',
-        customFields:{[code]:12.5,[optionCode]:'one'},
+        customFields:{...completeFields,[code]:12.5,[optionCode]:'one'},
       });
       assert.equal(created.custom_fields[code],12.5);
       assert.equal(created.custom_fields[optionCode],'one');
@@ -57,12 +62,12 @@ test('real PostgreSQL persists typed model custom fields, preserves history and 
       }),ProductValidationError);
       const updated=await service.updateEntity(actor,'model',created.id,{
         expectedVersion:created.version,name:'Updated model',
-        customFields:{[code]:19.4,[optionCode]:'two'},
+        customFields:{...completeFields,[code]:19.4,[optionCode]:'two'},
       });
       assert.equal(updated.version,created.version+1);
       assert.equal(updated.custom_fields[code],19.4);
       await assert.rejects(()=>service.updateEntity(actor,'model',created.id,{
-        expectedVersion:created.version,customFields:{[code]:19.4},
+        expectedVersion:created.version,customFields:{...completeFields,[code]:19.4},
       }),ProductConflictError);
       const retired=await service.updateModelField(actor,option.id,{
         expectedVersion:option.version,status:'RETIRED',
@@ -72,7 +77,7 @@ test('real PostgreSQL persists typed model custom fields, preserves history and 
         expectedVersion:option.version,label:'Stale',
       }),ProductConflictError);
       const unchanged=await service.updateEntity(actor,'model',created.id,{
-        expectedVersion:updated.version,customFields:{[code]:22},
+        expectedVersion:updated.version,customFields:{...Object.fromEntries(Object.entries(completeFields).filter(([key])=>key!==optionCode)),[code]:22},
       });
       assert.equal(unchanged.custom_fields[optionCode],'two','retired field historical value must persist');
       assert.equal((await db.query<{custom_fields:Record<string,unknown>}>(
@@ -80,5 +85,7 @@ test('real PostgreSQL persists typed model custom fields, preserves history and 
       assert.ok(events.includes('product.model_field_created'));
       assert.ok(events.includes('product.model_field_updated'));
       assert.ok(events.includes('product.model_updated'));
+      await service.updateModelField(actor,field.id,{expectedVersion:field.version,status:'RETIRED'});
+      await service.updateEntity(actor,'model',created.id,{expectedVersion:unchanged.version,status:'RETIRED'});
     }finally{await db.close();}
   });

@@ -61,7 +61,7 @@ export function Fc1PreviewCartPanel({ locale, mode }: { locale: Locale; mode: "c
           <p className={styles.eyebrow}>{t("fc1.cart.preview")}</p>
           <h2>{mode === "cart" ? t("fc1.cart.title") : t("fc1.cart.order_review")}</h2>
         </div>
-        <span className={styles.count}>{ready && cart ? `${cart.quantity} × FC1` : "ALSVID FC1"}</span>
+        <span className={styles.count}>{ready && cart ? `${cart.quantity} × A1 Ultra` : "ALSVID A1 Ultra"}</span>
       </div>
 
       {!ready ? (
@@ -81,7 +81,7 @@ export function Fc1PreviewCartPanel({ locale, mode }: { locale: Locale; mode: "c
             </div>
             <div className={styles.productCopy}>
               <p className={styles.kicker}>ALSVID / FOLDING CARBON</p>
-              <h3>FC1 {cart.model === "standard" ? "Standard" : "Pro"}</h3>
+              <h3>A1 Ultra {cart.model === "standard" ? "Standard" : "Pro"}</h3>
               <p>{t(COLOUR_KEYS[cart.colour])}</p>
               <span className={styles.disclosure}>{t("fc1.cart.colour_note")}</span>
             </div>

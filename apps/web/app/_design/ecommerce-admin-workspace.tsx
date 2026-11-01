@@ -78,7 +78,7 @@ export function EcommerceAdminWorkspace({ route = '/admin/ecommerce' }: { route?
     {status === 'error' ? <section className="av-card av-commerce-load-state" role="alert">
       <strong>产品主数据暂不可用</strong>
       <p>{error}。读取失败不代表商品数量为零；为避免误操作，本页面暂不开放依赖产品主数据的操作。</p>
-      <a className="av-btn" href="/admin/product?type=BIKE#vehicle-models">前往产品研发检查 →</a>
+      <a className="av-btn" href="/product?type=BIKE#vehicle-models">前往产品研发检查 →</a>
     </section> : null}
     {status === 'ready' && view === 'homepage' ? <EcommerceHomepageWorkspace models={models} loadError="" /> : null}
     {status === 'ready' && view === 'publications' ? <CatalogPublicationPanel models={models} /> : null}

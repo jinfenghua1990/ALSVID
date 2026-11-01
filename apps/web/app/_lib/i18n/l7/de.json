@@ -64,5 +64,11 @@
   "l7.spec.weight.value": "Carbon-Referenz: {weight} kg",
   "l7.spec.unfolded": "Maße entfaltet",
   "l7.spec.folded": "Maße zusammengeklappt",
+  "l7.spec.range": "Reichweitenreferenz mit Tretunterstützung",
+  "l7.spec.range.value": "{range} km; abhängig von Konfiguration, Zuladung, Gelände und Unterstützungsstufe",
+  "l7.spec.charging": "Ladezeit als Referenz",
+  "l7.spec.charging.value": "Etwa {hours} Stunden mit einem 42-V-/2-A-Ladegerät",
+  "l7.spec.load": "Referenzbelastung",
+  "l7.spec.load.value": "{load} kg Herstellerangabe; kein unabhängiges Belastungstestergebnis für das Gesamtfahrrad",
   "l7.gallery.carry.alt": "Integrierte Trageöffnung und Faltgelenk am A1 Referenzrahmen"
 }

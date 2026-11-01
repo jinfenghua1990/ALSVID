@@ -37,7 +37,7 @@ test('publication lifecycle rejects publishing draft, resubmitting review and du
 });
 
 const row:PublicationRow={
- model_id:'valid-model-id',model_code:'FC1',product_type_code:'BIKE',model_status:'ACTIVE',
+ model_id:'valid-model-id',product_id:'100001',model_code:'FC1',product_type_code:'BIKE',model_status:'ACTIVE',
  status:'PUBLISHED',title_zh:'FC1 整车',title_de:'FC1 Fahrrad',title_en:'FC1 Bicycle',
  image_path:approvedCatalogAssets.FC1!,evidence_note:'verified in product records',version:4,
  submitted_at:null,published_at:null,withdrawn_at:null,
@@ -45,7 +45,7 @@ const row:PublicationRow={
 
 test('public projection has only reviewed safe fields, never internal evidence/version',()=>{
  const projection=toPublicCatalogItem(row);
- assert.deepEqual(projection,{modelId:'valid-model-id',code:'FC1',type:'BIKE',
+ assert.deepEqual(projection,{modelId:'valid-model-id',productId:'100001',code:'FC1',type:'BIKE',
   image:approvedCatalogAssets.FC1,
   title:{zh:'FC1 整车',de:'FC1 Fahrrad',en:'FC1 Bicycle'}});
  assert.equal('evidence_note' in (projection??{}),false);
@@ -88,7 +88,7 @@ test('the allowlist merge never mutates its inputs and ignores unknown rows',()=
 test('the public projection follows the allowlist, not the hardcoded pair',()=>{
  const fc3=mergeCatalogAssets([{model_code:'FC3',image_path:'/products/fc3/side.webp',enabled:true}]);
  const projection=toPublicCatalogItem({...row,model_code:'FC3',image_path:'/products/fc3/side.webp'},fc3);
- assert.deepEqual(projection,{modelId:'valid-model-id',code:'FC3',type:'BIKE',
+ assert.deepEqual(projection,{modelId:'valid-model-id',productId:'100001',code:'FC3',type:'BIKE',
   image:'/products/fc3/side.webp',title:{zh:'FC1 整车',de:'FC1 Fahrrad',en:'FC1 Bicycle'}});
  // An allowlisted model still cannot publish artwork that was not reviewed for it.
  assert.equal(toPublicCatalogItem({...row,model_code:'FC3',image_path:'/products/fc2/side.webp'},fc3),null);

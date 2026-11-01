@@ -53,6 +53,14 @@ test('draft PO lines can be edited/deleted, issued PO lines are immutable, and s
   try {
     const supplier = await createPartner(db, true);
     const partId = await createPart(db);
+    const platform = await db.query<{id:string}>(`SELECT id FROM product.platforms WHERE code='FC' LIMIT 1`);
+    const model = await db.query<{id:string}>(`INSERT INTO product.models(platform_id,code,name)
+      VALUES($1,$2,'Procurement SKU Test') RETURNING id`,[platform.rows[0]!.id,`PROC-${randomUUID().replaceAll('-','').slice(0,10).toUpperCase()}`]);
+    const variant = await db.query<{id:string}>(`INSERT INTO product.variants(model_id,code,name)
+      VALUES($1,'DEFAULT','Default') RETURNING id`,[model.rows[0]!.id]);
+    const sku = await db.query<{id:string;sku_number:string;product_id:string}>(`INSERT INTO product.skus(variant_id,sku,name)
+      VALUES($1,$2,'Procurement SKU Test') RETURNING id,sku_number::text,product_id::text`,
+      [variant.rows[0]!.id,`PROC-SKU-${randomUUID().replaceAll('-','').slice(0,10).toUpperCase()}`]);
     const po = await db.query<{ id: string }>(
       `INSERT INTO procurement.purchase_orders(supplier_partner_id,currency) VALUES ($1,'EUR') RETURNING id`,
       [supplier],
@@ -72,18 +80,26 @@ test('draft PO lines can be edited/deleted, issued PO lines are immutable, and s
        VALUES ($1,10,'PART',$2,2,19.95) RETURNING id`,
       [po.rows[0]!.id, partId],
     );
+    await db.query(`INSERT INTO procurement.purchase_order_lines
+      (purchase_order_id,line_no,item_type,sku_id,ordered_quantity,unit_price)
+      VALUES($1,20,'SKU',$2,1,29.95)`,[po.rows[0]!.id,sku.rows[0]!.id]);
     await db.query(`UPDATE procurement.purchase_orders SET status='ISSUED',issued_at=now(),version=version+1 WHERE id=$1`, [po.rows[0]!.id]);
     await assert.rejects(
       db.query(`UPDATE procurement.purchase_order_lines SET ordered_quantity=3 WHERE id=$1`, [line.rows[0]!.id]),
       /immutable/,
     );
-    const snapshots = await db.query<{ state: string; snapshot: unknown }>(
+    const snapshots = await db.query<{ state: string; snapshot: {lines:Array<{sku_id:string|null;product_id:string|null;sku_number:string|null}>} }>(
       `SELECT state,snapshot FROM procurement.purchase_order_snapshots WHERE purchase_order_id=$1`,
       [po.rows[0]!.id],
     );
     assert.equal(snapshots.rows.length, 1);
     assert.equal(snapshots.rows[0]!.state, 'ISSUED');
     assert.ok(snapshots.rows[0]!.snapshot);
+    assert.ok(snapshots.rows[0]!.snapshot.lines.some(item=>item.sku_id===sku.rows[0]!.id&&
+      item.product_id===sku.rows[0]!.product_id&&item.sku_number===sku.rows[0]!.sku_number));
+    await db.query("UPDATE product.skus SET status='RETIRED' WHERE id=$1",[sku.rows[0]!.id]);
+    await db.query("UPDATE product.variants SET status='RETIRED' WHERE id=$1",[variant.rows[0]!.id]);
+    await db.query("UPDATE product.models SET status='RETIRED',version=version+1,updated_at=now() WHERE id=$1",[model.rows[0]!.id]);
   } finally {
     await db.close();
   }

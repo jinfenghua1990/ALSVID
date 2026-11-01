@@ -14,7 +14,7 @@
 
 - **Ardot：** ALSVID Admin 全部内部运营页面，包括工作台及下列十个业务模块。经销商采购流程可以在 Ardot 作为内部流程原型讨论。
 - **Figma：** 所有对外门户的最终 UI：ALSVID Official / Shop、My ALSVID、ALSVID Dealer Portal，以及未来 Supplier Portal。
-- **GitHub：** 架构、需求、路由、实现与验收状态的唯一事实来源。
+- **本地现有仓库：** 日常代码修改主位置；**GitHub：** 同步后的架构与协作记录、审查、CI 和发布入口。
 - Ardot 中的“官方首页”“我的车库”“经销商入口”只能作为跨应用入口，不代表对应消费者/外部门户页面归 Ardot 设计。
 - Ardot 与 Figma 不得同时维护同一页面的两份最终设计稿。Dealer Portal 最终 UI 不归 Ardot；Admin 的供应商管理和内部采购仍归 Ardot。
 

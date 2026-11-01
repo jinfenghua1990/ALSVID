@@ -21,7 +21,7 @@ export const screensA: Screen[] = [
         kind: 'shortcuts',
         title: '快速进入业务模块',
         items: [
-          { label: '产品与工程', description: '平台、型号、SKU 与 BOM', href: '/admin/product' },
+          { label: '产品与工程', description: '平台、型号、SKU 与 BOM', href: '/product' },
           { label: '订单与履约事实', description: '查看渠道订单关联与交付状态', href: '/admin/orders' },
           { label: '生产与车辆', description: '计划、工单、质检与 VIN', href: '/admin/production' },
           { label: '库存与仓储', description: '库存台账、预留和 WMS 状态', href: '/admin/inventory' },

@@ -5,8 +5,8 @@ import { parsePreviewBag, previewBagKey, type PreviewLine, type PreviewModel, ty
 import styles from './shop-preview.module.css';
 
 const models: { id: PreviewModel; code: string; image: string; description: TranslationKey }[] = [
-  { id: 'fc1', code: 'ALSVID FC1', image: '/home/original/fc1-product.webp', description: 'shopPreview.fc1' },
-  { id: 'fc2', code: 'ALSVID FC2', image: '/products/fc2/side-studio-1536.webp', description: 'shopPreview.fc2' },
+  { id: 'fc1', code: 'ALSVID A1 Ultra', image: '/home/original/fc1-product.webp', description: 'shopPreview.fc1' },
+  { id: 'fc2', code: 'ALSVID L1 Pro', image: '/products/fc2/side-studio-1536.webp', description: 'shopPreview.fc2' },
 ];
 const versionKeys: Record<PreviewVersion, TranslationKey> = {
   standard: 'shopPreview.standard', pro: 'shopPreview.pro', pending: 'shopPreview.pending',

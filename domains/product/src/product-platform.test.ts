@@ -74,10 +74,10 @@ test('unknown platform gives not-found rather than silent success',async()=>{
 test('platform repository SQL has optimistic lock, archive guard and active-platform bike lock',async()=>{
   const {PostgresProductRepository}=await import('./infrastructure/postgres-product-repository.js');
   const statements:string[]=[];
-  const fakeDb={query:async(sql:string)=>{
+  const fakeDb={query:async(sql:string,_params?:unknown[])=>{
     statements.push(sql);
     return {rows:sql.includes('INSERT INTO product.models')?[]:[{id:platformId,code:'FC',name:'FC',status:'ACTIVE',version:2}]};
-  }};
+  },transaction:async(work:(executor:any)=>Promise<unknown>)=>work({query:async(sql:string,params?:unknown[])=>fakeDb.query(sql,params)})};
   const repository=new PostgresProductRepository(fakeDb as never);
   await repository.updatePlatform({id:platformId,expectedVersion:1,name:null,status:'RETIRED',descriptionProvided:false,description:'',actorUserId:writer.userId});
   await repository.createModel({platformId,productTypeCode:'BIKE',code:'FC1',name:'Bike',description:'',actorUserId:writer.userId});

@@ -1,8 +1,8 @@
-// Public reference data supplied for the FC2 model presentation.
+// Public reference data supplied for the L1 Pro model presentation.
 // Retail configuration, availability and compliance are not inferred from this record.
 export const fc2Reference = {
-  model: "FC2",
-  sourceUrl: "https://naicisports.com/de/produkt/pilot-x5-faltbares-e-bike-aus-kohlefaser-leichtes-pendlerrad/",
+  model: "L1 Pro",
+  sourceUrl: "https://naicisports.com/product/pilot-x5-folding-carbon-fiber-e-bike/",
   reviewedOn: "2026-10-20",
   wheelInches: 20,
   netWeightKg: 15.5,

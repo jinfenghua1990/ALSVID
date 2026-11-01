@@ -5,8 +5,7 @@ const configuredNavigation: readonly AppNavItem[] = [
   { label: '今日概览', href: '/admin', area: '工作台', section: '运营概览' },
   { label: '待办与异常', href: '/admin', area: '工作台', section: '运营概览' },
 
-  { label: '产品研发', href: '/admin/product', area: '产品研发', section: '商品档案' },
-  { label: '产品列表', href: '/product', area: '产品研发', section: '产品中心' },
+  { label: '产品研发', href: '/product', area: '产品研发', section: '产品中心' },
   { label: '产品平台', href: '/product#series', area: '产品研发', section: '产品中心' },
   { label: '型号 / 配置 / SKU', href: '/product#models', area: '产品研发', section: '产品中心' },
   { label: 'BOM 与零件库', href: '/product#engineering', area: '产品研发', section: '工程资料' },

@@ -44,7 +44,7 @@ test('mail notification HTML escapes all user-controlled fields', () => {
   assert.match(message.html, /&lt;img/);
   assert.match(message.html, /&lt;a href=&quot;evil&quot;&gt;/);
   assert.doesNotMatch(message.html, /<img|<a href=/);
-  assert.equal(message.subject, 'ALSVID FC1 reservation enquiry');
+  assert.equal(message.subject, 'ALSVID A1 Ultra reservation enquiry');
   assert.match(message.text, /No payment or order was created/);
 });
 
@@ -110,5 +110,5 @@ test('existing email-only reservation format remains supported', () => {
   assert.equal(value.purpose, 'reservation');
   assert.equal(value.city, '');
   assert.equal(value.country, null);
-  assert.equal(reservationNotification(value).subject, 'ALSVID FC1 reservation enquiry');
+  assert.equal(reservationNotification(value).subject, 'ALSVID A1 Ultra reservation enquiry');
 });

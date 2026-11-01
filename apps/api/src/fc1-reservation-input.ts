@@ -1,4 +1,4 @@
-/** Parse untrusted public FC1 enquiries without creating an order or a confirmed test ride. */
+/** Parse untrusted public A1 Ultra enquiries without creating an order or a confirmed test ride. */
 export interface ReservationEnquiry {
   purpose: 'reservation' | 'test_ride';
   email: string;
@@ -37,7 +37,7 @@ export function normalizeReservationEnquiry(body: unknown): ReservationEnquiry |
   return {
     purpose,
     email,
-    model: model.replace(/[\r\n\t]/g, ' ') || 'FC1 Standard',
+    model: model.replace(/[\r\n\t]/g, ' ') || 'A1 Ultra Standard',
     colour: colour.replace(/[\r\n\t]/g, ' ') || 'Not specified',
     locale,
     name: purpose === 'test_ride' ? name : '',
@@ -59,14 +59,14 @@ export function reservationNotification(enquiry: ReservationEnquiry): {
   const { email, model, colour, locale, purpose, name, city, country } = enquiry;
   if (purpose === 'test_ride') {
     return {
-      subject: 'ALSVID FC1 test ride enquiry',
-      text: `FC1 test-ride interest (not a confirmed booking)\nName: ${name || 'Not provided'}\nEmail: ${email}\nCountry: ${country}\nCity: ${city}\nModel: ${model}\nColour: ${colour}\nLocale: ${locale}\n\nNo test ride appointment, payment or order was created.`,
-      html: `<p><strong>FC1 test-ride interest (not a confirmed booking)</strong></p><p>Name: ${escapeHtml(name || 'Not provided')}<br>Email: ${escapeHtml(email)}<br>Country: ${escapeHtml(country ?? '')}<br>City: ${escapeHtml(city)}<br>Model: ${escapeHtml(model)}<br>Colour: ${escapeHtml(colour)}<br>Locale: ${escapeHtml(locale)}</p><p>No test ride appointment, payment or order was created.</p>`,
+      subject: 'ALSVID A1 Ultra test ride enquiry',
+      text: `A1 Ultra test-ride interest (not a confirmed booking)\nName: ${name || 'Not provided'}\nEmail: ${email}\nCountry: ${country}\nCity: ${city}\nModel: ${model}\nColour: ${colour}\nLocale: ${locale}\n\nNo test ride appointment, payment or order was created.`,
+      html: `<p><strong>A1 Ultra test-ride interest (not a confirmed booking)</strong></p><p>Name: ${escapeHtml(name || 'Not provided')}<br>Email: ${escapeHtml(email)}<br>Country: ${escapeHtml(country ?? '')}<br>City: ${escapeHtml(city)}<br>Model: ${escapeHtml(model)}<br>Colour: ${escapeHtml(colour)}<br>Locale: ${escapeHtml(locale)}</p><p>No test ride appointment, payment or order was created.</p>`,
     };
   }
   return {
-    subject: 'ALSVID FC1 reservation enquiry',
-    text: `FC1 reservation enquiry\nEmail: ${email}\nModel: ${model}\nColour: ${colour}\nLocale: ${locale}\n\nThis is an interest request only. No payment or order was created.`,
-    html: `<p><strong>FC1 reservation enquiry</strong></p><p>Email: ${escapeHtml(email)}<br>Model: ${escapeHtml(model)}<br>Colour: ${escapeHtml(colour)}<br>Locale: ${escapeHtml(locale)}</p><p>No payment or order was created.</p>`,
+    subject: 'ALSVID A1 Ultra reservation enquiry',
+    text: `A1 Ultra reservation enquiry\nEmail: ${email}\nModel: ${model}\nColour: ${colour}\nLocale: ${locale}\n\nThis is an interest request only. No payment or order was created.`,
+    html: `<p><strong>A1 Ultra reservation enquiry</strong></p><p>Email: ${escapeHtml(email)}<br>Model: ${escapeHtml(model)}<br>Colour: ${escapeHtml(colour)}<br>Locale: ${escapeHtml(locale)}</p><p>No payment or order was created.</p>`,
   };
 }

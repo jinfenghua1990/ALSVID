@@ -68,8 +68,8 @@ export function ProductGallery({ locale }: { locale: Locale }) {
 
 
 const modelOptions = [
-  { id: "standard", label: "FC1 Standard", note: "fc1.selection.standard_status" },
-  { id: "pro", label: "FC1 Pro", note: "fc1.selection.pro_status" },
+  { id: "standard", label: "A1 Ultra Standard", note: "fc1.selection.standard_status" },
+  { id: "pro", label: "A1 Ultra Pro", note: "fc1.selection.pro_status" },
 ] as const;
 
 /**

@@ -8,7 +8,7 @@ ALSVID 不要求“必须 Docker 才能自动更新”。
 
 本项目的目标：
 
-- GitHub 作为唯一代码来源；
+- 本地现有仓库作为日常代码修改主位置；GitHub 作为同步、审查、CI 与发布入口；
 - 提交代码后自动完成测试；
 - 验证通过后自动部署；
 - 减少人工登录服务器操作；
@@ -119,7 +119,8 @@ ALSVID 当前不应该因为 Docker 而拖慢业务开发。
 
 必须遵守：
 
-- GitHub 是唯一代码权威源；
+- 本地是日常修改主副本；同步 GitHub 前先比较并保留双方改动；
+- Production 发布仍以通过既有门禁的 Git commit/version 为准；
 - 不直接修改 Production 服务器代码；
 - Production 通过 CI/CD 更新；
 - 每次上线对应明确 Git commit/version；

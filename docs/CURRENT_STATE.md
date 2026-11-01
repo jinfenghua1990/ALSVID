@@ -1,12 +1,22 @@
 # Current State
 
+## 2026-10-31 product model renames — local source only
+
+The local source and migration map L8 → L1, FC2 → L1 Pro, FC1 → A1 Ultra, and L7 → A1. Internal Product IDs, SKU IDs, model UUIDs, SKU relations, historical order snapshots, and existing URL slugs are preserved. Migration 0049 updates current model codes/names and public catalogue bindings/titles when the existing release process applies it; it has not been run against any database or deployed.
+
+## 2026-10-31 local Product/SKU ID work — not synced or released
+
+The existing local checkout now adds stable six-digit Product IDs and nine-digit SKU IDs (Product ID plus a three-digit per-product sequence). Product creation allocates the Product ID in PostgreSQL and creates a default variant/SKU in one transaction; SKU allocation is row-locked and capped at 999. Product, SKU, storefront order, procurement snapshot, inventory, production, engineering, vehicle, service and channel-mapping read contracts expose the canonical numbers. Third-party IDs remain separate. Existing UUID primary/foreign keys remain in place as compatibility references; no existing records were re-keyed or deleted.
+
+Migrations 0047–0048 are applied to the local `alsvid` database through migration 0048. PostgreSQL integration coverage passed for concurrent allocation, ID stability, order/procurement snapshots, and external-channel mapping; affected domain/Web typechecks and `pnpm arch:check` passed. The modified source is still only in the local checkout; it has not been synced to GitHub or deployed. Local Web/API currently run from this checkout on ports 3000/4000.
+
 ## 2026-10-26 saved-product preview and custom covers — latest application deployment
 
 The owner explicitly approved direct deployment of PR #375 (“不用，直接部署”). The PR is merged and release `5cff0a37eb0911add744e4fb368056c3a2bb79e9` is deployed on the existing `alsvid-production` / `europe-west1` Cloud Run services. [Main CI](https://github.com/jinfenghua1990/ALSVID/actions/runs/40341440288) and the [full production deployment](https://github.com/jinfenghua1990/ALSVID/actions/runs/40342257454) succeeded.
 
 WWW and Admin `/release-check` both returned this exact release; API `/api/health` returned the same version with status ok. Revisions: Web `alsvid-web-00040-n87`, API `alsvid-api-00014-7gq`. Migration execution `alsvid-migrate-g8h8n` succeeded; read-only Neon metadata confirms the cover UUID reference and comparison media link type from migration 0040.
 
-The independent menu remains **商城方案对比**. Saved products now have an authenticated draft preview in zh/de/en, and the native editor supports custom cover upload/replace/detach through the existing Assets/R2 adapter with a 5 MiB limit, version checks and unchanged publication state. “Private preview” means an unpublished product is visible only to an authenticated administrator; source development still happens directly in GitHub branches/PRs.
+The independent menu remains **商城方案对比**. Saved products now have an authenticated draft preview in zh/de/en, and the native editor supports custom cover upload/replace/detach through the existing Assets/R2 adapter with a 5 MiB limit, version checks and unchanged publication state. “Private preview” means an unpublished product is visible only to an authenticated administrator. Current workflow: make day-to-day source changes in the existing local checkout, then compare and synchronize to GitHub for review, CI and release.
 
 Live read-only checks confirm all three public preview catalogs connect, anonymous internal catalog/image requests are rejected (401), protected pages redirect to login (307), an unknown public image is unavailable (404), and the deployed native editor JavaScript is reachable. The public catalog had 0 published products at this observation; that is not a permanent constraint or proof that no private drafts exist.
 
@@ -257,7 +267,7 @@ Neon PostgreSQL
    +----> Cloudflare R2
 ```
 
-- Software program — GitHub (single source of truth, release identity is a commit SHA)
+- Day-to-day software changes — existing local checkout (primary); GitHub is the synchronized secondary copy for history, review, CI and release. Production release identity remains a reviewed commit SHA.
 - Runtime environment — Google Cloud Run
 - Business database — Neon managed PostgreSQL
 - Business files — Cloudflare R2

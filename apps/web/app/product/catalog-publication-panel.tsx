@@ -27,19 +27,14 @@ const statuses:Record<Publication['status'],string>={
 
 export function CatalogPublicationPanel({models,onChange}:{models:readonly Model[];onChange?:()=>void|Promise<void>}){
   const [rows,setRows]=useState<Publication[]>([]);
-  const [allowed,setAllowed]=useState<string[]>([]);
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState('');
   const [error,setError]=useState('');
   const [message,setMessage]=useState('');
   async function refresh(){setRows(await publicationApi<Publication[]>('publications'));}
-  useEffect(()=>{let live=true;void Promise.all([
-    publicationApi<Publication[]>('publications'),
-    publicationApi<{modelCode:string;imagePath:string}[]>('catalog-publish-assets'),
-  ]).then(([items,assets])=>{
+  useEffect(()=>{let live=true;void publicationApi<Publication[]>('publications').then(items=>{
     if(!live)return;
     setRows(items);
-    setAllowed(assets.map(asset=>asset.modelCode));
   }).catch(e=>{if(live)setError(e instanceof Error?e.message:'发布列表无法读取');})
     .finally(()=>{if(live)setLoading(false);});
     return ()=>{live=false};
@@ -57,14 +52,12 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
     }finally{setBusy('');}
   }
   const activeModels=models.filter(model=>model.status==='ACTIVE');
-  const bikeModels=models.filter(model=>model.product_type_code==='BIKE');
-  // Eligibility comes from the reviewed artwork allowlist, not a hardcoded model list.
-  const eligible=models.filter(model=>model.status==='ACTIVE'&&model.product_type_code==='BIKE'&&
-    allowed.includes(model.code));
+  const eligible=models.filter(model=>['DRAFT','ACTIVE'].includes(model.status)&&
+    ['BIKE','ACCESSORY','SERVICE_PART'].includes(model.product_type_code));
   return <section id="catalog-publications" className={styles.section} aria-label="商品发布和审核">
     <header>
       <div><span>OFFICIAL PRODUCT CATALOGUE</span><h2>官网商品发布与审核</h2></div>
-      <p>Product 内部 ACTIVE 与官网 PUBLISHED 分开管理。必须核对真实车图、三语标题及车型后，再提交并由具备发布权限的账号审核。发布不等于允许支付。</p>
+      <p>产品研发建档后，商品会进入商城待处理列表；商城创建独立发布草稿、补齐三语标题和素材。产品研发启用且审核通过后才可公开发布。</p>
     </header>
     {loading?<p role="status">正在读取真实发布记录…</p>:null}
     {error?<p className={styles.error} role="alert">{error}</p>:null}
@@ -72,8 +65,7 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
     <div className={styles.summary} aria-label="产品发布候选数据概览">
       <div><span>产品型号</span><strong>{models.length}</strong></div>
       <div><span>ACTIVE 型号</span><strong>{activeModels.length}</strong></div>
-      <div><span>整车型号</span><strong>{bikeModels.length}</strong></div>
-      <div><span>符合基础筛选</span><strong>{eligible.length}</strong></div>
+      <div><span>可进入商城</span><strong>{eligible.length}</strong></div>
     </div>
     <div className={styles.grid}>
       {eligible.map(model=>{
@@ -83,8 +75,8 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
           <p>Model ID：{model.id}</p>
           {!publication?
             <div>
-              <p>尚未建立公开发布草稿。此商品不会出现在已发布商品 API 中。</p>
-              <button type="button" disabled={!!busy||loading} onClick={()=>void operate(model.id,()=>publicationApi('publications/'+encodeURIComponent(model.id)+'/start','POST'))}>建立发布草稿</button>
+              <p>产品研发主档已存在；创建商城草稿后，再补齐展示资料并发布。</p>
+              <button type="button" disabled={!!busy||loading} onClick={()=>void operate(model.id,()=>publicationApi('publications/'+encodeURIComponent(model.id)+'/start','POST'))}>新建商城商品</button>
             </div>:
             <PublicationEditor key={publication.model_id+':'+publication.version} item={publication}
               disabled={!!busy} save={(body)=>operate(model.id,()=>publicationApi('publications/'+encodeURIComponent(model.id)+'/draft','PATCH',body))}
@@ -95,11 +87,11 @@ export function CatalogPublicationPanel({models,onChange}:{models:readonly Model
     </div>
     {!loading&&!eligible.length?<div className={styles.emptyState}>
       <div><strong>暂无符合条件的发布候选</strong>
-        <p>当前真实产品目录有 {models.length} 个型号，其中 {activeModels.length} 个 ACTIVE、{bikeModels.length} 个整车；已核对素材的商品型号 {allowed.length} 个{allowed.length?'（'+allowed.join('、')+'）':''}。只有状态为 ACTIVE、类型为整车、且已录入官网素材白名单的型号才会进入发布审核。这里不会自动生成虚构商品。</p>
+        <p>当前产品目录有 {models.length} 个型号，其中 {activeModels.length} 个已启用；新建的研发商品会出现在这里。草稿可提前准备，正式审核和发布要求研发状态为已启用且官方素材已核对。</p>
       </div>
-      <a href="/admin/product?type=BIKE#vehicle-models" className={styles.emptyAction}>检查产品型号与类型 →</a>
+      <a href="/product?type=BIKE#vehicle-models" className={styles.emptyAction}>检查产品型号与类型 →</a>
     </div>:null}
-    <p className={styles.note}>首批只支持已有真实详情页与已登记车图、并已录入素材白名单的型号。其他整车、配件、图片和适配规则需要独立验证，不会因为类型是 ACTIVE 就自动上架。</p>
+    <p className={styles.note}>草稿创建不会自动公开商品；只有素材、三语标题和审核流程全部完成后才会进入公开目录。</p>
   </section>;
 }
 

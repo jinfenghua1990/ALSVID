@@ -24,7 +24,7 @@ function mapActivity(row:ActivityRow):ServiceActivity {
  };
 }
 const selectActivity='SELECT id,case_id,client_request_id,kind,note,labor_minutes,assessment,actor_user_id,occurred_at FROM service.case_activities';
-const selectCases = 'SELECT c.*,v.frame_number,s.sku FROM service.cases c JOIN vehicle.vehicles v ON v.id=c.vehicle_id JOIN product.skus s ON s.id=v.sku_id';
+const selectCases = 'SELECT c.*,v.frame_number,s.sku,s.product_id::text AS product_id,s.sku_number::text AS sku_number FROM service.cases c JOIN vehicle.vehicles v ON v.id=c.vehicle_id JOIN product.skus s ON s.id=v.sku_id';
 function mapCase(row:CaseRow):ServiceCase {
  return {
   id:row.id,caseNumber:row.case_number,vehicleId:row.vehicle_id,

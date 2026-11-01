@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { backendFetch } from '../../../api/_lib/backend';
 import styles from './page.module.css';
 
-export const metadata: Metadata = { title: 'FC1 颜色偏好 · ALSVID Admin' };
+export const metadata: Metadata = { title: 'A1 Ultra 颜色偏好 · ALSVID Admin' };
 
 type Summary = {
   productCode: string;
@@ -36,12 +36,12 @@ export default async function ColourInterestReport() {
   const format = new Intl.NumberFormat('zh-CN');
   return (
     <main className={styles.page}>
-      <nav className={styles.crumb}><a href="/admin/analytics">← 返回数据总览</a><a href="/admin/product">产品中心</a></nav>
-      <div className={styles.head}><span>ALSVID / 产品需求信号</span><h1>FC1 颜色偏好</h1><p>查看消费者在官网选配页选择的颜色与车型。缺货颜色同样计入偏好分析。</p></div>
+      <nav className={styles.crumb}><a href="/admin/analytics">← 返回数据总览</a><a href="/product">产品中心</a></nav>
+      <div className={styles.head}><span>ALSVID / 产品需求信号</span><h1>A1 Ultra 颜色偏好</h1><p>查看消费者在官网选配页选择的颜色与车型。缺货颜色同样计入偏好分析。</p></div>
       {error ? <div role="alert" className={styles.empty}>{error}</div> : <>
         <div className={styles.totals}>
           <div><small>偏好会话数</small><strong>{format.format(total)}</strong></div>
-          <div><small>商品型号</small><strong>FC1</strong></div>
+          <div><small>商品型号</small><strong>A1 Ultra</strong></div>
           <div><small>最近一次选择</small><strong className={styles.date}>{report?.lastSelection ? new Date(report.lastSelection).toLocaleString('zh-CN',{timeZone:'Europe/Berlin'}) + '（柏林）' : '暂无记录'}</strong></div>
         </div>
         <section className={styles.panel}>
@@ -62,12 +62,12 @@ export default async function ColourInterestReport() {
         <section className={styles.panel}>
           <h2>版本 × 颜色交叉统计</h2>
           <table><thead><tr><th>车型</th><th>颜色</th><th>偏好会话</th></tr></thead><tbody>
-            {report?.variants.length ? report.variants.map(x=><tr key={x.model+'-'+x.colour}><td>FC1 {x.model==='pro'?'Pro':'Standard'}</td><td>{palette[x.colour]?.name??x.colour}</td><td>{format.format(x.count)}</td></tr>)
+            {report?.variants.length ? report.variants.map(x=><tr key={x.model+'-'+x.colour}><td>A1 Ultra {x.model==='pro'?'Pro':'Standard'}</td><td>{palette[x.colour]?.name??x.colour}</td><td>{format.format(x.count)}</td></tr>)
             : <tr><td colSpan={3}>暂无记录</td></tr>}
           </tbody></table>
         </section>
       </>}
-      <p className={styles.foot}>仅记录浏览会话的 FC1 版本、颜色和页面语言；未采集姓名、邮箱或支付资料。数据只用于产品需求判断，不代表购买承诺。</p>
+      <p className={styles.foot}>仅记录浏览会话的 A1 Ultra 版本、颜色和页面语言；未采集姓名、邮箱或支付资料。数据只用于产品需求判断，不代表购买承诺。</p>
     </main>
   );
 }

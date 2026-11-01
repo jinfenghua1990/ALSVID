@@ -40,5 +40,8 @@ test('real PostgreSQL guards future concurrent-prone duplicate SKU dimensions wi
   assert.equal(moved.color_code,'BLACK');
   const preserved=await db.query<{sku:string}>('SELECT sku FROM product.skus WHERE id=$1',[first.id]);
   assert.equal(preserved.rows[0]!.sku,first.sku);
+  await db.query("UPDATE product.skus SET status='RETIRED' WHERE variant_id=$1",[variant.id]);
+  await db.query("UPDATE product.variants SET status='RETIRED' WHERE id=$1",[variant.id]);
+  await db.query("UPDATE product.models SET status='RETIRED',version=version+1,updated_at=now() WHERE id=$1",[model.id]);
  }finally{await db.close();}
 });

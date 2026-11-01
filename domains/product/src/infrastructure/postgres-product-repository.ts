@@ -13,9 +13,9 @@ export class PostgresProductRepository implements ProductRepository {
   async catalog(): Promise<ProductCatalog> {
     const [platforms, models, variants, skus, productTypes,modelFieldDefs] = await Promise.all([
       this.database.query<any>('SELECT id, code, name, description, status, version, created_at, updated_at FROM product.platforms ORDER BY code'),
-      this.database.query<any>('SELECT id, platform_id, product_type_code, code, name, description, custom_fields, status, version, created_at, updated_at FROM product.models ORDER BY code'),
+      this.database.query<any>('SELECT id, product_id, platform_id, product_type_code, code, name, description, custom_fields, status, version, created_at, updated_at FROM product.models ORDER BY code'),
       this.database.query<any>('SELECT id, model_id, code, name, description, attributes, status, version, created_at, updated_at FROM product.variants ORDER BY code'),
-      this.database.query<any>('SELECT id, variant_id, sku, name, market_code, color_code, size_code, attributes, status, version, created_at, updated_at FROM product.skus ORDER BY sku'),
+      this.database.query<any>('SELECT id, variant_id, product_id, sku_number, sku_sequence, sku, name, market_code, color_code, size_code, attributes, status, version, created_at, updated_at FROM product.skus ORDER BY sku'),
       this.database.query<any>('SELECT code,name,description,status FROM product.product_types ORDER BY code'),
       this.modelFieldDefinitions(),
     ]);
@@ -161,7 +161,7 @@ export class PostgresProductRepository implements ProductRepository {
 
 
   private readonly publicationProjection = `
-    SELECT p.model_id,m.code AS model_code,m.product_type_code,m.status AS model_status,
+    SELECT p.model_id,m.product_id,m.code AS model_code,m.product_type_code,m.status AS model_status,
       p.status,p.title_zh,p.title_de,p.title_en,p.image_path,p.evidence_note,
       p.version,p.submitted_at,p.published_at,p.withdrawn_at
     FROM product.catalog_publications p
@@ -188,7 +188,7 @@ export class PostgresProductRepository implements ProductRepository {
       JOIN product.models m ON m.id=p.model_id
       WHERE p.published_at IS NOT NULL
         AND (p.status<>'PUBLISHED' OR m.status<>'ACTIVE')
-        AND m.code IN ('FC1','FC2')`);
+        AND m.code IN ('FC1','FC2','A1-ULTRA','L1-PRO')`);
     return result.rows.map(row=>row.code);
   }
 
@@ -208,10 +208,8 @@ export class PostgresProductRepository implements ProductRepository {
     const result=await this.database.query(`
       INSERT INTO product.catalog_publications(model_id,created_by,updated_by)
       SELECT m.id,$2,$2 FROM product.models m
-      WHERE m.id=$1 AND m.status='ACTIVE'
+      WHERE m.id=$1 AND m.status IN ('DRAFT','ACTIVE')
         AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
-        AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
-          WHERE a.model_code=m.code AND a.enabled)
       ON CONFLICT (model_id) DO NOTHING RETURNING model_id`,
       [modelId,actorUserId]);
     if(!result.rows.length)return null;
@@ -226,10 +224,8 @@ export class PostgresProductRepository implements ProductRepository {
         submitted_at=NULL,withdrawn_at=NULL
       WHERE p.model_id=$1 AND p.version=$2 AND p.status IN ('DRAFT','WITHDRAWN')
         AND EXISTS(SELECT 1 FROM product.models m WHERE m.id=p.model_id
-        AND m.status='ACTIVE'
-        AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART')
-        AND EXISTS(SELECT 1 FROM product.catalog_publish_assets a
-          WHERE a.model_code=m.code AND a.enabled AND a.image_path=$6))
+        AND m.status IN ('DRAFT','ACTIVE')
+        AND m.product_type_code IN ('BIKE','ACCESSORY','SERVICE_PART'))
       RETURNING model_id`,
       [modelId,expectedVersion,body.titleZh,body.titleDe,body.titleEn,imagePath,body.evidenceNote,actorUserId]);
     if(!result.rows.length)return null;
@@ -266,9 +262,24 @@ export class PostgresProductRepository implements ProductRepository {
          WHERE p.id=$1 AND p.status='ACTIVE' FOR UPDATE OF p RETURNING *`
       : `INSERT INTO product.models(platform_id,product_type_code,code,name,description,custom_fields,created_by,updated_by)
          VALUES ($1,$2,$3,$4,$5,jsonb_set($7::jsonb,'{__technical_specs}',$8::jsonb,true),$6,$6) RETURNING *`;
-    const result = await this.database.query<any>(sql,
-      [input.platformId,input.productTypeCode,input.code,input.name,input.description,input.actorUserId,JSON.stringify(input.customFields ?? {}),JSON.stringify(input.technicalSpecs ?? {})]);
-    return result.rows[0] ?? null;
+    return this.database.transaction(async (executor) => {
+      const result = await executor.query<any>(sql,
+        [input.platformId,input.productTypeCode,input.code,input.name,input.description,input.actorUserId,JSON.stringify(input.customFields ?? {}),JSON.stringify(input.technicalSpecs ?? {})]);
+      const model = result.rows[0];
+      if (!model) return null;
+      const variant = await executor.query<any>(
+        `INSERT INTO product.variants(model_id,code,name,status,created_by,updated_by)
+         VALUES($1,'DEFAULT','Default',$2,$3,$3) RETURNING id`,
+        [model.id,model.status,input.actorUserId],
+      );
+      const sku = await executor.query<any>(
+        `INSERT INTO product.skus(variant_id,sku,name,status,created_by,updated_by)
+         VALUES($1,'ALS-DEF-'||$2::text,$3||' - Default',$4,$5,$5)
+         RETURNING id,product_id,sku_number,sku_sequence`,
+        [variant.rows[0]!.id,model.product_id,model.name,model.status,input.actorUserId],
+      );
+      return {...model,default_variant_id:variant.rows[0]!.id,default_sku:sku.rows[0]};
+    });
   }
 
   async createVariant(input: CreateVariantRecord): Promise<any> {

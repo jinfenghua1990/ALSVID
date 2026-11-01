@@ -18,12 +18,12 @@ export interface CreateStorefrontOrderInput {
 }
 export interface StorefrontActor {userId:string;permissions:readonly string[]}
 export interface StorefrontPrice {
- id:string;skuId:string;sku:string;skuName:string;marketCountry:string;currency:string;
+ id:string;skuId:string;productId:string;skuNumber:string;sku:string;skuName:string;marketCountry:string;currency:string;
  unitPriceGross:string;taxRateBasisPoints:number;status:'DRAFT'|'ACTIVE'|'RETIRED';
  version:number;effectiveFrom:string|null;retiredAt:string|null;createdAt:string;
 }
 export interface StorefrontOrderLine {
- id:string;skuId:string;skuCode:string;skuName:string;colorCode:string|null;quantity:number;
+ id:string;skuId:string;productId:string;skuNumber:string;skuCode:string;skuName:string;colorCode:string|null;quantity:number;
  unitPriceGross:string;taxRateBasisPoints:number;lineNetAmount:string;lineTaxAmount:string;lineGrossAmount:string;
 }
 export interface StorefrontOrder {
@@ -41,10 +41,10 @@ export interface StorefrontOrderDetail extends StorefrontOrder {events:Storefron
 type StorefrontOrderEventRow={id:string;event_type:StorefrontOrderEvent['eventType'];
  from_status:string|null;to_status:string;from_payment_status:string|null;to_payment_status:string;
  actor_user_id:string|null;metadata:Record<string,unknown>;occurred_at:Date};
-type PriceRow={id:string;sku_id:string;sku:string;sku_name:string;market_country:string;currency:string;
+type PriceRow={id:string;sku_id:string;product_id:string;sku_number:string;sku:string;sku_name:string;market_country:string;currency:string;
  unit_price_gross:string;tax_rate_basis_points:number;status:'DRAFT'|'ACTIVE'|'RETIRED';
  version:number;effective_from:Date|null;retired_at:Date|null;created_at:Date};
-type SkuPriceRow={price_id:string;sku_id:string;sku:string;sku_name:string;color_code:string|null;
+type SkuPriceRow={price_id:string;sku_id:string;product_id:string;sku_number:string;sku:string;sku_name:string;color_code:string|null;
  market_country:string;currency:string;unit_price_gross:string;tax_rate_basis_points:number};
 type OrderRow={id:string;order_number:string;source:'ALSVID_WWW';customer_email:string;market_country:string;
  currency:string;status:string;payment_status:string;tax_configuration_status:string;
@@ -82,7 +82,8 @@ function calculateLine(unitPriceGross:string,quantity:number,taxRateBasisPoints:
  return {lineGrossAmount:centsToString(gross),lineTaxAmount:centsToString(tax),lineNetAmount:centsToString(gross-tax)};
 }
 function mapPrice(row:PriceRow):StorefrontPrice{
- return {id:row.id,skuId:row.sku_id,sku:row.sku,skuName:row.sku_name,marketCountry:row.market_country,
+ return {id:row.id,skuId:row.sku_id,productId:row.product_id,skuNumber:row.sku_number,
+  sku:row.sku,skuName:row.sku_name,marketCountry:row.market_country,
   currency:row.currency,unitPriceGross:row.unit_price_gross,taxRateBasisPoints:row.tax_rate_basis_points,
   status:row.status,version:row.version,effectiveFrom:row.effective_from?.toISOString()??null,
   retiredAt:row.retired_at?.toISOString()??null,createdAt:row.created_at.toISOString()};
@@ -164,10 +165,11 @@ export class StorefrontOrderService{
    this.db.query<any>(`SELECT s.id,s.sku,s.name,s.color_code,s.market_code,m.code AS model_code,v.code AS variant_code
     FROM product.skus s JOIN product.variants v ON v.id=s.variant_id
     JOIN product.models m ON m.id=v.model_id WHERE s.status='ACTIVE' ORDER BY m.code,v.code,s.sku LIMIT 500`),
-   this.db.query<PriceRow>(`SELECT p.*,s.sku,s.name AS sku_name FROM commerce.storefront_prices p
+   this.db.query<PriceRow>(`SELECT p.*,s.sku,s.name AS sku_name,s.product_id::text AS product_id,s.sku_number::text AS sku_number FROM commerce.storefront_prices p
     JOIN product.skus s ON s.id=p.sku_id ORDER BY p.created_at DESC,p.id DESC LIMIT 500`),
    this.db.query<OrderRow>(`SELECT o.*,COALESCE(json_agg(json_build_object(
-    'id',l.id,'skuId',l.sku_id,'skuCode',l.sku_code_snapshot,'skuName',l.sku_name_snapshot,
+    'id',l.id,'skuId',l.sku_id,'productId',l.product_id_snapshot::text,'skuNumber',l.sku_number_snapshot::text,
+    'skuCode',l.sku_code_snapshot,'skuName',l.sku_name_snapshot,
     'colorCode',l.color_code_snapshot,'quantity',l.quantity,'unitPriceGross',l.unit_price_gross::text,
     'taxRateBasisPoints',l.tax_rate_basis_points,'lineNetAmount',l.line_net_amount::text,
     'lineTaxAmount',l.line_tax_amount::text,'lineGrossAmount',l.line_gross_amount::text)
@@ -203,14 +205,14 @@ export class StorefrontOrderService{
    throw new CommerceValidationError('Tax rate basis points must be between 0 and 10000');
   try{
    return await this.db.transaction(async e=>{
-    const sku=await e.query<{id:string;status:string}>(`SELECT id,status FROM product.skus WHERE id=$1 FOR SHARE`,[skuId]);
+    const sku=await e.query<{id:string;status:string;product_id:string;sku_number:string}>(`SELECT id,status,product_id::text,sku_number::text FROM product.skus WHERE id=$1 FOR SHARE`,[skuId]);
     if(!sku.rows[0])throw new CommerceNotFoundError('SKU not found');
     if(sku.rows[0].status!=='ACTIVE')throw new CommerceValidationError('Only active SKUs may be priced');
     const saved=await e.query<PriceRow>(`INSERT INTO commerce.storefront_prices
       (sku_id,market_country,currency,unit_price_gross,tax_rate_basis_points,status,created_by,updated_by)
       VALUES($1,$2,'EUR',$3,$4,'DRAFT',$5,$5)
-      RETURNING *,''::text AS sku,''::text AS sku_name`,
-      [skuId,marketCountry,unitPriceGross,taxRateBasisPoints,actor.userId]);
+      RETURNING *,''::text AS sku,''::text AS sku_name,$6::text AS product_id,$7::text AS sku_number`,
+      [skuId,marketCountry,unitPriceGross,taxRateBasisPoints,actor.userId,sku.rows[0]!.product_id,sku.rows[0]!.sku_number]);
     const row=saved.rows[0];if(!row)throw new Error('Price draft was not persisted');
     await this.audit.record({actorUserId:actor.userId,action:'commerce.storefront_price_draft_created',
      targetType:'commerce.storefront_price',targetId:row.id,metadata:{skuId,marketCountry,unitPriceGross,currency:'EUR',taxRateBasisPoints}},e);
@@ -223,7 +225,7 @@ export class StorefrontOrderService{
   requirePermission(actor,'commerce.price.manage');requireId(id,'priceId');
   if(!Number.isInteger(expectedVersion)||expectedVersion<1)throw new CommerceValidationError('expectedVersion is required');
   try{return await this.db.transaction(async e=>{
-   const current=await e.query<PriceRow>(`SELECT p.*,s.sku,s.name AS sku_name FROM commerce.storefront_prices p
+   const current=await e.query<PriceRow>(`SELECT p.*,s.sku,s.name AS sku_name,s.product_id::text AS product_id,s.sku_number::text AS sku_number FROM commerce.storefront_prices p
     JOIN product.skus s ON s.id=p.sku_id WHERE p.id=$1 FOR UPDATE OF p`,[id]);
    const row=current.rows[0];if(!row)throw new CommerceNotFoundError('Price revision not found');
    if(row.version!==expectedVersion||row.status!=='DRAFT')throw new CommerceConflictError('Price revision changed or is no longer a draft');
@@ -234,14 +236,14 @@ export class StorefrontOrderService{
    await this.audit.record({actorUserId:actor.userId,action:'commerce.storefront_price_activated',
     targetType:'commerce.storefront_price',targetId:id,metadata:{skuId:row.sku_id,marketCountry:row.market_country,
      unitPriceGross:row.unit_price_gross,currency:row.currency,taxRateBasisPoints:row.tax_rate_basis_points}},e);
-   return mapPrice({...updated.rows[0],sku:row.sku,sku_name:row.sku_name});
+   return mapPrice({...updated.rows[0],sku:row.sku,sku_name:row.sku_name,product_id:row.product_id,sku_number:row.sku_number});
   });}catch(error){if(postgresErrorCode(error)==='23505')throw new CommerceConflictError('An active price already exists for this SKU and market; retire it first');throw error;}
  }
  async retirePrice(actor:StorefrontActor,id:string,expectedVersion:number):Promise<StorefrontPrice>{
   requirePermission(actor,'commerce.price.manage');requireId(id,'priceId');
   if(!Number.isInteger(expectedVersion)||expectedVersion<1)throw new CommerceValidationError('expectedVersion is required');
   return this.db.transaction(async e=>{
-   const current=await e.query<PriceRow>(`SELECT p.*,s.sku,s.name AS sku_name FROM commerce.storefront_prices p
+   const current=await e.query<PriceRow>(`SELECT p.*,s.sku,s.name AS sku_name,s.product_id::text AS product_id,s.sku_number::text AS sku_number FROM commerce.storefront_prices p
     JOIN product.skus s ON s.id=p.sku_id WHERE p.id=$1 FOR UPDATE OF p`,[id]);
    const row=current.rows[0];if(!row)throw new CommerceNotFoundError('Price revision not found');
    if(row.version!==expectedVersion||row.status!=='ACTIVE')throw new CommerceConflictError('Price revision changed or is no longer active');
@@ -251,7 +253,7 @@ export class StorefrontOrderService{
    if(!updated.rows[0])throw new CommerceConflictError('Price revision changed; reload and retry');
    await this.audit.record({actorUserId:actor.userId,action:'commerce.storefront_price_retired',
     targetType:'commerce.storefront_price',targetId:id,metadata:{skuId:row.sku_id,marketCountry:row.market_country}},e);
-   return mapPrice({...updated.rows[0],sku:row.sku,sku_name:row.sku_name});
+   return mapPrice({...updated.rows[0],sku:row.sku,sku_name:row.sku_name,product_id:row.product_id,sku_number:row.sku_number});
   });
  }
  async createDraftOrder(actor:StorefrontActor,input:CreateStorefrontOrderInput):Promise<StorefrontOrder>{
@@ -274,7 +276,7 @@ export class StorefrontOrderService{
     if(existing.rows[0].request_sha256!==requestSha)throw new CommerceConflictError('clientRequestId already belongs to a different order payload');
     return this.loadOrder(e,existing.rows[0].id);
    }
-   const prices=await e.query<SkuPriceRow>(`SELECT p.id AS price_id,p.sku_id,s.sku,s.name AS sku_name,s.color_code,
+   const prices=await e.query<SkuPriceRow>(`SELECT p.id AS price_id,p.sku_id,s.product_id::text AS product_id,s.sku_number::text AS sku_number,s.sku,s.name AS sku_name,s.color_code,
      p.market_country,p.currency,p.unit_price_gross::text,p.tax_rate_basis_points
     FROM commerce.storefront_prices p JOIN product.skus s ON s.id=p.sku_id
     WHERE p.sku_id=ANY($1::uuid[]) AND p.market_country=$2 AND p.currency='EUR'
@@ -373,7 +375,8 @@ export class StorefrontOrderService{
  }
  private async loadOrder(e:QueryExecutor,id:string):Promise<StorefrontOrder>{
   const result=await e.query<OrderRow>(`SELECT o.*,COALESCE(json_agg(json_build_object(
-   'id',l.id,'skuId',l.sku_id,'skuCode',l.sku_code_snapshot,'skuName',l.sku_name_snapshot,
+   'id',l.id,'skuId',l.sku_id,'productId',l.product_id_snapshot::text,'skuNumber',l.sku_number_snapshot::text,
+   'skuCode',l.sku_code_snapshot,'skuName',l.sku_name_snapshot,
    'colorCode',l.color_code_snapshot,'quantity',l.quantity,'unitPriceGross',l.unit_price_gross::text,
    'taxRateBasisPoints',l.tax_rate_basis_points,'lineNetAmount',l.line_net_amount::text,
    'lineTaxAmount',l.line_tax_amount::text,'lineGrossAmount',l.line_gross_amount::text)

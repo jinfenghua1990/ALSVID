@@ -5,7 +5,7 @@
 .header { border-color:#ffffff1c; background:#10191ff2; }
 .header::after { position:absolute; left:0; bottom:-1px; width:100%; height:2px; background:#9cb8cc; transform:scaleX(var(--fc1-scroll-progress)); transform-origin:left; content:""; pointer-events:none; }
 .hero { min-height:0; padding:64px 24px 24px; background:radial-gradient(ellipse at 50% 95%,#354b59 0%,#111c24 48%,#080e13 85%); }
-.hero::before { position:absolute; left:50%; bottom:8%; transform:translateX(-50%); content:"FC1"; font-size:clamp(180px,34vw,540px); font-weight:750; line-height:1; letter-spacing:-.08em; color:#ffffff05; pointer-events:none; }
+.hero::before { position:absolute; left:50%; bottom:8%; transform:translateX(-50%); content:"A1 Ultra"; font-size:clamp(180px,34vw,540px); font-weight:750; line-height:1; letter-spacing:-.08em; color:#ffffff05; pointer-events:none; }
 .heroCopy { max-width:900px; }
 .hero h1 { font-size:clamp(54px,6vw,88px); font-weight:600; letter-spacing:-.055em; }
 .heroTagline { font-size:clamp(23px,2.4vw,34px); }

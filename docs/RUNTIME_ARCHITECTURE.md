@@ -12,7 +12,8 @@ The authoritative decision record is ADR 0003.
 
 | Artifact | Authority | Holds |
 | --- | --- | --- |
-| Software program | GitHub | source, contracts, migrations, infrastructure definitions, CI |
+| Day-to-day software changes | Existing local checkout | Primary working copy for source, contracts, migrations and infrastructure definitions |
+| Synchronized history / review / release | GitHub | Secondary synchronized copy, CI and release entry point |
 | Runtime environment | Google Cloud Run | the running Web / API / Worker processes |
 | Business database | Neon PostgreSQL | authoritative structured business facts |
 | Business files | Cloudflare R2 | binary objects only (images, documents, attachments) |
@@ -20,12 +21,13 @@ The authoritative decision record is ADR 0003.
 | Logs | Google Cloud Logging | runtime and application logs |
 | Backup | GitHub + Neon/database backup + R2 + Q4 | code history, database dumps, object copies, offline copy |
 
-## Software program — GitHub
+## Software program — local checkout with GitHub synchronization
 
-GitHub is the single source of truth for the software program. A running environment is always
-reproducible from a Git commit SHA.
+The existing local checkout is the primary place for day-to-day code changes. GitHub is the
+secondary synchronized copy for history, backup, review, CI and release. Production remains
+reproducible from the reviewed Git commit SHA used by the existing release flow.
 
-- No code, migration, contract or infrastructure definition lives only on a machine.
+- Compare local and remote changes before syncing; preserve both sides and do not force-push shared branches.
 - No production fix is applied by editing a running container.
 - Release identity is a commit SHA, not a folder name or a timestamp.
 

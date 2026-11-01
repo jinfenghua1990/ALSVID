@@ -74,7 +74,7 @@ export function Fc1TestRide({
       >
         <div className={styles.dialogInner}>
           <div className={styles.dialogHead}>
-            <span className={styles.kicker}>ALSVID / FC1</span>
+            <span className={styles.kicker}>ALSVID / A1 Ultra</span>
             <button type="button" className={styles.close} onClick={() => dialogRef.current?.close()} aria-label={t("fc1.test_ride.close")}>×</button>
           </div>
           <h2 id="fc1-test-ride-title">{t("fc1.test_ride.title")}</h2>

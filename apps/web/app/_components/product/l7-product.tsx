@@ -38,6 +38,9 @@ export function L7ProductPage({ locale, myUrl }: { locale: Locale; myUrl: string
     [t("l7.spec.weight"), t("l7.spec.weight.value", { weight: number(data.referenceWeightKg) })],
     [t("l7.spec.unfolded"), dimensions(data.unfoldedMm)],
     [t("l7.spec.folded"), dimensions(data.foldedMm)],
+    [t("l7.spec.range"), t("l7.spec.range.value", { range: data.statedRangeKm })],
+    [t("l7.spec.charging"), t("l7.spec.charging.value", { hours: number(data.chargingHours) })],
+    [t("l7.spec.load"), t("l7.spec.load.value", { load: number(data.payloadKg) })],
   ];
   return <main className={`${styles.page} ${theme.page}`} lang={locale} data-l7-product="1">
     <PublicSiteHeader locale={locale} myUrl={myUrl} active="l7" />
@@ -98,7 +101,7 @@ export function L7ProductPage({ locale, myUrl }: { locale: Locale; myUrl: string
     <section className={styles.availability} id="availability">
       <div><p className={styles.eyebrow}>{t("l7.available.kicker")}</p><h2>{t("l7.available.title")}</h2><p>{t("l7.available.body")}</p>
         <a className={styles.button} href={`/${locale}/bikes`}>{t("l7.products")}</a></div>
-      <span aria-hidden="true">L7</span>
+      <span aria-hidden="true">A1</span>
     </section>
     <footer className={styles.footer}><a href={`/${locale}/`}>{t("brand.name")}</a><p>{t("l7.footer")}</p><a href={`/${locale}/`}>{t("l7.home")}</a></footer>
   </main>;

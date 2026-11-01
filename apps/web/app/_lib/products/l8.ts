@@ -6,5 +6,7 @@ export const l8Reference = {
   maxTorqueNm: 40,
   batteryVoltageV: 36,
   batteryCapacityAh: 10,
-  sourceUrl: "https://naicisports.com/de/produkt/pilot-x8-smartes-faltbares-e-bike-aus-carbon/",
+  statedRangeKm: 80,
+  payloadKg: 100,
+  sourceUrl: "https://naicisports.com/product/pilot-x8-carbon-fiber-folding-e-bike/",
 } as const;

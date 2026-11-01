@@ -19,7 +19,6 @@ export type DiscoveryBike = {
   reviewed: boolean;
 };
 
-type ReviewFilter = "all" | "reviewed" | "preview";
 type Colour = "sample" | "black" | "blue" | "silver";
 const FC1_COLOURS: { id: Colour; hex: string }[] = [
   { id: "sample", hex: "#2d5850" },
@@ -32,12 +31,10 @@ const FC1_COLOURS: { id: Colour; hex: string }[] = [
  * Consumer-facing discovery only. Never derive purchase price, stock, performance
  * or sellable SKUs from the marketing preview models.
  */
-export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; models: DiscoveryBike[]; sortMode: "featured" | "name" }) {
+export function BikesDiscovery({ locale, models }: { locale: Locale; models: DiscoveryBike[] }) {
   const t = translator(locale);
   const [trayHost, setTrayHost] = useState<HTMLElement | null>(null);
   useEffect(() => { setTrayHost(document.body); }, []);
-  const [query, setQuery] = useState("");
-  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
   const [compare, setCompare] = useState<string[]>([]);
   const [colour, setColour] = useState<Colour>("sample");
   const [compareNotice, setCompareNotice] = useState("");
@@ -75,11 +72,6 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
     setQuickStatus(success ? "added" : "failed");
   };
 
-  const matching = models.filter(model => {
-    const search = query.trim().toLocaleLowerCase(locale);
-    return (!search || (model.code + " " + model.name).toLocaleLowerCase(locale).includes(search))
-      && (reviewFilter === "all" || (reviewFilter === "reviewed" ? model.reviewed : !model.reviewed));
-  }).sort((a, b) => sortMode === "name" ? a.name.localeCompare(b.name, locale) : 0);
   const selected = models.filter(model => compare.includes(model.id));
   const toggleCompare = (id: string) => {
     if (compare.includes(id)) {
@@ -92,11 +84,6 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
       setCompareNotice("");
     }
   };
-  const filters: ReviewFilter[] = ["all", "reviewed", "preview"];
-  const filterLabel = (value: ReviewFilter) =>
-    value === "all" ? t("catalog.discovery.filter.all") :
-    value === "reviewed" ? t("catalog.discovery.filter.reviewed") :
-    t("catalog.discovery.filter.preview");
   const colourLabel = (value: Colour) =>
     value === "sample" ? t("catalog.discovery.colour.sample") :
     value === "black" ? t("catalog.discovery.colour.black") :
@@ -104,34 +91,11 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
     t("catalog.discovery.colour.silver");
 
   return <div className={styles.discovery} data-bikes-discovery data-comparing={selected.length > 0 || undefined}>
-    <div className={styles.discoveryTools}>
-      <div className={styles.discoverySearchWrap}>
-        <label className={styles.discoveryLabel} htmlFor="bikes-search">{t("catalog.discovery.search.label")}</label>
-        <input
-          id="bikes-search"
-          data-bikes-search
-          className={styles.discoverySearch}
-          type="search"
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          placeholder={t("catalog.discovery.search.placeholder")}
-          autoComplete="off"
-        />
-      </div>
-      <div className={styles.discoveryFilterWrap} role="group" aria-label={t("catalog.discovery.filter.label")}>
-        <span className={styles.discoveryLabel}>{t("catalog.discovery.filter.label")}</span>
-        <div className={styles.discoveryPills}>
-          {filters.map(value => <button key={value} type="button" aria-pressed={reviewFilter === value}
-            onClick={() => setReviewFilter(value)}>{filterLabel(value)}</button>)}
-        </div>
-      </div>
-    </div>
     <div className={styles.discoveryResultsRow}>
-      <p className={styles.discoveryResults} role="status">{t("catalog.discovery.results", { count: matching.length })}</p>
-      {(query || reviewFilter !== "all") && <button type="button" data-bikes-reset onClick={() => { setQuery(""); setReviewFilter("all"); }}>{t("catalog.discovery.reset")}</button>}
+      <p className={styles.discoveryResults} role="status">{t("catalog.discovery.results", { count: models.length })}</p>
     </div>
-    {matching.length ? <div className={styles.modelGrid} data-bikes-results>
-      {matching.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id}
+    {models.length ? <div className={styles.modelGrid} data-bikes-results>
+      {models.map(model => <article className={styles.modelCard} key={model.id} id={"model-" + model.id}
         data-product-model-id={model.modelId} data-catalog-reviewed={model.reviewed ? true : undefined}
         aria-labelledby={"model-" + model.id + "-title"}>
         <div className={styles.modelImagePanel}>
@@ -141,7 +105,7 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
         </div>
         <div className={styles.modelInfo}>
           <div>
-            <div className={styles.modelMeta}><span className={styles.status}>{model.status}</span><span className={styles.modelCode}>{model.code}</span></div>
+            <div className={styles.modelMeta}><span className={styles.status}>{model.status}</span><span className={styles.modelCode}>{model.name}</span></div>
             <h3 id={"model-" + model.id + "-title"}>{model.name}</h3>
             <p>{t(`platform.${model.platform}.title` as TranslationKey)}</p>
           </div>
@@ -189,12 +153,7 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
           </div>
         </div>
       </article>)}
-    </div> : <div className={styles.discoveryEmpty} role="status">
-      <p>{t("catalog.discovery.empty")}</p>
-      <button type="button" onClick={() => { setQuery(""); setReviewFilter("all"); }}>
-        {t("catalog.discovery.reset")}
-      </button>
-    </div>}
+    </div> : null}
 
     <section id="bikes-compare" tabIndex={-1} className={styles.discoveryCompare} data-bikes-compare aria-labelledby="bikes-compare-heading">
       <div className={styles.discoveryCompareTop}>
@@ -243,9 +202,9 @@ export function BikesDiscovery({ locale, models, sortMode }: { locale: Locale; m
       <div className={styles.compareTrayModels}>
         {selected.map(model => <div className={styles.compareTrayModel} key={model.id}>
           <img src={model.image} alt="" width={60} height={40} />
-          <strong>{model.code}</strong>
+          <strong>{model.name}</strong>
           <button type="button" data-bikes-compare-remove={model.code}
-            aria-label={t("catalog.discovery.compare.removeModel", { model: model.code })}
+            aria-label={t("catalog.discovery.compare.removeModel", { model: model.name })}
             onClick={() => toggleCompare(model.id)}>×</button>
         </div>)}
       </div>

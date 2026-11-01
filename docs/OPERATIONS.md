@@ -6,10 +6,10 @@ This document turns the architecture decisions into practical operating rules. I
 
 ## Source of truth
 
-GitHub is the software source of truth.
+The existing local checkout is the primary working source for day-to-day code changes. GitHub is the secondary synchronized copy for history, backup, collaboration review, CI and release.
 
-- `main` is the authoritative Production code line after review/merge.
-- Releases are identified by Git commit/version.
+- Compare local and remote changes before syncing; preserve both sides' changes and never force-push shared branches.
+- Production releases remain tied to a reviewed Git commit/version; a local change is not released until it is synchronized and passes the existing release flow.
 - Running containers must be reproducible from repository code.
 - Do not make permanent fixes by editing a running container or cloud console only.
 
@@ -17,7 +17,8 @@ GitHub is the software source of truth.
 
 | Responsibility | Current primary | Approved alternative / note |
 | --- | --- | --- |
-| Source code / history | GitHub | No second code authority |
+| Day-to-day code changes | Existing local checkout | Primary working copy; no extra worktree/project copy |
+| Synchronized history / review / release | GitHub | Secondary copy and existing CI/release entry point |
 | Production runtime | Google Cloud Run | Railway fallback 1; Apply.Build fallback 2 |
 | Relational database | Neon PostgreSQL | Supabase PostgreSQL migration alternative |
 | Binary/object storage | Cloudflare R2 | Keep S3-compatible abstraction |

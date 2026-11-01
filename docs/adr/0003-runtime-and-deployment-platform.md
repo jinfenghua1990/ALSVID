@@ -24,8 +24,9 @@ environment file, or a database kept on a workstation can each become permanent 
 
 ## Decision
 
-1. **GitHub is the single software source of truth.** Source, contracts, migrations, infrastructure
-   definitions and CI live in Git. A deployed environment is reproducible from a commit SHA.
+1. **The existing local checkout is the primary day-to-day working copy; GitHub is secondary for
+   synchronization, history, review, CI and release.** Compare both sides before syncing and preserve
+   their changes. A deployed environment remains reproducible from the reviewed release commit SHA.
 2. **Google Cloud Run is the selected runtime platform** for the Web, API and Worker containers.
 3. **Neon managed PostgreSQL is the selected production database provider.** PostgreSQL remains the
    application/database contract and authoritative store for structured business facts. Domain code

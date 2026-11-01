@@ -40,7 +40,7 @@ export const P0_READ_SOURCES: readonly P0ReadSource[] = [
 export const P0_AREAS: readonly P0Area[] = [
   {
     key: 'product', title: '产品中心', description: '唯一商品 ID → Variant → SKU → BOM',
-    href: '/admin/product', action: '进入产品与工程资料', owner: 'Product / Engineering',
+    href: '/product', action: '进入产品与工程资料', owner: 'Product / Engineering',
     sourceKeys: ['product'],
     existing: ['型号、Variant、SKU 与工程记录由 Product 管理', '官网发布和首页绑定在电商模块复用产品 ID'],
     gates: [

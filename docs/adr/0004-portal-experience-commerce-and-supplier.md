@@ -15,7 +15,7 @@
 ## 决策
 
 1. Admin 的设计/交互来源归 Ardot，外部 Official/Shop、My、Dealer、Supplier 的最终 UI 归 Figma；每页一个确认设计源。设计可以共享基础 tokens，按角色采用不同布局/密度；设计工具不产生第二套代码权威。
-2. GitHub 保持唯一软件与架构记录。当前四个核心产品加一个分阶段交付的 Supplier Portal；复用 modular monolith、Partners、统一 API 与数据边界，不按门户数量复制后端/数据库。
+2. ALSVID 只有一套软件与架构记录：日常修改以现有本地仓库为主，GitHub 保存同步版本并承担协作审查、CI 与发布；当前四个核心产品加一个分阶段交付的 Supplier Portal，复用 modular monolith、Partners、统一 API 与数据边界，不按门户数量复制后端/数据库。
 3. Official 与 Shop 为同一客户体验。Shopify 负责 B2C/B2B 的买方交易；Dealer 经营/交付/售后由 ALSVID 门户承接。实施前验证实际店铺、客户账户、Company/Location、价格/目录和 Checkout 能力；不自行重造交易系统。
 4. Supplier 默认指上游供货关系。其自助提交报价/提案、确认 PO、交期/进度、发货与文件；正式 PO 发布、批准、收货/QC 与付款沿各自权威流程。ALSVID Procurement 是该供应商协同 PO 的写入权威，不与 Shopify 后台采购单做双主。
 5. 同一 Partner 可有 Dealer 和 Supplier 两种关系；用户、组织成员、业务角色和外部系统标识各自建模。供应商又买 ALSVID 商品时才使用独立的 Shopify B2B 买家关系。

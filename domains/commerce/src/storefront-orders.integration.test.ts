@@ -18,8 +18,8 @@ test('first-party orders are immutable priced drafts; retries are idempotent; pr
    VALUES($1,$2,'Storefront Test Model','ACTIVE') RETURNING id`,[platform.rows[0]!.id,`M-${tag}`]);
   const variant=await db.query<{id:string}>(`INSERT INTO product.variants(model_id,code,name,status)
    VALUES($1,$2,'Storefront Test Variant','ACTIVE') RETURNING id`,[model.rows[0]!.id,`V-${tag}`]);
-  const sku=await db.query<{id:string}>(`INSERT INTO product.skus(variant_id,sku,name,status,color_code)
-   VALUES($1,$2,'Storefront Test SKU','ACTIVE','GRAPHITE') RETURNING id`,[variant.rows[0]!.id,`SKU-${tag}`]);
+  const sku=await db.query<{id:string;product_id:string;sku_number:string}>(`INSERT INTO product.skus(variant_id,sku,name,status,color_code)
+   VALUES($1,$2,'Storefront Test SKU','ACTIVE','GRAPHITE') RETURNING id,product_id::text,sku_number::text`,[variant.rows[0]!.id,`SKU-${tag}`]);
   const service=new StorefrontOrderService(db,audit);
   const price=await service.createPrice(actor,{skuId:sku.rows[0]!.id,marketCountry:'DE',unitPriceGross:'119.00',taxRateBasisPoints:1900});
   assert.equal(price.status,'DRAFT');
@@ -47,6 +47,12 @@ test('first-party orders are immutable priced drafts; retries are idempotent; pr
   assert.equal(order.totalTaxAmount,'19.00');
   assert.equal(order.lines.length,1);
   assert.equal(order.lines[0]!.skuCode,`SKU-${tag}`);
+  const identitySnapshot=await db.query<{product_id_snapshot:string;sku_number_snapshot:string}>(
+   'SELECT product_id_snapshot::text,sku_number_snapshot::text FROM commerce.storefront_order_lines WHERE id=$1',
+   [order.lines[0]!.id]);
+  assert.deepEqual(identitySnapshot.rows[0],{
+   product_id_snapshot:sku.rows[0]!.product_id,sku_number_snapshot:sku.rows[0]!.sku_number,
+  });
   assert.equal(order.checkoutEnabled,false);
   assert.equal(order.productionDemandAllowed,false);
   assert.ok(order.blockers.length>=3);
@@ -65,5 +71,8 @@ test('first-party orders are immutable priced drafts; retries are idempotent; pr
   assert.ok(summary.prices.some(x=>x.id===price.id));
   const readonlySummary=await service.summary({userId:actor.userId,permissions:['commerce.storefront.read']});
   assert.equal(readonlySummary.orders.find(x=>x.id===order.id)?.customerEmail,'已隐藏');
+  await db.query("UPDATE product.skus SET status='RETIRED' WHERE id=$1",[sku.rows[0]!.id]);
+  await db.query("UPDATE product.variants SET status='RETIRED' WHERE id=$1",[variant.rows[0]!.id]);
+  await db.query("UPDATE product.models SET status='RETIRED',version=version+1,updated_at=now() WHERE id=$1",[model.rows[0]!.id]);
  }finally{await db.close();}
 });

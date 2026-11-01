@@ -6,14 +6,14 @@ export type PublicationDraft = {
   titleZh: string; titleDe: string; titleEn: string; evidenceNote: string;
 };
 export type PublicationRow = {
-  model_id: string; model_code: string; product_type_code: string; model_status: string;
+  model_id: string; product_id: string; model_code: string; product_type_code: string; model_status: string;
   status: PublicationStatus; title_zh: string; title_de: string; title_en: string;
   image_path: string; evidence_note: string; version: number;
   submitted_at: string | null; published_at: string | null; withdrawn_at: string | null;
 };
 export type PublicCatalogProductType = 'BIKE' | 'ACCESSORY' | 'SERVICE_PART';
 export type PublicCatalogItem = {
-  modelId: string; code: string; type: PublicCatalogProductType; image: string;
+  modelId: string; productId: string; code: string; type: PublicCatalogProductType; image: string;
   title: {zh: string; de: string; en: string};
 };
 
@@ -26,6 +26,8 @@ export type PublicCatalogItem = {
  * the previously approved artwork instead of silently emptying the public catalogue.
  */
 export const approvedCatalogAssets: Readonly<Record<string,string>> = {
+  'A1-ULTRA': '/home/original/fc1-product.webp',
+  'L1-PRO': '/products/fc2/side-studio-1536.webp',
   FC1: '/home/original/fc1-product.webp',
   FC2: '/products/fc2/side-studio-1536.webp',
 };
@@ -93,6 +95,6 @@ export function toPublicCatalogItem(
   if(row.status!=='PUBLISHED'||row.model_status!=='ACTIVE'||!['BIKE','ACCESSORY','SERVICE_PART'].includes(row.product_type_code)||!assets[row.model_code])return null;
   const image=curatedCatalogImage(row.model_code,row.model_status,row.product_type_code,assets);
   if(row.image_path!==image || !row.title_zh || !row.title_de || !row.title_en)return null;
-  return {modelId:row.model_id,code:row.model_code,type:row.product_type_code as PublicCatalogProductType,image,
+  return {modelId:row.model_id,productId:row.product_id,code:row.model_code,type:row.product_type_code as PublicCatalogProductType,image,
     title:{zh:row.title_zh,de:row.title_de,en:row.title_en}};
 }

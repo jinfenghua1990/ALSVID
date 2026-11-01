@@ -3,7 +3,7 @@ export class PostgresProductionRepository implements ProductionRepository{
  constructor(private readonly db:DatabasePort){}
  transaction<T>(work:(executor:QueryExecutor)=>Promise<T>):Promise<T>{return this.db.transaction(work)}
  async summary():Promise<ProductionSummary>{const[orders,units,inspections,deviations,history]=await Promise.all([
- this.db.query<any>(`SELECT po.*,bs.code AS build_spec_code,s.sku,p.partner_code,p.display_name AS factory_name,(SELECT count(*)::int FROM production.production_units u WHERE u.production_order_id=po.id) AS unit_count FROM production.production_orders po JOIN engineering.build_specs bs ON bs.id=po.build_spec_id JOIN product.skus s ON s.id=bs.sku_id JOIN partners.partners p ON p.id=po.factory_partner_id ORDER BY po.created_at DESC LIMIT 200`),
+ this.db.query<any>(`SELECT po.*,bs.code AS build_spec_code,s.sku,s.product_id::text AS product_id,s.sku_number::text AS sku_number,p.partner_code,p.display_name AS factory_name,(SELECT count(*)::int FROM production.production_units u WHERE u.production_order_id=po.id) AS unit_count FROM production.production_orders po JOIN engineering.build_specs bs ON bs.id=po.build_spec_id JOIN product.skus s ON s.id=bs.sku_id JOIN partners.partners p ON p.id=po.factory_partner_id ORDER BY po.created_at DESC LIMIT 200`),
  this.db.query<any>(`SELECT u.*,po.production_order_number FROM production.production_units u JOIN production.production_orders po ON po.id=u.production_order_id ORDER BY po.created_at DESC,u.unit_no LIMIT 2000`),
  this.db.query<any>(`SELECT q.*,u.production_order_id,u.unit_no FROM production.qc_inspections q JOIN production.production_units u ON u.id=q.production_unit_id ORDER BY q.inspected_at DESC LIMIT 2000`),
  this.db.query<any>(`SELECT d.*,ep.part_number AS expected_part_number,ap.part_number AS actual_part_number FROM production.as_built_deviations d JOIN engineering.parts ep ON ep.id=d.expected_part_id JOIN engineering.parts ap ON ap.id=d.actual_part_id ORDER BY d.created_at DESC LIMIT 1000`),
@@ -19,7 +19,7 @@ export class PostgresProductionRepository implements ProductionRepository{
    [orderId,order.total_gross_amount,order.currency]);
   const factory=await e.query(`SELECT p.id FROM partners.partners p
    JOIN partners.roles r ON r.partner_id=p.id WHERE p.id=$1 AND r.role='FACTORY' AND r.enabled=true LIMIT 1`,[factoryPartnerId]);
-  const lines=await e.query<any>(`SELECT l.id AS line_id,l.sku_id,l.quantity,bs.id AS build_spec_id
+  const lines=await e.query<any>(`SELECT l.id AS line_id,l.sku_id,l.quantity,l.product_id_snapshot::text AS product_id,l.sku_number_snapshot::text AS sku_number,bs.id AS build_spec_id
    FROM commerce.storefront_order_lines l
    LEFT JOIN LATERAL(
     SELECT x.id FROM engineering.build_specs x WHERE x.sku_id=l.sku_id AND x.status='RELEASED'

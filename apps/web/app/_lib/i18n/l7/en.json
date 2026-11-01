@@ -64,5 +64,11 @@
   "l7.spec.weight.value": "Carbon reference: {weight} kg",
   "l7.spec.unfolded": "Unfolded dimensions",
   "l7.spec.folded": "Folded dimensions",
+  "l7.spec.range": "Pedal-assist range reference",
+  "l7.spec.range.value": "{range} km; varies with configuration, load, terrain and assist conditions",
+  "l7.spec.charging": "Charging-time reference",
+  "l7.spec.charging.value": "About {hours} hours with a 42 V / 2 A charger",
+  "l7.spec.load": "Reference load",
+  "l7.spec.load.value": "{load} kg manufacturer product specification; not an independent whole-bike load-test result",
   "l7.gallery.carry.alt": "Integrated carrying opening and folding hinge on the A1 reference frame"
 }

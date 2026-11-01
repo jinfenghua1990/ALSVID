@@ -92,7 +92,7 @@
   "catalog.discovery.results": "{count} Modelle angezeigt",
   "catalog.discovery.fc1.note": "20-Zoll-Carbon-Faltrad als Referenzmuster. Endgültige technische Daten und Serienausstattung sind noch offen.",
   "catalog.discovery.other.note": "Entdecke die aktuellen Modellinformationen. Technische Daten, Varianten, Bestand und Marktstart bedürfen der Freigabe.",
-  "catalog.discovery.colour.label": "FC1 Farbkonzepte",
+  "catalog.discovery.colour.label": "A1 Ultra Farbkonzepte",
   "catalog.discovery.colour.sample": "Grünes Muster",
   "catalog.discovery.colour.black": "Schwarz – Entwurf",
   "catalog.discovery.colour.blue": "Blau – Entwurf",
@@ -144,7 +144,7 @@
   "catalog.discovery.help.purchase.question": "Kann ich die Modelle bereits online kaufen?",
   "catalog.discovery.help.purchase.answer": "Online-Bestellungen und Zahlungen sind noch nicht freigegeben. Der Warenkorb speichert nur eine unverbindliche Auswahl; er erstellt keine Bestellung und reserviert keinen Bestand.",
   "catalog.discovery.help.colours.question": "Zeigen die Farbfelder lieferbare Farben?",
-  "catalog.discovery.help.colours.answer": "Die FC1-Farbfelder zeigen ein grünes Referenzmuster und unbestätigte Farbvorschläge. Das Foto bleibt das echte Referenzrad. Lieferbare Farben und Varianten müssen noch freigegeben werden.",
+  "catalog.discovery.help.colours.answer": "Die A1 Ultra-Farbfelder zeigen ein grünes Referenzmuster und unbestätigte Farbvorschläge. Das Foto bleibt das echte Referenzrad. Lieferbare Farben und Varianten müssen noch freigegeben werden.",
   "catalog.discovery.help.facts.question": "Wie verbindlich sind die Vergleichsangaben?",
   "catalog.discovery.help.facts.answer": "Der Vergleich verwendet nur die vorhandenen öffentlichen Referenzangaben. Endgültige Serienspezifikationen, Preise und Verfügbarkeit sind noch nicht bestätigt. Weitere Informationen findest du auf der jeweiligen Modellseite."
 }

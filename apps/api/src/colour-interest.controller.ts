@@ -29,8 +29,9 @@ export class ColourInterestController {
   @PublicRateLimit({ perClient: 120, windowMs: 60 * 60 * 1000 })
   @Post()
   async select(@Body() input: ColourPreferenceInput) {
+    const productCode = input?.productCode === 'FC1' ? 'A1-ULTRA' : input?.productCode;
     if (
-      input?.productCode !== 'FC1'
+      productCode !== 'A1-ULTRA'
       || typeof input.sessionKey !== 'string'
       || !UUID_V4.test(input.sessionKey)
       || !allowed(input.modelCode, MODELS)
@@ -47,7 +48,7 @@ export class ColourInterestController {
           colour_code = EXCLUDED.colour_code,
           locale = EXCLUDED.locale,
           updated_at = now()`,
-      [input.productCode, input.sessionKey, input.modelCode, input.colourCode, input.locale],
+      [productCode, input.sessionKey, input.modelCode, input.colourCode, input.locale],
     );
     return { data: { saved: true } };
   }
@@ -63,22 +64,22 @@ export class ColourInterestController {
       database.query<{ colour_code: string; selections: number }>(
         `SELECT colour_code, COUNT(*)::integer AS selections
          FROM marketing.product_colour_preferences
-         WHERE product_code = 'FC1' GROUP BY colour_code ORDER BY selections DESC, colour_code`,
+         WHERE product_code IN ('A1-ULTRA','FC1') GROUP BY colour_code ORDER BY selections DESC, colour_code`,
       ),
       database.query<{ model_code: string; colour_code: string; selections: number }>(
         `SELECT model_code, colour_code, COUNT(*)::integer AS selections
          FROM marketing.product_colour_preferences
-         WHERE product_code = 'FC1' GROUP BY model_code, colour_code
+         WHERE product_code IN ('A1-ULTRA','FC1') GROUP BY model_code, colour_code
          ORDER BY selections DESC, model_code, colour_code`,
       ),
       database.query<{ total: number; last_selection: string | null }>(
         `SELECT COUNT(*)::integer AS total, MAX(updated_at)::text AS last_selection
-         FROM marketing.product_colour_preferences WHERE product_code = 'FC1'`,
+         FROM marketing.product_colour_preferences WHERE product_code IN ('A1-ULTRA','FC1')`,
       ),
     ]);
     return {
       data: {
-        productCode: 'FC1',
+        productCode: 'A1-ULTRA',
         total: total.rows[0]?.total ?? 0,
         lastSelection: total.rows[0]?.last_selection ?? null,
         colours: colours.rows.map(row => ({ code: row.colour_code, count: row.selections })),

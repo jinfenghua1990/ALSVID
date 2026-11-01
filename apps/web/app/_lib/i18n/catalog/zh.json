@@ -92,7 +92,7 @@
   "catalog.discovery.results": "当前显示 {count} 款车型",
   "catalog.discovery.fc1.note": "20 英寸碳纤维折叠参考车型。具体性能参数和量产配置仍需核验。",
   "catalog.discovery.other.note": "查看现有车型资料。规格、版本、库存与上市计划以正式发布为准。",
-  "catalog.discovery.colour.label": "FC1 颜色方向",
+  "catalog.discovery.colour.label": "A1 Ultra 颜色方向",
   "catalog.discovery.colour.sample": "绿色样车",
   "catalog.discovery.colour.black": "黑色提案",
   "catalog.discovery.colour.blue": "蓝色提案",
@@ -144,7 +144,7 @@
   "catalog.discovery.help.purchase.question": "现在可以在线购买这些车型吗？",
   "catalog.discovery.help.purchase.answer": "在线下单与支付尚未开放。购物车只保存非约束性的选购意向，不创建订单，也不锁定库存。",
   "catalog.discovery.help.colours.question": "色卡展示的颜色都能购买吗？",
-  "catalog.discovery.help.colours.answer": "FC1 色卡展示绿色参考样车和未确认的颜色提案，图片始终是真实参考样车。可售颜色与版本仍需正式发布。",
+  "catalog.discovery.help.colours.answer": "A1 Ultra 色卡展示绿色参考样车和未确认的颜色提案，图片始终是真实参考样车。可售颜色与版本仍需正式发布。",
   "catalog.discovery.help.facts.question": "对比中的参数已经定版了吗？",
   "catalog.discovery.help.facts.answer": "对比仅使用现有公开参考资料，最终量产规格、价格与供货情况尚未确认。请进入对应车型详情页查看现有介绍。"
 }

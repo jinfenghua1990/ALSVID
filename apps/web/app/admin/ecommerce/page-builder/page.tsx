@@ -15,5 +15,5 @@ const screen: Screen = {
 };
 
 export default function StorefrontPageBuilderPage() {
-  return <AdminScreen screen={screen}><StorefrontDraftList /></AdminScreen>;
+  return <AdminScreen screen={screen} hidePageHeading><StorefrontDraftList /></AdminScreen>;
 }

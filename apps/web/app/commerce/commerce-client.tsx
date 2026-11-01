@@ -10,11 +10,11 @@ import { EcommerceOrdersWorkspace } from '../_design/ecommerce-orders-workspace'
 import { adminRecordHref, queryRecordId } from '../_design/record-links';
 
 type Partner = { id: string; partnerCode: string; displayName: string; roles: string[] };
-type Sku = { id: string; sku: string; name: string };
+type Sku = { id: string; product_id: string; sku_number: string; sku: string; name: string };
 type Shipment = { id: string; shipment_number: string; status: string };
 type Channel = { id: string; provider: 'SHOPIFY' | 'AMAZON' | 'OTHER'; channel_key: string; display_name: string; external_account_id: string; default_dealer_partner_id: string | null; requires_dealer: boolean; enabled: boolean };
 type Order = { id: string; channel_id: string; channel_key: string; channel_name: string; external_order_id: string; external_order_name: string | null; external_customer_id: string | null; dealer_partner_id: string | null; customer_partner_id: string | null; dealer_name: string | null; customer_name: string | null; order_status: string; financial_status: string | null; fulfillment_status: string | null; currency: string; subtotal_amount: string; total_amount: string; source_updated_at: string | null };
-type Line = { id: string; order_id: string; external_line_id: string; external_product_id?: string | null; external_variant_id: string | null; external_sku: string | null; title: string; quantity: string; unit_price: string; currency: string; mapped_sku: string | null; mapped_sku_name: string | null; mapping_source: string };
+type Line = { id: string; order_id: string; external_line_id: string; external_product_id?: string | null; external_variant_id: string | null; external_sku: string | null; title: string; quantity: string; unit_price: string; currency: string; product_id: string | null; sku_number: string | null; mapped_product_id: string | null; mapped_sku_number: string | null; mapped_sku: string | null; mapped_sku_name: string | null; mapping_source: string };
 type Fulfillment = { id: string; order_id: string; external_fulfillment_id: string; fulfillment_status: string; tracking_company: string | null; tracking_number: string | null; logistics_shipment_id: string | null; shipment_number: string | null };
 type Exception = { id: string; channel_id: string; channel_key: string; exception_type: string; entity_type: string; entity_id: string; external_reference: string | null; message: string; status: string; created_at: string };
 type Receipt = { id: string; channel_id: string; channel_key: string; provider_event_id: string; provider_correlation_id: string | null; topic: string; source_account: string | null; provider_api_version: string | null; received_at: string };
@@ -289,7 +289,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
         <a href="#b2c">自建商城订单与价格</a>
         <a href="#external-orders">外部渠道订单</a>
         <a href="#exceptions">异常与对账</a>
-        <a href="/admin/product">进入产品中心</a>
+        <a href="/product">进入产品中心</a>
       </nav>
       <EcommerceOrdersWorkspace />
 
@@ -351,7 +351,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
           <select name="channelId" required defaultValue=""><option value="" disabled>选择渠道</option>{commerce.channels.map((item) => <option key={item.id} value={item.id}>{providerLabel(item.provider)} · {item.channel_key}</option>)}</select>
           <input name="externalProductId" placeholder="商品 ID：Shopify Product ID / Amazon ASIN"/>
           <div className={styles.inline}><input name="externalVariantId" placeholder="映射键：Shopify Variant ID / Amazon Seller SKU" required/><input name="externalSku" placeholder="外部 SKU（可选）"/></div>
-          <select name="skuId" required defaultValue=""><option value="" disabled>选择 ALSVID SKU</option>{skus.map((item) => <option key={item.id} value={item.id}>{item.sku} · {item.name}</option>)}</select>
+          <select name="skuId" required defaultValue=""><option value="" disabled>选择 ALSVID SKU</option>{skus.map((item) => <option key={item.id} value={item.id}>{item.sku_number} · {item.sku} · {item.name}</option>)}</select>
           <button>保存映射</button>
         </form>
         <form className={styles.card} onSubmit={ingestShopify}>
@@ -393,7 +393,7 @@ export default function CommerceClient({ embedded = false }: { embedded?: boolea
             <select name="customerPartnerId" defaultValue={selectedOrder.customer_partner_id ?? ''}><option value="">不映射客户</option>{customerPartners.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select>
             <button>保存 Partner 映射</button>
           </form>
-          <div className={styles.lines}><span>订单明细</span>{orderLines.map((line) => <article key={line.id}><div><b>{line.title || line.external_line_id}</b><small>商品 {line.external_product_id ?? '—'} · 映射键 {line.external_variant_id ?? '—'} · {line.external_sku ?? '无外部 SKU'}</small></div><div><b>{line.quantity} × {line.unit_price} {line.currency}</b><small>{line.mapped_sku ? `${line.mapped_sku} · ${statusLabel(line.mapping_source)}` : '未映射'}</small></div></article>)}</div>
+          <div className={styles.lines}><span>订单明细</span>{orderLines.map((line) => <article key={line.id}><div><b>{line.title || line.external_line_id}</b><small>商品 {line.external_product_id ?? '—'} · 映射键 {line.external_variant_id ?? '—'} · {line.external_sku ?? '无外部 SKU'}</small></div><div><b>{line.quantity} × {line.unit_price} {line.currency}</b><small>{line.mapped_sku ? `Product ${line.mapped_product_id} · SKU ${line.mapped_sku_number} · ${line.mapped_sku} · ${statusLabel(line.mapping_source)}` : '未映射'}</small></div></article>)}</div>
           <div className={styles.lines}><span>履约事实</span>{orderFulfillments.map((fulfillment) => <article key={fulfillment.id}><div><b>{fulfillment.external_fulfillment_id} · {statusLabel(fulfillment.fulfillment_status)}</b><small>{fulfillment.tracking_company ?? ''} {fulfillment.tracking_number ?? ''}</small></div><form onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void action(`/v1/commerce/fulfillments/${fulfillment.id}/shipment`, { shipmentId: data.get('shipmentId') || null }); }}><select name="shipmentId" defaultValue={fulfillment.logistics_shipment_id ?? ''}><option value="">不关联 ALSVID Shipment</option>{shipments.map((shipment) => <option key={shipment.id} value={shipment.id}>{shipment.shipment_number} · {shipment.status}</option>)}</select><button>映射</button></form></article>)}</div>
         </div> : <div className={styles.detail}><p className={styles.empty}>{linkedOrderId ? '链接指定的订单不在当前已授权的订单数据中，请核对订单 ID 或刷新。' : '选择一个订单查看详情。'}</p></div>}
       </section>

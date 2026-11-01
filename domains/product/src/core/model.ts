@@ -44,6 +44,7 @@ export interface ProductRowBase {
 export interface PlatformRow extends ProductRowBase {}
 
 export interface ModelRow extends ProductRowBase {
+  product_id: string;
   custom_fields: Record<string, CustomFieldValue>;
   platform_id: string | null;
   product_type_code: ProductTypeCode;
@@ -56,6 +57,9 @@ export interface VariantRow extends ProductRowBase {
 
 export interface SkuRow extends ProductRowBase {
   variant_id: string;
+  product_id: string;
+  sku_number: string;
+  sku_sequence: number;
   sku: string;
   market_code: string | null;
   color_code: string | null;
