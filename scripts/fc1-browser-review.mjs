@@ -244,7 +244,7 @@ try {
   const plain = await browser.newContext({ javaScriptEnabled:false, viewport:{ width:390, height:844 } });
   const fallback = await plain.newPage();
   await fallback.goto(base + "/en/explore/fc1");
-  assert.equal(await fallback.locator("h1").innerText(), "ALSVID FC1");
+  assert.equal(await fallback.locator("h1").innerText(), "ALSVID A1 Ultra");
   assert.equal(await fallback.locator('[aria-labelledby="feature-overview-title"] a[data-feature]').count(), 5);
   assert.equal(await fallback.locator("[data-fc1-motion]").count(), 0);
   assert.equal(await fallback.locator("#specifications tbody tr").count(), 20);
@@ -254,7 +254,7 @@ try {
   const classic = await browser.newPage();
   await classic.goto(base + "/en/explore/fc1?view=classic", { waitUntil:"networkidle" });
   assert.equal(await classic.locator('[data-fc1-version="4"]').count(), 0);
-  assert.equal(await classic.locator("h1").innerText(), "ALSVID FC1");
+  assert.equal(await classic.locator("h1").innerText(), "ALSVID A1 Ultra");
   check("classic route retains original page");
   await classic.close();
 } catch (error) {
