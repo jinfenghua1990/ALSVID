@@ -77,6 +77,19 @@ jobs:
       - name: Validate workflow configuration
         if: steps.scope.outputs.docs_only != 'true'
         run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:1.7.12 -color -shellcheck= -pyflakes= .github/workflows/*.yml
+      - name: Validate opt-in local Production Compose and script (no cloud secrets)
+        if: steps.scope.outputs.docs_only != 'true'
+        env:
+          ALSVID_RELEASE_SHA: ci-validation-only
+          DATABASE_URL: postgresql://fixture:fixture@nonproduction.invalid/check
+          OBJECT_STORAGE_ENDPOINT: https://fixture.r2.cloudflarestorage.com
+          OBJECT_STORAGE_BUCKET: ci-fixture
+          OBJECT_STORAGE_ACCESS_KEY: ci-fixture
+          OBJECT_STORAGE_SECRET_KEY: ci-fixture
+          MAIL_API_KEY: ci-fixture
+        run: |
+          node --check scripts/local-production.mjs
+          docker compose -f infra/docker-compose.local-production.yml config --quiet
       - name: Validate Google Cloud bootstrap shell syntax
         if: steps.scope.outputs.docs_only != 'true'
         run: |
