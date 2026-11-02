@@ -34,7 +34,7 @@ export default function EnvironmentPage() {
           <p>云端仅保留 Production。开发和自动化验证运行在本地或临时 CI 环境。</p>
           <div className="infoRows">
             <div className="infoRow"><span>ALSVID 环境</span><strong>{isProduction ? 'Production / 正式' : 'Local / CI'}</strong><span>{environment}</span></div>
-            <div className="infoRow"><span>Google Cloud 项目</span><strong>{isProduction ? 'alsvid-prod' : '不适用'}</strong><span>{isProduction ? '生产项目' : '无云端项目'}</span></div>
+            <div className="infoRow"><span>Google Cloud 项目</span><strong>{isProduction ? 'alsvid-production' : '不适用'}</strong><span>{isProduction ? '生产项目' : '无云端项目'}</span></div>
             <div className="infoRow"><span>运行平台</span><strong>{isProduction ? 'Google Cloud Run' : '本地容器 / CI runner'}</strong><span>{isProduction ? '云端运行' : '临时验证环境'}</span></div>
             <div className="infoRow"><span>发布版本</span><strong>{releaseSha}</strong><span>只读</span></div>
           </div>
@@ -69,7 +69,7 @@ export default function EnvironmentPage() {
         </section>
       </div>
 
-      <div className="mutedBox">发布链路：GitHub PR → CI → review / merge to main → exact-commit CI → Production（alsvid-prod）。本地和 CI 不使用 Production 凭据。旧的云端 Development / Test 部署链路已退出当前发布流程。</div>
+      <div className="mutedBox">发布链路：GitHub PR → CI → review / merge to main → exact-commit CI → Production（alsvid-production / europe-west1）。本地和 CI 不使用 Production 凭据。旧的云端 Development / Test 部署链路已退出当前发布流程。</div>
     </AppShell>
   );
 }

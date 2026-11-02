@@ -41,12 +41,6 @@ function summaryPath(query: string, status: string, market: string) {
   return `summary${value ? `?${value}` : ''}`;
 }
 
-function colorFromString(value: string): string {
-  let hue = 0;
-  for (const character of value) hue = (hue * 31 + character.charCodeAt(0)) % 360;
-  return `hsl(${hue} 58% 52%)`;
-}
-
 function maskEmail(email: string): string {
   const [name = '', domain] = email.split('@');
   if (!domain) return email;
@@ -134,11 +128,13 @@ export function EcommerceOrdersWorkspace() {
     } catch { /* 本地列配置损坏时回退到默认列，不影响订单数据 */ }
   }, []);
 
+  // Only filter changes trigger debounced reloads. Including request state here
+  // creates an infinite ready -> loading -> ready polling loop on an idle page.
   useEffect(() => {
-    if (!initialised.current || state !== 'ready') return;
+    if (!initialised.current) return;
     const timer = window.setTimeout(() => { void load(query, status, orderMarket); }, 300);
     return () => window.clearTimeout(timer);
-  }, [load, orderMarket, query, state, status]);
+  }, [load, orderMarket, query, status]);
 
   const activePrices = summary?.prices.filter(price => price.status === 'ACTIVE') ?? [];
   const availableSkus = summary?.skus.filter(sku => activePrices.some(price => price.skuId === sku.id && price.marketCountry === market)) ?? [];
@@ -292,7 +288,7 @@ export function EcommerceOrdersWorkspace() {
       </section>
     ) : null}
 
-    <section className="av-card">
+    <section className="av-card" aria-label="订单列表" aria-busy={state === 'loading'}>
       <div className="av-cardhead">
         <div>
           <h2 className="av-cardtitle">订单列表</h2>
@@ -333,46 +329,46 @@ export function EcommerceOrdersWorkspace() {
         <button className="av-btn" type="button" onClick={() => { setColumns(defaultColumns); try { window.localStorage.removeItem(columnStorageKey); } catch { /* 忽略 */ } }}>恢复默认</button>
       </div> : null}
 
-      {visibleOrders.length === 0 ? (
-        <p className="av-empty-state">当前没有符合筛选条件的订单。</p>
-      ) : (
-        <div className={styles.orderGrid}>
-          {visibleOrders.map(order => {
-            const mainLine = order.lines[0];
-            const thumbLabel = (mainLine?.skuName ?? order.orderNumber).slice(0, 2);
-            const thumbColor = colorFromString(order.id);
-            const isSelected = selected.has(order.id);
-            return (
-              <article key={order.id} className={styles.orderCard} data-selected={isSelected}>
-                <label className={styles.orderSelect}><input type="checkbox" checked={isSelected} onChange={() => toggleOne(order.id)} /></label>
-                <div className={styles.thumb} style={{ background: thumbColor }} aria-hidden="true">{thumbLabel}</div>
-                <div className={styles.orderMain}>
-                  <div className={styles.orderTitleRow}>
-                    <strong className={styles.orderNo}>{order.orderNumber}</strong>
-                    {columns.time ? <span className={styles.orderTime}>{new Date(order.createdAt).toLocaleString('zh-CN')}</span> : null}
-                  </div>
-                  {columns.goods ? <div className={styles.orderGoods}>
-                    {order.lines.length ? order.lines.map(line => <span key={line.id} className={styles.goodsItem}>{line.skuName} · {line.skuCode} ×{line.quantity}</span>) : <span className={styles.goodsItem}>—</span>}
+      <div className="av-tablewrap">
+        <table className="av-table" aria-label="B2C 订单列表">
+          <thead><tr>
+            <th scope="col">选择</th>
+            <th scope="col">订单号</th>
+            {columns.goods ? <th scope="col">商品明细</th> : null}
+            {columns.customer ? <th scope="col">客户与市场</th> : null}
+            {columns.amount || columns.status ? <th scope="col">金额与状态</th> : null}
+            <th scope="col">操作</th>
+          </tr></thead>
+          <tbody>
+            {visibleOrders.length === 0 ? (
+              <tr><td colSpan={3 + Number(columns.goods) + Number(columns.customer) + Number(columns.amount || columns.status)} className="av-empty-state">当前没有符合筛选条件的订单。</td></tr>
+            ) : visibleOrders.map(order => (
+              <tr key={order.id} data-selected={selected.has(order.id)}>
+                <td><input type="checkbox" aria-label={`选择订单 ${order.orderNumber}`} checked={selected.has(order.id)} onChange={() => toggleOne(order.id)} /></td>
+                <td>
+                  <strong className={styles.orderNo}>{order.orderNumber}</strong>
+                  {columns.time ? <div className={styles.orderTime}>{new Date(order.createdAt).toLocaleString('zh-CN')}</div> : null}
+                </td>
+                {columns.goods ? <td>
+                  {order.lines.length ? order.lines.map(line => <div key={line.id}>{line.skuName} · {line.skuCode} ×{line.quantity}</div>) : '—'}
+                </td> : null}
+                {columns.customer ? <td>{maskEmail(order.customerEmail)} <span className={styles.orderMarket}>{order.marketCountry}</span></td> : null}
+                {columns.amount || columns.status ? <td>
+                  {columns.amount ? <div><strong>{order.totalGrossAmount}</strong> {order.currency}</div> : null}
+                  {columns.status ? <div>
+                    <span className="av-tag" data-tone={statusTone[order.status] ?? 'neutral'}>{statusLabel[order.status] ?? order.status}</span>
+                    {order.blockers.length > 0 ? <span className="av-tag" data-tone="bad">{order.blockers.length} 项阻断</span> : null}
                   </div> : null}
-                  {columns.customer ? <div className={styles.orderShip}>{maskEmail(order.customerEmail)} <span className={styles.orderMarket}>{order.marketCountry}</span></div> : null}
-                </div>
-                {columns.amount ? <div className={styles.orderAmount}>
-                  <strong>{order.totalGrossAmount}</strong>
-                  <span>{order.currency}</span>
-                </div> : null}
-                {columns.status ? <div className={styles.orderStatus}>
-                  <span className="av-tag" data-tone={statusTone[order.status] ?? 'neutral'}>{statusLabel[order.status] ?? order.status}</span>
-                  {order.blockers.length > 0 ? <span className="av-tag" data-tone="bad">{order.blockers.length} 项阻断</span> : null}
-                </div> : null}
-                <div className={styles.orderActions}>
-                  <button className="av-btn" type="button" onClick={() => void openDetail(order)} disabled={busy}>详情</button>
+                </td> : null}
+                <td>
+                  <button className="av-btn" type="button" onClick={() => void openDetail(order)} disabled={busy}>订单详情</button>
                   {order.status === 'DRAFT' ? <button className="av-btn" type="button" onClick={() => void run(() => storefrontApi(`orders/${order.id}/submit`, { expectedVersion: order.version }), '订单已提交，等待支付通道接入。')} disabled={busy}>提交</button> : null}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
 
     {detail ? <section className="av-card"><div className="av-cardhead"><div><h2 className="av-cardtitle">订单详情 · {detail.orderNumber}</h2><p className="av-cardhint">版本 V{detail.version} · {statusLabel[detail.status] ?? detail.status} · 支付 {detail.paymentStatus}</p></div><button className="av-btn" type="button" onClick={() => setDetail(null)}>收起</button></div><div className="av-tablewrap"><table className="av-table"><thead><tr><th>SKU</th><th>数量</th><th>净额</th><th>税额</th><th>含税</th></tr></thead><tbody>{detail.lines.map(line => <tr key={line.id}><td>{line.skuCode} · {line.skuName}</td><td>{line.quantity}</td><td>{line.lineNetAmount}</td><td>{line.lineTaxAmount}</td><td>{line.lineGrossAmount}</td></tr>)}</tbody></table></div><p className="av-cardhint">创建时间：{new Date(detail.createdAt).toLocaleString('zh-CN')} · 流转记录 {detail.events.length} 条</p></section> : null}

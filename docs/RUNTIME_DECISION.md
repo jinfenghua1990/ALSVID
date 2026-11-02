@@ -65,7 +65,7 @@ Cloudflare remains strategically important for R2 object storage. Cloudflare Wor
 
 ## Development and Production
 
-Production in `alsvid-prod` is the only active cloud runtime. Development is local (M1/Docker); CI runs on disposable GitHub-hosted runners using temporary test resources. The former `alsvid-dev` Cloud Run environment and its Development/Test resources are retired from the release architecture.
+Production in verified `alsvid-production` (`europe-west1`) is the only active cloud runtime; `alsvid-prod` is only a proposed migration destination. Development is local (M1/Docker); CI runs on disposable GitHub-hosted runners using temporary test resources. The former `alsvid-dev` Cloud Run environment and its Development/Test resources are retired from the release architecture.
 
 Current release path:
 

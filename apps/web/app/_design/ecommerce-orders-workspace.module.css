@@ -33,36 +33,11 @@
 .columnOption[data-active='true']{border-color:var(--av-brand,#2f6fed);color:var(--av-brand,#2f6fed);background:var(--av-panel-soft)}
 .columnOption input{width:14px;height:14px}
 
-/* 横向卡片式订单表格 */
-.orderGrid{display:grid;gap:10px;margin-top:12px}
-.orderCard{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--av-line);border-radius:12px;background:var(--av-panel,#fff)}
-.orderCard[data-selected='true']{border-color:var(--av-brand,#2f6fed);box-shadow:inset 0 0 0 1px var(--av-brand,#2f6fed)}
-.orderSelect{display:grid;place-items:center}
-.orderSelect input{width:16px;height:16px}
-.thumb{width:46px;height:46px;border-radius:10px;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
-.orderMain{min-width:0;display:grid;gap:4px}
-.orderTitleRow{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.orderNo{font-size:14px;color:var(--av-text)}
-.orderTime{font-size:11px;color:var(--av-muted)}
-.orderGoods{display:flex;gap:6px;flex-wrap:wrap}
-.goodsItem{font-size:12px;color:var(--av-text-soft);background:var(--av-panel-soft);border:1px solid var(--av-line);border-radius:6px;padding:2px 6px}
-.orderShip{font-size:12px;color:var(--av-text-soft)}
+/* 订单列表统一采用 Admin 紧凑表格，旧卡片/缩略图布局已移除。 */
+.orderNo{font-size:13px;color:var(--av-text)}
+.orderTime{font-size:11px;color:var(--av-muted);margin-top:2px}
 .orderMarket{color:var(--av-muted);margin-left:6px}
-.orderAmount{text-align:right;white-space:nowrap}
-.orderAmount strong{font-size:15px;color:var(--av-text)}
-.orderAmount span{font-size:11px;color:var(--av-muted);margin-left:3px}
-.orderStatus{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.orderActions{display:flex;gap:6px;flex-wrap:wrap}
-
-@media(max-width:900px){
-  .orderCard{grid-template-columns:auto auto minmax(0,1fr);row-gap:10px}
-  .orderAmount,.orderStatus,.orderActions{grid-column:3 / -1;justify-self:start}
-}
-@media(max-width:600px){
-  .orderCard{grid-template-columns:auto auto 1fr}
-  .orderAmount,.orderStatus,.orderActions{grid-column:1 / -1}
-  .quickFilters{margin-left:0;width:100%}
-}
+@media(max-width:600px){.quickFilters{margin-left:0;width:100%}}
 
 /* 创建内部订单草稿表单（保留原布局） */
 .form{display:grid;grid-template-columns:1.4fr 1fr 1.4fr .7fr auto;gap:10px;align-items:end;padding:12px}
