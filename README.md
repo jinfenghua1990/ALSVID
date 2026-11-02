@@ -400,7 +400,7 @@ reviewed main commit
        ↓
 exact-commit CI
        ↓
-Google Cloud Run (alsvid-prod)
+Google Cloud Run (alsvid-production / europe-west1)
        ↓
 Production Neon / R2 / secrets
 ```
