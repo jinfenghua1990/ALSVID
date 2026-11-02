@@ -258,4 +258,6 @@ jobs:
           set -euo pipefail
           [[ -n "$PREVIOUS_REVISION" ]]
           gcloud run services update-traffic "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --to-revisions "$PREVIOUS_REVISION=100" --quiet
-          echo "WWW rollback requested after failed verification." >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=WWW release reverted::Post-deploy checks failed; Cloud Run Web traffic was restored to revision $PREVIOUS_REVISION. The newly requested release is NOT live." >&2
+          echo "### ALERT: WWW verification failed — old Web revision restored" >> "$GITHUB_STEP_SUMMARY"
+          echo "Previous revision: \`$PREVIOUS_REVISION\`. This is an explicit availability rollback, not a successful release. Investigate the failed smoke test before retrying." >> "$GITHUB_STEP_SUMMARY"
