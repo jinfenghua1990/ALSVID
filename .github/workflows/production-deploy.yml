@@ -151,6 +151,12 @@ jobs:
             fi
           done
 
+          # Pin the verified live project; old migration targets must not receive releases.
+          if [[ "$GCP_PROJECT_ID" != "alsvid-production" || "$GCP_REGION" != "europe-west1" ]]; then
+            echo "::error title=Unexpected Production target::Only alsvid-production/europe-west1 is authorized; audit any project migration before changing this guard." >&2
+            exit 1
+          fi
+
           if [[ "$MAIL_PROVIDER" != "resend" ]]; then
             echo "Production email verification requires MAIL_PROVIDER=resend; got: $MAIL_PROVIDER" >&2
             exit 1
