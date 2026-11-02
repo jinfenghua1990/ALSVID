@@ -123,7 +123,7 @@ Current environment model:
 
 - Local workstation/Docker for development.
 - Disposable GitHub CI runners for automated validation.
-- Production on Cloud Run in `alsvid-prod`.
+- Production on Cloud Run in verified `alsvid-production` (`europe-west1`).
 - The former cloud Development/Test runtime is retired from the release flow.
 
 Production uses Neon and R2 Production resources. Local/CI resources are isolated and must not receive Production credentials.
@@ -143,4 +143,4 @@ Advanced disaster recovery is postponed until business scale requires it.
 
 ## 7. Current environment and release boundary (2026-10-14)
 
-Production in `alsvid-prod` is the only live cloud runtime. Local Docker and disposable GitHub CI provide development and validation. The former `alsvid-dev` Cloud Run runtime and Development promotion workflow are retired. Pull requests target `main`, and Production deploy requires successful CI for the exact commit. This supersedes older environment-flow descriptions in historical records; it does not assert the live deletion status of any cloud resource.
+Production in verified `alsvid-production` (`europe-west1`) is the only live cloud runtime. The separately created `alsvid-prod` remains an unverified migration target, not the current deployment. Local Docker and disposable GitHub CI provide development and validation. The former `alsvid-dev` Cloud Run runtime and Development promotion workflow are retired. Pull requests target `main`, and Production deploy requires successful CI for the exact commit. This supersedes older environment-flow descriptions in historical records; it does not assert the live deletion status of any cloud resource.
