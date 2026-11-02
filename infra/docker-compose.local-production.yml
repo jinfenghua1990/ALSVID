@@ -1,0 +1,83 @@
+# Opt-in ALSVID application runtime on an authorized workstation/NAS.
+# Cloud Run remains live. This stack has NO PostgreSQL, MinIO, migration or worker service.
+# Production data and assets must be the same Neon/R2 resources used by Cloud Run.
+name: alsvid-local-production
+services:
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.web
+      args:
+        ALSVID_ENV: production
+        NEXT_PUBLIC_FC1_RESERVATION_EMAIL: ${NEXT_PUBLIC_FC1_RESERVATION_EMAIL:-info@alsvidbike.com}
+    environment:
+      NODE_ENV: production
+      ALSVID_ENV: production
+      ALSVID_RELEASE_SHA: ${ALSVID_RELEASE_SHA:?release SHA required}
+      ALSVID_API_BASE_URL: http://api:4000/api
+      ALSVID_COOKIE_SECURE: "false"
+      ALSVID_DEV_OPEN_PORTAL: "0"
+      AUTH_BASE_URL: https://admin.alsvidbike.com
+      ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED: "true"
+      ALSVID_DEALER_PASSWORD_LOGIN_ENABLED: "true"
+      ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED: "true"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/release-check').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+    environment:
+      NODE_ENV: production
+      ALSVID_ENV: production
+      ALSVID_RELEASE_SHA: ${ALSVID_RELEASE_SHA:?release SHA required}
+      API_PORT: "4000"
+      SERVICE_NAME: local-production
+      DATABASE_URL: ${DATABASE_URL:?production Neon secret required}
+      DATABASE_POOL_MAX: "3"
+      OBJECT_STORAGE_PROVIDER: r2
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?R2 endpoint required}
+      OBJECT_STORAGE_REGION: auto
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?R2 bucket required}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?R2 access secret required}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?R2 secret key required}
+      MAIL_PROVIDER: resend
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-noreply@alsvidbike.com}
+      MAIL_FROM_NAME: ALSVID
+      MAIL_API_KEY: ${MAIL_API_KEY:?mail secret required}
+      AUTH_BASE_URL: https://admin.alsvidbike.com
+      ALSVID_EMAIL_TEST_MODE: "false"
+      ALSVID_INTERNAL_EMAIL_DOMAINS: ${ALSVID_INTERNAL_EMAIL_DOMAINS:-}
+      ALSVID_INTERNAL_REGISTRATION_MODE: ${ALSVID_INTERNAL_REGISTRATION_MODE:-company_domain}
+      ALSVID_INITIAL_ADMIN_EMAIL: ${ALSVID_INITIAL_ADMIN_EMAIL:-}
+      ALSVID_ADMIN_PASSWORD_LOGIN_ENABLED: "true"
+      ALSVID_DEALER_PASSWORD_LOGIN_ENABLED: "true"
+      ALSVID_SUPPLIER_PASSWORD_LOGIN_ENABLED: "true"
+      FC1_RESERVATION_EMAIL: ${NEXT_PUBLIC_FC1_RESERVATION_EMAIL:-info@alsvidbike.com}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
