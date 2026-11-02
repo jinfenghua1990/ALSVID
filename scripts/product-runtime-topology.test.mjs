@@ -44,12 +44,12 @@ test("retired isolated local Postgres/MinIO stack cannot be started by old scrip
 test("retired admin workbench is removed and old bookmarks redirect to current admin", () => {
   assert.equal(existsSync(new URL("../apps/web/app/admin-legacy/page.tsx", import.meta.url)), false);
   const nextConfig = readFileSync(new URL("../apps/web/next.config.ts", import.meta.url), "utf8");
-  assert.match(nextConfig, /source:\s*'\\/admin-legacy',\s*destination:\s*'\\/admin',\s*permanent:\s*true/);
+  assert.ok(nextConfig.includes("source: '/admin-legacy', destination: '/admin', permanent: true"));
 });
 
 test("both production workflows refuse a retired or unverified GCP project/region", () => {
   for (const workflow of [productionWorkflow, wwwWorkflow]) {
-    assert.match(workflow, /"\\$GCP_PROJECT_ID" != "alsvid-production"/);
-    assert.match(workflow, /"\\$GCP_REGION" != "europe-west1"/);
+    assert.ok(workflow.includes('"$GCP_PROJECT_ID" != "alsvid-production"'));
+    assert.ok(workflow.includes('"$GCP_REGION" != "europe-west1"'));
   }
 });
