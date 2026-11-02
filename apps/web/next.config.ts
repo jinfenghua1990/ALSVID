@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
+  // Retired workbench must never render from a stale bookmark or deep link.
+  async redirects() {
+    return [{ source: '/admin-legacy', destination: '/admin', permanent: true }];
+  },
 };
 
 export default nextConfig;
