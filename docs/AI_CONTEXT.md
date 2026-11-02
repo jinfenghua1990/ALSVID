@@ -73,7 +73,7 @@ Development and CI:
 
 Production:
 
-- Google Cloud Run in `alsvid-prod`.
+- Google Cloud Run in verified `alsvid-production` (`europe-west1`).
 - Neon PostgreSQL.
 - Cloudflare R2.
 
@@ -89,7 +89,7 @@ Before changing architecture, check:
 
 ## Environment and release model (2026-10-14)
 
-The current cloud runtime is Production only (`alsvid-prod`). Local Docker and ephemeral GitHub CI are the development/validation environments. The former cloud Development/Test runtime and automatic promotion flow are retired. Pull requests target `main`; Production deployment requires successful CI for the exact commit. Treat older Development references elsewhere in the docs as historical unless explicitly updated. Verify live cloud inventory before claiming a resource exists or was deleted.
+The current cloud runtime is Production only (verified project `alsvid-production`, region `europe-west1`; `alsvid-prod` is not an active deployment). Local Docker and ephemeral GitHub CI are the development/validation environments. The former cloud Development/Test runtime and automatic promotion flow are retired. Pull requests target `main`; Production deployment requires successful CI for the exact commit. Treat older Development references elsewhere in the docs as historical unless explicitly updated. Verify live cloud inventory before claiming a resource exists or was deleted.
 
 ## Design tool and portal boundary — 2026-10-16
 
