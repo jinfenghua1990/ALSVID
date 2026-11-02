@@ -14,8 +14,9 @@
     "verify": "pnpm arch:check && pnpm typecheck && pnpm test && pnpm build",
     "db:migrate": "pnpm --filter @alsvid/database migrate",
     "bootstrap:admin": "pnpm --filter @alsvid/api bootstrap:admin",
-    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
-    "infra:down": "docker compose -f infra/docker-compose.yml down"
+    "infra:up": "node scripts/local-production.mjs up",
+    "infra:down": "node scripts/local-production.mjs down",
+    "infra:status": "node scripts/local-production.mjs status"
   },
   "devDependencies": { "typescript": "^6.0.0" }
 }
