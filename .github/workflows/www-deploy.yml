@@ -105,6 +105,10 @@ jobs:
         run: |
           set -euo pipefail
           [[ -n "$GCP_PROJECT_ID" && -n "$GCP_REGION" && -n "$AUTH_BASE_URL" ]]
+          if [[ "$GCP_PROJECT_ID" != "alsvid-production" || "$GCP_REGION" != "europe-west1" ]]; then
+            echo "::error title=Unexpected Production target::Only alsvid-production/europe-west1 is authorized; audit any project migration before changing this guard." >&2
+            exit 1
+          fi
           [[ "$AUTH_BASE_URL" == https://* && "$AUTH_BASE_URL" != *run.app* ]]
           api_url="$(gcloud run services describe "$API_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')"
           previous_revision="$(gcloud run services describe "$WEB_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.traffic[0].revisionName)')"
