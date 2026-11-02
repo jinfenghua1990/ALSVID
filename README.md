@@ -1,5 +1,7 @@
 # ALSVID
 
+> **新增可选本地正式运行方式（2026-11-02）**：保留 Google Cloud Run 作为现有线上运行位置；获授权的本地电脑/NAS 可以通过 [本地运行说明](docs/LOCAL_PRODUCTION.md) 启动同一 ALSVID Web/API，连接既有 Neon Production 数据库、Cloudflare R2 和统一身份，不建立第二套业务数据。普通员工仍优先使用现有 HTTPS 门户，不向员工设备下发数据库或 R2 密钥。本地实机部署及员工联动尚未验收。
+
 > 当前云端运行环境只有 Production；开发在本地进行，CI 使用临时资源。旧的云端 Development/Test 流程仅作为历史记录。
 
 > ALSVID 是自行车品牌的企业数字化平台。这个仓库是 ALSVID 的新实现权威源（implementation authority），不是 ChaiBen-OS 或旧 ALSVID 代码的迁移副本。
