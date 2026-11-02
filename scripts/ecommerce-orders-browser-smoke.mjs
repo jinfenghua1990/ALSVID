@@ -46,7 +46,7 @@ try {
       && (!params.get('query') || (order.orderNumber + ' ' + order.lines[0].skuCode).toLowerCase().includes(params.get('query').toLowerCase()));
     await route.fulfill({ json: { data: {
       checkoutEnabled: false, skus: [], prices: [], factories: [], orders: matching ? [order] : [],
-      orderTotal: matching ? 1 : 0, orderLimit: 100, orderStatusCounts: { DRAFT: 1 },
+      orderTotal: matching ? 1 : 0, orderLimit: 100, orderStatusCounts: { DRAFT: 1, CANCELLED: 0 },
     } } });
   });
   await page.route('**/api/control/v1/commerce/storefront/orders/ci-order', route =>
@@ -57,7 +57,7 @@ try {
   const list = workspace.getByRole('region', { name: '订单列表' });
   await list.getByText('ALS-CI-001').waitFor({ timeout: 30000 });
   await list.getByText('F8 黑色').waitFor();
-  await list.getByText('1000.00 EUR').waitFor();
+  await list.getByText('2000.00 EUR').waitFor();
   assert.equal(await list.locator('table thead th').count(), 6, 'the list uses table headings');
   assert.equal(await list.locator('article').count(), 0, 'orders are not rendered as cards');
   const settled = summaries;
@@ -65,7 +65,7 @@ try {
   assert.equal(summaries, settled, 'idle order pages must not repeatedly fetch summaries');
   await page.screenshot({ path: path.join(output, 'ecommerce-orders-table.png'), fullPage: true });
 
-  await list.getByRole('button', { name: /已取消/ }).click();
+  await workspace.getByRole('tab', { name: /已取消/ }).click();
   await list.getByText('当前没有符合筛选条件的订单').waitFor();
   assert.equal(await list.locator('table thead th').count(), 6, 'empty results retain the headings');
   await list.getByRole('button', { name: '重置' }).click();
